@@ -1,0 +1,17 @@
+<% content_for :title_button do %>
+  <%= link_to 'Create New Work Order', new_work_order_url, class: 'btn btn-success vcenter', style: 'margin-top: 28px' %>
+<% end %>
+
+<div class="row">
+  <div class="col-md-12">
+    <h2>Incomplete Work Orders</h2>
+    <%= render "work_orders_table", work_orders: @pending_work_orders %>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-md-12">
+    <h2>Completed Work Orders</h2>
+    <%= render "work_orders_table", work_orders: @active_work_orders %>
+  </div>
+</div>

@@ -1,0 +1,20 @@
+<%= render partial: 'order_header', locals: { title: "Step 2: Select Details" , progress: 40 } %>
+
+<%= bootstrap_form_for work_order, url: wizard_path, method: :put  do |f| %>
+
+  <%= f.fields_for :item, item do |item_fields| %>
+
+    <%= item_fields.fields_for :item_option_selections, item_option_selections.order(:created_at) do |ios| %>
+
+      <%= ios.hidden_field :id %>
+      <%= ios.hidden_field :product_option_id %>
+
+      <%= ios.collection_select :product_option_value_id, ios.object.product_option.product_option_values, :id, :value, label: ios.object.product_option.name %>
+
+    <% end %>
+
+  <% end %>
+
+  <%= render 'buttons', work_order: work_order, f: f %>
+
+<% end %>
