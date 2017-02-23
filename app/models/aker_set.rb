@@ -1,5 +1,6 @@
 require 'set_service_client'
 
+# Don't want to call it Set because that is a built-in type.
 class AkerSet
     include ActiveModel::Model
 
