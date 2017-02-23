@@ -1,3 +1,12 @@
+GIT
+  remote: git://github.com/khelwood/set_service_client_gem.git
+  revision: 5843323a9b854c5c5a8e07bb5be57165d32eec68
+  branch: clone_lock
+  specs:
+    set_service_client (0.1.3)
+      faraday (~> 0.11.0)
+      zipkin-tracer (~> 0.20.1)
+
 GEM
   remote: https://rubygems.org/
   specs:
@@ -72,7 +81,7 @@ GEM
       coffee-script-source
       execjs
     coffee-script-source (1.10.0)
-    concurrent-ruby (1.0.2)
+    concurrent-ruby (1.0.4)
     database_cleaner (1.5.3)
     debug_inspector (0.0.2)
     descendants_tracker (0.0.4)
@@ -87,7 +96,11 @@ GEM
     factory_girl_rails (4.7.0)
       factory_girl (~> 4.7.0)
       railties (>= 3.0.0)
+    faraday (0.11.0)
+      multipart-post (>= 1.2, < 3)
     ffi (1.9.14)
+    finagle-thrift (1.4.2)
+      thrift (~> 0.9.3)
     flay (2.8.1)
       erubis (~> 2.7.0)
       path_expander (~> 1.0)
@@ -127,6 +140,7 @@ GEM
     mini_portile2 (2.1.0)
     minitest (5.9.1)
     multi_json (1.12.1)
+    multipart-post (2.0.0)
     nio4r (1.2.1)
     nokogiri (1.6.8)
       mini_portile2 (~> 2.1.0)
@@ -239,8 +253,11 @@ GEM
       activesupport (>= 4.0)
       sprockets (>= 3.0.0)
     sqlite3 (1.3.12)
+    sucker_punch (2.0.2)
+      concurrent-ruby (~> 1.0.0)
     thor (0.19.1)
     thread_safe (0.3.5)
+    thrift (0.9.3.0)
     tilt (2.0.5)
     turbolinks (5.0.1)
       turbolinks-source (~> 5)
@@ -267,6 +284,11 @@ GEM
       railties (>= 3.0.7)
     xpath (2.0.0)
       nokogiri (~> 1.3)
+    zipkin-tracer (0.20.1)
+      faraday (~> 0.8)
+      finagle-thrift (~> 1.4.2)
+      rack (>= 1.0)
+      sucker_punch (~> 2.0)
 
 PLATFORMS
   ruby
@@ -292,6 +314,7 @@ DEPENDENCIES
   rubocop (~> 0.41.2)
   rubycritic
   sass-rails (~> 5.0)
+  set_service_client!
   simplecov
   simplecov-rcov
   spring

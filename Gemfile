@@ -35,6 +35,7 @@ gem 'font-awesome-sass'
 gem 'rubocop', '~> 0.41.2', require: false
 gem 'wicked'
 gem 'bootstrap_form'
+gem 'set_service_client', github: 'khelwood/set_service_client_gem', branch: 'clone_lock'
 
 group :development, :test do
   # Call 'byebug' anywhere in the code to stop execution and get a debugger console
@@ -54,7 +55,7 @@ end
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem
 gem 'tzinfo-data', platforms: [:mingw, :mswin, :x64_mingw, :jruby]
 
-group :test do
+group :test, :development do
   gem 'rspec-rails', '~> 3.4'
   gem 'launchy'
   gem 'capybara'
