@@ -1,4 +1,3 @@
-require 'study_management_client'
 class WorkOrdersController < ApplicationController
 
   before_action :work_order, only: [:show]
@@ -6,7 +5,6 @@ class WorkOrdersController < ApplicationController
   def index
     @active_work_orders = WorkOrder.active
     @pending_work_orders = WorkOrder.pending
-    @proposals = StudyManagementClient.get_nodes_with_cost_code
   end
 
   def new

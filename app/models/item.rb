@@ -9,6 +9,10 @@ class Item < ApplicationRecord
 
   before_create :set_item_option_selections
 
+  def proposal_id
+  end
+
+
 private
 
   def set_item_option_selections

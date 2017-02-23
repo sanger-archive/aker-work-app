@@ -10,10 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20161027133255) do
-
-  # These are extensions that must be enabled in order to support this database
-  enable_extension "plpgsql"
+ActiveRecord::Schema.define(version: 20170223165835) do
 
   create_table "item_option_selections", force: :cascade do |t|
     t.integer  "item_id"
@@ -21,9 +18,9 @@ ActiveRecord::Schema.define(version: 20161027133255) do
     t.integer  "product_option_value_id"
     t.datetime "created_at",              null: false
     t.datetime "updated_at",              null: false
-    t.index ["item_id"], name: "index_item_option_selections_on_item_id", using: :btree
-    t.index ["product_option_id"], name: "index_item_option_selections_on_product_option_id", using: :btree
-    t.index ["product_option_value_id"], name: "index_item_option_selections_on_product_option_value_id", using: :btree
+    t.index ["item_id"], name: "index_item_option_selections_on_item_id"
+    t.index ["product_option_id"], name: "index_item_option_selections_on_product_option_id"
+    t.index ["product_option_value_id"], name: "index_item_option_selections_on_product_option_value_id"
   end
 
   create_table "items", force: :cascade do |t|
@@ -31,8 +28,10 @@ ActiveRecord::Schema.define(version: 20161027133255) do
     t.integer  "product_id"
     t.datetime "created_at",    null: false
     t.datetime "updated_at",    null: false
-    t.index ["product_id"], name: "index_items_on_product_id", using: :btree
-    t.index ["work_order_id"], name: "index_items_on_work_order_id", using: :btree
+    t.integer  "proposal_id"
+    t.index ["product_id"], name: "index_items_on_product_id"
+    t.index ["proposal_id"], name: "index_items_on_proposal_id"
+    t.index ["work_order_id"], name: "index_items_on_work_order_id"
   end
 
   create_table "product_option_values", force: :cascade do |t|
@@ -40,7 +39,7 @@ ActiveRecord::Schema.define(version: 20161027133255) do
     t.string   "value"
     t.datetime "created_at",        null: false
     t.datetime "updated_at",        null: false
-    t.index ["product_option_id"], name: "index_product_option_values_on_product_option_id", using: :btree
+    t.index ["product_option_id"], name: "index_product_option_values_on_product_option_id"
   end
 
   create_table "product_options", force: :cascade do |t|
@@ -48,7 +47,7 @@ ActiveRecord::Schema.define(version: 20161027133255) do
     t.string   "name"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["product_id"], name: "index_product_options_on_product_id", using: :btree
+    t.index ["product_id"], name: "index_product_options_on_product_id"
   end
 
   create_table "products", force: :cascade do |t|
@@ -56,7 +55,7 @@ ActiveRecord::Schema.define(version: 20161027133255) do
     t.integer  "shop_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["shop_id"], name: "index_products_on_shop_id", using: :btree
+    t.index ["shop_id"], name: "index_products_on_shop_id"
   end
 
   create_table "shops", force: :cascade do |t|
@@ -73,12 +72,4 @@ ActiveRecord::Schema.define(version: 20161027133255) do
     t.datetime "updated_at", null: false
   end
 
-  add_foreign_key "item_option_selections", "items"
-  add_foreign_key "item_option_selections", "product_option_values"
-  add_foreign_key "item_option_selections", "product_options"
-  add_foreign_key "items", "products"
-  add_foreign_key "items", "work_orders"
-  add_foreign_key "product_option_values", "product_options"
-  add_foreign_key "product_options", "products"
-  add_foreign_key "products", "shops"
 end
