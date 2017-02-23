@@ -35,6 +35,10 @@ gem 'font-awesome-sass'
 gem 'rubocop', '~> 0.41.2', require: false
 gem 'wicked'
 gem 'bootstrap_form'
+gem 'faraday'
+
+gem 'study_management_client'
+
 
 group :development, :test do
   # Call 'byebug' anywhere in the code to stop execution and get a debugger console
