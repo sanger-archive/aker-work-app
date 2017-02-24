@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170223165835) do
+ActiveRecord::Schema.define(version: 20170224102432) do
 
   create_table "item_option_selections", force: :cascade do |t|
     t.integer  "item_id"
@@ -28,9 +28,7 @@ ActiveRecord::Schema.define(version: 20170223165835) do
     t.integer  "product_id"
     t.datetime "created_at",    null: false
     t.datetime "updated_at",    null: false
-    t.integer  "proposal_id"
     t.index ["product_id"], name: "index_items_on_product_id"
-    t.index ["proposal_id"], name: "index_items_on_proposal_id"
     t.index ["work_order_id"], name: "index_items_on_work_order_id"
   end
 
@@ -68,8 +66,10 @@ ActiveRecord::Schema.define(version: 20170223165835) do
 
   create_table "work_orders", force: :cascade do |t|
     t.string   "status"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
+    t.datetime "created_at",  null: false
+    t.datetime "updated_at",  null: false
+    t.integer  "proposal_id"
+    t.string   "cost_code"
   end
 
 end

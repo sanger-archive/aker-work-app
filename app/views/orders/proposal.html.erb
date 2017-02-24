@@ -1,19 +1,16 @@
 <%= render partial: 'order_header', locals: { title: "Step 1: Select Proposal" , progress: 20 } %>
 
 <%= bootstrap_form_for work_order, url: wizard_path, method: :put  do |f| %>
-
-  <%= f.fields_for :item, item do |item_fields| %>
-
     <% get_all_proposals.each do |p| %>
 			<ul>
-		  	<%= item_fields.radio_button "proposal_id", p[:id] %>
-		  	<%= f.label p[:name] %>
-		  	<%= f.label p[:cost_code] %>
+		  	<%= f.radio_button :proposal_id, p[:id] %>
+				<%= f.radio_button :cost_code, p[:cost_code] %>
+		  	<%= f.label "Name: %s, Costcode: %s, ID: %s" % [p[:name], p[:cost_code], p[:id]] %>
 		  </ul>
-		<% end %>
 
-	<% end %>
+		<% end %>
 
   <%= render 'buttons', work_order: work_order, f: f %>
 
 <% end %>
+
