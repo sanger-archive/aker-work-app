@@ -28,6 +28,10 @@ class OrdersController < ApplicationController
     work_order.item || Item.new
   end
 
+  def proposal
+    work_order.proposal
+  end
+
   def get_all_proposals
     Proposal.get_proposals
   end
@@ -44,7 +48,7 @@ class OrdersController < ApplicationController
     step == steps.first
   end
 
-  helper_method :work_order, :item, :get_all_proposals, :item_option_selections, :last_step?, :first_step?
+  helper_method :work_order, :item, :proposal, :get_all_proposals, :item_option_selections, :last_step?, :first_step?
 
   private
 
