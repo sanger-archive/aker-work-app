@@ -12,9 +12,6 @@ class Item < ApplicationRecord
   def proposal_id
   end
 
-  def set_id
-  end
-
 private
 
   def set_item_option_selections

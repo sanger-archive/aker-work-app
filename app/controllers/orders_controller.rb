@@ -1,9 +1,7 @@
 class OrdersController < ApplicationController
 
   include Wicked::Wizard
-  # steps :proposal, :product, :details, :set, :summary
-    steps :proposal, :set, :summary
-
+  steps :proposal, :product, :details, :set, :summary
 
   def show
     render_wizard
@@ -34,10 +32,6 @@ class OrdersController < ApplicationController
     Proposal.get_proposals
   end
 
-  def get_all_sets
-    AkerSet.get_sets
-  end
-
   def item_option_selections
     item.item_option_selections
   end
@@ -50,7 +44,7 @@ class OrdersController < ApplicationController
     step == steps.first
   end
 
-  helper_method :work_order, :item, :get_all_proposals, :get_all_sets, :item_option_selections, :last_step?, :first_step?
+  helper_method :work_order, :item, :get_all_proposals, :item_option_selections, :last_step?, :first_step?
 
   private
 

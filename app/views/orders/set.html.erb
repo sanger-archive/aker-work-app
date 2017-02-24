@@ -1,20 +1,18 @@
 <%= render partial: 'order_header', locals: { title: "Step 3: Select Set" , progress: 60 } %>
+<div class="row">
+  <div class="col-md-12">
+    <div style="margin: 10px 0">
 
-<%= bootstrap_form_for work_order, url: wizard_path, method: :put  do |f| %>
+      <%= link_to 'Back', previous_wizard_path, class: 'btn btn-default' %>
+      <%= link_to 'Next', next_wizard_path, class: 'btn btn-default', style: "float: right" %>
 
-  <%= f.fields_for :item, item do |item_fields| %>
+      <%= link_to 'Cancel', work_order,
+            method: :delete,
+            class: 'btn btn-danger',
+            data: { confirm: 'Are you sure you wish to cancel this work order?' },
+            style: "float: right; margin-right: 7px"
+      %>
 
-    <% get_all_sets.each do |p| %>
-      <ul>
-        <%= item_fields.radio_button "set_id", p[:id] %>
-        <%= f.label p[:id] %>
-        <%= f.label p[:name] %>
-      </ul>
-    <% end %>
-
-  <% end %>
-
-
-  <%= render 'buttons', work_order: work_order, f: f %>
-
-<% end %>
+    </div>
+  </div>
+</div>
