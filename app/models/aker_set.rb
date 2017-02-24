@@ -1,6 +1,6 @@
 require 'set_service_client'
 
-# Don't want to call it Set because that is a built-in type.
+# Don't call it "Set", because that is a built-in type.
 class AkerSet
     include ActiveModel::Model
 
@@ -23,7 +23,7 @@ class AkerSet
     end
 
     def create_locked_clone(new_name)
-        clone_uuid = SetServiceClient::clone_set(uuid, new_name)['id']
+        clone_uuid = SetServiceClient::clone_set(uuid, new_name)['data']['id']
         AkerSet.new_from_json(SetServiceClient::lock_set(clone_uuid)['data'])
     end
 

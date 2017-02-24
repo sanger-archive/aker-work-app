@@ -2,11 +2,15 @@ class WorkOrder < ApplicationRecord
   has_one :item, inverse_of: :work_order, dependent: :destroy
   accepts_nested_attributes_for :item
 
-  scope :active, -> { where(status: 'active') }
-  scope :pending, -> { where.not(status: 'active') }
+  def self.ACTIVE
+    'active'
+  end
+
+  scope :active, -> { where(status: WorkOrder.ACTIVE) }
+  scope :pending, -> { where.not(status: WorkOrder.ACTIVE) }
 
   def active?
-    status == 'active'
+    status == WorkOrder.ACTIVE
   end
 
   def original_set
@@ -29,6 +33,11 @@ class WorkOrder < ApplicationRecord
   def set=(set)
     self.set_uuid = set&.uuid
     @set = set
+  end
+
+  # Create a locked set from this work order's original set.
+  def create_locked_set
+    self.set = original_set.create_locked_clone
   end
 
 end
