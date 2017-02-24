@@ -15,7 +15,7 @@ class WorkOrder < ApplicationRecord
 
   def original_set
     return nil unless original_set_uuid
-    return @original_set if @orginal_set&.uuid==original_set_uuid
+    return @original_set if @original_set&.uuid==original_set_uuid
     @original_set = AkerSet.find(original_set_uuid)
   end
 
@@ -37,7 +37,7 @@ class WorkOrder < ApplicationRecord
 
   # Create a locked set from this work order's original set.
   def create_locked_set
-    self.set = original_set.create_locked_clone
+    self.set = original_set.create_locked_clone("Work order #{id}")
   end
 
 end
