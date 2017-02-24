@@ -49,7 +49,6 @@ class OrdersController < ApplicationController
   private
 
   def work_order_params
-    p "params!"
     params.require(:work_order).permit(
       :status, :proposal_id, item_attributes: [
         :id, :product_id,  item_option_selections_attributes: [
