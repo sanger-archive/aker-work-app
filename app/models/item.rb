@@ -12,6 +12,8 @@ class Item < ApplicationRecord
   def proposal_id
   end
 
+  def set_id
+  end
 
 private
 

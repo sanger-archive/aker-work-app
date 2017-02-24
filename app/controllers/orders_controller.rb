@@ -1,14 +1,15 @@
 class OrdersController < ApplicationController
 
   include Wicked::Wizard
-  steps :proposal, :product, :details, :set, :summary
+  # steps :proposal, :product, :details, :set, :summary
+    steps :proposal, :set, :summary
+
 
   def show
     render_wizard
   end
 
   def update
-    p "!!"
     p WorkOrder.find(params[:work_order_id])
     params[:work_order][:status] = step.to_s
     params[:work_order][:status] = 'active' if last_step?
@@ -22,10 +23,7 @@ class OrdersController < ApplicationController
   protected
 
   def work_order
-    puts "work order!"
     @work_order ||= WorkOrder.find(params[:work_order_id])
-    p @work_order
-
   end
 
   def item
@@ -34,6 +32,10 @@ class OrdersController < ApplicationController
 
   def get_all_proposals
     Proposal.get_proposals
+  end
+
+  def get_all_sets
+    AkerSet.get_sets
   end
 
   def item_option_selections
@@ -48,7 +50,7 @@ class OrdersController < ApplicationController
     step == steps.first
   end
 
-  helper_method :work_order, :item, :get_all_proposals, :item_option_selections, :last_step?, :first_step?
+  helper_method :work_order, :item, :get_all_proposals, :get_all_sets, :item_option_selections, :last_step?, :first_step?
 
   private
 

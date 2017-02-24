@@ -38,6 +38,7 @@ gem 'bootstrap_form'
 gem 'faraday'
 
 gem 'study_management_client'
+gem 'set_service_client'
 
 
 group :development, :test do
