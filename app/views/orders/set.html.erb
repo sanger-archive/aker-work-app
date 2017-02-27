@@ -1,20 +1,10 @@
 <%= render partial: 'order_header', locals: { title: "Step 3: Select Set" , progress: 60 } %>
 
-<div class="row">
-  <div class="col-md-12">
-    <div style="margin: 10px 0">
+<%= bootstrap_form_for work_order, url: wizard_path, method: :put  do |f| %>
 
-      <%= link_to 'Back', previous_wizard_path, class: 'btn btn-default' %>
+    <%= f.collection_radio_buttons(:set_uuid, get_all_aker_sets, :id, :id,
+      label: 'Please Select A Set') %>
 
-      <%= link_to 'Next', next_wizard_path, class: 'btn btn-default', style: "float: right" %>
+  <%= render 'buttons', work_order: work_order, f: f %>
 
-      <%= link_to 'Cancel', work_order,
-            method: :delete,
-            class: 'btn btn-danger',
-            data: { confirm: 'Are you sure you wish to cancel this work order?' },
-            style: "float: right; margin-right: 7px"
-      %>
-
-    </div>
-  </div>
-</div>
+<% end %>

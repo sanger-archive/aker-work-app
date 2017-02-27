@@ -30,6 +30,14 @@ class OrdersController < ApplicationController
     work_order.item || Item.new
   end
 
+  def aker_set
+    work_order.aker_set
+  end
+
+  def get_all_aker_sets
+    AkerSet.all
+  end
+
   def item_option_selections
     item.item_option_selections
   end
@@ -42,13 +50,13 @@ class OrdersController < ApplicationController
     step == steps.first
   end
 
-  helper_method :work_order, :item, :item_option_selections, :last_step?, :first_step?
+  helper_method :work_order, :aker_set, :get_all_aker_sets, :item, :item_option_selections, :last_step?, :first_step?
 
   private
 
   def work_order_params
     params.require(:work_order).permit(
-      :status, item_attributes: [
+      :status, :set_uuid, item_attributes: [
         :id, :product_id, item_option_selections_attributes: [
           :id, :product_option_id, :product_option_value_id
         ]
