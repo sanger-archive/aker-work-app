@@ -8,7 +8,6 @@ class OrdersController < ApplicationController
   end
 
   def update
-    p WorkOrder.find(params[:work_order_id])
     params[:work_order][:status] = step.to_s
     params[:work_order][:status] = 'active' if last_step?
 
