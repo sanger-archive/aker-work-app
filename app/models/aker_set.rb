@@ -27,4 +27,7 @@ class AkerSet
         AkerSet.new_from_json(SetServiceClient::lock_set(clone_uuid)['data'])
     end
 
+    def name_with_uuid
+        "#{name} : #{uuid}"
+    end
 end
