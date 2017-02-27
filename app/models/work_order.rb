@@ -2,6 +2,8 @@ class WorkOrder < ApplicationRecord
   has_one :item, inverse_of: :work_order, dependent: :destroy
   accepts_nested_attributes_for :item
 
+  before_save :create_locked_set, if: -> { original_set_uuid_changed? }
+
   def self.ACTIVE
     'active'
   end
