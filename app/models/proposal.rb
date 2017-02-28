@@ -20,4 +20,8 @@ class Proposal
         new_from_json(StudyManagementClient::get_proposal(id.inspect)[0])
     end
 
+    def name_with_cost_code
+        "#{name} : #{cost_code}"
+    end
+
 end
