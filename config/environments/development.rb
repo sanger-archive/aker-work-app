@@ -54,4 +54,7 @@ Rails.application.configure do
 
   config.study_url = 'http://localhost:3300/api/v1/nodes'
   config.study_url_default_proxy = 'http://localhost:3300'
+
+  config.set_url = 'http://localhost:3000/api/v1/sets'
+  config.set_url_default_proxy = 'http://localhost:3000'
 end

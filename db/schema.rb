@@ -66,9 +66,11 @@ ActiveRecord::Schema.define(version: 20170224102355) do
 
   create_table "work_orders", force: :cascade do |t|
     t.string   "status"
-    t.datetime "created_at",  null: false
-    t.datetime "updated_at",  null: false
-    t.integer  "proposal_id"
+    t.datetime "created_at",        null: false
+    t.datetime "updated_at",        null: false
+    t.string   "original_set_uuid"
+    t.string   "set_uuid"
+	t.integer  "proposal_id"
   end
 
 end

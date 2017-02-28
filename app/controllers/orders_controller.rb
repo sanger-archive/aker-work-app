@@ -12,8 +12,11 @@ class OrdersController < ApplicationController
     params[:work_order][:status] = 'active' if last_step?
 
     if work_order.update_attributes(work_order_params) && last_step?
+      # TODO work_order.create_locked_set
+      #      work_order.save!
       flash[:notice] = 'Your Work Order has been created'
     end
+
     render_wizard work_order
   end
 
@@ -25,6 +28,14 @@ class OrdersController < ApplicationController
 
   def item
     work_order.item || Item.new
+  end
+
+  def aker_set
+    work_order.aker_set
+  end
+
+  def get_all_aker_sets
+    AkerSet.all
   end
 
   def proposal
@@ -47,13 +58,13 @@ class OrdersController < ApplicationController
     step == steps.first
   end
 
-  helper_method :work_order, :item, :proposal, :get_all_proposals, :item_option_selections, :last_step?, :first_step?
+  helper_method :work_order, :aker_set, :get_all_aker_sets, :item, :proposal, :get_all_proposals, :item_option_selections, :last_step?, :first_step?
 
   private
 
   def work_order_params
     params.require(:work_order).permit(
-      :status, :proposal_id, item_attributes: [
+      :status, :original_set_uuid, :proposal_id, item_attributes: [
         :id, :product_id,  item_option_selections_attributes: [
           :id, :product_option_id, :product_option_value_id
         ]
