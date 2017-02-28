@@ -39,4 +39,11 @@ Rails.application.configure do
 
   # Raises error for missing translations
   # config.action_view.raise_on_missing_translations = true
+
+  config.study_url = 'http://localhost:3300/api/v1/nodes'
+  config.study_url_default_proxy = 'http://localhost:3300'
+
+  config.set_url = 'http://localhost:3000/api/v1/sets'
+  config.set_url_default_proxy = 'http://localhost:3000'
+
 end

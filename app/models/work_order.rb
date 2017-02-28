@@ -2,8 +2,6 @@ class WorkOrder < ApplicationRecord
   has_one :item, inverse_of: :work_order, dependent: :destroy
   accepts_nested_attributes_for :item
 
-  before_save :create_locked_set, if: -> { original_set_uuid_changed? }
-
   def self.ACTIVE
     'active'
   end
@@ -47,6 +45,7 @@ class WorkOrder < ApplicationRecord
   # Create a locked set from this work order's original set.
   def create_locked_set
     self.set = original_set.create_locked_clone("Work order #{id}")
+    save!
   end
 
 end

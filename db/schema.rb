@@ -70,7 +70,7 @@ ActiveRecord::Schema.define(version: 20170224102355) do
     t.datetime "updated_at",        null: false
     t.string   "original_set_uuid"
     t.string   "set_uuid"
-	t.integer  "proposal_id"
+    t.integer  "proposal_id"
   end
 
 end

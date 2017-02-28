@@ -12,8 +12,7 @@ class OrdersController < ApplicationController
     params[:work_order][:status] = 'active' if last_step?
 
     if work_order.update_attributes(work_order_params) && last_step?
-      # TODO work_order.create_locked_set
-      #      work_order.save!
+      work_order.create_locked_set
       flash[:notice] = 'Your Work Order has been created'
     end
 
