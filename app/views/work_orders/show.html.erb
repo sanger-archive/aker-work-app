@@ -3,7 +3,6 @@
     <h2><%= work_order.item.product.name %></h2>
 
     <table class="table table-striped">
-
       <tbody>
         <% work_order.item.item_option_selections.each do |ios| %>
           <tr>
@@ -12,8 +11,10 @@
           </tr>
         <% end %>
       </tbody>
-
     </table>
+
+    <%= render 'proposals' %>
+
   </div>
 </div>
 

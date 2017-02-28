@@ -1,7 +1,7 @@
 class OrdersController < ApplicationController
 
   include Wicked::Wizard
-  steps :product, :details, :set, :summary
+  steps :proposal, :product, :details, :set, :summary
 
   def show
     render_wizard
@@ -14,7 +14,6 @@ class OrdersController < ApplicationController
     if work_order.update_attributes(work_order_params) && last_step?
       flash[:notice] = 'Your Work Order has been created'
     end
-
     render_wizard work_order
   end
 
@@ -26,6 +25,14 @@ class OrdersController < ApplicationController
 
   def item
     work_order.item || Item.new
+  end
+
+  def proposal
+    work_order.proposal
+  end
+
+  def get_all_proposals
+    Proposal.get_proposals
   end
 
   def item_option_selections
@@ -40,14 +47,14 @@ class OrdersController < ApplicationController
     step == steps.first
   end
 
-  helper_method :work_order, :item, :item_option_selections, :last_step?, :first_step?
+  helper_method :work_order, :item, :proposal, :get_all_proposals, :item_option_selections, :last_step?, :first_step?
 
   private
 
   def work_order_params
     params.require(:work_order).permit(
-      :status, item_attributes: [
-        :id, :product_id, item_option_selections_attributes: [
+      :status, :proposal_id, item_attributes: [
+        :id, :product_id,  item_option_selections_attributes: [
           :id, :product_option_id, :product_option_value_id
         ]
       ]

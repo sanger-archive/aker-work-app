@@ -8,4 +8,11 @@ class WorkOrder < ApplicationRecord
   def active?
     status == 'active'
   end
+
+  def proposal
+  	return nil unless proposal_id
+    return @proposal if @proposal&.id==proposal_id
+	@proposal = Proposal.find(proposal_id)
+  end
+
 end

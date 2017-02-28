@@ -7,7 +7,6 @@
   <h2><%= item.product.name %></h2>
 
   <table class="table table-striped">
-
     <tbody>
       <% item.item_option_selections.each do |ios| %>
         <tr>
@@ -16,8 +15,9 @@
         </tr>
       <% end %>
     </tbody>
-
   </table>
+
+  <%= render 'proposals' %>
 
   <%= render 'buttons', work_order: work_order, f: f %>
 
