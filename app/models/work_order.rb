@@ -15,6 +15,13 @@ class WorkOrder < ApplicationRecord
     status == WorkOrder.ACTIVE
   end
 
+  def proposal
+  	return nil unless proposal_id
+    return @proposal if @proposal&.id==proposal_id
+	@proposal = Proposal.find(proposal_id)
+  end
+
+
   def original_set
     return nil unless original_set_uuid
     return @original_set if @original_set&.uuid==original_set_uuid

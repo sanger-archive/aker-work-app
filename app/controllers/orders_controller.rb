@@ -1,7 +1,7 @@
 class OrdersController < ApplicationController
 
   include Wicked::Wizard
-  steps :product, :details, :set, :summary
+  steps :proposal, :product, :details, :set, :summary
 
   def show
     render_wizard
@@ -38,6 +38,14 @@ class OrdersController < ApplicationController
     AkerSet.all
   end
 
+  def proposal
+    work_order.proposal
+  end
+
+  def get_all_proposals
+    Proposal.get_proposals
+  end
+
   def item_option_selections
     item.item_option_selections
   end
@@ -50,14 +58,14 @@ class OrdersController < ApplicationController
     step == steps.first
   end
 
-  helper_method :work_order, :aker_set, :get_all_aker_sets, :item, :item_option_selections, :last_step?, :first_step?
+  helper_method :work_order, :aker_set, :get_all_aker_sets, :item, :proposal, :get_all_proposals, :item_option_selections, :last_step?, :first_step?
 
   private
 
   def work_order_params
     params.require(:work_order).permit(
-      :status, :original_set_uuid, item_attributes: [
-        :id, :product_id, item_option_selections_attributes: [
+      :status, :original_set_uuid, :proposal_id, item_attributes: [
+        :id, :product_id,  item_option_selections_attributes: [
           :id, :product_option_id, :product_option_value_id
         ]
       ]

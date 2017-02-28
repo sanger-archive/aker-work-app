@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170223151731) do
+ActiveRecord::Schema.define(version: 20170224102355) do
 
   create_table "item_option_selections", force: :cascade do |t|
     t.integer  "item_id"
@@ -70,6 +70,7 @@ ActiveRecord::Schema.define(version: 20170223151731) do
     t.datetime "updated_at",        null: false
     t.string   "original_set_uuid"
     t.string   "set_uuid"
+	t.integer  "proposal_id"
   end
 
 end
