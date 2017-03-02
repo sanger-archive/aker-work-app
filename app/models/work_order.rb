@@ -16,9 +16,8 @@ class WorkOrder < ApplicationRecord
   def proposal
   	return nil unless proposal_id
     return @proposal if @proposal&.id==proposal_id
-	@proposal = Proposal.find(proposal_id)
+	  @proposal = StudyClient::Node.find(proposal_id).first
   end
-
 
   def original_set
     return nil unless original_set_uuid
