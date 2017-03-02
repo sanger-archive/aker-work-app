@@ -42,7 +42,6 @@ class OrdersController < ApplicationController
   end
 
   def get_all_proposals
-    StudyClient::Base.site='http://localhost:3300/api/v1/'
     StudyClient::Node.where(cost_code: '!_none').all
   end
 
