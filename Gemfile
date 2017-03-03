@@ -38,7 +38,8 @@ gem 'bootstrap_form'
 gem 'faraday'
 
 gem 'study_client', github: 'khelwood/study_client'
-gem 'set_service_client', github: 'khelwood/set_service_client_gem', branch: 'clone_lock'
+gem 'set_client', github: 'khelwood/set_client'
+#gem 'set_service_client', github: 'khelwood/set_service_client_gem', branch: 'clone_lock'
 
 
 group :development, :test do

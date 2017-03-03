@@ -34,7 +34,7 @@ class OrdersController < ApplicationController
   end
 
   def get_all_aker_sets
-    AkerSet.all
+    SetClient::Set.all
   end
 
   def proposal
