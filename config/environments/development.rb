@@ -52,9 +52,18 @@ Rails.application.configure do
   # routes, locales, etc. This feature depends on the listen gem.
   config.file_watcher = ActiveSupport::EventedFileUpdateChecker
 
-  config.study_url = 'http://localhost:3300/api/v1/nodes'
+  config.study_url = 'http://localhost:3300/api/v1/'
   config.study_url_default_proxy = 'http://localhost:3300'
 
   config.set_url = 'http://localhost:3000/api/v1/sets'
   config.set_url_default_proxy = 'http://localhost:3000'
+
+  StudyClient::Base.site = config.study_url
+
+  config.middleware.use ZipkinTracer::RackHandler, {
+     service_name: "Work Order Service",
+     service_port: 3000,
+     sample_rate: 1,
+     json_api_host: "http://localhost:9411"
+  }
 end

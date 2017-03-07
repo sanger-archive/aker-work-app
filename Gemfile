@@ -36,6 +36,7 @@ gem 'rubocop', '~> 0.41.2', require: false
 gem 'wicked'
 gem 'bootstrap_form'
 gem 'faraday'
+gem 'zipkin-tracer'
 
 gem 'study_client', github: 'khelwood/study_client'
 gem 'set_client', github: 'khelwood/set_client'
