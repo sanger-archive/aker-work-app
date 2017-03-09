@@ -34,7 +34,7 @@ class OrdersController < ApplicationController
   end
 
   def get_all_aker_sets
-    AkerSet.all
+    SetClient::Set.all
   end
 
   def proposal
@@ -42,7 +42,7 @@ class OrdersController < ApplicationController
   end
 
   def get_all_proposals
-    Proposal.get_proposals
+    StudyClient::Node.where(cost_code: '!_none').all
   end
 
   def item_option_selections

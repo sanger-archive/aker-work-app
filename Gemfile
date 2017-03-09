@@ -36,9 +36,10 @@ gem 'rubocop', '~> 0.41.2', require: false
 gem 'wicked'
 gem 'bootstrap_form'
 gem 'faraday'
+gem 'zipkin-tracer'
 
-gem 'study_management_client', github: 'harrietc52/study_management_client_gem'
-gem 'set_service_client', github: 'khelwood/set_service_client_gem', branch: 'clone_lock'
+gem 'aker-study-client', github: 'sanger/aker-study-client'
+gem 'aker-set-client', github: 'sanger/aker-set-client'
 
 
 group :development, :test do
