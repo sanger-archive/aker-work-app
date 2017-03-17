@@ -1,6 +1,8 @@
 Rails.application.routes.draw do
 
   root 'work_orders#index'
+
+  resources :catalogues
   post '/catalogue', to: 'catalogues#create'
 
   resources :shops

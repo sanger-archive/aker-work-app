@@ -10,7 +10,15 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170224102355) do
+ActiveRecord::Schema.define(version: 20170317161712) do
+
+  create_table "catalogues", force: :cascade do |t|
+    t.string   "url"
+    t.string   "lims_id"
+    t.string   "pipeline"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
 
   create_table "item_option_selections", force: :cascade do |t|
     t.integer  "item_id"
@@ -50,10 +58,16 @@ ActiveRecord::Schema.define(version: 20170224102355) do
 
   create_table "products", force: :cascade do |t|
     t.string   "name"
-    t.integer  "shop_id"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["shop_id"], name: "index_products_on_shop_id"
+    t.datetime "created_at",               null: false
+    t.datetime "updated_at",               null: false
+    t.integer  "catalogue_id"
+    t.integer  "TAT"
+    t.integer  "cost_per_sample"
+    t.string   "request_biomaterial_type"
+    t.integer  "product_version"
+    t.string   "availability"
+    t.string   "description"
+    t.index ["catalogue_id"], name: "index_products_on_catalogue_id"
   end
 
   create_table "shops", force: :cascade do |t|
