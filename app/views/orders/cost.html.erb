@@ -1,0 +1,20 @@
+<%= render partial: 'order_header', locals: { title: "Step 3: Cost summary" , progress: 50 } %>
+
+<%= bootstrap_form_for work_order, url: wizard_path, method: :put  do |f| %>
+
+<% set_size = get_set_size %>
+<% cost_per_sample = work_order.product.cost_per_sample %>
+<% total = set_size*cost_per_sample %>
+<% total_length = total.to_s.length %>
+
+<pre>
+Number of samples : <%= set_size.to_s.rjust(total_length) %>
+  Cost per sample : <%= cost_per_sample.to_s.rjust(total_length) %>
+--------------------<%= '-'*total_length %>
+            Total : <%= total.to_s.rjust(total_length) %>
+</pre>
+
+  <%= render 'buttons', work_order: work_order, f: f %>
+
+<% end %>
+

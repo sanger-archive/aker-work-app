@@ -1,5 +1,6 @@
 <tr>
-  <td><%= work_order&.product&.name || "None Selected" %></td>
+  <td><%= work_order.id %></td>
+  <td><%= work_order.product&.name || "None Selected" %></td>
   <td><%= work_order.updated_at %></td>
   <td>
     <% if work_order.active? %>

@@ -1,4 +1,5 @@
 class WorkOrder < ApplicationRecord
+  belongs_to :product, optional: true
 
   def self.ACTIVE
     'active'

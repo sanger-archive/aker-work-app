@@ -1,14 +1,16 @@
-<%= render partial: 'order_header', locals: { title: "Step 1: Select Product" , progress: 20 } %>
+<%= render partial: 'order_header', locals: { title: "Step 2: Select Product" , progress: 33 } %>
 
 <%= bootstrap_form_for work_order, url: wizard_path, method: :put  do |f| %>
 
-  <%= f.fields_for :item, item do |item_fields| %>
+    <% get_current_catalogues.each do |c| %>
+    	<%= f.collection_radio_buttons(:product_id, c.products, :id, lambda { |pr| render(:partial => 'product_options', locals: {product: pr}) },
+      		label: c.lims_id )  %>
+    <% end %>
 
-    <%= item_fields.collection_radio_buttons(:product_id, Product.all, :id, :name,
-      label: 'Please Select A Product') %>
-
-  <% end %>
+    <%= f.text_field :comment %>
+    <%= f.date_select :desired_date %>
 
   <%= render 'buttons', work_order: work_order, f: f %>
 
 <% end %>
+

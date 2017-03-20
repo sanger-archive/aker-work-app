@@ -7,5 +7,6 @@ class CreateCatalogues < ActiveRecord::Migration[5.0]
     	t.boolean :current
     	t.timestamps
     end
+    add_index :catalogues, :lims_id
   end
 end
