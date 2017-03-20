@@ -16,6 +16,7 @@ ActiveRecord::Schema.define(version: 20170317161712) do
     t.string   "url"
     t.string   "lims_id"
     t.string   "pipeline"
+    t.boolean  "current"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
   end
@@ -58,12 +59,12 @@ ActiveRecord::Schema.define(version: 20170317161712) do
 
   create_table "products", force: :cascade do |t|
     t.string   "name"
-    t.datetime "created_at",               null: false
-    t.datetime "updated_at",               null: false
+    t.datetime "created_at",                 null: false
+    t.datetime "updated_at",                 null: false
     t.integer  "catalogue_id"
     t.integer  "TAT"
     t.integer  "cost_per_sample"
-    t.string   "request_biomaterial_type"
+    t.string   "requested_biomaterial_type"
     t.integer  "product_version"
     t.string   "availability"
     t.string   "description"

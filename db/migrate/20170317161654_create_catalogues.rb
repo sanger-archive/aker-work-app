@@ -4,6 +4,7 @@ class CreateCatalogues < ActiveRecord::Migration[5.0]
     	t.string :url
     	t.string :lims_id
     	t.string :pipeline
+    	t.boolean :current
     	t.timestamps
     end
   end

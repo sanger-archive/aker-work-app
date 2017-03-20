@@ -1,19 +1,6 @@
 <div class="row">
   <div class="col-md-12">
-    <h2><%= work_order.item.product.name %></h2>
-
-    <table class="table table-striped">
-      <tbody>
-        <% work_order.item.item_option_selections.each do |ios| %>
-          <tr>
-            <td><%= ios.product_option.name %></td>
-            <td><%= ios.product_option_value.value %></td>
-          </tr>
-        <% end %>
-      </tbody>
-    </table>
-
-    </table>
+    <h2><%= work_order.product.name %></h2>
 
     <%= render 'sets' %>
 

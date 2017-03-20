@@ -1,7 +1,7 @@
 class OrdersController < ApplicationController
 
   include Wicked::Wizard
-  steps :proposal, :product, :details, :set, :summary
+  steps :proposal, :product, :set, :summary
 
   def show
     render_wizard
@@ -25,10 +25,6 @@ class OrdersController < ApplicationController
     @work_order ||= WorkOrder.find(params[:work_order_id])
   end
 
-  def item
-    work_order.item || Item.new
-  end
-
   def aker_set
     work_order.aker_set
   end
@@ -43,10 +39,6 @@ class OrdersController < ApplicationController
 
   def get_all_proposals
     StudyClient::Node.where(cost_code: '!_none').all
-  end
-
-  def item_option_selections
-    item.item_option_selections
   end
 
   def last_step?

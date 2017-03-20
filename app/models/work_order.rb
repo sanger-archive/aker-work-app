@@ -1,6 +1,4 @@
 class WorkOrder < ApplicationRecord
-  has_one :item, inverse_of: :work_order, dependent: :destroy
-  accepts_nested_attributes_for :item
 
   def self.ACTIVE
     'active'
