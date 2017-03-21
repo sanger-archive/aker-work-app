@@ -4,8 +4,9 @@ module LimsClient
 
   def self.post(url, params)
     r = Faraday.new(url: url).post('', params.to_json)
-    puts "LimsClient\n*********"
-    p r.status
+    unless r.status>=200 || r.status<400
+    	raise "LimsClient post failed"
+    end
   end
 
   def self.get_connection(url)
