@@ -2,11 +2,11 @@
 
 <%= bootstrap_form_for work_order, url: wizard_path, method: :put  do |f| %>
 
-	<%= f.form_group :product do %>
+	<%= f.form_group :product_id do %>
 		<% get_current_catalogues.each do |c| %>
 			<h4><%= c.pipeline %></h4>
 		   	<% c.products.each do |p| %>
-		   		<%= f.radio_button :product, p.id, label: p.name, disabled: p.availability=='suspended' %>
+		   		<%= f.radio_button :product_id, p.id, label: p.name, disabled: p.availability=='suspended' %>
 					Cost per sample: <%= p.cost_per_sample %><br>
 					Requested biomaterial type: <%= p.requested_biomaterial_type %><br>
 					Product version: <%= p.product_version %><br>
