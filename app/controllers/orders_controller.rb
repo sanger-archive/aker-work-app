@@ -14,6 +14,7 @@ class OrdersController < ApplicationController
 
       if work_order.update_attributes(work_order_params) && last_step?
         work_order.create_locked_set
+        work_order.send_to_lims
         flash[:notice] = 'Your Work Order has been created'
       end
     end

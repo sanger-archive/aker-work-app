@@ -1,3 +1,5 @@
+require 'lims_client'
+
 class WorkOrder < ApplicationRecord
   belongs_to :product, optional: true
 
@@ -44,6 +46,58 @@ class WorkOrder < ApplicationRecord
   def create_locked_set
     self.set = original_set.create_locked_clone("Work order #{id}")
     save!
+  end
+
+  def send_to_lims
+    lims_url = product.catalogue.url
+    LimsClient::post(lims_url, lims_data)
+  end
+
+  def lims_data
+    material_ids = SetClient::Set.find_with_materials(set_uuid).first.materials.map{|m| m.id}
+    materials = MatconClient::Material.where("_id":{"$in" => material_ids}).result_set
+    material_data = materials.map do |m|
+          {
+            material_id: m.id,
+            container: nil,
+            gender: m.gender,
+            donor_id: m.donor_id,
+            phenotype: m.phenotype,
+            common_name: m.common_name
+          }
+    end
+    describe_containers(material_ids, material_data)
+
+    {
+      work_order: {
+        product_name: product.name,
+        product_version: product.product_version,
+        work_order_id: id,
+        comment: comment,
+        proposal_id: proposal_id,
+        cost_code: proposal.cost_code,
+        desired_date: desired_date,
+        materials: material_data,
+      }
+    }
+  end
+
+  def describe_containers(material_ids, material_data)
+    containers = MatconClient::Container.where('slots.material': { '$in': material_ids}).result_set
+    material_map = material_data.each_with_object({}) { |t,h| h[t[:material_id]] = t }
+    containers.each do |container|
+      container.slots.each do |slot|
+        if material_ids.include? slot.material_id
+          unless material_map[slot.material_id][:container]
+            container_desc = container.barcode
+            if (container.num_of_rows > 1 || container.num_of_cols > 1)
+              container_desc += ' '+slot.address
+            end
+            material_map[slot.material_id][:container] = container_desc
+          end
+        end
+      end
+    end
   end
 
 end

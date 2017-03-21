@@ -40,6 +40,7 @@ gem 'zipkin-tracer'
 
 gem 'aker-study-client', github: 'sanger/aker-study-client'
 gem 'aker-set-client', github: 'sanger/aker-set-client'
+gem 'matcon_client', github: 'sanger/aker-matcon-client'
 
 
 group :development, :test do
