@@ -5,8 +5,6 @@ Rails.application.routes.draw do
   resources :catalogues
   post '/catalogue', to: 'catalogues#create'
 
-  resources :shops
-
   resources :work_orders do
     resources :build, controller: 'orders'
   end
