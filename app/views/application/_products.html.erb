@@ -4,11 +4,21 @@
 			<thead>
 				<tr>
 					<th>Product</th>
+					<th>Cost per sample</th>
+					<th>Biomaterial Type</th>
+					<th>Product version</th>
+					<th>TAT</th>
+					<th>Description</th>
 				</tr>
 			</thead>
 			<tbody>
 				<tr>
 					<td><%= work_order.product.name %></td>
+					<td><%= work_order.product.cost_per_sample %></td>
+					<td><%= work_order.product.requested_biomaterial_type %></td>
+					<td><%= work_order.product.product_version %></td>
+					<td><%= work_order.product.TAT %></td>
+					<td><%= work_order.product.description %></td>
 				</tr>
 			</tbody>
 		</table>
