@@ -12,6 +12,9 @@ class OrdersController < ApplicationController
       params[:work_order][:status] = step.to_s
 
       if work_order.update_attributes(work_order_params) && last_step?
+        if work_order.product.suspended?
+          raise "That product is suspended and cannot currently be ordered."
+        end
         work_order.create_locked_set
         work_order.send_to_lims
         params[:work_order][:status] = 'active'
