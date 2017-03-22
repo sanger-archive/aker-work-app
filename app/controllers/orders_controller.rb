@@ -1,19 +1,25 @@
 class OrdersController < ApplicationController
 
   include Wicked::Wizard
-  steps :proposal, :product, :details, :set, :summary
+  steps :set, :product, :cost, :proposal, :summary
 
   def show
     render_wizard
   end
 
   def update
-    params[:work_order][:status] = step.to_s
-    params[:work_order][:status] = 'active' if last_step?
+    unless params[:work_order].nil?
+      params[:work_order][:status] = step.to_s
 
-    if work_order.update_attributes(work_order_params) && last_step?
-      work_order.create_locked_set
-      flash[:notice] = 'Your Work Order has been created'
+      if work_order.update_attributes(work_order_params) && last_step?
+        if work_order.product.suspended?
+          raise "That product is suspended and cannot currently be ordered."
+        end
+        work_order.create_locked_set
+        work_order.send_to_lims
+        work_order.update_attributes(status: 'active')
+        flash[:notice] = 'Your Work Order has been created'
+      end
     end
 
     render_wizard work_order
@@ -23,10 +29,6 @@ class OrdersController < ApplicationController
 
   def work_order
     @work_order ||= WorkOrder.find(params[:work_order_id])
-  end
-
-  def item
-    work_order.item || Item.new
   end
 
   def aker_set
@@ -45,8 +47,13 @@ class OrdersController < ApplicationController
     StudyClient::Node.where(cost_code: '!_none').all
   end
 
-  def item_option_selections
-    item.item_option_selections
+  def get_current_catalogues
+    Catalogue.where(current: true).all
+  end
+
+  def get_set_size
+    return 0 if work_order.original_set_uuid.nil?
+    return work_order.original_set.meta['size']
   end
 
   def last_step?
@@ -57,17 +64,13 @@ class OrdersController < ApplicationController
     step == steps.first
   end
 
-  helper_method :work_order, :aker_set, :get_all_aker_sets, :item, :proposal, :get_all_proposals, :item_option_selections, :last_step?, :first_step?
+  helper_method :work_order, :aker_set, :get_all_aker_sets, :item, :proposal, :get_all_proposals, :get_current_catalogues, :get_set_size, :item_option_selections, :last_step?, :first_step?
 
   private
 
   def work_order_params
     params.require(:work_order).permit(
-      :status, :original_set_uuid, :proposal_id, item_attributes: [
-        :id, :product_id,  item_option_selections_attributes: [
-          :id, :product_option_id, :product_option_value_id
-        ]
-      ]
+      :status, :original_set_uuid, :proposal_id, :product_id, :comment, :desired_date
     )
   end
 

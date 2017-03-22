@@ -1,4 +1,14 @@
 GIT
+  remote: git://github.com/sanger/aker-matcon-client.git
+  revision: 1a28a18ad1ac9000bb919bad6c5001ff732975c1
+  specs:
+    matcon_client (0.1.0)
+      activemodel
+      activesupport
+      faraday
+      faraday_middleware
+
+GIT
   remote: git://github.com/sanger/aker-set-client.git
   revision: 93853e389b78ea99346edc2f4f42904aa58e18b2
   specs:
@@ -323,6 +333,7 @@ DEPENDENCIES
   jquery-rails
   launchy
   listen (~> 3.0.5)
+  matcon_client!
   pg (~> 0.18)
   poltergeist
   puma (~> 3.0)
