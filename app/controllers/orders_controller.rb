@@ -17,7 +17,7 @@ class OrdersController < ApplicationController
         end
         work_order.create_locked_set
         work_order.send_to_lims
-        params[:work_order][:status] = 'active'
+        work_order.update_attributes(status: 'active')
         flash[:notice] = 'Your Work Order has been created'
       end
     end
