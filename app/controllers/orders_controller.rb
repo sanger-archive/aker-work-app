@@ -52,9 +52,8 @@ class OrdersController < ApplicationController
   end
 
   def get_set_size
-    set_uuid = work_order.original_set_uuid
-    return 0 if set_uuid.nil?
-    SetClient::Set.find_with_materials(set_uuid).first.materials.length
+    return 0 if work_order.original_set_uuid.nil?
+    return work_order.original_set.meta['size']
   end
 
   def last_step?
