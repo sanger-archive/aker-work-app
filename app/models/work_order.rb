@@ -53,9 +53,19 @@ class WorkOrder < ApplicationRecord
     LimsClient::post(lims_url, lims_data)
   end
 
+  def all_results(result_set)
+    return result_set unless result_set.has_next?
+    results = result_set.to_a
+    while result_set.has_next? do
+      result_set = result_set.next
+      results += result_set.to_a
+    end
+    results
+  end
+
   def lims_data
     material_ids = SetClient::Set.find_with_materials(set_uuid).first.materials.map{|m| m.id}
-    materials = MatconClient::Material.where("_id":{"$in" => material_ids}).result_set
+    materials = all_results(MatconClient::Material.where("_id":{"$in" => material_ids}).result_set)
     material_data = materials.map do |m|
           {
             material_id: m.id,
@@ -86,18 +96,21 @@ class WorkOrder < ApplicationRecord
   def describe_containers(material_ids, material_data)
     containers = MatconClient::Container.where('slots.material': { '$in': material_ids}).result_set
     material_map = material_data.each_with_object({}) { |t,h| h[t[:material_id]] = t }
-    containers.each do |container|
-      container.slots.each do |slot|
-        if material_ids.include? slot.material_id
-          unless material_map[slot.material_id][:container]
-            container_desc = container.barcode
-            if (container.num_of_rows > 1 || container.num_of_cols > 1)
-              container_desc += ' '+slot.address
+    while containers do
+      containers.each do |container|
+        container.slots.each do |slot|
+          if material_ids.include? slot.material_id
+            unless material_map[slot.material_id][:container]
+              container_desc = container.barcode
+              if (container.num_of_rows > 1 || container.num_of_cols > 1)
+                container_desc += ' '+slot.address
+              end
+              material_map[slot.material_id][:container] = container_desc
             end
-            material_map[slot.material_id][:container] = container_desc
           end
         end
       end
+      containers = (containers.has_next? ? containers.next : nil)
     end
   end
 
