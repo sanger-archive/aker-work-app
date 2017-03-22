@@ -10,11 +10,11 @@ class OrdersController < ApplicationController
   def update
     unless params[:work_order].nil?
       params[:work_order][:status] = step.to_s
-      params[:work_order][:status] = 'active' if last_step?
 
       if work_order.update_attributes(work_order_params) && last_step?
         work_order.create_locked_set
         work_order.send_to_lims
+        params[:work_order][:status] = 'active'
         flash[:notice] = 'Your Work Order has been created'
       end
     end

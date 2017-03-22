@@ -1,6 +1,6 @@
 class CataloguesController < ApplicationController
 	def create
-		p Catalogue.create_with_products(catalogue_params)
+		Catalogue.create_with_products(catalogue_params)
         head :created
 	end
 

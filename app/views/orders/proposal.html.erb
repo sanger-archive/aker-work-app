@@ -3,7 +3,7 @@
 <%= bootstrap_form_for work_order, url: wizard_path, method: :put  do |f| %>
 
     <%= f.collection_radio_buttons(:proposal_id, get_all_proposals, :id,
-      lambda { |node| node.name+': '+node.cost_code },
+      lambda { |node| node.name+', Cost code: '+node.cost_code },
       label: 'Please Select A Proposal') %>
 
   <%= render 'buttons', work_order: work_order, f: f %>

@@ -24,14 +24,14 @@ ActiveRecord::Schema.define(version: 20170320134812) do
 
   create_table "products", force: :cascade do |t|
     t.string   "name"
-    t.datetime "created_at",                 null: false
-    t.datetime "updated_at",                 null: false
+    t.datetime "created_at",                                                     null: false
+    t.datetime "updated_at",                                                     null: false
     t.integer  "catalogue_id"
     t.integer  "TAT"
-    t.integer  "cost_per_sample"
+    t.decimal  "cost_per_sample",            precision: 8, scale: 2
     t.string   "requested_biomaterial_type"
     t.integer  "product_version"
-    t.string   "availability"
+    t.integer  "availability",                                       default: 1
     t.string   "description"
     t.index ["catalogue_id"], name: "index_products_on_catalogue_id"
   end

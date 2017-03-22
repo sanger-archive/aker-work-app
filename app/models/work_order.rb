@@ -75,6 +75,7 @@ class WorkOrder < ApplicationRecord
         work_order_id: id,
         comment: comment,
         proposal_id: proposal_id,
+        proposal_name: proposal.name,
         cost_code: proposal.cost_code,
         desired_date: desired_date,
         materials: material_data,
