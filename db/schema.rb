@@ -10,58 +10,30 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170224102355) do
+ActiveRecord::Schema.define(version: 20170320134812) do
 
-  create_table "item_option_selections", force: :cascade do |t|
-    t.integer  "item_id"
-    t.integer  "product_option_id"
-    t.integer  "product_option_value_id"
-    t.datetime "created_at",              null: false
-    t.datetime "updated_at",              null: false
-    t.index ["item_id"], name: "index_item_option_selections_on_item_id"
-    t.index ["product_option_id"], name: "index_item_option_selections_on_product_option_id"
-    t.index ["product_option_value_id"], name: "index_item_option_selections_on_product_option_value_id"
-  end
-
-  create_table "items", force: :cascade do |t|
-    t.integer  "work_order_id"
-    t.integer  "product_id"
-    t.datetime "created_at",    null: false
-    t.datetime "updated_at",    null: false
-    t.index ["product_id"], name: "index_items_on_product_id"
-    t.index ["work_order_id"], name: "index_items_on_work_order_id"
-  end
-
-  create_table "product_option_values", force: :cascade do |t|
-    t.integer  "product_option_id"
-    t.string   "value"
-    t.datetime "created_at",        null: false
-    t.datetime "updated_at",        null: false
-    t.index ["product_option_id"], name: "index_product_option_values_on_product_option_id"
-  end
-
-  create_table "product_options", force: :cascade do |t|
-    t.integer  "product_id"
-    t.string   "name"
+  create_table "catalogues", force: :cascade do |t|
+    t.string   "url"
+    t.string   "lims_id"
+    t.string   "pipeline"
+    t.boolean  "current"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["product_id"], name: "index_product_options_on_product_id"
+    t.index ["lims_id"], name: "index_catalogues_on_lims_id"
   end
 
   create_table "products", force: :cascade do |t|
     t.string   "name"
-    t.integer  "shop_id"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["shop_id"], name: "index_products_on_shop_id"
-  end
-
-  create_table "shops", force: :cascade do |t|
-    t.string   "name"
-    t.string   "product_schema_uri"
-    t.boolean  "enabled",            default: true
-    t.datetime "created_at",                        null: false
-    t.datetime "updated_at",                        null: false
+    t.datetime "created_at",                                                     null: false
+    t.datetime "updated_at",                                                     null: false
+    t.integer  "catalogue_id"
+    t.integer  "TAT"
+    t.decimal  "cost_per_sample",            precision: 8, scale: 2
+    t.string   "requested_biomaterial_type"
+    t.integer  "product_version"
+    t.integer  "availability",                                       default: 1
+    t.string   "description"
+    t.index ["catalogue_id"], name: "index_products_on_catalogue_id"
   end
 
   create_table "work_orders", force: :cascade do |t|
@@ -71,6 +43,10 @@ ActiveRecord::Schema.define(version: 20170224102355) do
     t.string   "original_set_uuid"
     t.string   "set_uuid"
     t.integer  "proposal_id"
+    t.string   "comment"
+    t.date     "desired_date"
+    t.integer  "product_id"
+    t.index ["product_id"], name: "index_work_orders_on_product_id"
   end
 
 end

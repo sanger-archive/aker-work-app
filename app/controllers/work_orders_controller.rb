@@ -8,7 +8,7 @@ class WorkOrdersController < ApplicationController
   end
 
   def new
-    work_order = WorkOrder.create
+    work_order = WorkOrder.create!
 
     redirect_to work_order_build_path(
       id: Wicked::FIRST_STEP,
