@@ -36,7 +36,7 @@ class OrdersController < ApplicationController
   end
 
   def get_all_aker_sets
-    SetClient::Set.all
+    SetClient::Set.all.select { |s| s.meta["size"] > 0 }
   end
 
   def proposal
