@@ -15,3 +15,10 @@
 //= require turbolinks
 //= require bootstrap-sprockets
 //= require_tree .
+
+$(function callback() {
+    $('input[type="date"]').datepicker({
+        dateFormat: 'yy-mm-dd',
+        minDate: '+0d'
+    })
+})
