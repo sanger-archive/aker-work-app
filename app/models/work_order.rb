@@ -70,10 +70,10 @@ class WorkOrder < ApplicationRecord
           {
             material_id: m.id,
             container: nil,
-            gender: m.gender,
-            donor_id: m.donor_id,
-            phenotype: m.phenotype,
-            common_name: m.common_name
+            gender: m.attributes['gender'],
+            donor_id: m.attributes['donor_id'],
+            phenotype: m.attributes['phenotype'],
+            common_name: m.attributes['common_name']
           }
     end
     describe_containers(material_ids, material_data)
