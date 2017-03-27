@@ -6,6 +6,11 @@
 		<% get_current_catalogues.each do |c| %>
 			<h4><%= c.pipeline %></h4>
 		   	<% c.products.each do |p| %>
+                <% if p.suspended? %>
+                    <div class="radio disabled text-muted">
+                <% else %>
+                    <div class="radio">
+                <% end %>
 		   		<%= f.radio_button :product_id, p.id, label: p.name, disabled: p.suspended? %>
 					Cost per sample: <%= number_to_currency(p.cost_per_sample, unit:'£') %><br>
 					Requested biomaterial type: <%= p.requested_biomaterial_type %><br>
@@ -13,6 +18,7 @@
 					TAT: <%= p.TAT %><br>
 					Description: <%= p.description %><br>
 					Availability: <%= p.availability %>
+                </div>
 		   	<% end %>
 
 	    <% end %>
