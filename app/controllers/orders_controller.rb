@@ -13,10 +13,31 @@ class OrdersController < ApplicationController
 
       if work_order.update_attributes(work_order_params) && last_step?
         if work_order.product.suspended?
-          raise "That product is suspended and cannot currently be ordered."
+          flash[:notice] = "That product is suspended and cannot currently be ordered."
+          render_wizard
+          return
         end
-        work_order.create_locked_set
-        work_order.send_to_lims
+
+        begin
+          work_order.create_locked_set
+        rescue => e
+          logger.error "Failed to create locked set"
+          logger.error e.backtrace
+          flash[:error] = "The request to the set service failed."
+          render_wizard
+          return
+        end
+
+        begin
+          work_order.send_to_lims
+        rescue => e
+          logger.error "Failed to send work order"
+          logger.error e.backtrace
+          flash[:error] = "The request to the LIMS failed."
+          render_wizard
+          return
+        end
+
         work_order.update_attributes(status: 'active')
         flash[:notice] = 'Your Work Order has been created'
       end
