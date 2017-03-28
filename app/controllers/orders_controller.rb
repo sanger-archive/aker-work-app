@@ -22,8 +22,6 @@ protected
   end
 
   def get_all_aker_sets
-    # Don't support altering the original set once the locked set has been created
-    return [work_order.original_set] unless work_order.set_uuid.nil?
     return SetClient::Set.all.select { |s| s.meta["size"] > 0 }
   end
 
@@ -54,35 +52,50 @@ private
   def perform_step
     params[:work_order][:status] = step.to_s
 
-    if work_order.original_set_uuid and not work_order.set_uuid
-      begin
-        work_order.create_locked_set
-      rescue => e
-        logger.error "Failed to create locked set"
-        logger.error e.backtrace
-        flash[:error] = "The request to the set service failed."
-        return false
-      end
-      logger.debug "Created locked set"
+    wop = work_order_params
+
+    selected_set_uuid = wop['original_set_uuid']
+
+    if (selected_set_uuid && work_order.set_uuid &&
+        selected_set_uuid!=work_order.original_set_uuid)
+      logger.error "User tried to re-select set after locked set had been created"
+      flash[:error] = ("The sample set for this work order has already been locked. " +
+        " To order work for different samples, please start a new work order.")
+      return false
     end
 
-    if work_order.update_attributes(work_order_params) && last_step?
-      if work_order.product.suspended?
-        flash[:notice] = "That product is suspended and cannot currently be ordered."
-        return false
+    if work_order.update_attributes(wop)
+      if work_order.original_set_uuid && work_order.set_uuid.nil?
+        begin
+          work_order.create_locked_set
+        rescue => e
+          logger.error "Failed to create locked set"
+          logger.error e.backtrace
+          flash[:error] = "The request to the set service failed."
+          return false
+        end
+        logger.debug "Created locked set"
       end
 
-      begin
-        work_order.send_to_lims
-      rescue => e
-        logger.error "Failed to send work order"
-        logger.error e.backtrace
-        flash[:error] = "The request to the LIMS failed."
-        return false
+      if last_step?
+        if work_order.product.suspended?
+          flash[:notice] = "That product is suspended and cannot currently be ordered."
+          return false
+        end
+
+        begin
+          work_order.send_to_lims
+        rescue => e
+          logger.error "Failed to send work order"
+          logger.error e.backtrace
+          flash[:error] = "The request to the LIMS failed."
+          return false
+        end
+
+        work_order.update_attributes(status: 'active')
+        flash[:notice] = 'Your work order has been created'
       end
 
-      work_order.update_attributes(status: 'active')
-      flash[:notice] = 'Your work order has been created'
     end
     return true
   end
