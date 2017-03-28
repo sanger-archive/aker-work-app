@@ -3,14 +3,14 @@
     <table class="table table-striped">
       <thead>
         <tr>
-          <th>Selected set</th>
-          <th>Selected set uuid</th>
+          <th>Number of samples</th>
+          <th>Total cost</th>
         </tr>
       </thead>
       <tbody>
         <tr>
-          <td><%= work_order.original_set.name %></td>
-          <td><%= work_order.original_set_uuid %></td>
+          <td><%= work_order.num_samples %></td>
+          <td><%= number_to_currency(work_order.total_cost, unit: '£') %></td>
         </tr>
       </tbody>
     </table>
