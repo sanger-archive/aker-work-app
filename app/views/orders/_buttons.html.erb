@@ -11,12 +11,14 @@
         <%= f.submit "Next", class: "btn btn-default", style: "float: right" %>
       <% end %>
 
-      <%= link_to 'Cancel', work_order,
-            method: :delete,
-            class: 'btn btn-danger',
-            data: { confirm: 'Are you sure you wish to cancel this work order?' },
-            style: "float: right; margin-right: 7px"
-      %>
+      <% unless work_order.active? %>
+        <%= link_to 'Cancel', work_order,
+              method: :delete,
+              class: 'btn btn-danger',
+              data: { confirm: 'Are you sure you wish to cancel this work order?' },
+              style: "float: right; margin-right: 7px"
+        %>
+      <% end %>
     </div>
   </div>
 </div>

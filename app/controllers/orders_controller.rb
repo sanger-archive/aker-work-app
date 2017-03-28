@@ -54,6 +54,11 @@ private
 
     wop = work_order_params
 
+    if work_order.active?
+      flash[:error] = "This work order has already been issued. No further action is possible."
+      return false
+    end
+
     selected_set_uuid = wop['original_set_uuid']
 
     if (selected_set_uuid && work_order.set_uuid &&
