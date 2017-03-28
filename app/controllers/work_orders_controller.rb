@@ -17,8 +17,12 @@ class WorkOrdersController < ApplicationController
   end
 
   def destroy
-    work_order.destroy
-    flash[:notice] = "Work Order Cancelled"
+    if work_order.active?
+      flash[:error] = "This work order has already been issued, and cannot be cancelled."
+    else
+      work_order.destroy
+      flash[:notice] = "Work order cancelled"
+    end
     redirect_to work_orders_path
   end
 
