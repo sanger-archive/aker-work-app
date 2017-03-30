@@ -1,5 +1,5 @@
 class Users::SessionsController < Devise::SessionsController
-  # after_action :store_session_data, only: [:create]
+  after_action :store_session_data, only: [:create]
   before_action :add_email_to_user, only: [:create]
 
   protected
