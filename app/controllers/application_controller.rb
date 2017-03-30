@@ -11,4 +11,7 @@ class ApplicationController < ActionController::Base
 		session[:principle_user]
 	end
 
+  rescue_from DeviseLdapAuthenticatable::LdapException do |exception|
+    render :text => exception, :status => 500
+  end
 end

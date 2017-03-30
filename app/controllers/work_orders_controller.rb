@@ -1,5 +1,7 @@
 class WorkOrdersController < ApplicationController
 
+  before_action :authenticate_user!
+
   before_action :work_order, only: [:show]
 
   def index
