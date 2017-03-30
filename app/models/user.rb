@@ -1,8 +1,11 @@
 class User < ApplicationRecord
   devise :ldap_authenticatable, :rememberable, :trackable
 
-  def ldap_before_save
-    p '**** Here is the group info: '
-    p Devise::LDAP::Adapter.get_groups('uid=cs24,ou=people,dc=sanger,dc=ac,dc=uk')
+  def fetch_groups
+    name = self.email
+    DeviseLdapAuthenticatable::Logger.send("Getting groups for #{name}")
+    connection = Devise::LDAP::Adapter.ldap_connect(name)
+    filter = Net::LDAP::Filter.eq("member", connection.dn)
+    connection.ldap.search(:filter => filter, :base => Rails.application.config.ldap["group_base"]).collect(&:cn).flatten
   end
 end

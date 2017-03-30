@@ -4,7 +4,11 @@ class Users::SessionsController < Devise::SessionsController
   protected
 
   def store_session_data
-    session[:user] = current_user
+    user_data = {
+      email: current_user.email,
+      groups: current_user.fetch_groups,
+    }
+    session[:user] = user_data
   end
 
 end
