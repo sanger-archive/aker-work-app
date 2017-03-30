@@ -37,6 +37,8 @@ gem 'wicked'
 gem 'bootstrap_form'
 gem 'faraday'
 gem 'zipkin-tracer'
+gem 'jwt'
+gem 'request_store'
 
 gem 'aker-study-client', github: 'sanger/aker-study-client'
 gem 'aker-set-client', github: 'sanger/aker-set-client'
