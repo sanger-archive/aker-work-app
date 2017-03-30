@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170320134812) do
+ActiveRecord::Schema.define(version: 20170330091752) do
 
   create_table "catalogues", force: :cascade do |t|
     t.string   "url"
@@ -34,6 +34,19 @@ ActiveRecord::Schema.define(version: 20170320134812) do
     t.integer  "availability",                                       default: 1
     t.string   "description"
     t.index ["catalogue_id"], name: "index_products_on_catalogue_id"
+  end
+
+  create_table "users", force: :cascade do |t|
+    t.string   "email",               default: "", null: false
+    t.datetime "remember_created_at"
+    t.integer  "sign_in_count",       default: 0,  null: false
+    t.datetime "current_sign_in_at"
+    t.datetime "last_sign_in_at"
+    t.string   "current_sign_in_ip"
+    t.string   "last_sign_in_ip"
+    t.datetime "created_at",                       null: false
+    t.datetime "updated_at",                       null: false
+    t.index ["email"], name: "index_users_on_email", unique: true
   end
 
   create_table "work_orders", force: :cascade do |t|
