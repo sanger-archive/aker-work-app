@@ -4,14 +4,14 @@
 @import "font-awesome";
 @import "jquery-ui";
 
-.error {
+.alert-error {
   @extend .alert-danger;
 }
 
-.warning {
+.alert-alert {
   @extend .alert-warning;
 }
 
-.notice {
+.alert-notice {
   @extend .alert-success;
 }
