@@ -1,4 +1,6 @@
 class OrdersController < ApplicationController
+  before_action :authenticate_user!
+
   include Wicked::Wizard
 
   steps :set, :product, :cost, :proposal, :summary
