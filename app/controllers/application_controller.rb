@@ -8,7 +8,7 @@ class ApplicationController < ActionController::Base
 	end
 
 	def get_user
-		session[:user]
+		session["user"]
 	end
 
 	rescue_from DeviseLdapAuthenticatable::LdapException do |exception|

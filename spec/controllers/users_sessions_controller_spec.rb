@@ -17,7 +17,7 @@ RSpec.describe Users::SessionsController, type: :controller do
       expect(response).to redirect_to(root_url)
       userinfo = session["user"]
 
-      expect(userinfo["email"]).to eq user.email
+      expect(userinfo["user"].email).to eq user.email
       expect(userinfo["groups"]).to eq groups
     end
 
