@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170330091752) do
+ActiveRecord::Schema.define(version: 20170331103353) do
 
   create_table "catalogues", force: :cascade do |t|
     t.string   "url"
@@ -59,6 +59,7 @@ ActiveRecord::Schema.define(version: 20170330091752) do
     t.string   "comment"
     t.date     "desired_date"
     t.integer  "product_id"
+    t.integer  "user_id"
     t.index ["product_id"], name: "index_work_orders_on_product_id"
   end
 

@@ -16,6 +16,7 @@ RSpec.feature "Sessions", type: :feature do
       end
 
       it 'will take me to the homepage' do
+
         visit root_path
         expect(page).to have_current_path(root_path)
       end
