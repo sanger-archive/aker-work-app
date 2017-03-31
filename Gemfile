@@ -37,6 +37,8 @@ gem 'wicked'
 gem 'bootstrap_form'
 gem 'faraday'
 gem 'zipkin-tracer'
+gem 'jwt'
+gem 'request_store'
 gem 'devise'
 gem 'net-ldap'
 gem 'devise_ldap_authenticatable'
@@ -63,6 +65,11 @@ end
 
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem
 gem 'tzinfo-data', platforms: [:mingw, :mswin, :x64_mingw, :jruby]
+
+
+group :test do
+  gem 'webmock'
+end
 
 group :test, :development do
   gem 'rspec-rails', '~> 3.4'
