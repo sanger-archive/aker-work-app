@@ -4,14 +4,14 @@ class ApplicationController < ActionController::Base
 	private
 
 	def apply_credentials
-		RequestStore.store[:x_authorisation] = get_principle_user
+		RequestStore.store[:x_authorisation] = get_user
 	end
 
-	def get_principle_user
-		session[:principle_user]
+	def get_user
+		session[:user]
 	end
 
-  rescue_from DeviseLdapAuthenticatable::LdapException do |exception|
-    render :text => exception, :status => 500
-  end
+	rescue_from DeviseLdapAuthenticatable::LdapException do |exception|
+	    render :text => exception, :status => 500
+	end
 end
