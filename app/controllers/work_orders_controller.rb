@@ -5,9 +5,9 @@ class WorkOrdersController < ApplicationController
   before_action :work_order, only: [:show]
 
   def index
-    if session["user"]
-      @active_work_orders = WorkOrder.active.for_user(session["user"]["user"]["id"])
-      @pending_work_orders = WorkOrder.pending.for_user(session["user"]["user"]["id"])
+    if current_user
+      @active_work_orders = WorkOrder.active.for_user(current_user)
+      @pending_work_orders = WorkOrder.pending.for_user(current_user)
     else
       @active_work_orders = []
       @pending_work_orders = []
@@ -15,7 +15,7 @@ class WorkOrdersController < ApplicationController
   end
 
   def new
-    work_order = WorkOrder.create!(user_id: session["user"]["user"]["id"])
+    work_order = WorkOrder.create!(user: current_user)
 
     redirect_to work_order_build_path(
       id: Wicked::FIRST_STEP,
