@@ -5,7 +5,7 @@ class WorkOrdersController < ApplicationController
   before_action :work_order, only: [:show]
 
   def index
-    if current_user
+    if user_signed_in?
       @active_work_orders = WorkOrder.active.for_user(current_user)
       @pending_work_orders = WorkOrder.pending.for_user(current_user)
     else
