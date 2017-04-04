@@ -9,12 +9,9 @@ RSpec.describe WorkOrdersController, type: :controller do
 		      groups = ["cowboys"]
 
 		      user = create(:user)
-		      allow(request.env['warden']).to receive(:authenticate!).and_return(user)
+		      sign_in user
 
-		      expect {
-	              post :new, params: {}, session: {"user"=> { "user"=> {"id" => user.id, "email" => user.email }}}
-	          }.to change(WorkOrder,:count).by(1)
-
+		      expect { post :new, params: {} }.to change(WorkOrder, :count).by(1)
 	          expect(WorkOrder.last.user_id).to eq user.id
 
 			end
@@ -27,14 +24,14 @@ RSpec.describe WorkOrdersController, type: :controller do
 		      groups = ["cowboys"]
 
 		      user = create(:user)
+		      sign_in user
 		      user2 = create(:user, email: 'jeff@sanger.ac.uk')
 		      wo1 = WorkOrder.create(user_id: user.id, status: "product")
 		      wo2 = WorkOrder.create(user_id: user2.id, status: "product")
 		      wo3 = WorkOrder.create(user_id: user.id, status: WorkOrder.ACTIVE)
 		      wo4 = WorkOrder.create(user_id: user2.id, status: WorkOrder.ACTIVE)
-		      allow(request.env['warden']).to receive(:authenticate!).and_return(user)
 
-		      get :index, params: {}, session: {"user"=> { "user"=> {"id" => user.id, "email" => user.email }}}
+		      get :index, params: {}
 
               pending = controller.instance_variable_get("@pending_work_orders")
 		      expect(pending.length).to eq 1
