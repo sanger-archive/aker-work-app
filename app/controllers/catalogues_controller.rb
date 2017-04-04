@@ -1,4 +1,6 @@
 class CataloguesController < ApplicationController
+  skip_authorization_check only: :create
+
 	def create
 		Catalogue.create_with_products(catalogue_params)
     head :created

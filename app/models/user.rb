@@ -3,7 +3,7 @@ class User < ApplicationRecord
 
   def fetch_groups
     # Doing this for now as not actually wanting to look up information from LDAP so stubbing
-    return ['pirates']
+    return ['pirates', 'world']
 
     name = self.email
     DeviseLdapAuthenticatable::Logger.send("Getting groups for #{name}")
