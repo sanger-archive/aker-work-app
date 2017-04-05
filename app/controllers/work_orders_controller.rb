@@ -4,10 +4,12 @@ class WorkOrdersController < ApplicationController
 
   before_action :work_order, only: [:show]
 
+  skip_authorization_check :only => [:index]
+
   def index
-    if session["user"]
-      @active_work_orders = WorkOrder.active.for_user(session["user"]["user"]["id"])
-      @pending_work_orders = WorkOrder.pending.for_user(session["user"]["user"]["id"])
+    if user_signed_in?
+      @active_work_orders = WorkOrder.active.for_user(current_user)
+      @pending_work_orders = WorkOrder.pending.for_user(current_user)
     else
       @active_work_orders = []
       @pending_work_orders = []
@@ -15,7 +17,9 @@ class WorkOrdersController < ApplicationController
   end
 
   def new
-    work_order = WorkOrder.create!(user_id: session["user"]["user"]["id"])
+    authorize! :create, WorkOrder
+
+    work_order = WorkOrder.create!(user: current_user)
 
     redirect_to work_order_build_path(
       id: Wicked::FIRST_STEP,
@@ -24,6 +28,8 @@ class WorkOrdersController < ApplicationController
   end
 
   def destroy
+    authorize! :create, work_order
+
     if work_order.active?
       flash[:error] = "This work order has already been issued, and cannot be cancelled."
     else
@@ -34,6 +40,7 @@ class WorkOrdersController < ApplicationController
   end
 
   def show
+    authorize! :read, work_order
   end
 
 private

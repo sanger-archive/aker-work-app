@@ -1,6 +1,7 @@
 require 'lims_client'
 
 class WorkOrder < ApplicationRecord
+  include Accessible
   belongs_to :product, optional: true
   belongs_to :user
 
@@ -8,7 +9,7 @@ class WorkOrder < ApplicationRecord
     'active'
   end
 
-  scope :for_user, ->(user_id) { where(user_id: user_id) }
+  scope :for_user, ->(user) { where(user_id: user.id) }
   scope :active, -> { where(status: WorkOrder.ACTIVE) }
   scope :pending, -> { where.not(status: WorkOrder.ACTIVE) }
 
