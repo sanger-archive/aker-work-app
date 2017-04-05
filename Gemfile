@@ -42,6 +42,7 @@ gem 'request_store'
 gem 'devise'
 gem 'net-ldap'
 gem 'devise_ldap_authenticatable'
+gem 'cancancan'
 
 gem 'aker-study-client', github: 'sanger/aker-study-client'
 gem 'aker-set-client', github: 'sanger/aker-set-client'

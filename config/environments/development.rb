@@ -52,18 +52,21 @@ Rails.application.configure do
   # routes, locales, etc. This feature depends on the listen gem.
   config.file_watcher = ActiveSupport::EventedFileUpdateChecker
 
-  config.study_url = 'http://localhost:3300/api/v1/'
+  config.study_url = 'http://localhost:3300/api/v1/nodes'
   config.study_url_default_proxy = 'http://localhost:3300'
 
-  config.set_url = 'http://localhost:3000/api/v1/'
+  config.set_url = 'http://localhost:3000/api/v1/sets'
   config.set_url_default_proxy = 'http://localhost:3000'
 
   config.material_url = 'http://localhost:5000/'
 
-  config.jwt_secret_key = 'development'
+  config.jwt_secret_key = 'test'
 
   config.jwt_exp_time = 2 * 60
   config.jwt_nbf_time = 1 * 60
+
+  config.jwt_secret_key = 'development'
+
   config.action_mailer.default_url_options = { host: 'localhost', port: 3000 }
 
 end

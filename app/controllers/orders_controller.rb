@@ -6,10 +6,14 @@ class OrdersController < ApplicationController
   steps :set, :product, :cost, :proposal, :summary
 
   def show
+    authorize! :write, work_order
+
     render_wizard
   end
 
   def update
+    authorize! :write, work_order
+
     if params[:work_order].nil? || perform_step
       render_wizard work_order
     else

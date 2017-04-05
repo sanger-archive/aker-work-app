@@ -1,17 +1,30 @@
 class ApplicationController < ActionController::Base
-	before_action :apply_credentials
+  # Checks authorization has been performed for every action
+  # Throws an error if not
+  # See https://github.com/ryanb/cancan/wiki/Ensure-Authorization
+  check_authorization
 
-	private
+  before_action :apply_credentials
 
-	def apply_credentials
-		RequestStore.store[:x_authorisation] = get_user
-	end
+  rescue_from CanCan::AccessDenied do |exception|
+    respond_to do |format|
+      format.json { head :forbidden, content_type: 'text/html' }
+      format.html { redirect_to root_path, alert: exception.message }
+      format.js   { head :forbidden, content_type: 'text/html' }
+    end
+  end
 
-	def get_user
-		session["user"]
-	end
+  private
 
-	rescue_from DeviseLdapAuthenticatable::LdapException do |exception|
-	    render :text => exception, :status => 500
-	end
+  def apply_credentials
+    RequestStore.store[:x_authorisation] = get_user
+  end
+
+  def get_user
+    session["user"]
+  end
+
+  rescue_from DeviseLdapAuthenticatable::LdapException do |exception|
+      render :text => exception, :status => 500
+  end
 end

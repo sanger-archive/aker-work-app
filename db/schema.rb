@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170331103353) do
+ActiveRecord::Schema.define(version: 20170403134322) do
 
   create_table "catalogues", force: :cascade do |t|
     t.string   "url"
@@ -20,6 +20,18 @@ ActiveRecord::Schema.define(version: 20170331103353) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["lims_id"], name: "index_catalogues_on_lims_id"
+  end
+
+  create_table "permissions", force: :cascade do |t|
+    t.string   "accessible_type"
+    t.integer  "accessible_id"
+    t.string   "permitted"
+    t.boolean  "r",               default: false
+    t.boolean  "w",               default: false
+    t.boolean  "x",               default: false
+    t.datetime "created_at",                      null: false
+    t.datetime "updated_at",                      null: false
+    t.index ["accessible_type", "accessible_id"], name: "index_permissions_on_accessible_type_and_accessible_id"
   end
 
   create_table "products", force: :cascade do |t|
