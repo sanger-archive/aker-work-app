@@ -28,7 +28,11 @@ protected
   end
 
   def get_all_aker_sets
-    return SetClient::Set.all.select { |s| s.meta["size"] > 0 }
+    if user_signed_in?
+      SetClient::Set.where(owner: current_user.email).all.select { |s| s.meta["size"] > 0 }
+    else
+      []
+    end
   end
 
   def proposal
