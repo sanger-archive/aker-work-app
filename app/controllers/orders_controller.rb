@@ -27,7 +27,7 @@ protected
     if user_signed_in?
       SetClient::Set.where(owner: current_user.email).all.select { |s| s.meta["size"] > 0 }
     else
-      SetClient::Set.none
+      []
     end
   end
 
