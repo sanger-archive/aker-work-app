@@ -2,7 +2,7 @@ require 'rails_helper'
 
 RSpec.feature "Permissions", type: :feature do
 
-  let(:work_order) { create(:work_order, user: create(:user)) }
+  let(:work_order) { create(:work_order, user_id: create(:user).id) }
 
   describe 'Work Orders' do
     context 'with a logged in user' do

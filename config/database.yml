@@ -15,11 +15,20 @@
 # gem 'pg'
 #
 default: &default
-  adapter: sqlite3
+  adapter: postgresql
   encoding: unicode
   # For details on connection pooling, see rails configuration guide
   # http://guides.rubyonrails.org/configuring.html#database-pooling
   pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+
+aker_auth_default: &aker_auth_default
+  adapter: postgresql
+  encoding: unicode
+  pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+
+aker_auth_development:
+  <<: *aker_auth_default
+  database: aker_auth_development
 
 development:
   <<: *default
@@ -55,6 +64,11 @@ development:
 # Warning: The database defined as "test" will be erased and
 # re-generated from your development database when you run "rake".
 # Do not set this db to the same as development or production.
+
+aker_auth_test:
+  <<: *aker_auth_default
+  database: aker_auth_test
+
 test:
   <<: *default
   database: work-orders_test
@@ -78,6 +92,11 @@ test:
 #   production:
 #     url: <%= ENV['DATABASE_URL'] %>
 #
+
+aker_auth_production:
+  <<: *aker_auth_default
+  database: aker_auth_production
+
 production:
   <<: *default
   database: work-orders_production

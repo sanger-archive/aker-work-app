@@ -76,11 +76,14 @@ RSpec.configure do |config|
   config.include Devise::Test::IntegrationHelpers, type: :feature
 
   config.before(:suite) do
+    ActiveRecord::Base.establish_connection :test
+    DatabaseCleaner.clean_with(:truncation)
+    ActiveRecord::Base.establish_connection :aker_auth_test
     DatabaseCleaner.clean_with(:truncation)
   end
 
   config.before(:each) do
-    DatabaseCleaner.strategy = :transaction
+    DatabaseCleaner.strategy = :truncation
   end
 
   config.before(:each, js: true) do
@@ -88,11 +91,17 @@ RSpec.configure do |config|
   end
 
   config.before(:each) do
+    ActiveRecord::Base.establish_connection :test
+    DatabaseCleaner.start
+    ActiveRecord::Base.establish_connection :aker_auth_test
     DatabaseCleaner.start
   end
 
   config.after(:each) do
     Capybara.reset_sessions!
+    ActiveRecord::Base.establish_connection :test
+    DatabaseCleaner.clean
+    ActiveRecord::Base.establish_connection :aker_auth_test
     DatabaseCleaner.clean
   end
 end

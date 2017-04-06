@@ -19,7 +19,8 @@ class WorkOrdersController < ApplicationController
   def new
     authorize! :create, WorkOrder
 
-    work_order = WorkOrder.create!(user: current_user)
+    #TODO this should do new instead of create maybe?
+    work_order = WorkOrder.create!(user_id: current_user.id)
 
     redirect_to work_order_build_path(
       id: Wicked::FIRST_STEP,

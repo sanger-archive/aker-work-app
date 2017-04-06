@@ -1,4 +1,4 @@
-class User < ApplicationRecord
+class User < AuthRecord
   devise :ldap_authenticatable, :rememberable, :trackable
 
   def fetch_groups

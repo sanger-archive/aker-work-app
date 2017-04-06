@@ -3,10 +3,14 @@ require 'lims_client'
 class WorkOrder < ApplicationRecord
   include Accessible
   belongs_to :product, optional: true
-  belongs_to :user
+  #belongs_to :user
 
   def self.ACTIVE
     'active'
+  end
+
+  def user
+    (user_id.nil? ? nil : User.find(user_id))
   end
 
   scope :for_user, ->(user) { where(user_id: user.id) }
