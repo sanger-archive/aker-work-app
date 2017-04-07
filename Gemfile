@@ -42,13 +42,12 @@ gem 'request_store'
 gem 'devise'
 gem 'net-ldap'
 gem 'devise_ldap_authenticatable'
-gem 'cancancan'
 
 gem 'aker-study-client', github: 'sanger/aker-study-client'
 gem 'aker-set-client', github: 'sanger/aker-set-client'
 gem 'matcon_client', github: 'sanger/aker-matcon-client'
 
-gem 'aker_authorisation_gem', :path => '/Users/emr/projects/aker_authorisation_gem'
+gem 'aker_authorisation_gem', path: '/Users/hc6/gems/aker-authorisation-gem'
 
 group :development, :test do
   # Call 'byebug' anywhere in the code to stop execution and get a debugger console

@@ -1,3 +1,4 @@
+require 'aker_authorisation_gem'
 class ApplicationController < ActionController::Base
   # Checks authorization has been performed for every action
   # Throws an error if not

@@ -23,9 +23,9 @@ GIT
       json_api_client
 
 PATH
-  remote: /Users/emr/projects/aker_authorisation_gem
+  remote: /Users/hc6/gems/aker-authorisation-gem
   specs:
-    aker_authorisation_gem (0.1.0)
+    aker_authorisation_gem (0.1.1)
       cancancan
 
 GEM
@@ -357,7 +357,6 @@ DEPENDENCIES
   bootstrap-sass (~> 3.3.6)
   bootstrap_form
   byebug
-  cancancan
   capybara
   coffee-rails (~> 4.2)
   database_cleaner
