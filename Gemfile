@@ -48,7 +48,7 @@ gem 'aker-study-client', github: 'sanger/aker-study-client'
 gem 'aker-set-client', github: 'sanger/aker-set-client'
 gem 'matcon_client', github: 'sanger/aker-matcon-client'
 
-gem 'aker_authorisation_gem', :path => '/Users/emr/projects/aker_authorisation_gem'
+gem 'aker_permission_gem', :path => '/Users/emr/projects/aker_permission_gem'
 gem 'aker_authentication_gem', :path => '/Users/emr/projects/aker_authentication_gem'
 
 group :development, :test do

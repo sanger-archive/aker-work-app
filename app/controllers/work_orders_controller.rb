@@ -1,4 +1,4 @@
-class WorkOrdersController < ApplicationController
+class WorkOrdersController < AkerAuthController
 
   before_action :authenticate_user!
 

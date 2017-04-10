@@ -28,9 +28,9 @@ PATH
     aker_authentication_gem (0.1.0)
 
 PATH
-  remote: /Users/emr/projects/aker_authorisation_gem
+  remote: /Users/emr/projects/aker_permission_gem
   specs:
-    aker_authorisation_gem (0.1.1)
+    aker_permission_gem (0.1.1)
       cancancan
 
 GEM
@@ -359,7 +359,7 @@ DEPENDENCIES
   aker-set-client!
   aker-study-client!
   aker_authentication_gem!
-  aker_authorisation_gem!
+  aker_permission_gem!
   bootstrap-sass (~> 3.3.6)
   bootstrap_form
   byebug

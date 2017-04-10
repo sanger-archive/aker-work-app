@@ -1,4 +1,4 @@
-class CataloguesController < ApplicationController
+class CataloguesController < AkerAuthController
   skip_authorization_check only: :create
 
 	def create

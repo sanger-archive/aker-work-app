@@ -1,7 +1,7 @@
 require 'lims_client'
 
 class WorkOrder < ApplicationRecord
-  include AkerAuthorisationGem::Accessible
+  include AkerPermissionGem::Accessible
   belongs_to :product, optional: true
   belongs_to :user
 

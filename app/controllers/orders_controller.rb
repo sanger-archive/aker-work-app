@@ -1,4 +1,4 @@
-class OrdersController < ApplicationController
+class OrdersController < AkerAuthController
   before_action :authenticate_user!
 
   include Wicked::Wizard
