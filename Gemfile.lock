@@ -23,9 +23,14 @@ GIT
       json_api_client
 
 PATH
+  remote: /Users/emr/projects/aker_authentication_gem
+  specs:
+    aker_authentication_gem (0.1.0)
+
+PATH
   remote: /Users/emr/projects/aker_authorisation_gem
   specs:
-    aker_authorisation_gem (0.1.0)
+    aker_authorisation_gem (0.1.1)
       cancancan
 
 GEM
@@ -353,6 +358,7 @@ PLATFORMS
 DEPENDENCIES
   aker-set-client!
   aker-study-client!
+  aker_authentication_gem!
   aker_authorisation_gem!
   bootstrap-sass (~> 3.3.6)
   bootstrap_form
