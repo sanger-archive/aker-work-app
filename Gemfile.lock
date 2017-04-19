@@ -17,13 +17,6 @@ GIT
       faraday_middleware
 
 GIT
-  remote: git://github.com/sanger/aker-permission.git
-  revision: 5723071971a0b4319302ea8f8733cbcbde1a7fb6
-  specs:
-    aker_permission_gem (0.1.1)
-      cancancan
-
-GIT
   remote: git://github.com/sanger/aker-set-client.git
   revision: 93853e389b78ea99346edc2f4f42904aa58e18b2
   specs:
@@ -46,6 +39,12 @@ PATH
       jwt
       net-ldap
       request_store
+
+PATH
+  remote: /Users/emr/projects/aker_permission_gem
+  specs:
+    aker_permission_gem (0.1.1)
+      cancancan
 
 GEM
   remote: https://rubygems.org/
@@ -116,6 +115,7 @@ GEM
     cliver (0.3.2)
     codeclimate-engine-rb (0.4.0)
       virtus (~> 1.0)
+    coderay (1.1.1)
     coercible (1.0.0)
       descendants_tracker (~> 0.0.1)
     coffee-rails (4.2.1)
@@ -219,6 +219,10 @@ GEM
       cliver (~> 0.3.1)
       websocket-driver (>= 0.2.0)
     powerpack (0.1.1)
+    pry (0.10.4)
+      coderay (~> 1.1.0)
+      method_source (~> 0.8.1)
+      slop (~> 3.4)
     public_suffix (2.0.5)
     puma (3.8.2)
     rack (2.0.1)
@@ -310,6 +314,7 @@ GEM
     simplecov-html (0.10.0)
     simplecov-rcov (0.2.3)
       simplecov (>= 0.4.1)
+    slop (3.6.0)
     spring (2.0.1)
       activesupport (>= 4.2)
     spring-watcher-listen (2.0.1)
@@ -391,6 +396,7 @@ DEPENDENCIES
   matcon_client!
   pg (~> 0.18)
   poltergeist
+  pry
   puma (~> 3.0)
   rails (~> 5.0.0, >= 5.0.0.1)
   rspec-rails (~> 3.4)
