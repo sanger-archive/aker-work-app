@@ -40,9 +40,8 @@ gem 'zipkin-tracer'
 
 
 gem 'aker_credentials_gem', :github => 'sanger/aker-credentials'
-#gem 'aker_authentication_gem', :github => 'sanger/aker-authentication'
-gem 'aker_authentication_gem', :path => '/Users/emr/projects/aker_authentication_gem'
-gem 'aker_permission_gem', :path => '/Users/emr/projects/aker_permission_gem'
+gem 'aker_authentication_gem', :github => 'sanger/aker-authentication'
+gem 'aker_permission_gem', :github => 'sanger/aker-permission'
 
 gem 'aker-study-client', github: 'sanger/aker-study-client'
 gem 'aker-set-client', github: 'sanger/aker-set-client'
