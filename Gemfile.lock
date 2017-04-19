@@ -1,4 +1,12 @@
 GIT
+  remote: git://github.com/sanger/aker-credentials.git
+  revision: ab120405c8a55506ff400921ab6cbd4472c8c6bc
+  specs:
+    aker_credentials_gem (0.1.0)
+      jwt
+      request_store
+
+GIT
   remote: git://github.com/sanger/aker-matcon-client.git
   revision: 84bda92bbc66f50b2e505f1ac43517059bd1f8a1
   specs:
@@ -7,6 +15,13 @@ GIT
       activesupport
       faraday
       faraday_middleware
+
+GIT
+  remote: git://github.com/sanger/aker-permission.git
+  revision: 5723071971a0b4319302ea8f8733cbcbde1a7fb6
+  specs:
+    aker_permission_gem (0.1.1)
+      cancancan
 
 GIT
   remote: git://github.com/sanger/aker-set-client.git
@@ -26,12 +41,11 @@ PATH
   remote: /Users/emr/projects/aker_authentication_gem
   specs:
     aker_authentication_gem (0.1.0)
-
-PATH
-  remote: /Users/emr/projects/aker_permission_gem
-  specs:
-    aker_permission_gem (0.1.1)
-      cancancan
+      devise
+      devise_ldap_authenticatable
+      jwt
+      net-ldap
+      request_store
 
 GEM
   remote: https://rubygems.org/
@@ -359,31 +373,26 @@ DEPENDENCIES
   aker-set-client!
   aker-study-client!
   aker_authentication_gem!
+  aker_credentials_gem!
   aker_permission_gem!
   bootstrap-sass (~> 3.3.6)
   bootstrap_form
   byebug
-  cancancan
   capybara
   coffee-rails (~> 4.2)
   database_cleaner
-  devise
-  devise_ldap_authenticatable
   factory_girl_rails
   faraday
   font-awesome-sass
   jbuilder (~> 2.5)
   jquery-rails
-  jwt
   launchy
   listen (~> 3.0.5)
   matcon_client!
-  net-ldap
   pg (~> 0.18)
   poltergeist
   puma (~> 3.0)
   rails (~> 5.0.0, >= 5.0.0.1)
-  request_store
   rspec-rails (~> 3.4)
   rubocop (~> 0.41.2)
   rubycritic
