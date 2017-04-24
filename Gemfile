@@ -1,6 +1,5 @@
 source 'https://rubygems.org'
 
-
 # Bundle edge Rails instead: gem 'rails', github: 'rails/rails'
 gem 'rails', '~> 5.0.0', '>= 5.0.0.1'
 # Use postgresql as the database for Active Record
@@ -37,17 +36,16 @@ gem 'wicked'
 gem 'bootstrap_form'
 gem 'faraday'
 gem 'zipkin-tracer'
-gem 'jwt'
-gem 'request_store'
-gem 'devise'
-gem 'net-ldap'
-gem 'devise_ldap_authenticatable'
-gem 'cancancan'
+
+gem 'json_api_client', github: 'sanger/json_api_client'
+
+gem 'aker_credentials_gem', :github => 'sanger/aker-credentials'
+gem 'aker_authentication_gem', :github => 'sanger/aker-authentication'
+gem 'aker_permission_gem', :github => 'sanger/aker-permission'
 
 gem 'aker-study-client', github: 'sanger/aker-study-client'
 gem 'aker-set-client', github: 'sanger/aker-set-client'
 gem 'matcon_client', github: 'sanger/aker-matcon-client'
-
 
 group :development, :test do
   # Call 'byebug' anywhere in the code to stop execution and get a debugger console

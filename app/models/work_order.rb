@@ -1,9 +1,15 @@
 require 'lims_client'
 
 class WorkOrder < ApplicationRecord
-  include Accessible
+  include AkerPermissionGem::Accessible
   belongs_to :product, optional: true
   belongs_to :user
+
+  after_create :set_default_permission_email
+
+  def set_default_permission_email
+    set_default_permission(user.email)
+  end
 
   def self.ACTIVE
     'active'
