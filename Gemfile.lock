@@ -35,6 +35,12 @@ GIT
       cancancan
 
 GIT
+  remote: git://github.com/sanger/aker-set-client.git
+  revision: 9b827bf50b31126243a89d993381be07714b74b2
+  specs:
+    aker-set-client (0.2.0)
+
+GIT
   remote: git://github.com/sanger/aker-study-client.git
   revision: b4f733080909664af57234762c45d87f52a5a87e
   specs:
@@ -50,11 +56,6 @@ GIT
       addressable (~> 2.2)
       faraday (~> 0.9)
       faraday_middleware (~> 0.9)
-
-PATH
-  remote: /Users/hc6/gems/aker-set-client
-  specs:
-    aker-set-client (0.2.0)
 
 GEM
   remote: https://rubygems.org/
