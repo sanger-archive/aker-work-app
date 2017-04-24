@@ -1,10 +1,9 @@
 class WorkOrdersController < ApplicationController
 
-  before_action :authenticate_user!
-
   before_action :work_order, only: [:show]
 
   skip_authorization_check :only => [:index]
+
 
   def index
     if user_signed_in?
