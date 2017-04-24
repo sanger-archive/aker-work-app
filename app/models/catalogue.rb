@@ -1,5 +1,4 @@
 class Catalogue < ApplicationRecord
-
   has_many :products
 
   def self.create_with_products(catalogue_params)

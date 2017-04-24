@@ -10,8 +10,7 @@ RSpec.describe WorkOrdersController, type: :controller do
 
 		      user = create(:user)
 		      sign_in user
-
-		      expect { post :new, params: {} }.to change(WorkOrder, :count).by(1)
+		      expect { get :new, params: {} }.to change(WorkOrder, :count).by(1)
 	          expect(WorkOrder.last.user_id).to eq user.id
 
 			end
