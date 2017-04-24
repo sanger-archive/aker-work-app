@@ -38,6 +38,7 @@ gem 'bootstrap_form'
 gem 'faraday'
 gem 'zipkin-tracer'
 
+gem 'json_api_client', github: 'sanger/json_api_client'
 
 gem 'aker_credentials_gem', :github => 'sanger/aker-credentials'
 gem 'aker_authentication_gem', :github => 'sanger/aker-authentication'

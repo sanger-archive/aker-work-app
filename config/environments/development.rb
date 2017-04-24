@@ -52,8 +52,8 @@ Rails.application.configure do
   # routes, locales, etc. This feature depends on the listen gem.
   config.file_watcher = ActiveSupport::EventedFileUpdateChecker
 
-  config.study_url = 'http://localhost:6001/api/v1'
-  config.study_url_default_proxy = 'http://localhost:6001'
+  config.study_url = 'http://localhost:3300/api/v1'
+  config.study_url_default_proxy = 'http://localhost:3300'
 
   config.set_url = 'http://localhost:3000/api/v1'
   config.set_url_default_proxy = 'http://localhost:3000'
