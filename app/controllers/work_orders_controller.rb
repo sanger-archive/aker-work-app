@@ -15,7 +15,7 @@ class WorkOrdersController < ApplicationController
     end
   end
 
-  def new
+  def create
     authorize! :create, WorkOrder
 
     work_order = WorkOrder.create!(user: current_user)
