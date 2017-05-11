@@ -22,14 +22,14 @@ class UpdateOrderService
     return false unless ready_for_step(step)
     return false unless params_satisfy_step(step, @work_order_params)
 
+    if @work_order_params.key?('product_id')
+      # force the cost to be recalculated if we're updating the product
+      @work_order_params['total_cost'] = nil
+    end
+
     if @work_order.update_attributes(@work_order_params)
       if @work_order.original_set_uuid && @work_order.set_uuid.nil?
         return false unless create_locked_set
-      end
-
-      if @work_order_params.key?('product_id')
-        # If we have updated the product, we need to clear the old cost
-        @work_order.update_attributes(total_cost: nil)
       end
 
       if @work_order.set_uuid && @work_order.product_id && @work_order.total_cost.nil?
