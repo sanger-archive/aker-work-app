@@ -52,7 +52,7 @@ class WorkOrder < ApplicationRecord
   end
 
   def num_samples
-    self.set&.meta['size']
+    self.set && self.set.meta['size']
   end
 
   def total_cost
@@ -87,7 +87,7 @@ class WorkOrder < ApplicationRecord
 
   def lims_data
     material_ids = SetClient::Set.find_with_materials(set_uuid).first.materials.map{|m| m.id}
-    materials = all_results(MatconClient::Material.where("_id":{"$in" => material_ids}).result_set)
+    materials = all_results(MatconClient::Material.where("_id" => {"$in" => material_ids}).result_set)
     material_data = materials.map do |m|
           {
             material_id: m.id,
@@ -116,7 +116,7 @@ class WorkOrder < ApplicationRecord
   end
 
   def describe_containers(material_ids, material_data)
-    containers = MatconClient::Container.where('slots.material': { '$in': material_ids}).result_set
+    containers = MatconClient::Container.where("slots.material" => { "$in" => material_ids}).result_set
     material_map = material_data.each_with_object({}) { |t,h| h[t[:material_id]] = t }
     while containers do
       containers.each do |container|
