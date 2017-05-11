@@ -19,6 +19,9 @@ class UpdateOrderService
     return false if block_any_update
     return false if block_set_change
 
+    return false unless ready_for_step(step)
+    return false unless params_satisfy_step(step, @work_order_params)
+
     if @work_order.update_attributes(@work_order_params)
       if @work_order.original_set_uuid && @work_order.set_uuid.nil?
         return false unless create_locked_set
@@ -35,6 +38,42 @@ class UpdateOrderService
   end
 
 private
+
+  def ready_for_step(step)
+    return true if step==:set
+    unless @work_order.original_set_uuid
+      add_error("Please select a set in an earlier step.")
+      return false
+    end
+    return true if step==:product
+    unless @work_order.product_id
+      add_error("Please select a product in an earlier step.")
+      return false
+    end
+    # TODO - cost should be saved in the work order
+    return true if (step==:cost || step==:proposal)
+    unless @work_order.proposal_id
+      add_error("Please select a proposal in an earlier step.")
+      return false
+    end
+    return true
+  end
+
+  def params_satisfy_step(step, params)
+    if step==:set && !params['original_set_uuid']
+      add_error("Please select a set to proceed.")
+      return false
+    end
+    if step==:product && !params['product_id']
+      add_error("Please select a product to proceed.")
+      return false
+    end
+    if step==:proposal && !params['proposal_id']
+      add_error("Please select a proposal to proceed.")
+      return false
+    end
+    return true
+  end
 
   def block_any_update
     if @work_order.active?
