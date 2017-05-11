@@ -55,15 +55,6 @@ class WorkOrder < ApplicationRecord
     self.set && self.set.meta['size']
   end
 
-  def total_cost
-    cost = product&.cost_per_sample
-    return nil if cost.nil?
-    n = num_samples
-    return nil if n.nil?
-
-    n*cost
-  end
-
   # Create a locked set from this work order's original set.
   def create_locked_set
     self.set = original_set.create_locked_clone("Work order #{id}")

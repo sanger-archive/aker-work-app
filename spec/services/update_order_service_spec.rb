@@ -18,6 +18,12 @@ RSpec.describe UpdateOrderService do
     return proposal
   end
 
+  def make_product(attrs=nil)
+    x = { cost_per_sample: 5 }
+    x.merge!(attrs) if attrs
+    create(:product, x)
+  end
+
   def order_at_step(step)
     attrs = { status: step.to_s }
     return create(:work_order, attrs) if step==:set
@@ -26,10 +32,10 @@ RSpec.describe UpdateOrderService do
     attrs[:original_set_uuid] = @original_set.uuid
     attrs[:set_uuid] = @clone_set.uuid
     return create(:work_order, attrs) if step==:product
-    @product = create(:product)
+    @product = make_product
     attrs[:product_id] = @product.id
+    attrs[:total_cost] = @product.cost_per_sample*@clone_set.meta['size']
     return create(:work_order, attrs) if step==:cost
-    # TODO - cost should be stored in work order at some point
     return create(:work_order, attrs) if step==:proposal
     @proposal = make_proposal
     attrs[:proposal_id] = @proposal.id
@@ -111,13 +117,15 @@ RSpec.describe UpdateOrderService do
       end
 
       it "should accept a product" do
-        product = create(:product)
+        expect(@wo.total_cost).to be_nil
+        product = make_product
         params = { 'product_id' => product.id }
         messages = {}
         expect(UpdateOrderService.new(params, @wo, messages).perform(:product)).to eq(true)
         expect(messages[:error]).to be_nil
 
         expect(@wo.product).to eq(product)
+        expect(@wo.total_cost).to eq(@clone_set.meta['size']*product.cost_per_sample)
       end
 
       it "should error if product is not given" do
@@ -132,6 +140,14 @@ RSpec.describe UpdateOrderService do
         messages = {}
         expect(UpdateOrderService.new(params, @wo, messages).perform(:cost)).to eq(false)
         expect(messages[:error]).to include('product')
+      end
+
+      it "should fail if the cost cannot be calculated" do
+        product = make_product(cost_per_sample: nil)
+        params = { 'product_id' => product.id }
+        messages = {}
+        expect(UpdateOrderService.new(params, @wo, messages).perform(:product)).to eq(false)
+        expect(messages[:error]).to include('cost')
       end
     end
 
@@ -150,14 +166,29 @@ RSpec.describe UpdateOrderService do
         expect(@wo.proposal_id).to eq(proposal.id)
       end
 
-      it "should let you alter an earlier step" do
-        product = create(:product)
-        expect(@wo.product).not_to eq(product)
-        params = { 'product_id' => product.id }
-        messages = {}
-        expect(UpdateOrderService.new(params, @wo, messages).perform(:product)).to eq(true)
-        expect(messages[:error]).to be_nil
-        expect(@wo.product).to eq(product)
+      context "when you revise the product step" do
+        before do
+          @product = make_product(cost_per_sample: 31)
+
+          expect(@wo.product).not_to eq(@product)
+          params = { 'product_id' => @product.id }
+          @messages = {}
+          @result = UpdateOrderService.new(params, @wo, @messages).perform(:product)
+        end
+
+        it "should return true" do
+          expect(@result).to eq(true)
+        end
+        it "should have no error" do
+          expect(@messages[:error]).to be_nil
+        end
+        it "should update the product" do
+          expect(@wo.product).to eq(@product)
+          expect(@wo.product_id).to eq(@product.id)
+        end
+        it "should recalculate the total cost" do
+          expect(@wo.total_cost).to eq(@wo.set.meta['size']*@product.cost_per_sample)
+        end
       end
 
       it "should error if proposal is not given" do
@@ -204,7 +235,7 @@ RSpec.describe UpdateOrderService do
       end
 
       it "should let you alter an earlier step" do
-        product = create(:product)
+        product = make_product
         expect(@wo.product).not_to eq(product)
         params = { 'product_id' => product.id }
         messages = {}

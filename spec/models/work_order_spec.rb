@@ -66,42 +66,6 @@ RSpec.describe WorkOrder, type: :model do
     return @set
   end
 
-  describe "#total_cost" do
-    before do
-      @product = build(:product, cost_per_sample: 20)
-    end
-
-    context "given a product and samples" do
-      before do
-        @wo = build(:work_order, product: @product, set_uuid: make_set(6).uuid)
-      end
-
-      it "should return the correct cost" do
-        expect(@wo.total_cost).to eq 120
-      end
-    end
-
-    context "given samples but no product" do
-      before do
-        @wo = build(:work_order, product: nil, set_uuid: make_set(6).uuid)
-      end
-
-      it "should return nil" do
-        expect(@wo.total_cost).to be_nil
-      end
-    end
-
-    context "given product but no set" do
-      before do
-        @wo = build(:work_order, product: @product, set_uuid: nil)
-      end
-
-      it "should return nil" do
-        expect(@wo.total_cost).to be_nil
-      end
-    end
-  end
-
   describe "#set" do
     context "when work order has a set" do
       before do

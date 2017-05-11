@@ -27,6 +27,15 @@ class UpdateOrderService
         return false unless create_locked_set
       end
 
+      if @work_order_params.key?('product_id')
+        # If we have updated the product, we need to clear the old cost
+        @work_order.update_attributes(total_cost: nil)
+      end
+
+      if @work_order.set_uuid && @work_order.product_id && @work_order.total_cost.nil?
+        return false unless calculate_cost
+      end
+
       if step==:summary
         return false unless send_order
         @work_order.update_attributes(status: 'active')
@@ -50,7 +59,6 @@ private
       add_error("Please select a product in an earlier step.")
       return false
     end
-    # TODO - cost should be saved in the work order
     return true if (step==:cost || step==:proposal)
     unless @work_order.proposal_id
       add_error("Please select a proposal in an earlier step.")
@@ -105,6 +113,21 @@ private
       add_error("The request to the set service failed.")
       return false
     end
+  end
+
+  def calculate_cost
+    cost = @work_order.product&.cost_per_sample
+    if cost.nil?
+      add_error("The cost could not be calculated because of missing product cost information.")
+      return false
+    end
+    n = @work_order.num_samples
+    if n.nil?
+      add_error("The cost could not be calculated because of missing sample information.")
+      return false
+    end
+    @work_order.update_attributes(total_cost: cost*n)
+    return true
   end
 
   def send_order
