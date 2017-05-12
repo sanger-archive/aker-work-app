@@ -38,15 +38,23 @@ class UpdateOrderService
 
       if step==:summary
         return false unless send_order
-        @work_order.update_attributes(status: 'active')
         add_notice('Your work order has been created.')
       end
     end
 
+    @work_order.update_attributes(status: next_status(step))
     return true
   end
 
 private
+
+  def next_status(step)
+    steps = [:set, :product, :cost, :proposal, :summary]
+    i = steps.index(step)
+    return step.to_s if i.nil?
+    return 'active' if i+1==steps.length
+    return steps[i+1].to_s
+  end
 
   def ready_for_step(step)
     return true if step==:set
