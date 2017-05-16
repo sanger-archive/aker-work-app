@@ -12,6 +12,9 @@
 
 ActiveRecord::Schema.define(version: 20170511150048) do
 
+  # These are extensions that must be enabled in order to support this database
+  enable_extension "plpgsql"
+
   create_table "catalogues", force: :cascade do |t|
     t.string   "url"
     t.string   "lims_id"
@@ -19,7 +22,7 @@ ActiveRecord::Schema.define(version: 20170511150048) do
     t.boolean  "current"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["lims_id"], name: "index_catalogues_on_lims_id"
+    t.index ["lims_id"], name: "index_catalogues_on_lims_id", using: :btree
   end
 
   create_table "permissions", force: :cascade do |t|
@@ -31,8 +34,8 @@ ActiveRecord::Schema.define(version: 20170511150048) do
     t.integer  "accessible_id",                   null: false
     t.datetime "created_at",                      null: false
     t.datetime "updated_at",                      null: false
-    t.index ["accessible_type", "accessible_id"], name: "index_permissions_on_accessible_type_and_accessible_id"
-    t.index ["permitted"], name: "index_permissions_on_permitted"
+    t.index ["accessible_type", "accessible_id"], name: "index_permissions_on_accessible_type_and_accessible_id", using: :btree
+    t.index ["permitted"], name: "index_permissions_on_permitted", using: :btree
   end
 
   create_table "products", force: :cascade do |t|
@@ -46,7 +49,7 @@ ActiveRecord::Schema.define(version: 20170511150048) do
     t.integer  "product_version"
     t.integer  "availability",                                       default: 1
     t.string   "description"
-    t.index ["catalogue_id"], name: "index_products_on_catalogue_id"
+    t.index ["catalogue_id"], name: "index_products_on_catalogue_id", using: :btree
   end
 
   create_table "users", force: :cascade do |t|
@@ -59,7 +62,7 @@ ActiveRecord::Schema.define(version: 20170511150048) do
     t.string   "last_sign_in_ip"
     t.datetime "created_at",                       null: false
     t.datetime "updated_at",                       null: false
-    t.index ["email"], name: "index_users_on_email", unique: true
+    t.index ["email"], name: "index_users_on_email", unique: true, using: :btree
   end
 
   create_table "work_orders", force: :cascade do |t|
@@ -74,7 +77,9 @@ ActiveRecord::Schema.define(version: 20170511150048) do
     t.integer  "product_id"
     t.integer  "user_id"
     t.integer  "total_cost"
-    t.index ["product_id"], name: "index_work_orders_on_product_id"
+    t.index ["product_id"], name: "index_work_orders_on_product_id", using: :btree
   end
 
+  add_foreign_key "products", "catalogues"
+  add_foreign_key "work_orders", "products"
 end

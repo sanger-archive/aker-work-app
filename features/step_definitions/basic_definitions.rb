@@ -121,20 +121,14 @@ Given(/^the following proposals have been defined:$/) do |table|
   response_headers = {'Content-Type'=>'application/vnd.api+json'}
   @proposals ||= []
   table.hashes.each_with_index do |proposal, index|
-    uuid = SecureRandom.uuid
-    node_template = {type: "nodes", attributes: { id: uuid, name: proposal['Name'], "cost-code".to_sym => proposal['Code']}}
-    set_template = { id: uuid, meta: { size: 1}, attributes: {name: proposal['Name']}}
+    node_template = {type: "nodes", attributes: { id: index, name: proposal['Name'], "cost-code".to_sym => proposal['Code']}}
 
-    @proposals.push(node_template)
-
-    stub_request(:get, "http://external-server:3300/api/v1/nodes/nodes/#{uuid}"). 
+    stub_request(:get, "http://external-server:3300/api/v1/nodes/nodes/#{index}"). 
       with(headers: {'Accept'=>'application/vnd.api+json'}).
       to_return(status: 200, body: {data: node_template }.to_json, 
         headers: response_headers)
-    stub_request(:get, "http://external-server:3000/api/v1/sets/#{uuid}").
-      with(headers: {'Accept'=>'application/vnd.api+json'}).
-      to_return(status: 200, body: {data: set_template }.to_json, 
-        headers: response_headers)
+
+    @proposals.push(node_template)
   end
 
   stub_request(:get, "http://external-server:3300/api/v1/nodes/nodes?filter%5Bcost_code%5D=!_none").
