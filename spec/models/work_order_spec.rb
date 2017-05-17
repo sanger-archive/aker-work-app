@@ -248,7 +248,7 @@ RSpec.describe WorkOrder, type: :model do
         @materials.zip(material_data).each do |mat, dat|
           slot = @container.slots.find { |slot| slot.material_id==mat.id }
           expect(dat[:material_id]).to eq(mat.id)
-          expect(dat[:container]).to eq("#{@container.barcode} #{slot.address}")
+          expect(dat[:container]).to eq({ barcode: @container.barcode, address: slot.address })
           expect(dat[:gender]).to eq(mat.attributes['gender'])
           expect(dat[:donor_id]).to eq(mat.attributes['donor_id'])
           expect(dat[:phenotype]).to eq(mat.attributes['phenotype'])
@@ -292,7 +292,11 @@ RSpec.describe WorkOrder, type: :model do
 
       @wo.describe_containers(@material_ids, material_data)
 
-      expected = [ "#{@plate.barcode} A:3", "#{@plate.barcode} A:4", "#{@tube.barcode}"]
+      expected = [
+        { barcode: @plate.barcode, address: 'A:3' },
+        { barcode: @plate.barcode, address: 'A:4' },
+        { barcode: @tube.barcode },
+      ]
       expect(material_data.length).to eq(expected.length)
       expected.zip(material_data).each do | exp, data |
         expect(data[:container]).to eq(exp)
