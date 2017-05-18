@@ -4,7 +4,6 @@ class WorkOrdersController < ApplicationController
 
   skip_authorization_check :only => [:index]
 
-
   def index
     if user_signed_in?
       @active_work_orders = WorkOrder.active.for_user(current_user)
@@ -27,7 +26,7 @@ class WorkOrdersController < ApplicationController
   end
 
   def destroy
-    authorize! :create, work_order
+    authorize! :write, work_order
 
     if work_order.active?
       flash[:error] = "This work order has already been issued, and cannot be cancelled."
