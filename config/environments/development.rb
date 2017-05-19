@@ -67,6 +67,8 @@ Rails.application.configure do
 
   config.jwt_secret_key = 'development'
 
+  config.work_order_completion_json_schema_path = '/assets/schemas/work_order_completion.json'
+
   config.fake_ldap = true
 
   config.action_mailer.default_url_options = { host: 'localhost', port: 3000 }

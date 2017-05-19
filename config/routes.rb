@@ -6,6 +6,8 @@ Rails.application.routes.draw do
   post '/catalogue', to: 'catalogues#create'
 
   resources :work_orders do
+    post 'complete', to: 'work_orders#complete'
+    post 'cancel', to: 'work_orders#cancel'        
     resources :build, controller: 'orders'
   end
 

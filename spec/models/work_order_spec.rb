@@ -313,4 +313,11 @@ RSpec.describe WorkOrder, type: :model do
       expect(@original_set).to have_received(:create_locked_clone)
     end
   end
+
+  describe "#complete" do
+    
+  end
+
+  describe "#cancel" do
+  end
 end

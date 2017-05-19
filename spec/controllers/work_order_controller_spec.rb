@@ -2,6 +2,23 @@ require 'rails_helper'
 
 RSpec.describe WorkOrdersController, type: :controller do
 	describe 'work_order' do
+		context 'completion' do
+			@msg = FactoryGirl.build(:work_order_completion_message_json)
+			@work_order = FactoryGirl.create :work_order
+			@msg[:work_order][:work_order_id] = @work_order.id
+
+			it 'completes a work order' do
+				debugger
+				post work_order_complete_path(@work_order), params: @msg
+				expect(@work_order.status).to eq('complete')
+			end
+
+			it 'cancels a work order' do
+				post work_order_complete_path(@work_order), params: @msg
+				expect(@work_order.status).to eq('cancel')
+			end
+		end
+
 		context '#new' do
 			it 'creates a work order with the logged on user' do
 		      @request.env['devise.mapping'] = Devise.mappings[:user]

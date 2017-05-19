@@ -2,8 +2,13 @@ require 'lims_client'
 
 class WorkOrder < ApplicationRecord
   include AkerPermissionGem::Accessible
+
+  include WorkOrder::Completion
+
   belongs_to :product, optional: true
   belongs_to :user
+
+
 
   after_create :set_default_permission_email
 
@@ -18,6 +23,10 @@ class WorkOrder < ApplicationRecord
   scope :for_user, ->(user) { where(user_id: user.id) }
   scope :active, -> { where(status: WorkOrder.ACTIVE) }
   scope :pending, -> { where.not(status: WorkOrder.ACTIVE) }
+
+  def has_materials?(uuids)
+    MatconClient::Material.where('_id': uuids).count == uuids.count
+  end
 
   def active?
     status == WorkOrder.ACTIVE
