@@ -7,22 +7,22 @@
       "work_order": {
         "type": "object",
         "properties": {
-          "work_order_id": { "type": "integer"},
+          "id": { "type": "integer"},
           "comment": { "type": "string" },
-          "updated_materials": { 
-            "type": "array", 
+          "updated_materials": {
+            "type": "array",
             "items": {
               "$ref": "http://localhost:5000/materials/json_schema"
             }
           },
-          "new_materials": { 
-            "type": "array", 
+          "new_materials": {
+            "type": "array",
             "items": {
               "$ref": "http://localhost:5000/materials/json_schema"
             }
           },
-          "containers": { 
-            "type": "array", 
+          "containers": {
+            "type": "array",
             "items": {
               "$ref": "http://localhost:5000/containers/json_schema"
             }
