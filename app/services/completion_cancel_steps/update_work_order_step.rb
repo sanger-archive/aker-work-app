@@ -6,7 +6,7 @@ class UpdateWorkOrderStep
 
 	# 5 - Update WorkOrder
 	def up
-		work_order.update_attributes!(status: status, comment: @msg[:work_order][:comment])
+		@work_order.update_attributes!(status: @msg[:work_order][:status], comment: @msg[:work_order][:comment])
 	end
 
 	def down

@@ -53,7 +53,6 @@ class WorkOrdersController < ApplicationController
     validator = WorkOrderValidatorService.new(work_order, params_for_completion)
     valid = validator.validate?
     if valid
-      debugger
       result = complete_work_order
     else
       result = validator.errors
@@ -79,12 +78,13 @@ private
     success = false
     cleanup = false
     begin
-      new_materials = CreateNewMaterialsStep.new(work_order, params_for_completion)
+      material_step = CreateNewMaterialsStep.new(work_order, params_for_completion)
       success = DispatchService.new.process([
+        # update matcon container for accepting barcode
         CreateContainersStep.new(work_order, params_for_completion),
-        new_materials,
+        material_step,
         UpdateOldMaterialsStep.new(work_order, params_for_completion),
-        LockSetStep.new(work_order, params_for_completion, new_materials),
+        LockSetStep.new(work_order, params_for_completion, material_step),
         UpdateWorkOrderStep.new(work_order, params_for_completion),
       ])
 
@@ -101,15 +101,15 @@ private
     end
 
     if success
-      flash[:notice] = 'Your work order is updated'
+      msg = flash[:notice] = 'Your work order is updated'
     elsif cleanup
-      flash[:error] = "The work order could not be updated"
+      msg = flash[:error] = "The work order could not be updated"
     else
-      flash[:error] = "There has been a problem with the work order update. Please contact support."
+      msg = flash[:error] = "There has been a problem with the work order update. Please contact support."
     end
 
     # SEND EMAIL
-    return success
+    return {msg: msg, status: success ? 200 : 502 }
   end
 
   helper_method :work_order
