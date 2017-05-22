@@ -52,16 +52,7 @@ class WorkOrder < ApplicationRecord
   end
 
   def num_samples
-    self.set&.meta['size']
-  end
-
-  def total_cost
-    cost = product&.cost_per_sample
-    return nil if cost.nil?
-    n = num_samples
-    return nil if n.nil?
-
-    n*cost
+    self.set && self.set.meta['size']
   end
 
   # Create a locked set from this work order's original set.
@@ -87,7 +78,7 @@ class WorkOrder < ApplicationRecord
 
   def lims_data
     material_ids = SetClient::Set.find_with_materials(set_uuid).first.materials.map{|m| m.id}
-    materials = all_results(MatconClient::Material.where("_id":{"$in" => material_ids}).result_set)
+    materials = all_results(MatconClient::Material.where("_id" => {"$in" => material_ids}).result_set)
     material_data = materials.map do |m|
           {
             material_id: m.id,
@@ -116,18 +107,18 @@ class WorkOrder < ApplicationRecord
   end
 
   def describe_containers(material_ids, material_data)
-    containers = MatconClient::Container.where('slots.material': { '$in': material_ids}).result_set
+    containers = MatconClient::Container.where("slots.material" => { "$in" => material_ids}).result_set
     material_map = material_data.each_with_object({}) { |t,h| h[t[:material_id]] = t }
     while containers do
       containers.each do |container|
         container.slots.each do |slot|
           if material_ids.include? slot.material_id
             unless material_map[slot.material_id][:container]
-              container_desc = container.barcode
+              container_data = { barcode: container.barcode }
               if (container.num_of_rows > 1 || container.num_of_cols > 1)
-                container_desc += ' '+slot.address
+                container_data[:address] = slot.address
               end
-              material_map[slot.material_id][:container] = container_desc
+              material_map[slot.material_id][:container] = container_data
             end
           end
         end

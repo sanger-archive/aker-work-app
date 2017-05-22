@@ -16,9 +16,11 @@
 //= require bootstrap-sprockets
 //= require_tree .
 
-$(function callback() {
-    $('input[type="date"]').datepicker({
-        dateFormat: 'yy-mm-dd',
-        minDate: '+0d'
-    })
-})
+$(document).on("turbolinks:load", function() {
+  $("[data-behavior~=datepicker]").each(function() {
+    $(this).datepicker({
+      dateFormat: 'yy-mm-dd',
+      minDate: '+0d'
+    });
+  });
+});
