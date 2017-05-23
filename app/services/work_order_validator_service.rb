@@ -37,7 +37,7 @@ class WorkOrderValidatorService
   end
 
   def work_order_has_updated_materials?
-    return true if work_order.has_materials?(@msg[:work_order][:updated_materials].pluck(:id))
+    return true if work_order.has_materials?(@msg[:work_order][:updated_materials].pluck(:material_id))
     error_return(422, "The updated materials don't belong to this work order")
   end
 

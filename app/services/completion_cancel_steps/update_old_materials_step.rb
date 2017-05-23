@@ -10,7 +10,9 @@ class UpdateOldMaterialsStep
 		 @msg[:work_order][:updated_materials].map do |mat_obj|
 		 	updated_params = mat_obj
 		 	updated_params[:owner_id] = @work_order.user.email
-			MatconClient::Material.find(mat_obj[:id]).update_attributes(updated_params)
+		 	uuid = mat_obj[:material_id]
+		 	mat_obj.delete(:material_id)
+			MatconClient::Material.find(uuid).update_attributes(updated_params)
 		 end
 	end
 
