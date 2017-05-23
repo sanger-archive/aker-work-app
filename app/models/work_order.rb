@@ -20,8 +20,16 @@ class WorkOrder < ApplicationRecord
   scope :active, -> { where(status: WorkOrder.ACTIVE) }
   scope :pending, -> { where.not(status: WorkOrder.ACTIVE) }
 
-  def has_materials?(uuids)
+
+  def check_materials_exist?(uuids)
     MatconClient::Material.where('_id': {'$in'=> uuids}).count == uuids.count
+  end
+
+  def has_materials?(uuids)
+    uuids_from_work_order_set = SetClient::Set.find_with_materials(original_set_uuid).first.materials.map(&:id)
+    uuids.all? do |uuid|
+      uuids_from_work_order_set.include?(uuid)
+    end
   end
 
   def active?
