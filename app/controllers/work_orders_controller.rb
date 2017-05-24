@@ -9,7 +9,11 @@ class WorkOrdersController < ApplicationController
 
   before_action :work_order, only: [:show, :complete, :cancel]
 
-  skip_authorization_check :only => [:index, :complete]
+
+  # In the request from the LIMS to complete or cancel a work order, there is no
+  # authenticated user in the request so we skip the authentication step
+  skip_authenticate_user :only => [:complete, :cancel]
+  skip_authorization_check :only => [:index, :complete, :cancel]
 
 
   def index
