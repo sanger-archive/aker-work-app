@@ -84,6 +84,16 @@ RSpec.describe 'CreateContainerStep' do
         expect(@step.containers.length).to eq(2)
       end
     end
+    context 'one of the elements of the list has already an id' do
+      before do
+        make_step(work_order: {containers: [@data1.merge(_id: 1), @data2]})
+      end
+
+      it 'should just create containers without id provided' do
+        expect(MatconClient::Container).to receive(:create).with([@data2])
+        @step.up
+      end
+    end    
   end
   context '#down' do
     context 'when no containers were created before' do
@@ -107,5 +117,17 @@ RSpec.describe 'CreateContainerStep' do
         @step.down        
       end
     end
+    context 'one of the elements of the list has already an id' do
+      before do
+        make_step(work_order: {containers: [@data1.merge(_id: 1), @data2]})
+        @step.up
+      end
+
+      it 'should just destroy containers created by #up' do
+        expect(MatconClient::Container).to receive(:destroy).with(@step.containers.first.id)
+        @step.down
+      end
+    end    
+
   end
 end

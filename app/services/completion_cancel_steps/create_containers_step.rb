@@ -6,12 +6,22 @@ class CreateContainersStep
 		@msg = msg
 	end
 
+	def containers_to_create
+		@msg[:work_order][:containers].reject do |c| 
+				c.has_key?(:_id)
+		end.map do |c| 
+			c.merge({print_count: 0})
+		end
+	end
+
 	# 1 - Create containers
 	def up
 		@containers = []
 		unless @msg[:work_order][:containers].empty?
-			unless @msg[:work_order][:containers].any?{|c| c.has_key?(:_id)}
-	    	@containers = [MatconClient::Container.create(@msg[:work_order][:containers].map{|c| c.merge({print_count: 0})})].flatten
+			elements = containers_to_create
+
+			unless elements.empty?
+	    	@containers = [MatconClient::Container.create(elements)].flatten
 	    end
 	  end
 	end
