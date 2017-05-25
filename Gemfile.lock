@@ -1,10 +1,31 @@
 GIT
+  remote: git://github.com/sanger/aker-authentication.git
+  revision: 4958592e3c98609d624129898a8ff56b8ae962d6
+  specs:
+    aker_authentication_gem (0.1.0)
+      devise
+      devise_ldap_authenticatable
+      jwt
+      net-ldap
+      request_store
+
+GIT
   remote: git://github.com/sanger/aker-credentials.git
   revision: ab120405c8a55506ff400921ab6cbd4472c8c6bc
   specs:
     aker_credentials_gem (0.1.0)
       jwt
       request_store
+
+GIT
+  remote: git://github.com/sanger/aker-matcon-client.git
+  revision: 8d1199b0225257458467f7c6a2f0d1355c9d6655
+  specs:
+    matcon_client (0.2.0)
+      activemodel
+      activesupport
+      faraday
+      faraday_middleware
 
 GIT
   remote: git://github.com/sanger/aker-permission.git
@@ -35,25 +56,6 @@ GIT
       addressable (~> 2.2)
       faraday (~> 0.9)
       faraday_middleware (~> 0.9)
-
-PATH
-  remote: /Users/hc6/gems/aker-authentication
-  specs:
-    aker_authentication_gem (0.1.0)
-      devise
-      devise_ldap_authenticatable
-      jwt
-      net-ldap
-      request_store
-
-PATH
-  remote: /Users/hc6/gems/aker-matcon-client
-  specs:
-    matcon_client (0.2.0)
-      activemodel
-      activesupport
-      faraday
-      faraday_middleware
 
 GEM
   remote: https://rubygems.org/
@@ -385,7 +387,7 @@ GEM
     websocket-extensions (0.1.2)
     wicked (1.3.1)
       railties (>= 3.0.7)
-    xpath (2.0.0)
+    xpath (2.1.0)
       nokogiri (~> 1.3)
     zipkin-tracer (0.23.0)
       faraday (~> 0.8)
