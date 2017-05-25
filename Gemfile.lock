@@ -1,15 +1,4 @@
 GIT
-  remote: git://github.com/sanger/aker-authentication.git
-  revision: 4958592e3c98609d624129898a8ff56b8ae962d6
-  specs:
-    aker_authentication_gem (0.1.0)
-      devise
-      devise_ldap_authenticatable
-      jwt
-      net-ldap
-      request_store
-
-GIT
   remote: git://github.com/sanger/aker-credentials.git
   revision: ab120405c8a55506ff400921ab6cbd4472c8c6bc
   specs:
@@ -46,6 +35,16 @@ GIT
       addressable (~> 2.2)
       faraday (~> 0.9)
       faraday_middleware (~> 0.9)
+
+PATH
+  remote: /Users/hc6/gems/aker-authentication
+  specs:
+    aker_authentication_gem (0.1.0)
+      devise
+      devise_ldap_authenticatable
+      jwt
+      net-ldap
+      request_store
 
 PATH
   remote: /Users/hc6/gems/aker-matcon-client
@@ -127,9 +126,9 @@ GEM
       virtus (~> 1.0)
     coercible (1.0.0)
       descendants_tracker (~> 0.0.1)
-    coffee-rails (4.2.1)
+    coffee-rails (4.2.2)
       coffee-script (>= 2.2.0)
-      railties (>= 4.0.0, < 5.2.x)
+      railties (>= 4.0.0)
     coffee-script (2.4.1)
       coffee-script-source
       execjs

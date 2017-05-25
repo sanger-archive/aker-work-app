@@ -1,8 +1,9 @@
 require 'completion_cancel_steps/create_containers_step'
 require 'completion_cancel_steps/create_new_materials_step'
-require 'completion_cancel_steps/lock_set_step'
 require 'completion_cancel_steps/update_old_materials_step'
+require 'completion_cancel_steps/lock_set_step'
 require 'completion_cancel_steps/update_work_order_step'
+require 'completion_cancel_steps/fail_step'
 
 
 class WorkOrdersController < ApplicationController
@@ -90,6 +91,7 @@ private
         UpdateOldMaterialsStep.new(work_order, params_for_completion),
         LockSetStep.new(work_order, params_for_completion, material_step),
         UpdateWorkOrderStep.new(work_order, params_for_completion),
+        FailStep.new,
       ])
 
       cleanup = !success

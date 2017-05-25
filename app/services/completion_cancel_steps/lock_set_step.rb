@@ -16,5 +16,9 @@ class LockSetStep
 	end
 
 	def down
+	  if @work_order.set_uuid
+      # SetClient::Set.find(@work_order.set_uuid).first.destroy
+      @work_order.update_attributes(set_uuid: nil)
+    end
 	end
 end

@@ -41,12 +41,12 @@ gem 'json-schema'
 gem 'json_api_client', github: 'sanger/json_api_client'
 
 gem 'aker_credentials_gem', :github => 'sanger/aker-credentials'
-gem 'aker_authentication_gem', :github => 'sanger/aker-authentication'
+gem 'aker_authentication_gem', :path => '/Users/hc6/gems/aker-authentication'
 gem 'aker_permission_gem', :github => 'sanger/aker-permission'
 
 gem 'aker-study-client', github: 'sanger/aker-study-client'
 gem 'aker-set-client', github: 'sanger/aker-set-client'
-gem 'matcon_client', path: '/Users/hc6/gems/aker-matcon-client'
+gem 'matcon_client', :path => '/Users/hc6/gems/aker-matcon-client'
 
 group :development, :test do
   # Call 'byebug' anywhere in the code to stop execution and get a debugger console

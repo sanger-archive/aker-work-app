@@ -16,6 +16,10 @@ class WorkOrder < ApplicationRecord
     'active'
   end
 
+  def self.BROKEN
+    'broken'
+  end
+
   scope :for_user, ->(user) { where(user_id: user.id) }
   scope :active, -> { where(status: WorkOrder.ACTIVE) }
   scope :pending, -> { where.not(status: WorkOrder.ACTIVE) }
@@ -34,6 +38,10 @@ class WorkOrder < ApplicationRecord
 
   def active?
     status == WorkOrder.ACTIVE
+  end
+
+  def broken!
+    update_attributes(status: WorkOrder.BROKEN)
   end
 
   def proposal
