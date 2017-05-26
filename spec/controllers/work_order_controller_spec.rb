@@ -8,7 +8,6 @@ RSpec.describe WorkOrdersController, type: :controller do
 			@msg[:work_order][:work_order_id] = @work_order.id
 
 			it 'completes a work order' do
-				debugger
 				post complete_work_order_path(@work_order), params: @msg
 				expect(@work_order.status).to eq('complete')
 			end
