@@ -1,10 +1,31 @@
 GIT
+  remote: git://github.com/sanger/aker-authentication.git
+  revision: a7307b539e6702b97c40a049b0ed0b9f11633f81
+  specs:
+    aker_authentication_gem (0.1.0)
+      devise
+      devise_ldap_authenticatable
+      jwt
+      net-ldap
+      request_store
+
+GIT
   remote: git://github.com/sanger/aker-credentials.git
   revision: ab120405c8a55506ff400921ab6cbd4472c8c6bc
   specs:
     aker_credentials_gem (0.1.0)
       jwt
       request_store
+
+GIT
+  remote: git://github.com/sanger/aker-matcon-client.git
+  revision: 4c0f584f5f2110ed2ea11b5dabb7d16ecbfc5c32
+  specs:
+    matcon_client (0.2.0)
+      activemodel
+      activesupport
+      faraday
+      faraday_middleware
 
 GIT
   remote: git://github.com/sanger/aker-permission.git
@@ -35,25 +56,6 @@ GIT
       addressable (~> 2.2)
       faraday (~> 0.9)
       faraday_middleware (~> 0.9)
-
-PATH
-  remote: /Users/hc6/gems/aker-authentication
-  specs:
-    aker_authentication_gem (0.1.0)
-      devise
-      devise_ldap_authenticatable
-      jwt
-      net-ldap
-      request_store
-
-PATH
-  remote: /Users/hc6/gems/aker-matcon-client
-  specs:
-    matcon_client (0.2.0)
-      activemodel
-      activesupport
-      faraday
-      faraday_middleware
 
 GEM
   remote: https://rubygems.org/
