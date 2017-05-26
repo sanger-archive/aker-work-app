@@ -21,9 +21,13 @@ class WorkOrdersController < ApplicationController
     if user_signed_in?
       @active_work_orders = WorkOrder.active.for_user(current_user)
       @pending_work_orders = WorkOrder.pending.for_user(current_user)
+      @completed_work_orders = WorkOrder.completed.for_user(current_user)
+      @cancelled_work_orders = WorkOrder.cancelled.for_user(current_user)
     else
       @active_work_orders = []
       @pending_work_orders = []
+      @completed_work_orders = []
+      @cancelled_work_orders = []
     end
   end
 
@@ -91,7 +95,7 @@ private
         UpdateOldMaterialsStep.new(work_order, params_for_completion),
         LockSetStep.new(work_order, params_for_completion, material_step),
         UpdateWorkOrderStep.new(work_order, params_for_completion),
-        FailStep.new,
+        # FailStep.new,
       ])
 
       cleanup = !success

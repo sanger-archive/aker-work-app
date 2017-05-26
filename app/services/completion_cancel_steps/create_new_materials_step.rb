@@ -1,5 +1,7 @@
 class CreateNewMaterialsStep
 
+	attr_reader :materials
+
 	def initialize(work_order, msg)
 		@work_order = work_order
 		@msg = msg
@@ -16,7 +18,6 @@ class CreateNewMaterialsStep
 			mat.delete(:container)
 			# answer can either be an ResultSet or an array, if a ResultSet convert to an array
 			# add owner of materials?
-			debugger
 			answer = MatconClient::Material.create(mat)
 			if answer.class != MatconClient::Material
 				answer = answer.to_a

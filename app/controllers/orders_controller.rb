@@ -22,25 +22,6 @@ class OrdersController < ApplicationController
     end
   end
 
-  def complete
-    authorize! :write, work_order
-
-    validator = WorkOrderValidatorService.new(work_order, params_for_work_order_completion)
-    work_order.complete(validator.msg) if validator.validate?
-
-    render json: work_order
-  end
-
-  def cancel
-    authorize! :write, work_order
-
-    validator = WorkOrderValidatorService.new(work_order, params_for_work_order_completion)
-    work_order.cancel(validator.msg) if validator.validate?
-
-    render json: work_order
-  end
-
-
 protected
 
   def work_order
@@ -91,7 +72,7 @@ private
 
   def params_for_work_order_completion
     params.require(:work_order).permit(:work_order_id, :comment, :containers,
-      :updated_materials => [], 
+      :updated_materials => [],
       :new_materials => []
     )
   end

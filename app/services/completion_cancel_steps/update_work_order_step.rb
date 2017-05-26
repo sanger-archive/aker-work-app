@@ -8,7 +8,8 @@ class UpdateWorkOrderStep
 	def up
 		@status = @work_order.status
 		@comment = @work_order.comment
-		@work_order.update_attributes!(status: @msg[:work_order][:status], comment: @msg[:work_order][:comment])
+		@work_order.update_attributes!(status: WorkOrder.COMPLETED, comment: @msg[:work_order][:comment])
+		# @work_order.completed!
 	end
 
 	def down

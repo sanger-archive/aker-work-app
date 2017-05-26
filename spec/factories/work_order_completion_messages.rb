@@ -2,8 +2,8 @@ FactoryGirl.define do
   factory :work_order_completion_message_json, class: Hash do |work_order|
     initialize_with { Hash.new.merge({
         "work_order": {
-          "status": "in progress",
-          "work_order_id": 123,
+          "status": "complete",
+          "work_order_id": 1,
           "comment": "Extra information about the completed work order.",
 
           "updated_materials": [
@@ -22,7 +22,7 @@ FactoryGirl.define do
               "gender": "female",
               "donor_id": "id1",
               "supplier_name": "id1",
-              "common_name": "Mouse",              
+              "common_name": "Mouse",
               "phenotype": '',
               "parents": [ "parent_id_1", "parent_id_2"],
               "container": {
@@ -34,7 +34,6 @@ FactoryGirl.define do
 
           "containers": [
             {
-              "barcode": "XYZ-123",
               "num_of_rows": 4,
               "num_of_cols": 6,
               "row_is_alpha": true,
@@ -42,8 +41,8 @@ FactoryGirl.define do
             }
           ],
         }
-      }) 
-    }   
+      })
+    }
   end
 
 end
