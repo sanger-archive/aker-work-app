@@ -15,3 +15,17 @@
     <%= render "work_orders_table", work_orders: @active_work_orders %>
   </div>
 </div>
+
+<div class="row">
+  <div class="col-md-12">
+    <h2>Completed Work Orders</h2>
+    <%= render "work_orders_table", work_orders: @completed_work_orders %>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-md-12">
+    <h2>Cancelled Work Orders</h2>
+    <%= render "work_orders_table", work_orders: @cancelled_work_orders %>
+  </div>
+</div>

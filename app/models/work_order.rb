@@ -20,9 +20,20 @@ class WorkOrder < ApplicationRecord
     'broken'
   end
 
+  def self.COMPLETED
+    'completed'
+  end
+
+  def self.CANCELLED
+    'cancelled'
+  end
+
   scope :for_user, ->(user) { where(user_id: user.id) }
   scope :active, -> { where(status: WorkOrder.ACTIVE) }
-  scope :pending, -> { where.not(status: WorkOrder.ACTIVE) }
+  # status is either set, product, proposal
+  scope :pending, -> { where('status NOT IN (?)', not_pending_status_list)}
+  scope :completed, -> { where(status: WorkOrder.COMPLETED) }
+  scope :cancelled, -> { where(status: WorkOrder.CANCELLED) }
 
 
   def check_materials_exist?(uuids)
@@ -34,6 +45,10 @@ class WorkOrder < ApplicationRecord
     uuids.all? do |uuid|
       uuids_from_work_order_set.include?(uuid)
     end
+  end
+
+  def self.not_pending_status_list
+    [WorkOrder.ACTIVE, WorkOrder.BROKEN, WorkOrder.COMPLETED, WorkOrder.CANCELLED]
   end
 
   def active?

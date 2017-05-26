@@ -5,7 +5,7 @@ class LockSetStep
 		@material_step = material_step
 	end
 
-	# Step 4 - New locked set
+	# Step 5 - New locked set
 	def up
 		timestamp = Time.now.strftime("%H:%M:%S-%d/%m/%y")
 		set = SetClient::Set.create(name: "Work Order Completion #{@work_order.id} #{timestamp}", owner_id: @work_order.user.email)

@@ -21,9 +21,13 @@ class WorkOrdersController < ApplicationController
     if user_signed_in?
       @active_work_orders = WorkOrder.active.for_user(current_user)
       @pending_work_orders = WorkOrder.pending.for_user(current_user)
+      @completed_work_orders = WorkOrder.completed.for_user(current_user)
+      @cancelled_work_orders = WorkOrder.cancelled.for_user(current_user)
     else
       @active_work_orders = []
       @pending_work_orders = []
+      @completed_work_orders = []
+      @cancelled_work_orders = []
     end
   end
 
@@ -55,17 +59,22 @@ class WorkOrdersController < ApplicationController
   end
 
   def complete
+    finish('complete')
+  end
+
+  def cancel
+    finish('cancel')
+  end
+
+  def finish(finish_status)
     validator = WorkOrderValidatorService.new(work_order, params_for_completion)
     valid = validator.validate?
     if valid
-      result = complete_work_order
+      result = complete_work_order(finish_status)
     else
       result = validator.errors
     end
     render json: { message: result[:msg] }, :status => result[:status]
-  end
-
-  def cancel
   end
 
 private
@@ -78,20 +87,18 @@ private
     @work_order ||= WorkOrder.find(params[:id])
   end
 
-  def complete_work_order
-
+  def complete_work_order(finish_status)
     success = false
     cleanup = false
     begin
       material_step = CreateNewMaterialsStep.new(work_order, params_for_completion)
       success = DispatchService.new.process([
-        # update matcon container for accepting barcode
         CreateContainersStep.new(work_order, params_for_completion),
         material_step,
         UpdateOldMaterialsStep.new(work_order, params_for_completion),
+        UpdateWorkOrderStep.new(work_order, params_for_completion, finish_status),
         LockSetStep.new(work_order, params_for_completion, material_step),
-        UpdateWorkOrderStep.new(work_order, params_for_completion),
-        FailStep.new,
+        # FailStep.new,
       ])
 
       cleanup = !success
@@ -114,7 +121,7 @@ private
       msg = flash[:error] = "There has been a problem with the work order update. Please contact support."
     end
 
-    # SEND EMAIL
+    # SEND EVENT
     return {msg: msg, status: success ? 200 : 502 }
   end
 
