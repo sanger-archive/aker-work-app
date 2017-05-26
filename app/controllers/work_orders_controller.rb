@@ -89,7 +89,6 @@ private
     begin
       material_step = CreateNewMaterialsStep.new(work_order, params_for_completion)
       success = DispatchService.new.process([
-        # update matcon container for accepting barcode
         CreateContainersStep.new(work_order, params_for_completion),
         material_step,
         UpdateOldMaterialsStep.new(work_order, params_for_completion),

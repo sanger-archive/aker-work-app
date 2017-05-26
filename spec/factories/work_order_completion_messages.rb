@@ -34,6 +34,7 @@ FactoryGirl.define do
 
           "containers": [
             {
+              "barcode": "XYZ-123",
               "num_of_rows": 4,
               "num_of_cols": 6,
               "row_is_alpha": true,

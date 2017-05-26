@@ -9,7 +9,6 @@ class UpdateWorkOrderStep
 		@status = @work_order.status
 		@comment = @work_order.comment
 		@work_order.update_attributes!(status: WorkOrder.COMPLETED, comment: @msg[:work_order][:comment])
-		# @work_order.completed!
 	end
 
 	def down
