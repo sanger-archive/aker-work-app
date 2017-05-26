@@ -5,7 +5,7 @@ class UpdateOldMaterialsStep
 		@msg = msg
 	end
 
-	# 3 - Update old materials
+	# Step 3 - Update old materials
 	def up
 		@materials_before_changes = []
 		 # add owner id from the owner of the workorder in the request

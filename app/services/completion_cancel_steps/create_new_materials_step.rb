@@ -7,7 +7,7 @@ class CreateNewMaterialsStep
 		@msg = msg
 	end
 
-	# 2 - Create new materials
+	# Step 2 - Create new materials
 	def up
 		@materials =[]
 		@modified_container_before_save = []

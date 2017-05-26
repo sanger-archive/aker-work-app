@@ -11,7 +11,6 @@ Rails.application.routes.draw do
 	    post 'complete', to: 'work_orders#complete'
 	    post 'cancel', to: 'work_orders#cancel'
   	end
-
   end
 
 end
