@@ -36,10 +36,6 @@ class WorkOrder < ApplicationRecord
   scope :cancelled, -> { where(status: WorkOrder.CANCELLED) }
 
 
-  def check_materials_exist?(uuids)
-    MatconClient::Material.where('_id': {'$in'=> uuids}).count == uuids.count
-  end
-
   def has_materials?(uuids)
     uuids_from_work_order_set = SetClient::Set.find_with_materials(original_set_uuid).first.materials.map(&:id)
     uuids.all? do |uuid|

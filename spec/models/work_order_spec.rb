@@ -1,7 +1,6 @@
 require 'rails_helper'
 
 RSpec.describe WorkOrder, type: :model do
-  it_behaves_like "accessible"
 
   def make_uuid
     SecureRandom.uuid
@@ -314,10 +313,4 @@ RSpec.describe WorkOrder, type: :model do
     end
   end
 
-  describe "#complete" do
-    
-  end
-
-  describe "#cancel" do
-  end
 end
