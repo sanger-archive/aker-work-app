@@ -1,5 +1,4 @@
 require 'rails_helper'
-debugger
 require 'support/test_services_helper'
 
 require 'completion_cancel_steps/create_containers_step'
