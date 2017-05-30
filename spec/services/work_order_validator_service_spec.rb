@@ -2,16 +2,16 @@ require 'rails_helper'
 
 RSpec.describe WorkOrderValidatorService do
   before do
-    @work_order = create :work_order, status: 'in progress'
+    @work_order = create :work_order, status: 'active'
     @msg = build :work_order_completion_message_json
     @msg[:work_order][:work_order_id] = @work_order.id
     @validator = WorkOrderValidatorService.new(@work_order, @msg)
 
-    @work_order.stub(:has_materials?) { true }
-    @validator.stub(:containers_has_changed?) { false }
+    allow(@work_order).to receive(:has_materials?).and_return true
+    allow(@validator).to receive(:containers_has_changed?).and_return false
 
     @material_schema = %Q{
-      {"required": ["gender", "donor_id", "phenotype", "supplier_name", "common_name"], "type": "object", "properties": {"gender": {"required": true, "type": "string", "enum": ["male", "female", "unknown"]}, "date_of_receipt": {"type": "string", "format": "date"}, "material_type": {"enum": ["blood", "dna"], "type": "string"}, "donor_id": {"required": true, "type": "string"}, "phenotype": {"required": true, "type": "string"}, "supplier_name": {"required": true, "type": "string"}, "common_name": {"required": true, "type": "string", "enum": ["Homo Sapiens", "Mouse"]}, "parents": {"type": "list", "schema": {"type": "uuid", "data_relation": {"field": "_id", "resource": "materials", "embeddable": true}}}, "owner_id": {"type": "string"}}}                
+      {"required": ["gender", "donor_id", "phenotype", "supplier_name", "common_name"], "type": "object", "properties": {"gender": {"required": true, "type": "string", "enum": ["male", "female", "unknown"]}, "date_of_receipt": {"type": "string", "format": "date"}, "material_type": {"enum": ["blood", "dna"], "type": "string"}, "donor_id": {"required": true, "type": "string"}, "phenotype": {"required": true, "type": "string"}, "supplier_name": {"required": true, "type": "string"}, "common_name": {"required": true, "type": "string", "enum": ["Homo Sapiens", "Mouse"]}, "parents": {"type": "list", "schema": {"type": "uuid", "data_relation": {"field": "_id", "resource": "materials", "embeddable": true}}}, "owner_id": {"type": "string"}}}
     }
 
     @container_schema = %Q{
@@ -19,9 +19,13 @@ RSpec.describe WorkOrderValidatorService do
     }
 
     stub_request(:get, "http://localhost:5000/materials/json_schema").
-         to_return(status: 200, body: @material_schema, headers: {})    
+         to_return(status: 200, body: @material_schema, headers: {})
+
     stub_request(:get, "http://localhost:5000/containers/json_schema").
          to_return(status: 200, body: @container_schema, headers: {})
+
+    stub_request(:get, "http://localhost:5000/materials/json_patch_schema").
+        to_return(status: 200, body: @material_schema, headers: {})
   end
 
   describe "#validate?" do
@@ -36,18 +40,17 @@ RSpec.describe WorkOrderValidatorService do
       expect(@validator.errors.empty?).to eq(false)
     end
     it "fails when the work order does not exists" do
-      @msg[:work_order][:work_order_id] = -1 
+      @msg[:work_order][:work_order_id] = -1
       expect(@validator.validate?).to eq(false)
       expect(@validator.errors.empty?).to eq(false)
     end
     it "fails when the work order updated materials are not the same defined in the message" do
-      @work_order.stub(:has_materials?) { false }
+      allow(@work_order).to receive(:has_materials?).and_return false
       expect(@validator.validate?).to eq(false)
       expect(@validator.errors.empty?).to eq(false)
     end
     it "fails when the containers have changed" do
-      @validator.stub(:containers_has_changed?) { true }
-
+      allow(@validator).to receive(:containers_has_changed?).and_return true
       expect(@validator.validate?).to eq(false)
       expect(@validator.errors.empty?).to eq(false)
     end
