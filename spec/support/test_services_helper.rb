@@ -27,7 +27,7 @@ module TestServicesHelper
   end
 
   def make_work_order
-    @work_order = double(:work_order)
+    @work_order = instance_double("work_order", user: instance_double("user", email: "any"))
   end
 
   def made_up_uuid
@@ -41,11 +41,13 @@ module TestServicesHelper
 
 
   def make_material
-    double('material', id: made_up_uuid)
+    mat= double('material', id: made_up_uuid)
+    allow(mat).to receive(:first).and_return(mat)
+    mat
   end
 
   def make_container
-    container = double("container", slots: make_slots, barcode: made_up_barcode, id: made_up_uuid)
+    container = instance_double("container", slots: make_slots, barcode: made_up_barcode, id: made_up_uuid)
     allow(container).to receive(:material_id=)
     allow(container).to receive(:save)
     container
@@ -92,12 +94,9 @@ module TestServicesHelper
     'A:1 A:2 A:3 B:1 B:2 B:3'.split.map do |address|
       slot = double('slot', address: address)
       allow(slot).to receive(:material_id=)
+      allow(slot).to receive(:material_id)
       slot
     end
-  end
-
-  def make_work_order
-    @work_order = double(:work_order)
   end
 
 

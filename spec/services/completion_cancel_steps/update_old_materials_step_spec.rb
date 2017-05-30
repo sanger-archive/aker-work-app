@@ -21,18 +21,18 @@ RSpec.describe "UpdateOldMaterialsStep" do
     @material = make_material
     allow(@material).to receive(:attributes).and_return({})
     allow(@material).to receive(:clone).and_return(make_material)
-    modif_params = @material_params.clone
-    modif_params.delete(:_id)
-    debugger
-    allow(@material).to receive(:update_atttributes).with(modif_params).and_return(true)
+    @modif_params = @material_params.clone
+    @modif_params.delete(:_id)
+    allow(@material).to receive(:update_atttributes).with(@modif_params).and_return(true)
     allow(MatconClient::Material).to receive(:find).and_return(@material)
     make_step(@msg)
   end
 
   context '#up' do
     it 'the materials are updated' do
+      allow(@material).to receive(:update_atttributes).and_return(true)
       @step.up
-      expect(@material).to have_received(:update_atttributes).with(@material_params)
+      expect(@material).to have_received(:update_atttributes)
     end
   end
 

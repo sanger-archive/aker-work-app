@@ -23,7 +23,8 @@ RSpec.describe 'CreateNewMaterialsStep' do
 
 
   def make_step(msg)
-    @step = CreateNewMaterialsStep.new(make_work_order, msg)
+    @work_order = make_work_order
+    @step = CreateNewMaterialsStep.new(@work_order, msg)
   end
 
 
@@ -71,7 +72,7 @@ RSpec.describe 'CreateNewMaterialsStep' do
         @msg = { 
           :work_order => { 
             :new_materials => @num_times.times.map {|pos| @material_params.merge({
-              container: { barcode: @good_barcode, address: pos }
+              container: { barcode: @good_barcode, address: "A:1" }
               }) }
           }
         }
@@ -92,9 +93,6 @@ RSpec.describe 'CreateNewMaterialsStep' do
           material = make_material
           allow(material).to receive(:to_a).and_return([material])
           allow(MatconClient::Material).to receive(:create).and_return(material)
-          @num_times.times.each_with_index do |mat, i|
-            expect(@container_mock).to receive(:add_to_slot).with(i, material)
-          end
           @step.up
         end
       end
@@ -113,9 +111,6 @@ RSpec.describe 'CreateNewMaterialsStep' do
           material = make_material
           allow(material).to receive(:to_a).and_return([material])
           allow(MatconClient::Material).to receive(:create).and_return(material)
-          @num_times.times.each do |i|
-            expect(@container_mock).to receive(:material_id=).with(material.id)
-          end
           @step.up
         end
       end
@@ -133,9 +128,10 @@ RSpec.describe 'CreateNewMaterialsStep' do
       }
 
       make_step(@msg)
-      @container = make_material
-      allow(@step).to receive(:materials).and_return([@container])
-      allow(@step).to receive(:modified_container_before_save).and_return([@container])
+      @container = make_container
+      @material = make_material
+      allow(@step).to receive(:materials).and_return([@material])
+      allow(@step).to receive(:modified_containers).and_return([@container])
 
       allow(MatconClient::Container).to receive(:find).and_return(@container)
       allow(@container).to receive(:serialize).and_return('serialized')

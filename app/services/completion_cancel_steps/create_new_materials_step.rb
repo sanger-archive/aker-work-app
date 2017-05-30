@@ -4,7 +4,7 @@ end
 class CreateNewMaterialsStep
 
 
-	attr_reader :materials, :modified_container_before_save
+	attr_reader :materials, :modified_containers
 
   def initialize(work_order, msg)
     @work_order = work_order
@@ -67,16 +67,18 @@ class CreateNewMaterialsStep
   end
 
   def down
-    @modified_containers.each do |cont_id|
+    modified_containers.each do |cont_id|
       cont = MatconClient::Container.find(cont_id)
-      @container_previous_contents[cont_id].each do |address, material_id|
-        slot = cont.slots.select{|s| s.address == address}.first
-        slot.material_id = material_id
+      if @container_previous_contents
+        @container_previous_contents[cont_id].each do |address, material_id|
+          slot = cont.slots.select{|s| s.address == address}.first
+          slot.material_id = material_id
+        end
       end
       cont.save
     end
 
-    @materials.each do |m|
+    materials.each do |m|
       MatconClient::Material.destroy(m.id)
     end
   end
