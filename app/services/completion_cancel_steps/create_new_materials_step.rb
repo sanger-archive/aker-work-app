@@ -28,7 +28,7 @@ class CreateNewMaterialsStep
       mat[:owner_id] = @work_order.user.email
       new_material = MatconClient::Material.create(mat)
       # if result set or array, get the material from it
-      if answer.class != MatconClient::Material
+      if new_material.class != MatconClient::Material
         new_material = new_material.first
       end
 
