@@ -12,7 +12,7 @@
           "updated_materials": {
             "type": "array",
             "items": {
-              "$ref": "http://localhost:5000/materials/json_schema"
+              "$ref": "http://localhost:5000/materials/json_patch_schema"
             }
           },
           "new_materials": {

@@ -32,12 +32,15 @@ class WorkOrderValidatorService
   def work_order_exists?
     # 2 - Validate Word Order exists
     work_order = WorkOrder.find_by(id: @msg[:work_order][:work_order_id])
+    if work_order.nil?
+      return error_return(404, "Work order #{@msg[:work_order][:work_order_id]} does not exists")
+    end
     return true if work_order == @work_order
-    error_return(404, "The work order #{@msg[:work_order][:work_order_id]} does not exists")
+    error_return(422, "Wrong work order specified")
   end
 
   def work_order_has_updated_materials?
-    return true if work_order.has_materials?(@msg[:work_order][:updated_materials].pluck(:material_id))
+    return true if work_order.has_materials?(@msg[:work_order][:updated_materials].pluck(:_id))
     error_return(422, "The updated materials don't belong to this work order")
   end
 
@@ -53,6 +56,7 @@ class WorkOrderValidatorService
   def error_return(status, msg)
     @errors[:status] = status
     @errors[:msg] = msg
+    #debugger
     false
   end
 
