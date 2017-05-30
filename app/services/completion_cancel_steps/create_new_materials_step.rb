@@ -6,65 +6,78 @@ class CreateNewMaterialsStep
 
 	attr_reader :materials, :modified_container_before_save
 
-	def initialize(work_order, msg)
-		@work_order = work_order
-		@msg = msg
-	end
+  def initialize(work_order, msg)
+    @work_order = work_order
+    @msg = msg
+  end
 
-	def get_container(barcode)
-		@containers_by_barcode ||= {}
-		@containers_by_barcode[barcode] ||= MatconClient::Container.where(barcode: barcode)
-	end
+  def get_container(barcode)
+    @containers_by_barcode ||= {}
+    @containers_by_barcode[barcode] ||= MatconClient::Container.where(barcode: barcode).first
+  end
 
-	# Step 2 - Create new materials
-	def up
-		@materials =[]
-		@modified_container_before_save = []
-		containers_to_save = []
+  # Step 2 - Create new materials
+  def up
+    @materials =[]
+    containers_to_save = []
+    @container_previous_contents = {}
+    @modified_containers = []
 
-		@msg[:work_order][:new_materials].each do |mat|
-			container = mat[:container]
-			mat.delete(:container)
-			# answer can either be an ResultSet or an array, if a ResultSet convert to an array
-			# add owner of materials?
-			answer = MatconClient::Material.create(mat)
-			if answer.class != MatconClient::Material
-				answer = answer.to_a
-			end
-			new_material = [answer].flatten.first
+    @msg[:work_order][:new_materials].each do |mat|
+      container = mat[:container]
+      mat.delete(:container)
+      mat[:owner_id] = @work_order.user.email
+      new_material = MatconClient::Material.create(mat)
+      # if result set or array, get the material from it
+      if new_material.class != MatconClient::Material
+        new_material = new_material.first
+      end
 
-			if container
-	    	# Find the container and add the material to it
-	    	container_instance = get_container(container[:barcode]).to_a.first
-	    	raise ContainerNotFound unless container_instance
-	    	@modified_container_before_save.push(container_instance)
-	    	# if container has key address it is a plate so add material to the address
-	    	if container.has_key?(:address)
-	    		container_instance.add_to_slot(container[:address], new_material)
-	    	else
-	    	# container is a tube so directly add material
-	    		container_instance.material_id = new_material.id
-	    	end
+      if container
+        # Find the container and add the material to it
+        container_instance = get_container(container[:barcode])
+        raise ContainerNotFound unless container_instance
 
-	    	# Add the containers_to_save to a list to save them afterwards
-	    	containers_to_save.push(container_instance)
-    	end
+        # Find the slot to add the material into
+        if container.has_key?(:address)
+          slot = container_instance.slots.select{|s| s.address == container[:address]}.first
+        else
+          slot = container_instance.slots.first
+        end
+        raise "Slot not found in container" unless slot
 
-    	# Store the materials
-    	@materials.push(new_material)
-		end
-		containers_to_save.each(&:save)
-	end
+        # Store the previous contents of the slot (hopefully nil) in case it has to be rolled back
+        @container_previous_contents[container_instance.id] ||= {}
+        @container_previous_contents[container_instance.id][slot.address] = slot.material_id
 
+        # Add the containers_to_save to a list to save them afterwards.
+        # Don't add the same container twice.
+        containers_to_save.push(container_instance) unless containers_to_save.include?(container_instance)
+      end
 
-	def down
-		modified_container_before_save.uniq{|l| l.id}.each do |c|
-			cont = MatconClient::Container.find(c.id)
-			cont.update_attributes(c.serialize)
-		end
+      # Store the materials
+      @materials.push(new_material)
+    end
 
-		materials.each do |m|
-			MatconClient::Material.destroy(m.id)
-		end
-	end
+    containers_to_save.each do |c|
+      c.save
+      # This container has now been altered, so add it to the list for rollbacks
+      @modified_containers.push(c.id)
+    end
+  end
+
+  def down
+    @modified_containers.each do |cont_id|
+      cont = MatconClient::Container.find(cont_id)
+      @container_previous_contents[cont_id].each do |address, material_id|
+        slot = cont.slots.select{|s| s.address == address}.first
+        slot.material_id = material_id
+      end
+      cont.save
+    end
+
+    @materials.each do |m|
+      MatconClient::Material.destroy(m.id)
+    end
+  end
 end
