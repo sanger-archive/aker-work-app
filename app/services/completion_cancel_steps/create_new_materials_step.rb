@@ -13,14 +13,15 @@ class CreateNewMaterialsStep
 
   def get_container(barcode)
     @containers_by_barcode ||= {}
-    @containers_by_barcode[barcode] ||= MatconClient::Container.where(barcode: barcode)
+    @containers_by_barcode[barcode] ||= MatconClient::Container.where(barcode: barcode).first
   end
 
   # Step 2 - Create new materials
   def up
     @materials =[]
-    @modified_container_before_save = []
     containers_to_save = []
+    @container_previous_contents = {}
+    @modified_containers = []
 
     @msg[:work_order][:new_materials].each do |mat|
       container = mat[:container]
@@ -34,31 +35,45 @@ class CreateNewMaterialsStep
 
       if container
         # Find the container and add the material to it
-        container_instance = get_container(container[:barcode]).first
+        container_instance = get_container(container[:barcode])
         raise ContainerNotFound unless container_instance
-        @modified_container_before_save.push(container_instance)
-        # if container has key address it is (hopefully) a plate so add material to the address
-        if container.has_key?(:address)
-          container_instance.add_to_slot(container[:address], new_material)
-        else
-        # container is a tube so add to the tube's slot
-          container_instance.slots.first.material_id = new_material.id
-        end
 
-        # Add the containers_to_save to a list to save them afterwards
-        containers_to_save.push(container_instance)
+        # Find the slot to add the material into
+        if container.has_key?(:address)
+          slot = container_instance.slots.select{|s| s.address == container[:address]}.first
+        else
+          slot = container_instance.slots.first
+        end
+        raise "Slot not found in container" unless slot
+
+        # Store the previous contents of the slot (hopefully nil) in case it has to be rolled back
+        @container_previous_contents[container_instance.id] ||= {}
+        @container_previous_contents[container_instance.id][slot.address] = slot.material_id
+
+        # Add the containers_to_save to a list to save them afterwards.
+        # Don't add the same container twice.
+        containers_to_save.push(container_instance) unless containers_to_save.include?(container_instance)
       end
 
       # Store the materials
       @materials.push(new_material)
     end
-    containers_to_save.each(&:save)
+
+    containers_to_save.each do |c|
+      c.save
+      # This container has now been altered, so add it to the list for rollbacks
+      @modified_containers.push(c.id)
+    end
   end
 
   def down
-    @modified_container_before_save.uniq{|l| l.id}.each do |c|
-      cont = MatconClient::Container.find(c.id)
-      cont.update_attributes(c.serialize)
+    @modified_containers.each do |cont_id|
+      cont = MatconClient::Container.find(cont_id)
+      @container_previous_contents[cont_id].each do |address, material_id|
+        slot = cont.slots.select{|s| s.address == address}.first
+        slot.material_id = material_id
+      end
+      cont.save
     end
 
     @materials.each do |m|
