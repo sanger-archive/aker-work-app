@@ -1,11 +1,10 @@
 require 'rails_helper'
-debugger
 require 'support/test_services_helper'
 
 require 'completion_cancel_steps/create_containers_step'
 
 RSpec.describe 'CreateContainerStep' do
-
+  include TestServicesHelper
 
   def make_step(msg)
     @step = CreateContainersStep.new(make_work_order, msg)

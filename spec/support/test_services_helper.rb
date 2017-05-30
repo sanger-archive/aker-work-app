@@ -51,19 +51,40 @@ module TestServicesHelper
     container
   end
 
-
   def stub_matcon
+    stub_matcon_material
+    stub_matcon_container
+  end
+
+  def stub_matcon_container
+    @containers = []
+
+    allow(MatconClient::Container).to receive(:destroy).and_return(true)
+
+    allow(MatconClient::Container).to receive(:create) do |args|
+      [args].flatten.map do
+        container = make_container
+        @containers.push(container)
+        container
+      end
+    end    
+  end
+
+  def materials_to_be_created(args)
+    @stored_materials_created ||= {}
+    [args].flatten.map do |arg|
+      @stored_materials_created[arg] ||= make_material
+    end    
+  end
+
+  def stub_matcon_material
     @barcode_counter = 0
     @materials = []
 
     allow(MatconClient::Material).to receive(:destroy).and_return(true)
 
     allow(MatconClient::Material).to receive(:create) do |args|
-      [args].flatten.map do
-        material = make_material
-        @materials.push(material)
-        material
-      end
+      @materials.concat!(materials_to_be_created(args))
     end
   end
 
