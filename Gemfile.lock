@@ -19,9 +19,9 @@ GIT
 
 GIT
   remote: git://github.com/sanger/aker-matcon-client.git
-  revision: 4c0f584f5f2110ed2ea11b5dabb7d16ecbfc5c32
+  revision: 9f577cf80fc3d2d3bbaaad0a7d03856b96f76edf
   specs:
-    matcon_client (0.2.0)
+    matcon_client (0.2.1)
       activemodel
       activesupport
       faraday
