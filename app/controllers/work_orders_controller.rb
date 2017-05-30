@@ -80,7 +80,14 @@ class WorkOrdersController < ApplicationController
 private
 
   def params_for_completion
-    { work_order: params.require(:work_order).as_json.deep_symbolize_keys }
+    p = { work_order: params.require(:work_order).as_json.deep_symbolize_keys }
+    if p[:work_order][:updated_materials]
+      p[:work_order][:updated_materials].each do |m|
+        m[:_id] = m[:material_id]
+        m.delete(:material_id)
+      end
+    end
+    return p
   end
 
   def work_order

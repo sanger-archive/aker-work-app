@@ -19,7 +19,9 @@ RSpec.describe UpdateOrderService do
   end
 
   def make_product(attrs=nil)
-    x = { cost_per_sample: 5 }
+
+    @c1 = create(:catalogue)
+    x = { cost_per_sample: 5, catalogue_id: @c1.id }
     x.merge!(attrs) if attrs
     create(:product, x)
   end
@@ -220,7 +222,7 @@ RSpec.describe UpdateOrderService do
         expect(messages[:notice]).to include('suspended')
         expect(@wo).not_to have_received(:send_to_lims)
 
-        expect(@wo.status).to eq('summary')        
+        expect(@wo.status).to eq('summary')
       end
 
       it "should be able to proceed" do

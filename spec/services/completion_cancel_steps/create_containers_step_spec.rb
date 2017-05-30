@@ -1,49 +1,11 @@
 require 'rails_helper'
+debugger
+require 'support/test_services_helper'
+
 require 'completion_cancel_steps/create_containers_step'
 
 RSpec.describe 'CreateContainerStep' do
 
-  def make_slots
-    'A:1 A:2 A:3 B:1 B:2 B:3'.split.map do |address|
-      slot = double('slot', address: address)
-      allow(slot).to receive(:material_id=)
-      slot
-    end
-  end
-
-  def made_up_barcode
-    @barcode_counter += 1
-    "AKER-#{@barcode_counter}"
-  end
-
-  def made_up_uuid
-    SecureRandom.uuid
-  end
-
-  def make_container
-    container = double("container", slots: make_slots, barcode: made_up_barcode, id: made_up_uuid)
-    allow(container).to receive(:save)
-    container
-  end
-
-  def stub_matcon
-    @barcode_counter = 0
-    @containers = []
-
-    allow(MatconClient::Container).to receive(:destroy).and_return(true)
-
-    allow(MatconClient::Container).to receive(:create) do |args|
-      [args].flatten.map do
-        container = make_container
-        @containers.push(container)
-        container
-      end
-    end
-  end
-
-  def make_work_order
-    @work_order = double(:work_order)
-  end
 
   def make_step(msg)
     @step = CreateContainersStep.new(make_work_order, msg)

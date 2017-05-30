@@ -22,9 +22,10 @@ RSpec.describe Product, type: :model do
   describe "#availability scopes" do
     context "when there are products" do
       before do
-        @p1 = create(:product, availability: :available)
-        @p2 = create(:product, availability: :suspended)
-        @p3 = create(:product, availability: :available)
+        @c1 = create(:catalogue)
+        @p1 = create(:product, availability: :available, catalogue_id: @c1.id)
+        @p2 = create(:product, availability: :suspended, catalogue_id: @c1.id)
+        @p3 = create(:product, availability: :available, catalogue_id: @c1.id)
       end
 
       it "can find available products" do
