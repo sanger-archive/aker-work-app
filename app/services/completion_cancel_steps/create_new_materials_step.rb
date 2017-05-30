@@ -4,7 +4,7 @@ end
 class CreateNewMaterialsStep
 
 
-	attr_reader :materials
+	attr_reader :materials, :modified_container_before_save
 
 	def initialize(work_order, msg)
 		@work_order = work_order
@@ -56,13 +56,14 @@ class CreateNewMaterialsStep
 		containers_to_save.each(&:save)
 	end
 
+
 	def down
-		@modified_container_before_save.uniq{|l| l.id}.each do |c|
+		modified_container_before_save.uniq{|l| l.id}.each do |c|
 			cont = MatconClient::Container.find(c.id)
 			cont.update_attributes(c.serialize)
 		end
 
-		@materials.each do |m|
+		materials.each do |m|
 			MatconClient::Material.destroy(m.id)
 		end
 	end

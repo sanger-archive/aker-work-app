@@ -122,13 +122,34 @@ RSpec.describe 'CreateNewMaterialsStep' do
     end
   end
   context '#down' do
-    context 'when some containers were created' do
-      it 'restores the containers to the original values' do
-        pending
-      end
+    before do
+      @good_barcode = 1
+      @msg = { 
+        :work_order => { 
+            :new_materials => @num_times.times.map {|pos| @material_params.merge({
+              container: { barcode: @good_barcode }
+              }) }
+        }
+      }
+
+      make_step(@msg)
+      @container = make_material
+      allow(@step).to receive(:materials).and_return([@container])
+      allow(@step).to receive(:modified_container_before_save).and_return([@container])
+
+      allow(MatconClient::Container).to receive(:find).and_return(@container)
+      allow(@container).to receive(:serialize).and_return('serialized')
+      allow(@container).to receive(:update_attributes).and_return(true)      
+    end
+
+    it 'restores the containers to the original values' do
+      expect(@container).to receive(:update_attributes)
+      @step.down
+
     end
     it 'destroys the materials created' do
-      pending
+      @step.down
+      expect(MatconClient::Material).to have_received(:destroy).once
     end
   end
 end
