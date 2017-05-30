@@ -22,8 +22,8 @@ class UpdateOldMaterialsStep
   def down
     if @materials_before_changes
       @materials_before_changes.each do |previous|
-        remote = MatconClient::Material.find(previous.id)
-        remote.update_attributes(previous.attrs)
+        remote = MatconClient::Material.find(previous[:id])
+        remote.update_attributes(previous[:attrs])
       end
     end
   end
