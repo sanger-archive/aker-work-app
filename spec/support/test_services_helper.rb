@@ -27,11 +27,21 @@ module TestServicesHelper
   end
 
   def make_work_order
-    @work_order = instance_double("work_order", user: instance_double("user", email: "any"))
+    @work_order = instance_double("work_order", user: instance_double("user", email: "any"), id: made_up_id)
+  end
+
+  def make_active_work_order
+    work_order = instance_double("work_order", status: 'active', 
+      comment: 'any comment old',
+      user: instance_double("user", email: "any"))
   end
 
   def made_up_uuid
     SecureRandom.uuid
+  end
+
+  def made_up_id
+    @id_counter += 1
   end
 
   def made_up_barcode
@@ -81,6 +91,7 @@ module TestServicesHelper
 
   def stub_matcon_material
     @barcode_counter = 0
+    @id_counter = 0
     @materials = []
 
     allow(MatconClient::Material).to receive(:destroy).and_return(true)

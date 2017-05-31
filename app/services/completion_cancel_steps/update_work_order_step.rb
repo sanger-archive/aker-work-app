@@ -1,4 +1,5 @@
 class UpdateWorkOrderStep
+	attr_reader :status, :comment
 	def initialize(work_order, msg, finish_status)
 		@finish_status = finish_status
 		@work_order = work_order
@@ -16,6 +17,6 @@ class UpdateWorkOrderStep
 	end
 
 	def down
-		@work_order.update_attributes!(status: @status, comment: @comment)
+		@work_order.update_attributes!(status: status, comment: comment)
 	end
 end
