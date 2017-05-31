@@ -16,8 +16,8 @@ class LockSetStep
 	end
 
 	def down
-	  if @work_order.set_uuid
-      @work_order.update_attributes(set_uuid: nil)
+	  if @work_order.finished_set_uuid
+      @work_order.update_attributes(finished_set_uuid: nil)
 	  end
 	end
 end

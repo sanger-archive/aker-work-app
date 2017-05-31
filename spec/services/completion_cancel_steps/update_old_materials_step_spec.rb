@@ -18,24 +18,38 @@ RSpec.describe "UpdateOldMaterialsStep" do
         :updated_materials => [@material_params]
       }
     }
+
+    stub_matcon_material
+
     @material = make_material
     allow(@material).to receive(:attributes).and_return({})
     allow(@material).to receive(:clone).and_return(make_material)
     @modif_params = @material_params.clone
     @modif_params.delete(:_id)
-    allow(@material).to receive(:update_atttributes).with(@modif_params).and_return(true)
+    allow(@material).to receive(:update_attributes).with(@modif_params).and_return(true)
     allow(MatconClient::Material).to receive(:find).and_return(@material)
     make_step(@msg)
   end
 
   context '#up' do
     it 'the materials are updated' do
-      allow(@material).to receive(:update_atttributes).and_return(true)
+      allow(@material).to receive(:update_attributes).and_return(true)
       @step.up
-      expect(@material).to have_received(:update_atttributes)
+      expect(@material).to have_received(:update_attributes)
     end
   end
 
   context '#down' do
+    it 'the materials are rollback' do
+      attrs = {a:1, b:2}
+      allow(@step).to receive(:materials_before_changes).and_return([id: @an_id, attrs: attrs])
+
+      material = make_material
+
+      allow(MatconClient::Material).to receive(:find).and_return(material)
+      allow(material).to receive(:update_attributes).and_return(true)
+      @step.down
+      expect(material).to have_received(:update_attributes).with(attrs)
+    end
   end
 end
