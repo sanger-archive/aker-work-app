@@ -6,20 +6,20 @@ require 'completion_cancel_steps/create_new_materials_step'
 RSpec.describe 'CreateNewMaterialsStep' do
   include TestServicesHelper
 
-  def stub_matcon
-    @barcode_counter = 0
-    @materials = []
+  # def stub_matcon
+  #   @barcode_counter = 0
+  #   @materials = []
 
-    allow(MatconClient::Material).to receive(:destroy).and_return(true)
+  #   allow(MatconClient::Material).to receive(:destroy).and_return(true)
 
-    allow(MatconClient::Material).to receive(:create) do |args|
-      [args].flatten.map do
-        material = make_material
-        @materials.push(material)
-        material
-      end
-    end
-  end
+  #   allow(MatconClient::Material).to receive(:create) do |args|
+  #     [args].flatten.map do
+  #       material = make_material
+  #       @materials.push(material)
+  #       material
+  #     end
+  #   end
+  # end
 
 
   def make_step(msg)
@@ -58,7 +58,7 @@ RSpec.describe 'CreateNewMaterialsStep' do
               container: { barcode: @wrong_barcode}
               }) }
           }
-        }        
+        }
         expect(MatconClient::Container).to receive(:where).with(barcode: @wrong_barcode).and_return([])
         make_step(@msg)
       end
@@ -139,7 +139,7 @@ RSpec.describe 'CreateNewMaterialsStep' do
     end
 
     it 'restores the containers to the original values' do
-      expect(@container).to receive(:update_attributes)
+      expect(@container).to receive(:save)
       @step.down
 
     end

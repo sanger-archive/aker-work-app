@@ -97,7 +97,11 @@ module TestServicesHelper
     allow(MatconClient::Material).to receive(:destroy).and_return(true)
 
     allow(MatconClient::Material).to receive(:create) do |args|
-      @materials.concat!(materials_to_be_created(args))
+      [args].flatten.map do
+        material = make_material
+        @materials.push(material)
+        material
+      end
     end
   end
 
