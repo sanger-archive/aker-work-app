@@ -1,4 +1,5 @@
 require 'lims_client'
+require 'event_message'
 
 class WorkOrder < ApplicationRecord
   include AkerPermissionGem::Accessible
@@ -157,6 +158,12 @@ class WorkOrder < ApplicationRecord
       end
       containers = (containers.has_next? ? containers.next : nil)
     end
+  end
+
+  def generate_event
+    # throw error if unsuccessful
+    message = EventMessage.new(self)
+    EventService.send(message)
   end
 
 end

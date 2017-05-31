@@ -67,6 +67,10 @@ Rails.application.configure do
 
   config.jwt_secret_key = 'development'
 
+  config.enable_events_sending = true
+  config.events_queue_name = 'aker.work_order'
+  config.events_queue_connection = "amqp://guest:guest@localhost:5672"
+
   config.work_order_completion_json_schema_path = Rails.root.join('app','assets', 'schemas', 'work_order_completion.json')
 
   config.fake_ldap = true

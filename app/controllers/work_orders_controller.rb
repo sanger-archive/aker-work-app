@@ -122,13 +122,13 @@ private
 
     if success
       msg = flash[:notice] = 'Your work order is updated'
+      work_order.generate_event
     elsif cleanup
       msg = flash[:error] = "The work order could not be updated"
     else
       msg = flash[:error] = "There has been a problem with the work order update. Please contact support."
     end
 
-    # SEND EVENT
     return {msg: msg, status: success ? 200 : 502 }
   end
 
