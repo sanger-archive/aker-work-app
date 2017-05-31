@@ -1,5 +1,7 @@
 class UpdateOldMaterialsStep
 
+  attr_reader :materials_before_changes
+
   def initialize(work_order, msg)
     @work_order = work_order
     @msg = msg
@@ -15,15 +17,15 @@ class UpdateOldMaterialsStep
       previous_state = Hash[updated_params.map{ |k,v| [k, material.attributes[k]] }]
       before_change = material.clone
       material.update_attributes(updated_params)
-      @materials_before_changes.push({id: uuid, attrs: previous_state})
+      materials_before_changes.push({id: uuid, attrs: previous_state})
      end
   end
 
   def down
     if @materials_before_changes
       @materials_before_changes.each do |previous|
-        remote = MatconClient::Material.find(previous.id)
-        remote.update_attributes(previous.attrs)
+        remote = MatconClient::Material.find(previous[:id])
+        remote.update_attributes(previous[:attrs])
       end
     end
   end
