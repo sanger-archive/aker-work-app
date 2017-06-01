@@ -2,7 +2,7 @@ require 'event_publisher'
 
 class EventMessage
 
-  attr_reader :work_order, :event_name
+  attr_reader :work_order
 
   def initialize(params)
     @work_order = params[:work_order]

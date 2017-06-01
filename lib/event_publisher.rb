@@ -4,14 +4,14 @@ class EventPublisher
 
   attr_accessor :connection
 
-  def initialize(config)
+  def initialize(config={})
     @event_conn = config[:event_conn]
     @queue_name = config[:queue_name]
     set_config
     add_close_connection_handler
   end
 
-  def send(message)
+  def publish(message)
     @exchange.publish(message.generate_json, routing_key: @queue.name)
   end
 
@@ -40,3 +40,4 @@ class EventPublisher
   end
 
 end
+

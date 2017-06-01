@@ -162,8 +162,8 @@ class WorkOrder < ApplicationRecord
 
   def generate_event
     # throw error if unsuccessful
-    message = EventMessage.new(self)
-    EventService.send(message)
+    message = EventMessage.new(work_order: self)
+    EventService.publish(message)
   end
 
 end

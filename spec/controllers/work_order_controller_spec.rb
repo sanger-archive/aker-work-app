@@ -18,6 +18,11 @@ RSpec.describe WorkOrdersController, type: :controller do
     end
 
 		context 'completion' do
+      it 'publishes the completion event to the queue' do
+        expect(EventService).to receive(:publish).with(an_instance_of(EventMessage))
+        post :complete, work_order: @msg, id: @wo.id
+      end
+
 			it 'completes a work order' do
        	post :complete, work_order: @msg, id: @wo.id
         @wo.reload

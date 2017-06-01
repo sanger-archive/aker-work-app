@@ -313,4 +313,14 @@ RSpec.describe WorkOrder, type: :model do
     end
   end
 
+  describe "#generate_event" do
+    it 'generates an event using the EventService' do
+      #set = make_set(6)
+      wo = build(:work_order)
+      EventService = double('EventService')
+      allow(EventService).to receive(:publish)
+      expect(EventService).to receive(:publish).with(an_instance_of(EventMessage))
+      wo.generate_event
+    end
+  end
 end
