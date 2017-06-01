@@ -18,7 +18,7 @@ RSpec.describe ApplicationController, type: :controller do
   				SetClient::Set.all
           assert_requested(srequ)
         end
-				
+
 			end
 		end
 

@@ -128,6 +128,7 @@ RSpec.describe UpdateOrderService do
 
         expect(@wo.product).to eq(product)
         expect(@wo.total_cost).to eq(@clone_set.meta['size']*product.cost_per_sample)
+        expect(@wo.status).to eq('cost')
       end
 
       it "should error if product is not given" do
@@ -135,6 +136,7 @@ RSpec.describe UpdateOrderService do
         messages = {}
         expect(UpdateOrderService.new(params, @wo, messages).perform(:product)).to eq(false)
         expect(messages[:error]).to include('product')
+        expect(@wo.status).to eq('product')
       end
 
       it "should refuse a later step" do
@@ -166,6 +168,7 @@ RSpec.describe UpdateOrderService do
         expect(messages[:error]).to be_nil
 
         expect(@wo.proposal_id).to eq(proposal.id)
+        expect(@wo.status).to eq('summary')
       end
 
       context "when you revise the product step" do
@@ -191,6 +194,9 @@ RSpec.describe UpdateOrderService do
         it "should recalculate the total cost" do
           expect(@wo.total_cost).to eq(@wo.set.meta['size']*@product.cost_per_sample)
         end
+        it "should go back to the cost step" do
+          expect(@wo.status).to eq('cost')
+        end
       end
 
       it "should error if proposal is not given" do
@@ -198,6 +204,7 @@ RSpec.describe UpdateOrderService do
         messages = {}
         expect(UpdateOrderService.new(params, @wo, messages).perform(:proposal)).to eq(false)
         expect(messages[:error]).to include('proposal')
+        expect(@wo.status).to eq('proposal')
       end
 
       it "should refuse a later step" do
