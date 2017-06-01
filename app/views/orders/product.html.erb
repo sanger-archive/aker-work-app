@@ -25,7 +25,7 @@
     <% end %>
 
     <%= f.text_field :comment %>
-    <%= f.date_field :desired_date %>
+    <%= f.text_field :desired_date, data: { behavior: "datepicker" } %>
 
   <%= render 'buttons', work_order: work_order, f: f %>
 
