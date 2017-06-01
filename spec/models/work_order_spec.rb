@@ -314,13 +314,23 @@ RSpec.describe WorkOrder, type: :model do
   end
 
   describe "#generate_event" do
-    it 'generates an event using the EventService' do
-      #set = make_set(6)
-      wo = build(:work_order)
-      EventService = double('EventService')
-      allow(EventService).to receive(:publish)
-      expect(EventService).to receive(:publish).with(an_instance_of(EventMessage))
-      wo.generate_event
+    context 'if work order has not been submitted' do
+      it 'generates an event using the EventService' do
+        wo = build(:work_order)
+        EventService = double('EventService')
+        expect(EventService).not_to receive(:publish).with(an_instance_of(EventMessage))
+        expect{wo.generate_event}.to raise_exception('You cannot generate an event from a work order that has not been submitted.')
+      end
+    end
+
+    context 'if work order has been submitted' do
+      it 'generates an event using the EventService' do
+        wo = build(:work_order, status: 'completed')
+        EventService = double('EventService')
+        allow(EventService).to receive(:publish)
+        expect(EventService).to receive(:publish).with(an_instance_of(EventMessage))
+        wo.generate_event
+      end
     end
   end
 end

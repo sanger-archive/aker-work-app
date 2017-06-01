@@ -58,6 +58,10 @@ class WorkOrder < ApplicationRecord
     status == WorkOrder.ACTIVE
   end
 
+  def submitted?
+    status == WorkOrder.COMPLETED || status == WorkOrder.CANCELLED
+  end
+
   def broken!
     update_attributes(status: WorkOrder.BROKEN)
   end
@@ -172,8 +176,12 @@ class WorkOrder < ApplicationRecord
 
   def generate_event
     # throw error if unsuccessful
-    message = EventMessage.new(work_order: self)
-    EventService.publish(message)
+    if submitted?
+      message = EventMessage.new(work_order: self)
+      EventService.publish(message)
+    else
+      raise 'You cannot generate an event from a work order that has not been submitted.'
+    end
   end
 
 end
