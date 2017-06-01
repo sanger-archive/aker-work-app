@@ -27,14 +27,14 @@ class EventPublisher
 
   def close
     @connection.close
-  end  
+  end
 
   private
 
-  def add_close_connection_handler 
-    at_exit { 
+  def add_close_connection_handler
+    at_exit {
       puts 'RabbitMQ connection close'
-      close 
+      close
       exit 0
     }
   end

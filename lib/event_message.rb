@@ -9,7 +9,24 @@ class EventMessage
   end
 
   def generate_json
-    @work_order.to_json
+    {
+       "event_type":"aker.events.work_order.#{@work_order.status}",
+       "lims_id":"aker",
+       "uuid":SecureRandom.uuid,
+       "timestamp":(Time.now.to_f*1000).to_i,
+       "user_identifier":@work_order.user.email,
+       "roles":[
+          {
+             "role_type":"work_order",
+             "subject_type":"work_order",
+             "subject_friendly_name":@work_order.name,
+             "subject_uuid":@work_order.id
+          }
+       ],
+       "metadata":{
+          "comment":@work_order.comment
+       }
+    }.to_json
   end
 
 end

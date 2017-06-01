@@ -94,6 +94,10 @@ class WorkOrder < ApplicationRecord
     save!
   end
 
+  def name
+    "Work Order #{id}"
+  end
+
   def send_to_lims
     lims_url = product.catalogue.url
     LimsClient::post(lims_url, lims_data)
