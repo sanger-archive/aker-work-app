@@ -20,7 +20,7 @@ class EventMessage
              "role_type":"work_order",
              "subject_type":"work_order",
              "subject_friendly_name":@work_order.name,
-             "subject_uuid":@work_order.id
+             "subject_uuid":@work_order.work_order_uuid
           }
        ],
        "metadata":{

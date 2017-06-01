@@ -1,5 +1,6 @@
 require 'lims_client'
 require 'event_message'
+require 'securerandom'
 
 class WorkOrder < ApplicationRecord
   include AkerPermissionGem::Accessible
@@ -7,7 +8,12 @@ class WorkOrder < ApplicationRecord
   belongs_to :product, optional: true
   belongs_to :user
 
+  after_initialize :create_uuid
   after_create :set_default_permission_email
+
+  def create_uuid
+    self.work_order_uuid ||= SecureRandom.uuid
+  end
 
   def set_default_permission_email
     set_default_permission(user.email)
