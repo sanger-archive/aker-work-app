@@ -1,3 +1,5 @@
+require 'set'
+
 class WorkOrderValidatorService
   attr_reader :work_order, :msg, :errors
 
@@ -13,11 +15,58 @@ class WorkOrderValidatorService
       :json_schema_valid?,                 # 1 - JSON Schema
       :work_order_exists?,                 # 2 - Validate Word Order exists
       :work_order_has_updated_materials?,  # 3 - Validate materials are in the original work order
-      :containers_has_no_changes?          # 4 - Validate containers has no changes
+      :containers_unique?,                 # - should not specify a barcode twice
+      :material_locations_unique?,         # - should not specify the same exact location twice
+      :material_locations_match_containers?, # - container barcodes correspond to material locations
+      :containers_have_no_changes?          #  Containers that exist already should be as described
     ].all? {|m| send(m) }
   end
 
-  private
+private
+
+  def containers_unique?
+    barcodes = @msg[:work_order][:containers].map { |c| c[:barcode] }
+    return true if barcodes.uniq.length == barcodes.length
+    error_return(422, 'Container barcodes must be unique')
+  end
+
+  def material_locations_match_containers?
+    location_barcodes = @msg[:work_order][:new_materials].
+      map { |mat| mat[:container] }.
+      select { |loc| loc }.
+      map { |loc| loc[:barcode] }.
+      uniq
+    container_barcodes = @msg[:work_order][:containers].map { |c| c[:barcode] }
+    unless location_barcodes.all? { |bc| container_barcodes.include?(bc) }
+      return error_return(422, 'Barcodes used as material locations should be specified as containers')
+    end
+    unless container_barcodes.all? { |bc| location_barcodes.include?(bc) }
+      return error_return(422, 'Containers specified should be used as locations for materials')
+    end
+    return true
+  end
+
+  def any_material_location_repeated?(new_materials)
+    barcodes_without_address = new_materials.
+      map { |m| m[:container] }.
+      select { |loc| loc && loc[:address].nil? }.
+      map { |loc| loc[:barcode] }
+    return true if barcodes_without_address.uniq.length != barcodes_without_address.length
+    barcodes_with_address = new_materials.
+      map { |m| m[:container] }.
+      select { |loc| loc && loc[:address] }.
+      map { |loc| [loc[:barcode], loc[:address]] }
+    return true if barcodes_with_address.uniq.length != barcodes_with_address.length
+    return true if barcodes_with_address.any? { |ba| barcodes_without_address.include?(ba[0]) }
+
+    false
+  end
+
+  def material_locations_unique?
+    return true unless any_material_location_repeated?(@msg[:work_order][:new_materials])
+    error_return(422, 'The materials cannot share locations.')
+  end
+
   def correct_status?
     return true if @work_order.status == 'active'
     error_return(422, 'The work order status should be active')
@@ -33,7 +82,7 @@ class WorkOrderValidatorService
     # 2 - Validate Word Order exists
     work_order = WorkOrder.find_by(id: @msg[:work_order][:work_order_id])
     if work_order.nil?
-      return error_return(404, "Work order #{@msg[:work_order][:work_order_id]} does not exists")
+      return error_return(404, "Work order #{@msg[:work_order][:work_order_id]} does not exist")
     end
     return true if work_order == @work_order
     error_return(422, "Wrong work order specified")
@@ -44,9 +93,18 @@ class WorkOrderValidatorService
     error_return(422, "The updated materials don't belong to this work order")
   end
 
-  def containers_has_no_changes?
-    return true if !containers_has_changed?(@msg[:work_order][:containers].pluck(:_id))
+  def containers_have_no_changes?
+    return true unless containers_have_changed?(@msg[:work_order][:containers])
     error_return(422, "Some of the containers provided have a different content in the container service")
+  end
+
+  def containers_have_changed?(containers_msg)
+    containers_msg.any? do |container_msg|
+      container = MatconClient::Container.where(barcode: container_msg[:barcode]).first
+      container.present? && container_msg.keys.any? do |field|
+        field!=:barcode && container_msg[field]!=container.send(field)
+      end
+    end
   end
 
   def schema_url
@@ -58,21 +116,6 @@ class WorkOrderValidatorService
     @errors[:msg] = msg
     #debugger
     false
-  end
-
-  def containers_has_changed?(containers)
-    updated_containers = @msg[:work_order][:containers].select{|c| c.has_key?(:_id)}
-    updated_containers.any? do |json_container|
-      remote = MatconClient::Container.find(json_container[:_id])
-      json_container.keys.any? do |attr_key|
-        json_container[attr_key] != remote.send(attr_key)
-      end
-    end
-    # get uid from json for the containers
-    # find container from mac con client
-    # for each other check json data = service data
-    # if different return true
-
   end
 
 end
