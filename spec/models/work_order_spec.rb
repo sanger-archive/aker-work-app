@@ -317,23 +317,44 @@ RSpec.describe WorkOrder, type: :model do
     end
   end
 
-  describe "#generate_event" do
-    context 'if work order has not been submitted' do
+  describe "#generate_completed_and_cancel_event" do
+    context 'if work order does not have status completed or cancelled' do
       it 'generates an event using the EventService' do
         wo = build(:work_order)
         EventService = double('EventService')
         expect(EventService).not_to receive(:publish).with(an_instance_of(EventMessage))
-        expect{wo.generate_event}.to raise_exception('You cannot generate an event from a work order that has not been submitted.')
+        expect{wo.generate_completed_and_cancel_event}.to raise_exception('You cannot generate an event from a work order that has not been submitted.')
       end
     end
 
-    context 'if work order has been submitted' do
+    context 'if work order does have status completed or cancelled' do
       it 'generates an event using the EventService' do
         wo = build(:work_order, status: 'completed')
         EventService = double('EventService')
         allow(EventService).to receive(:publish)
         expect(EventService).to receive(:publish).with(an_instance_of(EventMessage))
-        wo.generate_event
+        wo.generate_completed_and_cancel_event
+      end
+    end
+  end
+
+   describe "#generate_submitted_event" do
+    context 'if work order does not have status active' do
+      it 'generates an event using the EventService' do
+        wo = build(:work_order)
+        EventService = double('EventService')
+        expect(EventService).not_to receive(:publish).with(an_instance_of(EventMessage))
+        expect{wo.generate_submitted_event}.to raise_exception('You cannot generate an submitted event from a work order that is not active.')
+      end
+    end
+
+    context 'if work order does have status active' do
+      it 'generates an event using the EventService' do
+        wo = build(:work_order, status: 'active')
+        EventService = double('EventService')
+        allow(EventService).to receive(:publish)
+        expect(EventService).to receive(:publish).with(an_instance_of(EventMessage))
+        wo.generate_submitted_event
       end
     end
   end

@@ -3,6 +3,7 @@ require 'event_message'
 class EventPublisher
 
   attr_accessor :connection
+  attr_reader :channel, :exchange
 
   def initialize(config={})
     @event_conn = config[:event_conn]
@@ -43,10 +44,12 @@ class EventPublisher
     @connection = Bunny.new(@event_conn)
     @connection.start
 
-    ch = @connection.create_channel
-    @queue = ch.queue(@queue_name, :auto_delete => true)
+    @channel = @connection.create_channel
 
-    @exchange = ch.default_exchange
+    @queue = channel.queue(@queue_name, :auto_delete => true)
+
+    #@channel.confirm_select
+    @exchange = @channel.default_exchange
   end
 
 

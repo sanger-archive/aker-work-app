@@ -39,6 +39,7 @@ class UpdateOrderService
       if step==:summary
         return false unless send_order
         add_notice('Your work order has been created.')
+        @work_order.generate_submitted_event
       end
     end
 

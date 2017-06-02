@@ -7,6 +7,7 @@ RSpec.describe 'EventMessage' do
   context '#initialize' do
     it 'is initalized with a param object' do
       w = double('work_order')
+      allow(w).to receive(:status)
       message = EventMessage.new(work_order: w)
       expect(message.work_order).not_to be_nil
     end

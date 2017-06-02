@@ -6,11 +6,12 @@ class EventMessage
 
   def initialize(params)
     @work_order = params[:work_order]
+    @status = params[:status] || @work_order.status
   end
 
   def generate_json
     {
-       "event_type":"aker.events.work_order.#{@work_order.status}",
+       "event_type":"aker.events.work_order.#{@status}",
        "lims_id":"aker",
        "uuid":SecureRandom.uuid,
        "timestamp":(Time.now.to_f*1000).to_i,

@@ -174,13 +174,23 @@ class WorkOrder < ApplicationRecord
     end
   end
 
-  def generate_event
+  def generate_completed_and_cancel_event
     # throw error if unsuccessful
     if submitted?
       message = EventMessage.new(work_order: self)
       EventService.publish(message)
     else
       raise 'You cannot generate an event from a work order that has not been submitted.'
+    end
+  end
+
+  def generate_submitted_event
+    # throw error if unsuccessful
+    if active?
+      message = EventMessage.new(work_order: self, status: 'submitted')
+      EventService.publish(message)
+    else
+      raise 'You cannot generate an submitted event from a work order that is not active.'
     end
   end
 

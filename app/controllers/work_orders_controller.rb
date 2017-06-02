@@ -121,7 +121,7 @@ private
 
     if success
       msg = flash[:notice] = 'Your work order is updated'
-      work_order.generate_event
+      generate_completed_and_cancel_event
     elsif cleanup
       msg = flash[:error] = "The work order could not be updated"
     else
@@ -129,6 +129,15 @@ private
     end
 
     return {msg: msg, status: success ? 200 : 502 }
+  end
+
+  def generate_completed_and_cancel_event
+    begin
+      work_order.generate_completed_and_cancel_event
+    rescue StandardError => e
+      puts e
+      # Send error email
+    end
   end
 
   helper_method :work_order
