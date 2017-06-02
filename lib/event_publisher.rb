@@ -7,22 +7,22 @@ class EventPublisher
   def initialize(config={})
     @event_conn = config[:event_conn]
     @queue_name = config[:queue_name]
-    set_config
-    add_close_connection_handler
+  end
+
+  def create_connection
+    if !connected?
+      set_config
+      add_close_connection_handler
+    end
+  end
+
+  def connected?
+    !@connection.nil?
   end
 
   def publish(message)
+    create_connection if !connected?
     @exchange.publish(message.generate_json, routing_key: @queue.name)
-  end
-
-  def set_config
-    @connection = Bunny.new(@event_conn)
-    @connection.start
-
-    ch = @connection.create_channel
-    @queue = ch.queue(@queue_name, :auto_delete => true)
-
-    @exchange = ch.default_exchange
   end
 
   def close
@@ -38,6 +38,17 @@ class EventPublisher
       exit 0
     }
   end
+
+  def set_config
+    @connection = Bunny.new(@event_conn)
+    @connection.start
+
+    ch = @connection.create_channel
+    @queue = ch.queue(@queue_name, :auto_delete => true)
+
+    @exchange = ch.default_exchange
+  end
+
 
 end
 

@@ -30,7 +30,7 @@ ActiveRecord::Schema.define(version: 20170601150847) do
     t.boolean  "r",               default: false, null: false
     t.boolean  "w",               default: false, null: false
     t.boolean  "x",               default: false, null: false
-    t.string   "accessible_type",                 null: false
+    t.string   "accessible_type"
     t.integer  "accessible_id",                   null: false
     t.datetime "created_at",                      null: false
     t.datetime "updated_at",                      null: false

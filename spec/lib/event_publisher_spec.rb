@@ -3,6 +3,7 @@ require 'rails_helper'
 RSpec.describe 'EventPublisher' do
 
   setup do
+    Bunny = double('Bunny')
     allow_any_instance_of(EventPublisher).to receive(:add_close_connection_handler).and_return true    
   end
 
@@ -19,10 +20,7 @@ RSpec.describe 'EventPublisher' do
     allow(@channel).to receive(:default_exchange).and_return(@exchange)
   end
 
-  context '#initialize' do
-    setup do
-      Bunny = double('Bunny')
-    end
+  context '#create_connection' do
 
     it 'initialize methods are called' do
       
@@ -30,24 +28,39 @@ RSpec.describe 'EventPublisher' do
       
       params = { event_conn: 'event conn', queue_name: 'queue name' }
       ep = EventPublisher.new(params)
+      ep.create_connection
       
       expect(ep).to have_received(:set_config)
       expect(ep).to have_received(:add_close_connection_handler)
     end
+    it 'does not create connection if connection is already created' do
+      params = { event_conn: 'event conn', queue_name: 'queue name' }
+      mock_connection(params)      
+      ep = EventPublisher.new(params)
 
-    context '#set_config' do
-      it 'starts a new connection' do
+      allow(ep).to receive(:connected?).and_return(true)
+      allow(ep).to receive(:set_config)
+      allow(ep).to receive(:add_close_connection_handler)
+      ep.create_connection
 
-        params = { event_conn: 'event_conn', queue_name: 'queue_name' }
-        mock_connection(params)
+      expect(ep).not_to have_received(:set_config)
+      expect(ep).not_to have_received(:add_close_connection_handler)      
+    end
+  end
 
-        expect(@connection).to receive(:start)
-        expect(@connection).to receive(:create_channel)
-        expect(@channel).to receive(:queue) 
-        expect(@channel).to receive(:default_exchange) 
+  context '#set_config' do
+    it 'starts a new connection' do
 
-        EventPublisher.new(params)
-      end
+      params = { event_conn: 'event_conn', queue_name: 'queue_name' }
+      mock_connection(params)
+
+      expect(@connection).to receive(:start)
+      expect(@connection).to receive(:create_channel)
+      expect(@channel).to receive(:queue) 
+      expect(@channel).to receive(:default_exchange) 
+
+      ep = EventPublisher.new(params)
+      ep.create_connection
     end
   end
 
