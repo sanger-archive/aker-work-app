@@ -4,8 +4,6 @@ class OrdersController < ApplicationController
 
   steps :set, :product, :cost, :proposal, :summary
 
-  skip_authorization_check :only => [:complete]
-
   def show
     authorize! :write, work_order
 
