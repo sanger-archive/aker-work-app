@@ -4,7 +4,7 @@ RSpec.describe Users::SessionsController, type: :controller do
 
   describe "#create" do
 
-    it 'authenticates with ldap' do
+    it 'stores user in session' do
       @request.env['devise.mapping'] = Devise.mappings[:user]
 
       groups = ["cowboys"]

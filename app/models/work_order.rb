@@ -1,11 +1,19 @@
 require 'lims_client'
+require 'event_message'
+require 'securerandom'
 
 class WorkOrder < ApplicationRecord
   include AkerPermissionGem::Accessible
+
   belongs_to :product, optional: true
   belongs_to :user
 
+  after_initialize :create_uuid
   after_create :set_default_permission_email
+
+  def create_uuid
+    self.work_order_uuid ||= SecureRandom.uuid
+  end
 
   def set_default_permission_email
     set_default_permission(user.email)
@@ -15,12 +23,48 @@ class WorkOrder < ApplicationRecord
     'active'
   end
 
+  def self.BROKEN
+    'broken'
+  end
+
+  def self.COMPLETED
+    'completed'
+  end
+
+  def self.CANCELLED
+    'cancelled'
+  end
+
   scope :for_user, ->(user) { where(user_id: user.id) }
   scope :active, -> { where(status: WorkOrder.ACTIVE) }
-  scope :pending, -> { where.not(status: WorkOrder.ACTIVE) }
+  # status is either set, product, proposal
+  scope :pending, -> { where('status NOT IN (?)', not_pending_status_list)}
+  scope :completed, -> { where(status: WorkOrder.COMPLETED) }
+  scope :cancelled, -> { where(status: WorkOrder.CANCELLED) }
+
+  def has_materials?(uuids)
+    return true if uuids.empty?
+    return false if set_uuid.nil?
+    uuids_from_work_order_set = SetClient::Set.find_with_materials(set_uuid).first.materials.map(&:id)
+    uuids.all? do |uuid|
+      uuids_from_work_order_set.include?(uuid)
+    end
+  end
+
+  def self.not_pending_status_list
+    [WorkOrder.ACTIVE, WorkOrder.BROKEN, WorkOrder.COMPLETED, WorkOrder.CANCELLED]
+  end
 
   def active?
     status == WorkOrder.ACTIVE
+  end
+
+  def submitted?
+    status == WorkOrder.COMPLETED || status == WorkOrder.CANCELLED
+  end
+
+  def broken!
+    update_attributes(status: WorkOrder.BROKEN)
   end
 
   def proposal
@@ -52,22 +96,17 @@ class WorkOrder < ApplicationRecord
   end
 
   def num_samples
-    self.set&.meta['size']
-  end
-
-  def total_cost
-    cost = product&.cost_per_sample
-    return nil if cost.nil?
-    n = num_samples
-    return nil if n.nil?
-
-    n*cost
+    self.set && self.set.meta['size']
   end
 
   # Create a locked set from this work order's original set.
   def create_locked_set
     self.set = original_set.create_locked_clone("Work order #{id}")
     save!
+  end
+
+  def name
+    "Work Order #{id}"
   end
 
   def send_to_lims
@@ -87,7 +126,7 @@ class WorkOrder < ApplicationRecord
 
   def lims_data
     material_ids = SetClient::Set.find_with_materials(set_uuid).first.materials.map{|m| m.id}
-    materials = all_results(MatconClient::Material.where("_id":{"$in" => material_ids}).result_set)
+    materials = all_results(MatconClient::Material.where("_id" => {"$in" => material_ids}).result_set)
     material_data = materials.map do |m|
           {
             material_id: m.id,
@@ -116,23 +155,41 @@ class WorkOrder < ApplicationRecord
   end
 
   def describe_containers(material_ids, material_data)
-    containers = MatconClient::Container.where('slots.material': { '$in': material_ids}).result_set
+    containers = MatconClient::Container.where("slots.material" => { "$in" => material_ids}).result_set
     material_map = material_data.each_with_object({}) { |t,h| h[t[:material_id]] = t }
     while containers do
       containers.each do |container|
         container.slots.each do |slot|
           if material_ids.include? slot.material_id
             unless material_map[slot.material_id][:container]
-              container_desc = container.barcode
+              container_data = { barcode: container.barcode }
               if (container.num_of_rows > 1 || container.num_of_cols > 1)
-                container_desc += ' '+slot.address
+                container_data[:address] = slot.address
               end
-              material_map[slot.material_id][:container] = container_desc
+              material_map[slot.material_id][:container] = container_data
             end
           end
         end
       end
       containers = (containers.has_next? ? containers.next : nil)
+    end
+  end
+
+  def generate_completed_and_cancel_event
+    if submitted?
+      message = EventMessage.new(work_order: self)
+      EventService.publish(message)
+    else
+      raise 'You cannot generate an event from a work order that has not been submitted.'
+    end
+  end
+
+  def generate_submitted_event
+    if active?
+      message = EventMessage.new(work_order: self, status: 'submitted')
+      EventService.publish(message)
+    else
+      raise 'You cannot generate an submitted event from a work order that is not active.'
     end
   end
 
