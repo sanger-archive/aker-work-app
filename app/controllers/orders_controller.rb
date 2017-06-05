@@ -68,11 +68,4 @@ private
     )
   end
 
-  def params_for_work_order_completion
-    params.require(:work_order).permit(:work_order_id, :comment, :containers,
-      :updated_materials => [],
-      :new_materials => []
-    )
-  end
-
 end
