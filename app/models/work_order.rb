@@ -2,6 +2,7 @@ require 'lims_client'
 
 class WorkOrder < ApplicationRecord
   include AkerPermissionGem::Accessible
+
   belongs_to :product, optional: true
   belongs_to :user
 
@@ -15,12 +16,44 @@ class WorkOrder < ApplicationRecord
     'active'
   end
 
+  def self.BROKEN
+    'broken'
+  end
+
+  def self.COMPLETED
+    'completed'
+  end
+
+  def self.CANCELLED
+    'cancelled'
+  end
+
   scope :for_user, ->(user) { where(user_id: user.id) }
   scope :active, -> { where(status: WorkOrder.ACTIVE) }
-  scope :pending, -> { where.not(status: WorkOrder.ACTIVE) }
+  # status is either set, product, proposal
+  scope :pending, -> { where('status NOT IN (?)', not_pending_status_list)}
+  scope :completed, -> { where(status: WorkOrder.COMPLETED) }
+  scope :cancelled, -> { where(status: WorkOrder.CANCELLED) }
+
+  def has_materials?(uuids)
+    return true if uuids.empty?
+    return false if set_uuid.nil?
+    uuids_from_work_order_set = SetClient::Set.find_with_materials(set_uuid).first.materials.map(&:id)
+    uuids.all? do |uuid|
+      uuids_from_work_order_set.include?(uuid)
+    end
+  end
+
+  def self.not_pending_status_list
+    [WorkOrder.ACTIVE, WorkOrder.BROKEN, WorkOrder.COMPLETED, WorkOrder.CANCELLED]
+  end
 
   def active?
     status == WorkOrder.ACTIVE
+  end
+
+  def broken!
+    update_attributes(status: WorkOrder.BROKEN)
   end
 
   def proposal

@@ -1,7 +1,6 @@
 require 'rails_helper'
 
 RSpec.describe WorkOrder, type: :model do
-  it_behaves_like "accessible"
 
   def make_uuid
     SecureRandom.uuid
@@ -317,4 +316,5 @@ RSpec.describe WorkOrder, type: :model do
       expect(@original_set).to have_received(:create_locked_clone)
     end
   end
+
 end

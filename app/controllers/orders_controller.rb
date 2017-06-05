@@ -4,6 +4,8 @@ class OrdersController < ApplicationController
 
   steps :set, :product, :cost, :proposal, :summary
 
+  skip_authorization_check :only => [:complete]
+
   def show
     authorize! :write, work_order
 
@@ -65,6 +67,13 @@ private
   def work_order_params
     params.require(:work_order).permit(
       :status, :original_set_uuid, :proposal_id, :product_id, :comment, :desired_date
+    )
+  end
+
+  def params_for_work_order_completion
+    params.require(:work_order).permit(:work_order_id, :comment, :containers,
+      :updated_materials => [],
+      :new_materials => []
     )
   end
 
