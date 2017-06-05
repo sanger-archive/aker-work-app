@@ -74,11 +74,12 @@ module TestServicesHelper
     allow(MatconClient::Container).to receive(:destroy).and_return(true)
 
     allow(MatconClient::Container).to receive(:create) do |args|
-      [args].flatten.map do
+      containers = [args].flatten.map do
         container = make_container
         @containers.push(container)
         container
       end
+      instance_double('result_set', has_next?: false, first: containers.first, to_a: containers)
     end    
   end
 
