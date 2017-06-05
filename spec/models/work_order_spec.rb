@@ -133,6 +133,7 @@ RSpec.describe WorkOrder, type: :model do
       it "should find and return the proposal" do
         expect(@wo.proposal).to eq(@proposal)
       end
+
     end
     context "when the work order has no proposal id" do
       before do
