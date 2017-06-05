@@ -1,0 +1,1 @@
+message_queue_error.html.erb

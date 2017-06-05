@@ -135,8 +135,9 @@ private
     begin
       work_order.generate_completed_and_cancel_event
     rescue StandardError => e
-      puts e
-      # Send error email
+      # Current have to restart the server if there is an exception here
+      exception_string = e.backtrace.join("\n")
+      WorkOrderMailer.message_queue_error(work_order, exception_string).deliver_later
     end
   end
 

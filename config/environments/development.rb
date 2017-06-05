@@ -52,6 +52,8 @@ Rails.application.configure do
   # routes, locales, etc. This feature depends on the listen gem.
   config.file_watcher = ActiveSupport::EventedFileUpdateChecker
 
+  config.action_mailer.delivery_method = :sendmail
+
   config.study_url = 'http://localhost:3300/api/v1'
   config.study_url_default_proxy = 'http://localhost:3300'
 

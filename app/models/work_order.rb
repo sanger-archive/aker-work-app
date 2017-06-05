@@ -175,7 +175,6 @@ class WorkOrder < ApplicationRecord
   end
 
   def generate_completed_and_cancel_event
-    # throw error if unsuccessful
     if submitted?
       message = EventMessage.new(work_order: self)
       EventService.publish(message)
@@ -185,7 +184,6 @@ class WorkOrder < ApplicationRecord
   end
 
   def generate_submitted_event
-    # throw error if unsuccessful
     if active?
       message = EventMessage.new(work_order: self, status: 'submitted')
       EventService.publish(message)
