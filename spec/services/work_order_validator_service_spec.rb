@@ -54,6 +54,13 @@ RSpec.describe WorkOrderValidatorService do
       allow(@work_order).to receive(:has_materials?).and_return false
       expect_error(/materials.*work order/i)
     end
+
+    it "fails when the updated materials has a repeated material" do
+      um = @msg[:work_order][:updated_materials]
+      um.push(um.first)
+      expect_error(/material.*repeated/)
+    end
+
     it "fails when the containers have changed" do
       different_container = double('container', num_of_rows: 5, num_of_cols: 6, row_is_alpha: true, col_is_alpha: false)
       query_double = double('query', first:different_container)

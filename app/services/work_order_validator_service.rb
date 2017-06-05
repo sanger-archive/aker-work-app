@@ -15,6 +15,7 @@ class WorkOrderValidatorService
       :json_schema_valid?,                 # 1 - JSON Schema
       :work_order_exists?,                 # 2 - Validate Word Order exists
       :work_order_has_updated_materials?,  # 3 - Validate materials are in the original work order
+      :updated_materials_unique?,          # should not have two updates for the same material
       :containers_unique?,                 # - should not specify a barcode twice
       :material_locations_unique?,         # - should not specify the same exact location twice
       :material_locations_match_containers?, # - container barcodes correspond to material locations
@@ -23,6 +24,16 @@ class WorkOrderValidatorService
   end
 
 private
+
+  def updated_materials_unique?
+    return true unless any_repeated_materials(@msg[:work_order][:updated_materials])
+    error_return(422, 'Updated materials should not contain repeated materials')
+  end
+
+  def any_repeated_materials(materials)
+    material_ids = materials.map { |m| m[:_id] }
+    return material_ids.uniq.length != material_ids.length
+  end
 
   def containers_unique?
     barcodes = @msg[:work_order][:containers].map { |c| c[:barcode] }
