@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170526134612) do
+ActiveRecord::Schema.define(version: 20170602144533) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -30,7 +30,7 @@ ActiveRecord::Schema.define(version: 20170526134612) do
     t.boolean  "r",               default: false, null: false
     t.boolean  "w",               default: false, null: false
     t.boolean  "x",               default: false, null: false
-    t.string   "accessible_type"
+    t.string   "accessible_type",                 null: false
     t.integer  "accessible_id",                   null: false
     t.datetime "created_at",                      null: false
     t.datetime "updated_at",                      null: false
@@ -49,6 +49,7 @@ ActiveRecord::Schema.define(version: 20170526134612) do
     t.integer  "product_version"
     t.integer  "availability",                                       default: 1
     t.string   "description"
+    t.string   "product_uuid"
     t.index ["catalogue_id"], name: "index_products_on_catalogue_id", using: :btree
   end
 
@@ -78,6 +79,7 @@ ActiveRecord::Schema.define(version: 20170526134612) do
     t.integer  "user_id"
     t.integer  "total_cost"
     t.string   "finished_set_uuid"
+    t.string   "work_order_uuid"
     t.index ["product_id"], name: "index_work_orders_on_product_id", using: :btree
   end
 

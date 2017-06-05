@@ -52,6 +52,8 @@ Rails.application.configure do
   # routes, locales, etc. This feature depends on the listen gem.
   config.file_watcher = ActiveSupport::EventedFileUpdateChecker
 
+  config.action_mailer.delivery_method = :sendmail
+
   config.study_url = 'http://localhost:3300/api/v1'
   config.study_url_default_proxy = 'http://localhost:3300'
 
@@ -66,6 +68,10 @@ Rails.application.configure do
   config.jwt_nbf_time = 1 * 60
 
   config.jwt_secret_key = 'development'
+
+  config.enable_events_sending = true
+  config.events_queue_name = 'aker.events'
+  config.events_queue_connection = "amqp://guest:guest@localhost:5672"
 
   config.work_order_completion_json_schema_path = Rails.root.join('app','assets', 'schemas', 'work_order_completion.json')
 

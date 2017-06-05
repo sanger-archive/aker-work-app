@@ -39,6 +39,7 @@ class UpdateOrderService
       if step==:summary
         return false unless send_order
         add_notice('Your work order has been created.')
+        generate_submitted_event
       end
     end
 
@@ -163,5 +164,15 @@ private
 
   def add_notice(message)
     @messages[:notice] = message
+  end
+
+  def generate_submitted_event
+    begin
+      @work_order.generate_submitted_event
+    rescue StandardError => e
+      # Current have to restart the server if there is an exception here
+      exception_string = e.backtrace.join("\n")
+      WorkOrderMailer.message_queue_error(@work_order, exception_string).deliver_later
+    end
   end
 end

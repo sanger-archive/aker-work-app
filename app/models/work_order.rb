@@ -1,4 +1,6 @@
 require 'lims_client'
+require 'event_message'
+require 'securerandom'
 
 class WorkOrder < ApplicationRecord
   include AkerPermissionGem::Accessible
@@ -6,7 +8,12 @@ class WorkOrder < ApplicationRecord
   belongs_to :product, optional: true
   belongs_to :user
 
+  after_initialize :create_uuid
   after_create :set_default_permission_email
+
+  def create_uuid
+    self.work_order_uuid ||= SecureRandom.uuid
+  end
 
   def set_default_permission_email
     set_default_permission(user.email)
@@ -52,6 +59,10 @@ class WorkOrder < ApplicationRecord
     status == WorkOrder.ACTIVE
   end
 
+  def submitted?
+    status == WorkOrder.COMPLETED || status == WorkOrder.CANCELLED
+  end
+
   def broken!
     update_attributes(status: WorkOrder.BROKEN)
   end
@@ -92,6 +103,10 @@ class WorkOrder < ApplicationRecord
   def create_locked_set
     self.set = original_set.create_locked_clone("Work order #{id}")
     save!
+  end
+
+  def name
+    "Work Order #{id}"
   end
 
   def send_to_lims
@@ -157,6 +172,24 @@ class WorkOrder < ApplicationRecord
         end
       end
       containers = (containers.has_next? ? containers.next : nil)
+    end
+  end
+
+  def generate_completed_and_cancel_event
+    if submitted?
+      message = EventMessage.new(work_order: self)
+      EventService.publish(message)
+    else
+      raise 'You cannot generate an event from a work order that has not been submitted.'
+    end
+  end
+
+  def generate_submitted_event
+    if active?
+      message = EventMessage.new(work_order: self, status: 'submitted')
+      EventService.publish(message)
+    else
+      raise 'You cannot generate an submitted event from a work order that is not active.'
     end
   end
 

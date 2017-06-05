@@ -51,6 +51,7 @@ Rails.application.configure do
   config.work_order_completion_json_schema_path = Rails.root.join('app','assets', 'schemas', 'work_order_completion.json')
 
   config.jwt_secret_key = 'test'
+  config.enable_events_sending = false
 
   config.fake_ldap = true
 

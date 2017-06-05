@@ -235,6 +235,7 @@ RSpec.describe UpdateOrderService do
       it "should be able to proceed" do
         params = {}
         messages = {}
+        allow(@wo).to receive(:generate_submitted_event)
         expect(UpdateOrderService.new(params, @wo, messages).perform(:summary)).to eq(true)
         expect(messages[:error]).to be_nil
         expect(messages[:notice]).to include('created')

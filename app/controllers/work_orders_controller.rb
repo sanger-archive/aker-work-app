@@ -121,14 +121,24 @@ private
 
     if success
       msg = flash[:notice] = 'Your work order is updated'
+      generate_completed_and_cancel_event
     elsif cleanup
       msg = flash[:error] = "The work order could not be updated"
     else
       msg = flash[:error] = "There has been a problem with the work order update. Please contact support."
     end
 
-    # SEND EVENT
     return {msg: msg, status: success ? 200 : 502 }
+  end
+
+  def generate_completed_and_cancel_event
+    begin
+      work_order.generate_completed_and_cancel_event
+    rescue StandardError => e
+      # Current have to restart the server if there is an exception here
+      exception_string = e.backtrace.join("\n")
+      WorkOrderMailer.message_queue_error(work_order, exception_string).deliver_later
+    end
   end
 
   helper_method :work_order
