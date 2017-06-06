@@ -115,8 +115,8 @@ GEM
       sass (>= 3.3.4)
     bootstrap_form (2.7.0)
     builder (3.2.3)
-    bunny (2.7.0)
-      amq-protocol (>= 2.2.0)
+    bunny (0.9.0.pre10)
+      amq-protocol (>= 1.4.0)
     byebug (9.0.6)
     cancancan (2.0.0)
     capybara (2.14.0)
@@ -409,7 +409,7 @@ DEPENDENCIES
   aker_permission_gem!
   bootstrap-sass (~> 3.3.6)
   bootstrap_form
-  bunny
+  bunny (= 0.9.0.pre10)
   byebug
   capybara
   coffee-rails (~> 4.2)
