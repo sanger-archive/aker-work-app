@@ -73,7 +73,7 @@ Rails.application.configure do
   config.events_queue_name = 'aker.events'
   config.events_queue_connection = "amqp://guest:guest@localhost:5672"
 
-  config.work_order_completion_json_schema_path = Rails.root.join('app','assets', 'schemas', 'work_order_completion.json')
+  config.work_order_completion_json_schema_path = Rails.root.join('public','assets','work_order_completion.json')
 
   config.fake_ldap = true
 

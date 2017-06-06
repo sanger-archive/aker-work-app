@@ -48,7 +48,7 @@ gem 'aker-study-client', github: 'sanger/aker-study-client'
 gem 'aker-set-client', github: 'sanger/aker-set-client'
 gem 'matcon_client', github: 'sanger/aker-matcon-client'
 
-gem "bunny"
+gem "bunny", "= 0.9.0.pre10"
 
 group :development, :test do
   # Call 'byebug' anywhere in the code to stop execution and get a debugger console
