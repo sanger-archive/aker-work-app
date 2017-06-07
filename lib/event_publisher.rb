@@ -55,7 +55,9 @@ class EventPublisher
 
     @channel = @connection.create_channel
 
-    @queue = channel.queue(@queue_name, :auto_delete => true)
+    # auto_delete false ensures that we dont destroy the queue when there are no messages and no 
+    # consumers are running
+    @queue = channel.queue(@queue_name, :auto_delete => false)
 
     @exchange = @channel.default_exchange
 
