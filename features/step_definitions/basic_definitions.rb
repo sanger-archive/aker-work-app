@@ -169,3 +169,77 @@ Given(/^I save the order$/) do
   WorkOrder.any_instance.stub(:send_to_lims).and_return(true)
   step('I click on "Save & Exit"')
 end
+
+Given(/^I have a RabbitMQ server running$/) do
+  # We add a spy to the publish method for EventService to check it later
+  allow(EventService).to receive(:publish)
+end
+
+Given(/^I have a biomaterials service running$/) do
+    @material_schema = %Q{
+      {"required": ["gender", "donor_id", "phenotype", "supplier_name", "common_name"], "type": "object", "properties": {"gender": {"required": true, "type": "string", "enum": ["male", "female", "unknown"]}, "date_of_receipt": {"type": "string", "format": "date"}, "material_type": {"enum": ["blood", "dna"], "type": "string"}, "donor_id": {"required": true, "type": "string"}, "phenotype": {"required": true, "type": "string"}, "supplier_name": {"required": true, "type": "string"}, "common_name": {"required": true, "type": "string", "enum": ["Homo Sapiens", "Mouse"]}, "parents": {"type": "list", "schema": {"type": "uuid", "data_relation": {"field": "_id", "resource": "materials", "embeddable": true}}}, "owner_id": {"type": "string"}}}
+    }
+
+    @container_schema = %Q{
+      {"required": ["num_of_cols", "num_of_rows", "col_is_alpha", "row_is_alpha"], "type": "object", "properties": {"num_of_cols": {"max": 9999, "col_alpha_range": true, "required": true, "type": "integer", "min": 1}, "barcode": {"non_aker_barcode": true, "minlength": 6, "unique": true, "type": "string"}, "num_of_rows": {"row_alpha_range": true, "max": 9999, "required": true, "type": "integer", "min": 1}, "col_is_alpha": {"required": true, "type": "boolean"}, "print_count": {"max": 9999, "required": false, "type": "integer", "min": 0}, "row_is_alpha": {"required": true, "type": "boolean"}, "slots": {"uniqueaddresses": true, "type": "list", "schema": {"type": "dict", "schema": {"material": {"type": "uuid", "data_relation": {"field": "_id", "resource": "materials", "embeddable": true}}, "address": {"type": "string", "address": true}}}}}}
+    }
+
+    stub_request(:get, "#{Rails.configuration.material_url}materials/json_schema").
+         to_return(status: 200, body: @material_schema, headers: {})
+
+    stub_request(:get, "#{Rails.configuration.material_url}containers/json_schema").
+         to_return(status: 200, body: @container_schema, headers: {})
+
+    stub_request(:get, "#{Rails.configuration.material_url}materials/json_patch_schema").
+        to_return(status: 200, body: @material_schema, headers: {})
+end
+
+Given(/^I created a work order "([^"]*)"$/) do |arg1|
+    @work_order = FactoryGirl.create(:work_order)
+end
+
+Given(/^I process the work order "([^"]*)" with the LIMS/) do |arg1|
+  @work_order.update_attributes(status: WorkOrder.ACTIVE)
+end
+
+When(/^I send a completion message from the LIMS to the work order application$/) do
+  step('I prepare for a finish message')
+
+  @work_order_completion_msg = FactoryGirl.build(:valid_work_order_completion_message_json)
+  post complete_work_order_path(@work_order), @work_order_completion_msg
+end
+
+When(/^I send a cancel message from the LIMS to the work order application$/) do
+  step('I prepare for a finish message')
+
+  @work_order_completion_msg = FactoryGirl.build(:valid_work_order_completion_message_json)
+  @work_order_completion_msg[:work_order][:work_order_id]=@work_order.id
+  post cancel_work_order_path(@work_order), @work_order_completion_msg
+end
+
+When(/^I prepare for a finish message$/) do
+  set_double = double("set")
+  allow(set_double).to receive(:id)
+  allow(set_double).to receive(:set_materials)
+  allow(set_double).to receive(:update_attributes).with(locked: true)
+
+  allow(SetClient::Set).to receive(:create).and_return(set_double)
+end
+
+Then(/^I should have received a finish message$/) do
+  expect(EventService).to have_received(:publish)
+end
+
+Then(/^the work order "([^"]*)" should be completed$/) do |arg1|
+  @work_order.reload
+  expect(@work_order.status).to eq(WorkOrder.COMPLETED)
+end
+
+Then(/^the work order "([^"]*)" should be cancelled$/) do |arg1|
+  @work_order.reload
+  expect(@work_order.status).to eq(WorkOrder.CANCELLED)
+end
+
+Then(/^I should have published an event$/) do
+  expect(EventService).to have_received(:publish)
+end
