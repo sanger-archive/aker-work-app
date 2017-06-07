@@ -10,8 +10,9 @@ class Catalogue < ApplicationRecord
   		catalogue = create!(catalogue_params.reject { |k,v| (k=='products') }.merge({current: true}))
   		catalogue_id = catalogue.id
   		product_params = catalogue_params['products']
+      price_placeholder = 0
   		product_params.each do |pp|
-  			Product.create!(pp.merge({ catalogue_id: catalogue_id}))
+  			Product.create!(pp.merge({ catalogue_id: catalogue_id, cost_per_sample: price_placeholder}))
   		end
   	end
   	catalogue

@@ -5,13 +5,13 @@ class CataloguesController < ApplicationController
 
 	def create
 		Catalogue.create_with_products(catalogue_params)
-    head :created
+    	head :created
 	end
 
 	private
 
 	def catalogue_params
-		params.require(:catalogue).permit(:url, :lims_id, :pipeline, products: [:name, :product_version, :TAT, :cost_per_sample,
+		params.require(:catalogue).permit(:url, :lims_id, :pipeline, products: [:name, :product_version, :TAT,
   			        :description, :requested_biomaterial_type, :availability, :catalogue_id])
 	end
 end
