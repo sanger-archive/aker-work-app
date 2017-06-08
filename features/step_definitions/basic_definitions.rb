@@ -206,6 +206,7 @@ When(/^I send a completion message from the LIMS to the work order application$/
   step('I prepare for a finish message')
 
   @work_order_completion_msg = FactoryGirl.build(:valid_work_order_completion_message_json)
+  @work_order_completion_msg[:work_order][:work_order_id]=@work_order.id
   post complete_work_order_path(@work_order), @work_order_completion_msg
 end
 
