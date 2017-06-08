@@ -13,19 +13,7 @@ class OrdersController < ApplicationController
   def update
     authorize! :write, work_order
 
-    if nothing_to_update
-      if step==:cost
-        render_wizard work_order
-        return
-      end
-      show_flash_error
-    else
-      if perform_step
-        render_wizard work_order
-      else
-        render_wizard
-      end
-    end
+    perform_update
   end
 
 protected
@@ -66,11 +54,28 @@ protected
 
 private
 
+  def perform_update
+    if nothing_to_update
+      if step==:cost
+        render_wizard work_order
+        return
+      end
+      show_flash_error
+    else
+      if perform_step
+        render_wizard work_order
+      else
+        render_wizard
+      end
+    end
+  end
+
   def nothing_to_update
     if params[:work_order].nil?
       return true
     else
       if step==:product
+        # comment and desired date may have been updated, even though no project has been selected
         return params[:work_order][:product_id].nil?
       end
       return false
