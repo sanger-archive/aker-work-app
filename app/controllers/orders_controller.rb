@@ -2,7 +2,7 @@ class OrdersController < ApplicationController
 
   include Wicked::Wizard
 
-  steps :set, :product, :cost, :proposal, :summary
+  steps :set, :proposal, :product, :cost, :summary
 
   def show
     authorize! :write, work_order
@@ -13,10 +13,18 @@ class OrdersController < ApplicationController
   def update
     authorize! :write, work_order
 
-    if params[:work_order].nil? || perform_step
-      render_wizard work_order
+    if nothing_to_update
+      if step==:cost
+        render_wizard work_order
+        return
+      end
+      show_flash_error
     else
-      render_wizard
+      if perform_step
+        render_wizard work_order
+      else
+        render_wizard
+      end
     end
   end
 
@@ -57,6 +65,30 @@ protected
   helper_method :work_order, :get_all_aker_sets, :proposal, :get_all_proposals, :get_current_catalogues, :item_option_selections, :last_step?, :first_step?
 
 private
+
+  def nothing_to_update
+    if params[:work_order].nil?
+      return true
+    else
+      if step==:product
+        return params[:work_order][:product_id].nil?
+      end
+      return false
+    end
+  end
+
+  def show_flash_error
+    if step==:set
+      flash[:error] = "Please select a set to proceed."
+    end
+    if step==:proposal
+      flash[:error] = "Please select a proposal to proceed."
+    end
+    if step==:product
+      flash[:error] = "Please select a product to proceed."
+    end
+    render_wizard
+  end
 
   def perform_step
     return UpdateOrderService.new(work_order_params, work_order, flash).perform(step)
