@@ -8,6 +8,7 @@ But I also want to know in advance how much is going to cost me depending on my 
 
 Background:
 
+Given I have a RabbitMQ server running
 Given I am logged in as user "test@test"
 
 And the following sets are defined for user "test@test":
@@ -31,7 +32,7 @@ Scenario: Receiving a catalogue
 When the LIMS "flimsy" send me the catalogue
 Then I should have received the catalogue from the LIMS "flimsy" correctly
 
-Scenario: Create a work order
+Scenario: Creating a work order
 
 Given I already received the catalogue from LIMS "flimsy"
 When I go to the work order main page
@@ -73,3 +74,4 @@ When I save the order
 
 Then I should see "Your work order has been created"
 
+And I should have published an event

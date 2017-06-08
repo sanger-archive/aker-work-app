@@ -48,7 +48,7 @@ Rails.application.configure do
 
   config.material_url = 'http://external-server:5000/'
 
-  config.work_order_completion_json_schema_path = Rails.root.join('public','assets','work_order_completion.json')
+  config.work_order_completion_json = 'work_order_completion.json'
 
   config.jwt_secret_key = 'test'
   config.enable_events_sending = false
