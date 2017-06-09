@@ -46,4 +46,18 @@ FactoryGirl.define do
     }
   end
 
+  factory :valid_work_order_completion_message_json, class: Hash do |work_order|
+    initialize_with { Hash.new.merge({
+        "work_order": {
+          "status": "complete",
+          "work_order_id": 1,
+          "comment": "Extra information about the completed work order.",
+          "updated_materials": [],
+          "new_materials": [],
+          "containers": []
+        }
+      })
+    }
+  end
+
 end

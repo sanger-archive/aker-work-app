@@ -15,7 +15,6 @@ class UpdateOldMaterialsStep
       updated_params.delete(:_id)
       material = MatconClient::Material.find(uuid)
       previous_state = Hash[updated_params.map{ |k,v| [k, material.attributes[k]] }]
-      before_change = material.clone
       material.update_attributes(updated_params)
       materials_before_changes.push({id: uuid, attrs: previous_state})
      end
@@ -23,7 +22,7 @@ class UpdateOldMaterialsStep
 
   def down
     if materials_before_changes
-      materials_before_changes.each do |previous|
+      materials_before_changes.reverse_each do |previous|
         remote = MatconClient::Material.find(previous[:id])
         remote.update_attributes(previous[:attrs])
       end

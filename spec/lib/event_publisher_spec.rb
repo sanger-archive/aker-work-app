@@ -1,5 +1,7 @@
 require 'rails_helper'
 
+require 'set'
+
 RSpec.describe 'EventPublisher' do
 
   setup do
@@ -13,11 +15,13 @@ RSpec.describe 'EventPublisher' do
     @exchange = double('exchange')
     @queue = double('queue')
     
-    allow(Bunny).to receive(:new).with(params[:event_conn]).and_return(@connection)
+    allow(Bunny).to receive(:new).with(params[:event_conn], threaded: false).and_return(@connection)
     allow(@connection).to receive(:start)
     allow(@connection).to receive(:create_channel).and_return(@channel)
     allow(@channel).to receive(:queue).and_return(@queue)
     allow(@channel).to receive(:default_exchange).and_return(@exchange)
+    allow(@channel).to receive(:confirm_select)
+    allow(@channel).to receive(:wait_for_confirms)
   end
 
   context '#create_connection' do
@@ -76,9 +80,21 @@ RSpec.describe 'EventPublisher' do
     end
 
     it 'publishes a new message to the queue' do
+      unconfirmed_sets = Set.new([])
+      allow(@channel).to receive(:unconfirmed_set).and_return(unconfirmed_sets)
+
       ep = EventPublisher.new(@params)
       expect(@exchange).to receive(:publish).with('message', routing_key: @params[:queue_name])
       ep.publish(@event_message)
+    end
+
+    it 'raises exception if unconfirmed set is not empty' do
+      unconfirmed_sets = Set.new([1])
+      allow(@channel).to receive(:unconfirmed_set).and_return(unconfirmed_sets)
+
+      ep = EventPublisher.new(@params)
+      expect(@exchange).to receive(:publish).with('message', routing_key: @params[:queue_name])
+      expect{ep.publish(@event_message)}.to raise_error
     end
   end
 end

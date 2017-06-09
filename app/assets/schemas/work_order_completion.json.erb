@@ -12,19 +12,19 @@
           "updated_materials": {
             "type": "array",
             "items": {
-              "$ref": "http://localhost:5000/materials/json_patch_schema"
+              "$ref": "<%= Rails.configuration.material_url %>materials/json_patch_schema"
             }
           },
           "new_materials": {
             "type": "array",
             "items": {
-              "$ref": "http://localhost:5000/materials/json_schema"
+              "$ref": "<%= Rails.configuration.material_url %>materials/json_schema"
             }
           },
           "containers": {
             "type": "array",
             "items": {
-              "$ref": "http://localhost:5000/containers/json_schema"
+              "$ref": "<%= Rails.configuration.material_url %>containers/json_schema"
             }
           }
         }

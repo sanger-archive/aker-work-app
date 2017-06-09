@@ -42,9 +42,10 @@ class WorkOrder < ApplicationRecord
   scope :completed, -> { where(status: WorkOrder.COMPLETED) }
   scope :cancelled, -> { where(status: WorkOrder.CANCELLED) }
 
-
   def has_materials?(uuids)
-    uuids_from_work_order_set = SetClient::Set.find_with_materials(original_set_uuid).first.materials.map(&:id)
+    return true if uuids.empty?
+    return false if set_uuid.nil?
+    uuids_from_work_order_set = SetClient::Set.find_with_materials(set_uuid).first.materials.map(&:id)
     uuids.all? do |uuid|
       uuids_from_work_order_set.include?(uuid)
     end

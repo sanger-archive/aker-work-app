@@ -63,7 +63,7 @@ RSpec.describe 'CreateNewMaterialsStep' do
         make_step(@msg)
       end
       it 'fails the step' do
-        expect { @step.up }.to raise_exception
+        expect { @step.up }.to raise_exception(ContainerNotFound)
       end
     end
     context 'when the container exists' do
