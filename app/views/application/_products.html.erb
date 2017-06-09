@@ -10,6 +10,7 @@
 					<th>Biomaterial Type</th>
 					<th>TAT</th>
 					<th>Description</th>
+					<th>Product Class</th>
 				</tr>
 			</thead>
 			<tbody>
@@ -21,6 +22,7 @@
 					<td><%= work_order.product.requested_biomaterial_type %></td>
 					<td><%= work_order.product.TAT %></td>
 					<td><%= work_order.product.description %></td>
+					<td><%= work_order.product.product_class.humanize %></td>
 				</tr>
 			</tbody>
 		</table>

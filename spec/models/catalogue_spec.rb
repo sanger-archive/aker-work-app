@@ -12,7 +12,7 @@ RSpec.describe Catalogue, type: :model do
         @cat3 = Catalogue.create_with_products(
           lims_id: lims_id, url: "france", pipeline: "cells", 'products' => [
             { name: "Cake", product_version: "2", description: "delicious", availability: "available",
-              TAT: 3, requested_biomaterial_type: "flour" }
+              TAT: 3, requested_biomaterial_type: "flour", product_class: "DNA Sequencing" }
           ]
         )
       end
@@ -29,6 +29,7 @@ RSpec.describe Catalogue, type: :model do
         expect(product.name).to eq "Cake"
         expect(product.description).to eq "delicious"
         expect(product.cost_per_sample).to eq 0
+        expect(product.product_class).to eq 'dna_sequencing'
       end
 
     end
