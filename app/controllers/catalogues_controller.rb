@@ -11,7 +11,8 @@ class CataloguesController < ApplicationController
 	private
 
 	def catalogue_params
-		params.require(:catalogue).permit(:url, :lims_id, :pipeline, products: [:name, :product_version, :TAT,
+		params.require(:catalogue).permit(:url, :lims_id, :pipeline, products: [:name, :product_version, 
+                :product_uuid, :TAT,
   			        :description, :requested_biomaterial_type, :availability, :catalogue_id, :product_class])
 	end
 end
