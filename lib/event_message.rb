@@ -1,12 +1,19 @@
 require 'event_publisher'
 
 class EventMessage
-
   attr_reader :work_order
 
   def initialize(params)
     @work_order = params[:work_order]
     @status = params[:status] || @work_order.status
+  end
+
+  def self.annotate_zipkin(span)
+    @trace_id = span.to_h[:traceId]
+  end
+
+  def self.trace_id
+    @trace_id
   end
 
   def generate_json
@@ -28,7 +35,7 @@ class EventMessage
           "comment" => @work_order.comment,
           "quoted_price" => @work_order.total_cost,
           "desired_completion_date" => @work_order.desired_date,
-          "zipkin_trace_id":"a_uuid_...",
+          "zipkin_trace_id": EventMessage.trace_id,
           "num_materials": @work_order.set.meta["size"]
        }
     }.to_json
