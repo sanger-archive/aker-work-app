@@ -25,7 +25,11 @@ class EventMessage
           }
        ],
        "metadata" => {
-          "comment" => @work_order.comment
+          "comment" => @work_order.comment,
+          "quoted_price" => @work_order.total_cost,
+          "desired_completion_date" => @work_order.desired_date,
+          "zipkin_trace_id":"a_uuid_...",
+          "num_materials": @work_order.set.meta["size"]
        }
     }.to_json
   end
