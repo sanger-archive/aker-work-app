@@ -20,7 +20,6 @@ class UpdateOrderService
     return false if block_set_change
 
     return false unless ready_for_step(step)
-    return false unless params_satisfy_step(step, @work_order_params)
 
     if @work_order_params.key?('product_id')
       # force the cost to be recalculated if we're updating the product
@@ -50,7 +49,7 @@ class UpdateOrderService
 private
 
   def next_status(step)
-    steps = [:set, :product, :cost, :proposal, :summary]
+    steps = [:set, :proposal, :product, :cost, :summary]
     i = steps.index(step)
     return step.to_s if i.nil?
     return 'active' if i+1==steps.length
@@ -63,30 +62,19 @@ private
       add_error("Please select a set in an earlier step.")
       return false
     end
+    return true if step==:proposal
+    unless @work_order.proposal_id
+      add_error("Please select a proposal in an earlier step.")
+      return false
+    end
     return true if step==:product
     unless @work_order.product_id
       add_error("Please select a product in an earlier step.")
       return false
     end
-    return true if (step==:cost || step==:proposal)
+    return true if step==:cost
     unless @work_order.proposal_id
       add_error("Please select a proposal in an earlier step.")
-      return false
-    end
-    return true
-  end
-
-  def params_satisfy_step(step, params)
-    if step==:set && !params['original_set_uuid']
-      add_error("Please select a set to proceed.")
-      return false
-    end
-    if step==:product && !params['product_id']
-      add_error("Please select a product to proceed.")
-      return false
-    end
-    if step==:proposal && !params['proposal_id']
-      add_error("Please select a proposal to proceed.")
       return false
     end
     return true
