@@ -26,6 +26,8 @@ RSpec.describe 'EventMessage' do
       allow(wo).to receive(:desired_date).and_return "10-10-2001"
 
       message = EventMessage.new(work_order: wo)
+
+      allow(EventMessage).to receive(:trace_id).and_return 'a_trace_id'
       json = JSON.parse(message.generate_json)
 
       expect(json["event_type"]).to eq 'aker.events.work_order.active'
@@ -36,7 +38,7 @@ RSpec.describe 'EventMessage' do
       expect(json["metadata"]["comment"]).to eq wo.comment
       expect(json["metadata"]["quoted_price"]).to eq wo.total_cost
       expect(json["metadata"]["desired_completion_date"]).to eq wo.desired_date
-      expect(json["metadata"]["zipkin_trace_id"]).to eq 'a_uuid_...'
+      expect(json["metadata"]["zipkin_trace_id"]).to eq 'a_trace_id'
       expect(json["metadata"]["num_materials"]).to eq '4'
     end
   end
