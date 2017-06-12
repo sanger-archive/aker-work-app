@@ -84,7 +84,7 @@ private
   end
 
   def json_schema_valid?
-    list = JSON::Validator.fully_validate(schema_url, @msg)
+    list = JSON::Validator.fully_validate(schema_content, @msg)
     return true if list.length == 0
     error_return(422, "The work order does not comply with the schema at #{schema_url} because: #{list.join(',')}")
   end
@@ -119,7 +119,14 @@ private
   end
 
   def schema_url
-    Rails.configuration.work_order_completion_json_schema_path.to_s
+    ActionController::Base.helpers.asset_url(Rails.configuration.work_order_completion_json)
+  end
+
+  def schema_content
+    #WorkOrders::Application.assets.find_asset(Rails.configuration.work_order_completion_json).to_s
+    # (workaround) WorkOrders::Application.assets is nil in production, so we create a new one instead
+    env = Sprockets::Railtie.build_environment(Rails.application)
+    env.find_asset(Rails.configuration.work_order_completion_json).to_s
   end
 
   def error_return(status, msg)

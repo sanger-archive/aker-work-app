@@ -80,6 +80,19 @@ private
 
   def params_for_completion
     p = { work_order: params.require(:work_order).as_json.deep_symbolize_keys }
+
+    if p[:work_order][:updated_materials].nil?
+      p[:work_order][:updated_materials] = []
+    end
+
+    if p[:work_order][:new_materials].nil?
+      p[:work_order][:new_materials] = []
+    end
+
+    if p[:work_order][:containers].nil?
+      p[:work_order][:containers] = []
+    end
+
     if p[:work_order][:updated_materials]
       p[:work_order][:updated_materials].each do |m|
         m[:_id] = m[:material_id]
