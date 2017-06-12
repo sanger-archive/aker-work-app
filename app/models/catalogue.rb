@@ -12,7 +12,7 @@ class Catalogue < ApplicationRecord
   		product_params = catalogue_params['products']
       price_placeholder = 0
   		product_params.each do |pp|
-        pp[:product_class] = pp[:product_class].downcase.tr(' ', '_')
+        pp[:product_class] = Product.human_product_class_to_symbol(pp[:product_class] )
   			Product.create!(pp.merge({ catalogue_id: catalogue_id, cost_per_sample: price_placeholder}))
   		end
   	end
