@@ -18,9 +18,9 @@ And the following sets are defined for user "test@test":
 
 Given a LIMS named "flimsy" at url "http://flimsy" has the following catalogue ready for send:
 
-| Name           | Description | Version | Cost | Available? | Material Type | TAT |
-| product_test_1 | A test      | 1       | 11   | available  | Cells         | 14  |
-| product_test_2 | A test      | 2       | 22   | available  | Cells         | 10  |
+| Name           | Description | Version | Available? | Material Type | TAT | Product Class      |
+| product_test_1 | A test      | 1       | available  | Cells         | 14  | Transcriptomics    |
+| product_test_2 | A test      | 2       | available  | Cells         | 10  | Cell Line Creation |
 
 Given the following proposals have been defined:
 | Name       | Code  |
@@ -38,37 +38,37 @@ Given I already received the catalogue from LIMS "flimsy"
 When I go to the work order main page
 And I click on "Create New Work Order"
 
-Then I should see "Select Set"
+Then I should see "Step 1: Select Set"
 And I should see "testing_set_1"
 And I should see "testing_set_2"
 
 When I choose "testing_set_1"
 And I click on "Next"
 
-Then I should see "Select Product"
-And I should see "product_test_1"
-And I should see "product_test_2"
-
-When I choose "product_test_1"
-And I click on "Next"
-
-Then I should see "Cost summary"
-And I should see "Total : £33.00"
-
-When I click on "Next"
-
-Then I should see "Select Proposal"
+Then I should see "Step 2: Select Proposal"
 And I should see "Proposal 1"
 And I should see "Proposal 2"
 
 When I choose "Proposal 1"
 And I click on "Next"
 
-Then I should see "Confirm Order"
+Then I should see "Step 3: Select Product"
+And I should see "product_test_1"
+And I should see "product_test_2"
+
+When I choose "product_test_1"
+And I click on "Next"
+
+Then I should see "Step 4: Cost summary"
+And I should see "Total : £0.00"
+
+When I click on "Next"
+
+Then I should see "Step 5: Confirm Order"
 And I should see "testing_set_1"
 And I should see "product_test_1"
 And I should see "Proposal 1"
-And I should see "£33.00"
+And I should see "£0.00"
 
 When I save the order
 

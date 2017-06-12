@@ -39,7 +39,51 @@ RSpec.describe OrdersController, type: :controller do
   end
 
   describe "#update" do
-    context "when the step succeeds" do
+    context "when there is nothing to update" do
+      before do
+        user = setup_user
+        @wo = create(:work_order, user_id: user.id)
+      end
+      context "when work order is at set step" do
+        it "should show error and stay on step when no set is selected" do
+          put :update, params: { work_order_id: @wo.id, id: 'set'}
+          expect(flash[:error]).to eq 'Please select a set to proceed.'
+
+        end
+      end
+      context "when work order is at proposal step" do
+        it "should show error and stay on step when no proposal is selected" do
+          put :update, params: { work_order_id: @wo.id, id: 'proposal'}
+          expect(flash[:error]).to eq 'Please select a proposal to proceed.'
+          expect(UpdateOrderService).not_to receive(:new)
+          expect(response.redirect_url).to be_nil
+        end
+      end
+      context "when work order is at product step" do
+        it "should show error and stay on step when no product is selected" do
+          put :update, params: { work_order_id: @wo.id, id: 'product', work_order: {comment:"", desired_date:""}}
+          expect(flash[:error]).to eq 'Please select a product to proceed.'
+          expect(UpdateOrderService).not_to receive(:new)
+          expect(response.redirect_url).to be_nil
+        end
+
+        it "should show error and stay on step when no product is selected but comment or date is" do
+          put :update, params: { work_order_id: @wo.id, id: 'product', work_order: {comment:"xxx", desired_date:""}}
+          expect(flash[:error]).to eq 'Please select a product to proceed.'
+          expect(UpdateOrderService).not_to receive(:new)
+          expect(response.redirect_url).to be_nil
+        end
+      end
+      context "when work order is at cost step" do
+        it "should be redirected to the summary step" do
+          put :update, params: { work_order_id: @wo.id, id: 'cost'}
+          expect(UpdateOrderService).not_to receive(:new)
+          expect(response.redirect_url).to include 'summary'
+        end
+      end
+    end
+
+    context "when perform_step succeeds" do
       before do
         user = setup_user
         @wo = create(:work_order, user_id: user.id)
@@ -66,7 +110,7 @@ RSpec.describe OrdersController, type: :controller do
       it "should go to the next step" do
         expect(response).to have_http_status(:found)
         expect(response.redirect_url).to eq work_order_build_url(
-          id: 'product',
+          id: 'proposal',
           work_order_id: @wo.id
         )
       end
@@ -76,7 +120,7 @@ RSpec.describe OrdersController, type: :controller do
       end
     end
 
-    context "when the step fails" do
+    context "when perform_step fails" do
       before do
         user = setup_user
         @wo = create(:work_order, user_id: user.id)

@@ -141,8 +141,8 @@ Given(/^a LIMS named "([^"]*)" at url "([^"]*)" has the following catalogue read
   products = []
   table.hashes.each do |product|
     mapping = {'Name' => 'name', 'Description' => 'description', 'Version' => 'product_version', 
-      'Cost' => 'cost_per_sample', 'Availability' => 'availability', 
-      'Material Type' => 'requested_biomaterial_type', 'TAT' => 'TAT'}
+      'Availability' => 'availability', 
+      'Material Type' => 'requested_biomaterial_type', 'TAT' => 'TAT', 'Product Class' => 'product_class'}
     products.push(product.keys.reduce({}) {|memo, key| memo[mapping[key]] = product[key] ; memo })
   end
   @catalogues[lims_name] = {catalogue: {products: products, url: lims_url}}
