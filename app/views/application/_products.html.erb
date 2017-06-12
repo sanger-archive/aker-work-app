@@ -11,6 +11,7 @@
 					<th>TAT</th>
 					<th>Description</th>
 					<th>Product Class</th>
+					<th>Availability</th>
 				</tr>
 			</thead>
 			<tbody>
@@ -22,7 +23,8 @@
 					<td><%= work_order.product.requested_biomaterial_type %></td>
 					<td><%= work_order.product.TAT %></td>
 					<td><%= work_order.product.description %></td>
-					<td><%= work_order.product.product_class.humanize %></td>
+					<td><%= work_order.product.product_class_text %></td>
+					<td><%= work_order.product.availability_text %></td>
 				</tr>
 			</tbody>
 		</table>

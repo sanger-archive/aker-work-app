@@ -68,6 +68,8 @@ Then I should see "Step 5: Confirm Order"
 And I should see "testing_set_1"
 And I should see "product_test_1"
 And I should see "Proposal 1"
+And I should see "Available"
+And I should see "Transcriptomics"
 And I should see "£0.00"
 
 When I save the order
