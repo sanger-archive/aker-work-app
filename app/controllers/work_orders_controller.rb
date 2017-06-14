@@ -66,6 +66,7 @@ class WorkOrdersController < ApplicationController
   end
 
   def finish(finish_status)
+
     validator = WorkOrderValidatorService.new(work_order, params_for_completion)
     valid = validator.validate?
     if valid
@@ -95,8 +96,6 @@ private
 
     if p[:work_order][:updated_materials]
       p[:work_order][:updated_materials].each do |m|
-        m[:_id] = m[:material_id]
-        m.delete(:material_id)
       end
     end
     return p
