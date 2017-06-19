@@ -16,14 +16,19 @@ RSpec.describe 'EventMessage' do
   context '#generate_json' do
     it 'generates a json' do
       user = build(:user, email: 'user@here.com')
-      wo = build(:work_order, {user: user, status: WorkOrder.ACTIVE})
-      s = double(:set, uuid: 'set_uuid', id: 'set_uuid', meta: { 'size' => '4' })
-      wo.set=s
+      wo = build(:work_order, {user: user, status: WorkOrder.ACTIVE })
+      set = double(:set, uuid: 'set_uuid', id: 'set_uuid', meta: { 'size' => '4' })
+      proposal = double(:proposal, name: 'test proposal', node_uuid: '12345a')
+      product = build(:product, name: 'test product', product_uuid: '23456b')
 
       allow(SecureRandom).to receive(:uuid).and_return 'a_uuid'
       allow(wo).to receive(:comment).and_return "A COMMENTTT"
       allow(wo).to receive(:total_cost).and_return "50"
       allow(wo).to receive(:desired_date).and_return "10-10-2001"
+
+      allow(wo).to receive(:set).and_return set
+      allow(wo).to receive(:proposal).and_return proposal
+      allow(wo).to receive(:product).and_return product
 
       message = EventMessage.new(work_order: wo)
 
