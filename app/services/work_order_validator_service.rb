@@ -123,8 +123,10 @@ private
   end
 
   def schema_content
-    #WorkOrders::Application.assets.find_asset(Rails.configuration.work_order_completion_json).to_s
-    # (workaround) WorkOrders::Application.assets is nil in production, so we create a new one instead
+    return self.class.schema_content
+  end
+
+  def self.schema_content
     env = Sprockets::Railtie.build_environment(Rails.application)
     env.find_asset(Rails.configuration.work_order_completion_json).to_s
   end
@@ -132,7 +134,6 @@ private
   def error_return(status, msg)
     @errors[:status] = status
     @errors[:msg] = msg
-    #debugger
     false
   end
 
