@@ -15,6 +15,8 @@ RSpec.describe 'EventPublisher' do
     @exchange = double('exchange')
     @queue = double('queue')
     
+    allow(@queue).to receive(:bind).with(@exchange).and_return(@queue)
+    allow(@queue).to receive(:name).and_return("queue name")
     allow(Bunny).to receive(:new).with(params[:event_conn], threaded: false).and_return(@connection)
     allow(@connection).to receive(:start)
     allow(@connection).to receive(:create_channel).and_return(@channel)
@@ -22,6 +24,9 @@ RSpec.describe 'EventPublisher' do
     allow(@channel).to receive(:default_exchange).and_return(@exchange)
     allow(@channel).to receive(:confirm_select)
     allow(@channel).to receive(:wait_for_confirms)
+    allow(@channel).to receive(:fanout).and_return(@exchange)
+    allow(@exchange).to receive(:name).and_return('exchange name')
+
   end
 
   context '#create_connection' do
@@ -61,7 +66,6 @@ RSpec.describe 'EventPublisher' do
       expect(@connection).to receive(:start)
       expect(@connection).to receive(:create_channel)
       expect(@channel).to receive(:queue) 
-      expect(@channel).to receive(:default_exchange) 
 
       ep = EventPublisher.new(params)
       ep.create_connection
