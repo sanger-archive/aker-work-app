@@ -247,7 +247,7 @@ RSpec.describe WorkOrder, type: :model do
         expect(material_data.length).to eq(@materials.length)
         @materials.zip(material_data).each do |mat, dat|
           slot = @container.slots.find { |slot| slot.material_id==mat.id }
-          expect(dat[:material_id]).to eq(mat.id)
+          expect(dat[:_id]).to eq(mat.id)
           expect(dat[:container]).to eq({ barcode: @container.barcode, address: slot.address })
           expect(dat[:gender]).to eq(mat.attributes['gender'])
           expect(dat[:donor_id]).to eq(mat.attributes['donor_id'])
@@ -281,7 +281,7 @@ RSpec.describe WorkOrder, type: :model do
     it "should load the descriptions into the data" do
       material_data = @materials.map do |m|
         {
-          material_id: m.id,
+          _id: m.id,
           container: nil,
           gender: m.attributes['gender'],
           donor_id: m.attributes['donor_id'],
