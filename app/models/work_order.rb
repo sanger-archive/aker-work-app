@@ -129,7 +129,7 @@ class WorkOrder < ApplicationRecord
     materials = all_results(MatconClient::Material.where("_id" => {"$in" => material_ids}).result_set)
     material_data = materials.map do |m|
           {
-            material_id: m.id,
+            _id: m.id,
             container: nil,
             gender: m.attributes['gender'],
             donor_id: m.attributes['donor_id'],
@@ -156,7 +156,7 @@ class WorkOrder < ApplicationRecord
 
   def describe_containers(material_ids, material_data)
     containers = MatconClient::Container.where("slots.material" => { "$in" => material_ids}).result_set
-    material_map = material_data.each_with_object({}) { |t,h| h[t[:material_id]] = t }
+    material_map = material_data.each_with_object({}) { |t,h| h[t[:_id]] = t }
     while containers do
       containers.each do |container|
         container.slots.each do |slot|

@@ -1,0 +1,165 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "API V1",
+    "version": "v1"
+  },
+  "paths": {
+    "/work_orders/{work_order_id}/complete": {
+      "post": {
+        "summary": "Completes a work order",
+        "tags": [
+          "Work Orders"
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "work_order_id",
+            "in": "path",
+            "type": "integer",
+            "required": true
+          },
+          {
+            "name": "work_order",
+            "in": "body",
+            "schema": {
+              "$schema": "http://json-schema.org/draft-04/schema#",
+              "title": "Work Order",
+              "description": "Work Order completion message",
+              "type": "object",
+              "properties": {
+                "work_order": {
+                  "type": "object",
+                  "properties": {
+                    "work_order_id": {
+                      "type": "integer"
+                    },
+                    "comment": {
+                      "type": "string"
+                    },
+                    "updated_materials": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "http://localhost:5000/materials/json_patch_schema"
+                      }
+                    },
+                    "new_materials": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "http://localhost:5000/materials/json_schema"
+                      }
+                    },
+                    "containers": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "http://localhost:5000/containers/json_schema"
+                      }
+                    }
+                  }
+                }
+              },
+              "additionalProperties": false,
+              "required": [
+                "work_order"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "work order found"
+          },
+          "422": {
+            "description": "wrong work order specified"
+          },
+          "502": {
+            "description": "the work order could not be updated"
+          }
+        }
+      }
+    },
+    "/work_orders/{work_order_id}/cancel": {
+      "post": {
+        "summary": "Cancels a work order",
+        "tags": [
+          "Work Orders"
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "work_order_id",
+            "in": "path",
+            "type": "string",
+            "required": true
+          },
+          {
+            "name": "work_order",
+            "in": "body",
+            "schema": {
+              "$schema": "http://json-schema.org/draft-04/schema#",
+              "title": "Work Order",
+              "description": "Work Order completion message",
+              "type": "object",
+              "properties": {
+                "work_order": {
+                  "type": "object",
+                  "properties": {
+                    "work_order_id": {
+                      "type": "integer"
+                    },
+                    "comment": {
+                      "type": "string"
+                    },
+                    "updated_materials": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "http://localhost:5000/materials/json_patch_schema"
+                      }
+                    },
+                    "new_materials": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "http://localhost:5000/materials/json_schema"
+                      }
+                    },
+                    "containers": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "http://localhost:5000/containers/json_schema"
+                      }
+                    }
+                  }
+                }
+              },
+              "additionalProperties": false,
+              "required": [
+                "work_order"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "work order found"
+          },
+          "422": {
+            "description": "wrong work order specified"
+          },
+          "502": {
+            "description": "the work order could not be updated"
+          }
+        }
+      }
+    }
+  }
+}

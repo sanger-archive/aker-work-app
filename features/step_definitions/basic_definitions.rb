@@ -207,7 +207,11 @@ When(/^I send a completion message from the LIMS to the work order application$/
 
   @work_order_completion_msg = FactoryGirl.build(:valid_work_order_completion_message_json)
   @work_order_completion_msg[:work_order][:work_order_id]=@work_order.id
-  post complete_work_order_path(@work_order), @work_order_completion_msg
+
+  header "HTTP_ACCEPT", "application/json"
+  header "CONTENT_TYPE", "application/json"
+
+  post complete_work_order_path(@work_order), @work_order_completion_msg.to_json
 end
 
 When(/^I send a cancel message from the LIMS to the work order application$/) do
@@ -215,7 +219,11 @@ When(/^I send a cancel message from the LIMS to the work order application$/) do
 
   @work_order_completion_msg = FactoryGirl.build(:valid_work_order_completion_message_json)
   @work_order_completion_msg[:work_order][:work_order_id]=@work_order.id
-  post cancel_work_order_path(@work_order), @work_order_completion_msg
+
+  header "HTTP_ACCEPT", "application/json"
+  header "CONTENT_TYPE", "application/json"
+
+  post cancel_work_order_path(@work_order), @work_order_completion_msg.to_json
 end
 
 When(/^I prepare for a finish message$/) do
