@@ -143,6 +143,7 @@ class WorkOrder < ApplicationRecord
       work_order: {
         product_name: product.name,
         product_version: product.product_version,
+        product_uuid: product.product_uuid,
         work_order_id: id,
         comment: comment,
         proposal_id: proposal_id,
