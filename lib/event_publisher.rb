@@ -4,6 +4,7 @@ class EventPublisher
 
   attr_accessor :connection
   attr_reader :channel, :exchange
+  attr_reader :dlx, :dlx_queue
 
   def initialize(config={})
     @event_conn = config[:event_conn]
@@ -53,17 +54,28 @@ class EventPublisher
     @connection = Bunny.new(@event_conn, threaded: false)
     @connection.start
 
-    @channel = @connection.create_channel
+    dl_queue_name = @queue_name+'.deadletters'
 
+    @channel   = @connection.create_channel
+    @exchange    = @channel.fanout(@queue_name)
+
+    # Creates the dead letter exchange aker.events.deadletters
+    @dlx  = @channel.fanout(dl_queue_name)
+
+    # Creates the queue aker.events with dead letter exchange defined aker.events.deadletters
     # auto_delete false ensures that we dont destroy the queue when there are no messages and no 
-    # consumers are running
-    @queue = channel.queue(@queue_name, :auto_delete => false)
+    # consumers are running    
+    @queue    = @channel.queue(@queue_name, :auto_delete => false, 
+      :arguments => {
+      "x-dead-letter-exchange" => @dlx.name
+    }).bind(@exchange)
 
-    @exchange = @channel.default_exchange
+    # dead letter queue
+    @dlx_queue  = @channel.queue(dl_queue_name).bind(@dlx)
 
+    # To be able to wait_for_confirms in publish()
     @channel.confirm_select
   end
-
 
 end
 
