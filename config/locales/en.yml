@@ -20,4 +20,14 @@
 # available at http://guides.rubyonrails.org/i18n.html.
 
 en:
-  hello: "Hello world"
+  activerecord:
+    attributes:
+      product:
+        availability:
+          suspended: "Suspended"
+          available: "Available"
+        product_class:
+          dna_sequencing: "DNA Sequencing"
+          genotyping: "Genotyping"
+          transcriptomics: "Transcriptomics"
+          cell_line_creation: "Cell Line Creation"

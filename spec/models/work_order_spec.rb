@@ -1,7 +1,6 @@
 require 'rails_helper'
 
 RSpec.describe WorkOrder, type: :model do
-  it_behaves_like "accessible"
 
   def make_uuid
     SecureRandom.uuid
@@ -134,6 +133,7 @@ RSpec.describe WorkOrder, type: :model do
       it "should find and return the proposal" do
         expect(@wo.proposal).to eq(@proposal)
       end
+
     end
     context "when the work order has no proposal id" do
       before do
@@ -228,7 +228,7 @@ RSpec.describe WorkOrder, type: :model do
         make_set_with_materials
         make_container(@materials)
         @proposal = make_proposal
-        product = build(:product, name: 'Soylent Green', product_version: 3)
+        product = build(:product, name: 'Soylent Green', product_version: 3, product_uuid: 'abc123')
         @wo = build(:work_order, product: product, proposal_id: @proposal.id, set_uuid: @set.id,
                     id: 616, comment: 'hello', desired_date: '2020-01-01')
       end
@@ -237,6 +237,7 @@ RSpec.describe WorkOrder, type: :model do
         data = @wo.lims_data()[:work_order]
         expect(data[:product_name]).to eq(@wo.product.name)
         expect(data[:product_version]).to eq(@wo.product.product_version)
+        expect(data[:product_uuid]).to eq(@wo.product.product_uuid)
         expect(data[:work_order_id]).to eq(@wo.id)
         expect(data[:comment]).to eq(@wo.comment)
         expect(data[:proposal_id]).to eq(@proposal.id)
@@ -247,7 +248,7 @@ RSpec.describe WorkOrder, type: :model do
         expect(material_data.length).to eq(@materials.length)
         @materials.zip(material_data).each do |mat, dat|
           slot = @container.slots.find { |slot| slot.material_id==mat.id }
-          expect(dat[:material_id]).to eq(mat.id)
+          expect(dat[:_id]).to eq(mat.id)
           expect(dat[:container]).to eq({ barcode: @container.barcode, address: slot.address })
           expect(dat[:gender]).to eq(mat.attributes['gender'])
           expect(dat[:donor_id]).to eq(mat.attributes['donor_id'])
@@ -281,7 +282,7 @@ RSpec.describe WorkOrder, type: :model do
     it "should load the descriptions into the data" do
       material_data = @materials.map do |m|
         {
-          material_id: m.id,
+          _id: m.id,
           container: nil,
           gender: m.attributes['gender'],
           donor_id: m.attributes['donor_id'],
@@ -315,6 +316,48 @@ RSpec.describe WorkOrder, type: :model do
     it "should call create_locked_clone on the original set" do
       @wo.create_locked_set
       expect(@original_set).to have_received(:create_locked_clone)
+    end
+  end
+
+  describe "#generate_completed_and_cancel_event" do
+    context 'if work order does not have status completed or cancelled' do
+      it 'generates an event using the EventService' do
+        wo = build(:work_order)
+        EventService = double('EventService')
+        expect(EventService).not_to receive(:publish).with(an_instance_of(EventMessage))
+        expect{wo.generate_completed_and_cancel_event}.to raise_exception('You cannot generate an event from a work order that has not been submitted.')
+      end
+    end
+
+    context 'if work order does have status completed or cancelled' do
+      it 'generates an event using the EventService' do
+        wo = build(:work_order, status: 'completed')
+        EventService = double('EventService')
+        allow(EventService).to receive(:publish)
+        expect(EventService).to receive(:publish).with(an_instance_of(EventMessage))
+        wo.generate_completed_and_cancel_event
+      end
+    end
+  end
+
+   describe "#generate_submitted_event" do
+    context 'if work order does not have status active' do
+      it 'generates an event using the EventService' do
+        wo = build(:work_order)
+        EventService = double('EventService')
+        expect(EventService).not_to receive(:publish).with(an_instance_of(EventMessage))
+        expect{wo.generate_submitted_event}.to raise_exception('You cannot generate an submitted event from a work order that is not active.')
+      end
+    end
+
+    context 'if work order does have status active' do
+      it 'generates an event using the EventService' do
+        wo = build(:work_order, status: 'active')
+        EventService = double('EventService')
+        allow(EventService).to receive(:publish)
+        expect(EventService).to receive(:publish).with(an_instance_of(EventMessage))
+        wo.generate_submitted_event
+      end
     end
   end
 end

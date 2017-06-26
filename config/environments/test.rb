@@ -40,15 +40,18 @@ Rails.application.configure do
   # Raises error for missing translations
   # config.action_view.raise_on_missing_translations = true
 
-  config.study_url = 'http://localhost:3300/api/v1/nodes'
-  config.study_url_default_proxy = 'http://localhost:3300'
+  config.study_url = 'http://external-server:3300/api/v1/nodes'
+  config.study_url_default_proxy = 'http://external-server:3300'
 
-  config.set_url = 'http://localhost:3000/api/v1/sets'
-  config.set_url_default_proxy = 'http://localhost:3000'
+  config.set_url = 'http://external-server:3000/api/v1'
+  config.set_url_default_proxy = 'http://external-server:3000'
 
-  config.material_url = 'http://localhost:5000/'
+  config.material_url = 'http://external-server:5000/'
+
+  config.work_order_completion_json = 'work_order_completion.json'
 
   config.jwt_secret_key = 'test'
+  config.enable_events_sending = false
 
   config.fake_ldap = true
 

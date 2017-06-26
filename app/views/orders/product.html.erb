@@ -1,4 +1,4 @@
-<%= render partial: 'order_header', locals: { title: "Step 2: Select Product" , progress: 33 } %>
+<%= render partial: 'order_header', locals: { title: "Step 3: Select Product" , progress: 49 } %>
 
 <%= bootstrap_form_for work_order, url: wizard_path, method: :put  do |f| %>
 
@@ -17,7 +17,8 @@
 					Product version: <%= p.product_version %><br>
 					TAT: <%= p.TAT %><br>
 					Description: <%= p.description %><br>
-					Availability: <%= p.availability %>
+					Availability: <%= p.availability_text %><br>
+					Product class: <%= p.product_class_text %>
                 </div>
 		   	<% end %>
 
