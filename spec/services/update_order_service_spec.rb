@@ -19,7 +19,6 @@ RSpec.describe UpdateOrderService do
   end
 
   def make_product(attrs=nil)
-
     @c1 = create(:catalogue)
     x = { cost_per_sample: 5, catalogue_id: @c1.id }
     x.merge!(attrs) if attrs
@@ -93,28 +92,71 @@ RSpec.describe UpdateOrderService do
     end
 
     context "when a new set is selected" do
+      def load_set_with_materials(set_id, material_ids)
+        set_contents = material_ids.map { |mid| double(:material, id: mid, _id: mid) }
+        s = double(:set, uuid: set_id, id: set_id, materials: set_contents, meta: { 'size' => set_contents.size})
+        allow(SetClient::Set).to receive(:find_with_materials).with(set_id).and_return([s])
+        s
+      end
+
+      def load_materials(material_ids, availability)
+        materials = material_ids.zip(availability).map do |mid, av|
+          double(:material, id: mid, _id: mid, attributes: { 'available' => av })
+        end
+        result_set = double(:result_set, has_next?: false, to_a: materials)
+        allow(MatconClient::Material).to receive(:where).with("_id" => {"$in" => material_ids})
+          .and_return(double(:query, result_set: result_set))
+        materials
+      end
+
       before do
         @wo = order_at_step(:set)
         @chosen_set = make_set
         @cloned_set = make_set
         allow(@chosen_set).to receive(:create_locked_clone).and_return(@cloned_set)
-        params = {
-          'original_set_uuid' => @chosen_set.uuid
-        }
+        @material_ids = ['f32501fd-765d-40b1-81df-7d881c0ab9ed', '47426618-6aa4-4d9b-893f-929c7d44b783']
+        load_set_with_materials(@chosen_set.uuid, @material_ids)
         @messages = {}
-        @result = UpdateOrderService.new(params, @wo, @messages).perform(:set)
       end
 
-      it "should return true" do
-        expect(@result).to eq true
+      let(:params) {{'original_set_uuid' => @chosen_set.uuid }}
+
+      context "when some material is unavailable" do
+        before do
+          load_materials(@material_ids, [true, false])
+          @result = UpdateOrderService.new(params, @wo, @messages).perform(:set)
+        end
+
+        it "should return false" do
+          expect(@result).to eq false
+        end
+
+        it "should have an error indicating the materials are unavailable" do
+          expect(@messages[:error]).to match(/materials.*available/)
+        end
+
+        it "should not save the cloned set in the work order" do
+          expect(@wo.set).to be_nil
+        end
       end
 
-      it "should not have an error" do
-        expect(@messages[:error]).to be_nil
-      end
+      context "when the materials are all available" do
+        before do
+          load_materials(@material_ids, [true, true])
+          @result = UpdateOrderService.new(params, @wo, @messages).perform(:set)
+        end
 
-      it "should save the cloned set in the work order" do
-        expect(@wo.set).to eq(@cloned_set)
+        it "should return true" do
+          expect(@result).to eq true
+        end
+
+        it "should not have an error" do
+          expect(@messages[:error]).to be_nil
+        end
+
+        it "should save the cloned set in the work order" do
+          expect(@wo.set).to eq(@cloned_set)
+        end
       end
     end
 
