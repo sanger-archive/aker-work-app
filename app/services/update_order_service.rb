@@ -91,7 +91,6 @@ private
 
   def all_results(result_set)
     results = result_set.to_a
-    return results unless result_set.has_next?
     while result_set.has_next? do
       result_set = result_set.next
       results += result_set.to_a
