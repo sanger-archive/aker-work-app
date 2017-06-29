@@ -28,6 +28,7 @@ class UpdateOrderService
 
     if @work_order.update_attributes(@work_order_params)
       if @work_order.original_set_uuid && @work_order.set_uuid.nil?
+        return false unless check_set_contents
         return false unless create_locked_set
       end
 
@@ -88,15 +89,38 @@ private
     end
   end
 
+  def all_results(result_set)
+    results = result_set.to_a
+    while result_set.has_next? do
+      result_set = result_set.next
+      results += result_set.to_a
+    end
+    results
+  end
+
   def block_set_change
     selected_set_uuid = @work_order_params['original_set_uuid']
     if (selected_set_uuid && @work_order.set_uuid &&
         selected_set_uuid!=@work_order.original_set_uuid)
       Rails.logger.error "User tried to re-select set after locked set had been created"
       add_error("The sample set for this work order has already been locked. " +
-              " To order work for different samples, please start a new work order.")
+              "To order work for different samples, please start a new work order.")
       return true
     end
+  end
+
+  def check_set_contents
+    begin
+      mids = SetClient::Set.find_with_materials(@work_order.original_set_uuid).first.materials.map{|m| m.id}
+      materials = all_results(MatconClient::Material.where("_id" => {"$in" => mids}).result_set)
+      return true if materials.all? { |mat| mat.attributes['available'] }
+      add_error("Some of the materials in the selected set are not available.")
+    rescue => e
+      Rails.logger.error e
+      Rails.logger.error e.backtrace
+      add_error("The materials could not be retrieved.")
+    end
+    return false
   end
 
   def create_locked_set
