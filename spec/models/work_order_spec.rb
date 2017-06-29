@@ -32,6 +32,7 @@ RSpec.describe WorkOrder, type: :model do
     rs = double('result_set', has_next?: false, length: items.length)
     allow(rs).to receive(:map) { |&block| items.map(&block) }
     allow(rs).to receive(:each) { |&block| items.each(&block) }
+    allow(rs).to receive(:all?) { |&block| items.all?(&block) }
     return double('result_set_wrapper', result_set: rs)
   end
 
@@ -42,6 +43,7 @@ RSpec.describe WorkOrder, type: :model do
         'donor_id' => 'donor #{i}',
         'phenotype' => 'phenotype #{i}',
         'common_name' => 'Mouse',
+        'available' => true,
       }
       double(:material, id: make_uuid, attributes: attributes)
     end
@@ -223,16 +225,26 @@ RSpec.describe WorkOrder, type: :model do
       return @container
     end
 
-    context 'when data is calculated' do
+    before do
+      make_set_with_materials
+      make_container(@materials)
+      @proposal = make_proposal
+      product = build(:product, name: 'Soylent Green', product_version: 3, product_uuid: 'abc123')
+      @wo = build(:work_order, product: product, proposal_id: @proposal.id, set_uuid: @set.id,
+                  id: 616, comment: 'hello', desired_date: '2020-01-01')
+    end
+
+    context 'when some of the materials are unavailable' do
       before do
-        make_set_with_materials
-        make_container(@materials)
-        @proposal = make_proposal
-        product = build(:product, name: 'Soylent Green', product_version: 3, product_uuid: 'abc123')
-        @wo = build(:work_order, product: product, proposal_id: @proposal.id, set_uuid: @set.id,
-                    id: 616, comment: 'hello', desired_date: '2020-01-01')
+        @materials[0].attributes['available'] = false
       end
 
+      it "should raise an exception" do
+        expect { @wo.lims_data() }.to raise_error(/materials.*available/)
+      end
+    end
+
+    context 'when data is calculated' do
       it "should return the lims_data" do
         data = @wo.lims_data()[:work_order]
         expect(data[:product_name]).to eq(@wo.product.name)
