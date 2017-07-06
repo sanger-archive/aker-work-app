@@ -28,8 +28,7 @@ describe 'Work Orders API' do
   }
 
 
-  path '/work_orders/{work_order_id}/complete' do
-
+  path '/api/v1/work_orders/{work_order_id}/complete' do
 
     post 'Completes a work order' do
       tags 'Work Orders'
@@ -57,7 +56,7 @@ describe 'Work Orders API' do
     end
   end
 
-  path '/work_orders/{work_order_id}/cancel' do
+  path '/api/v1/work_orders/{work_order_id}/cancel' do
 
     post 'Cancels a work order' do
       tags 'Work Orders'
