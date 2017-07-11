@@ -49,6 +49,27 @@ RSpec.describe WorkOrdersController, type: :controller do
     end
   end
 
+  describe "#get" do
+    context 'when the work order exists' do
+      it 'renders the work order json' do
+        user = create(:user, email: 'jeff@sanger.ac.uk')
+        wo = WorkOrder.create(user_id: user.id, status: WorkOrder.ACTIVE)
+        data = {alpha: :beta}
+        expect_any_instance_of(WorkOrder).to receive(:lims_data).and_return(data)
+        get :get, params: { id: wo.id }
+        expect(response).to have_http_status(:ok)
+        expect(response.redirect_url).to be_nil
+        expect(response.body).to eq(data.to_json)
+      end
+    end
+    context 'when the work order does not exist' do
+      it 'returns 404' do
+        get :get, params: { id: 0 }
+        expect(response).to have_http_status(:not_found)
+      end
+    end
+  end
+
   describe "#destroy" do
     context "when the work order is destructible" do
       before do

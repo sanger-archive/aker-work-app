@@ -261,7 +261,7 @@ RSpec.describe WorkOrder, type: :model do
         @materials.zip(material_data).each do |mat, dat|
           slot = @container.slots.find { |slot| slot.material_id==mat.id }
           expect(dat[:_id]).to eq(mat.id)
-          expect(dat[:container]).to eq({ barcode: @container.barcode, address: slot.address })
+          expect(dat[:container]).to eq({ barcode: @container.barcode, address: slot.address, num_of_rows: @container.num_of_rows, num_of_cols: @container.num_of_cols })
           expect(dat[:gender]).to eq(mat.attributes['gender'])
           expect(dat[:donor_id]).to eq(mat.attributes['donor_id'])
           expect(dat[:phenotype]).to eq(mat.attributes['phenotype'])
@@ -306,9 +306,9 @@ RSpec.describe WorkOrder, type: :model do
       @wo.describe_containers(@material_ids, material_data)
 
       expected = [
-        { barcode: @plate.barcode, address: 'A:3' },
-        { barcode: @plate.barcode, address: 'A:4' },
-        { barcode: @tube.barcode },
+        { barcode: @plate.barcode, address: 'A:3', num_of_cols: @plate.num_of_cols, num_of_rows: @plate.num_of_rows },
+        { barcode: @plate.barcode, address: 'A:4', num_of_cols: @plate.num_of_cols, num_of_rows: @plate.num_of_rows },
+        { barcode: @tube.barcode, address: 'A:1', num_of_cols: 1, num_of_rows: 1 },
       ]
       expect(material_data.length).to eq(expected.length)
       expected.zip(material_data).each do | exp, data |

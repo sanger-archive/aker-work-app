@@ -149,7 +149,7 @@ Given(/^a LIMS named "([^"]*)" at url "([^"]*)" has the following catalogue read
 end
 
 When(/^the LIMS "([^"]*)" send me the catalogue$/) do |lims_name|
-  post catalogues_path, @catalogues[lims_name]
+  post catalogue_path, @catalogues[lims_name]
 end
 
 Then(/^I should have received the catalogue from the LIMS "([^"]*)" correctly/) do |lims_name|
@@ -202,6 +202,10 @@ Given(/^I process the work order "([^"]*)" with the LIMS/) do |arg1|
   @work_order.update_attributes(status: WorkOrder.ACTIVE)
 end
 
+Given(/^my set contents materials are all available$/) do 
+  allow_any_instance_of(UpdateOrderService).to receive(:check_set_contents).and_return(true)
+end
+
 When(/^I send a completion message from the LIMS to the work order application$/) do
   step('I prepare for a finish message')
 
@@ -211,7 +215,7 @@ When(/^I send a completion message from the LIMS to the work order application$/
   header "HTTP_ACCEPT", "application/json"
   header "CONTENT_TYPE", "application/json"
 
-  post complete_work_order_path(@work_order), @work_order_completion_msg.to_json
+  post complete_path(@work_order), @work_order_completion_msg.to_json
 end
 
 When(/^I send a cancel message from the LIMS to the work order application$/) do
@@ -223,7 +227,7 @@ When(/^I send a cancel message from the LIMS to the work order application$/) do
   header "HTTP_ACCEPT", "application/json"
   header "CONTENT_TYPE", "application/json"
 
-  post cancel_work_order_path(@work_order), @work_order_completion_msg.to_json
+  post cancel_path(@work_order), @work_order_completion_msg.to_json
 end
 
 When(/^I prepare for a finish message$/) do

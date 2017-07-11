@@ -10,11 +10,10 @@ class WorkOrdersController < ApplicationController
 
   before_action :work_order, only: [:show, :complete, :cancel]
 
-
   # In the request from the LIMS to complete or cancel a work order, there is no
   # authenticated user in the request so we skip the authentication step
-  skip_authenticate_user :only => [:complete, :cancel]
-  skip_authorization_check :only => [:index, :complete, :cancel]
+  skip_authenticate_user :only => [:complete, :cancel, :get]
+  skip_authorization_check :only => [:index, :complete, :cancel, :get]
 
   def index
     if user_signed_in?
@@ -57,6 +56,14 @@ class WorkOrdersController < ApplicationController
     authorize! :read, work_order
   end
 
+  # -------- API ---------
+
+  def get
+    render json: work_order.lims_data, status: 200
+  rescue ActiveRecord::RecordNotFound
+    render json: {errors: [{status: '404', detail: 'Record not found'}]}, status: 404
+  end
+
   def complete
     finish('complete')
   end
@@ -74,7 +81,7 @@ class WorkOrdersController < ApplicationController
     else
       result = validator.errors
     end
-    render json: { message: result[:msg] }, :status => result[:status]
+    render json: { message: result[:msg] }, status: result[:status]
   end
 
 private
