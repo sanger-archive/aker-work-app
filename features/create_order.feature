@@ -16,6 +16,8 @@ And the following sets are defined for user "test@test":
 | testing_set_1 | 3    |
 | testing_set_2 | 5    |
 
+And my set contents materials are all available
+
 Given a LIMS named "flimsy" at url "http://flimsy" has the following catalogue ready for send:
 
 | Name           | Description | Version | Available? | Material Type | TAT | Product Class      |
@@ -35,6 +37,7 @@ Then I should have received the catalogue from the LIMS "flimsy" correctly
 Scenario: Creating a work order
 
 Given I already received the catalogue from LIMS "flimsy"
+
 When I go to the work order main page
 And I click on "Create New Work Order"
 

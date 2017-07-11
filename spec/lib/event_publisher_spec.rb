@@ -98,7 +98,7 @@ RSpec.describe 'EventPublisher' do
 
       ep = EventPublisher.new(@params)
       expect(@exchange).to receive(:publish).with('message', routing_key: @params[:queue_name])
-      expect{ep.publish(@event_message)}.to raise_error
+      expect{ep.publish(@event_message)}.to raise_error(/unconfirmed/)
     end
   end
 end

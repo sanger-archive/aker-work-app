@@ -4,15 +4,17 @@ Rails.application.routes.draw do
   mount Rswag::Api::Engine => '/api-docs'
   root 'work_orders#index'
 
-  resources :catalogues
-  post '/catalogue', to: 'catalogues#create'
+  scope '/api/v1' do
+    post 'catalogue', to: 'catalogues#create'
+    scope 'work_orders/:id' do
+      post 'complete', to: 'work_orders#complete'
+      post 'cancel', to: 'work_orders#cancel'
+      get '', to: 'work_orders#get'
+    end
+  end
 
   resources :work_orders do
   	resources :build, controller: 'orders'
-  	member do
-	    post 'complete', to: 'work_orders#complete'
-	    post 'cancel', to: 'work_orders#cancel'
-  	end
   end
 
 end

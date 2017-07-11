@@ -167,9 +167,9 @@ class WorkOrder < ApplicationRecord
           if material_ids.include? slot.material_id
             unless material_map[slot.material_id][:container]
               container_data = { barcode: container.barcode }
-              if (container.num_of_rows > 1 || container.num_of_cols > 1)
-                container_data[:address] = slot.address
-              end
+              container_data[:num_of_rows] = container.num_of_rows
+              container_data[:num_of_cols] = container.num_of_cols
+              container_data[:address] = slot.address
               material_map[slot.material_id][:container] = container_data
             end
           end
