@@ -13,7 +13,14 @@ class OrdersController < ApplicationController
   def update
     authorize! :write, work_order
 
-    perform_update
+    begin
+      perform_update_authorization!
+
+      perform_update
+    rescue CanCan::AccessDenied => e
+      flash[:error] = e.message
+      render_wizard
+    end
   end
 
 protected
@@ -53,6 +60,16 @@ protected
   helper_method :work_order, :get_all_aker_sets, :proposal, :get_all_proposals, :get_current_catalogues, :item_option_selections, :last_step?, :first_step?
 
 private
+
+  def perform_update_authorization!
+    if step==:proposal
+      unless params[:work_order].nil?
+        StudyClient::Node.authorize! :execute, work_order_params[:proposal_id], current_user.email
+      end
+    elsif step==:summary
+      StudyClient::Node.authorize! :execute, proposal, current_user.email
+    end
+  end
 
   def perform_update
     if nothing_to_update
