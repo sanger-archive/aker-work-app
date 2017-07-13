@@ -59,10 +59,7 @@ RSpec.describe OrdersController, type: :controller do
           expect(response.redirect_url).to be_nil
         end
         it "should show error and stay on step when a proposal not authorised for the user is selected" do
-          unauthorized_proposal = double('proposal')
-          allow(unauthorized_proposal).to receive(:id).and_return(1234)
-          allow(unauthorized_proposal).to receive(:check_permissions?).and_return(false)
-          allow(StudyClient::Node).to receive(:find).and_return([unauthorized_proposal])
+          allow(StudyClient::Node).to receive(:authorize!).and_raise(CanCan::AccessDenied)
           put :update, params: { work_order_id: @wo.id, work_order: { proposal_id: 1234 }, id: 'proposal'}
           expect(UpdateOrderService).not_to receive(:new)
           expect(response.redirect_url).to be_nil          
@@ -92,12 +89,7 @@ RSpec.describe OrdersController, type: :controller do
       end
       context "when work order is at summary step" do
         it "should show error and stay on step when a proposal not authorised for the user is selected" do
-          unauthorized_proposal = double('proposal')
-          allow(unauthorized_proposal).to receive(:check_permissions?).and_return(false)
-          allow(unauthorized_proposal).to receive(:id).and_return(1234)
-          
-          @wo.update_attributes(proposal_id: 1234)
-          allow(StudyClient::Node).to receive(:find).with(1234).and_return([unauthorized_proposal])
+          allow(StudyClient::Node).to receive(:authorize!).and_raise(CanCan::AccessDenied)
           put :update, params: { work_order_id: @wo.id, id: 'summary'}
           expect(UpdateOrderService).not_to receive(:new)
           expect(response.redirect_url).to be_nil          

@@ -112,6 +112,10 @@ Then(/^I should see "([^"]*)"$/) do |text|
   expect(page.has_content?(text)).to eq(true)
 end
 
+Then(/^I should not see "([^"]*)"$/) do |text|
+  expect(page.has_content?(text)).to eq(false)
+end
+
 
 When(/^I choose "([^"]*)"$/) do |text|
   choose(text)
@@ -134,6 +138,25 @@ Given(/^the following proposals have been defined:$/) do |table|
   stub_request(:get, "http://external-server:3300/api/v1/nodes/nodes?filter%5Bcost_code%5D=!_none").
     with(headers: {'Accept'=>'application/vnd.api+json'}).
     to_return(status: 200, body: {data: @proposals}.to_json, headers: response_headers)  
+end
+
+Given(/^the user "([^"]*)" has permission "([^"]*)" for the proposal "([^"]*)"$/) do |email, role, proposal_name|
+  proposal_hash = @proposals.select{|proposal| proposal[:attributes][:name] == proposal_name}.first
+  proposal = double('StudyClient::Node', proposal_hash[:attributes])
+  #proposal = StudyClient::Node.find(proposal_hash[:attributes][:id])
+  allow(StudyClient::Node).to receive(:authorize!) do |role_param, proposal_param, email_param|
+    value = false
+    if role_param == role.to_sym && email_param == email
+      proposal_hash = @proposals.select{|proposal| proposal[:attributes][:name] == proposal_name}.first
+      if proposal_param.kind_of? String
+        value = true if proposal_param == proposal_hash[:attributes][:id].to_s
+      else
+        value = true if proposal_param.id == proposal_hash[:attributes][:id]
+      end
+    end
+    raise CanCan::AccessDenied.new('Not Authorized!') unless value
+    value
+  end
 end
 
 Given(/^a LIMS named "([^"]*)" at url "([^"]*)" has the following catalogue ready for send:$/) do |lims_name, lims_url, table|
