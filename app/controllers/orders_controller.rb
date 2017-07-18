@@ -64,10 +64,10 @@ private
   def perform_update_authorization!
     if step==:proposal
       unless params[:work_order].nil?
-        StudyClient::Node.authorize! :execute, work_order_params[:proposal_id], current_user.email
+        StudyClient::Node.authorize! :execute, work_order_params[:proposal_id], [current_user.email, current_user.groups].flatten
       end
     elsif step==:summary
-      StudyClient::Node.authorize! :execute, proposal, current_user.email
+      StudyClient::Node.authorize! :execute, proposal, [current_user.email, current_user.groups].flatten
     end
   end
 

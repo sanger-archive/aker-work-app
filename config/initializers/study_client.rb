@@ -1,6 +1,6 @@
 Rails.application.config.after_initialize do
 
-  StudyClient::Base.include AkerPermissionClientConfig
+  StudyClient::Node.include AkerPermissionClientConfig
   
   StudyClient::Base.site = Rails.application.config.study_url
 

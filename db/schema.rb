@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170703111758) do
+ActiveRecord::Schema.define(version: 20170718094004) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -26,14 +26,12 @@ ActiveRecord::Schema.define(version: 20170703111758) do
   end
 
   create_table "permissions", force: :cascade do |t|
-    t.string   "permitted",                       null: false
-    t.boolean  "r",               default: false, null: false
-    t.boolean  "w",               default: false, null: false
-    t.boolean  "x",               default: false, null: false
-    t.string   "accessible_type",                 null: false
-    t.integer  "accessible_id",                   null: false
-    t.datetime "created_at",                      null: false
-    t.datetime "updated_at",                      null: false
+    t.string   "permitted",       null: false
+    t.string   "accessible_type", null: false
+    t.integer  "accessible_id",   null: false
+    t.datetime "created_at",      null: false
+    t.datetime "updated_at",      null: false
+    t.string   "permission_type", null: false
     t.index ["accessible_type", "accessible_id"], name: "index_permissions_on_accessible_type_and_accessible_id", using: :btree
     t.index ["permitted"], name: "index_permissions_on_permitted", using: :btree
   end
