@@ -5,7 +5,7 @@ class PermissionTableChanges < ActiveRecord::Migration[5.0]
   	ActiveRecord::Base.transaction do |t|
   	  AkerPermissionGem::Permission.all.each do |p|
   	  	[
-  	  	  [:r, 'read'], [:w, 'write'], [:x, 'sender']
+  	  	  [:r, 'read'], [:w, 'write'], [:x, 'spend']
   	  	].each do |column, new_value|
   	  	  if p.send(column)
   	  	    p.dup.update_attributes!(permission_type: new_value)
