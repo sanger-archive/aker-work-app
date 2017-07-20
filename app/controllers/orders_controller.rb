@@ -67,7 +67,7 @@ private
         StudyClient::Node.authorize! :spend, work_order_params[:proposal_id], [current_user.email, current_user.groups].flatten
       end
     elsif step==:summary
-      StudyClient::Node.authorize! :spend, proposal, [current_user.email, current_user.groups].flatten
+      StudyClient::Node.authorize! :spend, proposal.id, [current_user.email, current_user.groups].flatten
     end
   end
 
