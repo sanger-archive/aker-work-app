@@ -13,7 +13,14 @@ class OrdersController < ApplicationController
   def update
     authorize! :write, work_order
 
-    perform_update
+    begin
+      perform_update_authorization!
+
+      perform_update
+    rescue CanCan::AccessDenied => e
+      flash[:error] = e.message
+      render_wizard
+    end
   end
 
 protected
@@ -34,8 +41,8 @@ protected
     work_order.proposal
   end
 
-  def get_all_proposals
-    StudyClient::Node.where(cost_code: '!_none').all
+  def get_all_proposals_spendable_by_current_user
+    StudyClient::Node.where(cost_code: '!_none', spendable_by: [current_user.email] + current_user.groups).all.uniq {|p| p&.id}
   end
 
   def get_current_catalogues
@@ -50,9 +57,19 @@ protected
     step == steps.first
   end
 
-  helper_method :work_order, :get_all_aker_sets, :proposal, :get_all_proposals, :get_current_catalogues, :item_option_selections, :last_step?, :first_step?
+  helper_method :work_order, :get_all_aker_sets, :proposal, :get_all_proposals_spendable_by_current_user, :get_current_catalogues, :item_option_selections, :last_step?, :first_step?
 
 private
+
+  def perform_update_authorization!
+    if step==:proposal
+      unless params[:work_order].nil?
+        StudyClient::Node.authorize! :spend, work_order_params[:proposal_id], [current_user.email, current_user.groups].flatten
+      end
+    elsif step==:summary
+      StudyClient::Node.authorize! :spend, proposal.id, [current_user.email, current_user.groups].flatten
+    end
+  end
 
   def perform_update
     if nothing_to_update

@@ -29,6 +29,7 @@ Given the following proposals have been defined:
 | Proposal 1 | 1     |
 | Proposal 2 | 2     |
 
+
 Scenario: Receiving a catalogue
 
 When the LIMS "flimsy" send me the catalogue
@@ -37,6 +38,7 @@ Then I should have received the catalogue from the LIMS "flimsy" correctly
 Scenario: Creating a work order
 
 Given I already received the catalogue from LIMS "flimsy"
+Given the user "test@test" has permission "execute" for the proposal "Proposal 1"
 
 When I go to the work order main page
 And I click on "Create New Work Order"
@@ -80,3 +82,28 @@ When I save the order
 Then I should see "Your work order has been created"
 
 And I should have published an event
+
+Scenario: Trying a create a work order without proposal execute permission
+
+Given I already received the catalogue from LIMS "flimsy"
+Given the user "test@test" has permission "execute" for the proposal "Proposal 1"
+
+When I go to the work order main page
+And I click on "Create New Work Order"
+
+Then I should see "Step 1: Select Set"
+And I should see "testing_set_1"
+And I should see "testing_set_2"
+
+When I choose "testing_set_1"
+And I click on "Next"
+
+Then I should see "Step 2: Select Proposal"
+And I should see "Proposal 1"
+And I should see "Proposal 2"
+
+When I choose "Proposal 2"
+And I click on "Next"
+
+Then I should not see "Step 3: Select Product"
+And I should see "Not Authorized!"
