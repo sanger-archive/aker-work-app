@@ -14,6 +14,7 @@ class PermissionTableChanges < ActiveRecord::Migration[5.0]
   	  	p.destroy
   	  end
   	end
+    add_index :permissions, [:permitted, :permission_type, :accessible_id, :accessible_type ], unique: true, name: :index_permissions_on_various
 
   	remove_column :permissions, :r
   	remove_column :permissions, :w
