@@ -135,23 +135,29 @@ Given(/^the following proposals have been defined:$/) do |table|
     @proposals.push(node_template)
   end
 
+  @all_proposals = @proposals.map do |p| 
+    if p[:attributes][:'cost-code']
+      p[:attributes][:cost_code] = p[:attributes].delete(:'cost-code')
+    end
+    double('StudyClient::Node', p[:attributes])
+  end
+  allow_any_instance_of(OrdersController).to receive(:get_all_proposals_spendable_by_current_user).and_return(@all_proposals)
+
   stub_request(:get, "http://external-server:3300/api/v1/nodes/nodes?filter%5Bcost_code%5D=!_none").
     with(headers: {'Accept'=>'application/vnd.api+json'}).
     to_return(status: 200, body: {data: @proposals}.to_json, headers: response_headers)  
 end
 
 Given(/^the user "([^"]*)" has permission "([^"]*)" for the proposal "([^"]*)"$/) do |email, role, proposal_name|
-  proposal_hash = @proposals.select{|proposal| proposal[:attributes][:name] == proposal_name}.first
-  proposal = double('StudyClient::Node', proposal_hash[:attributes])
-  #proposal = StudyClient::Node.find(proposal_hash[:attributes][:id])
   allow(StudyClient::Node).to receive(:authorize!) do |role_param, proposal_param, email_param|
     value = false
-    if role_param == role.to_sym && email_param == email
-      proposal_hash = @proposals.select{|proposal| proposal[:attributes][:name] == proposal_name}.first
+    if role_param == role.to_sym && email_param.include?(email)
+      proposal = @all_proposals.select{|p| p.name == proposal_name}.first
+      
       if proposal_param.kind_of? String
-        value = true if proposal_param == proposal_hash[:attributes][:id].to_s
+        value = true if proposal_param == proposal.id.to_s
       else
-        value = true if proposal_param.id == proposal_hash[:attributes][:id]
+        value = true if proposal_param.id == proposal.id
       end
     end
     raise CanCan::AccessDenied.new('Not Authorized!') unless value
