@@ -84,7 +84,6 @@ group :test do
 end
 
 group :test, :development do
-  gem 'rspec-rails', '~> 3.4'
   gem 'launchy'
   gem 'capybara'
   gem 'poltergeist'
@@ -92,6 +91,7 @@ group :test, :development do
   gem 'database_cleaner'
 end
 
+gem 'rspec-rails', '~> 3.4'
 gem 'simplecov', :require => false, :group => :test
 gem 'simplecov-rcov', :group => :test
 gem 'rubycritic', :group => :test
