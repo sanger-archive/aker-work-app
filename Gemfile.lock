@@ -12,7 +12,7 @@ GIT
 
 GIT
   remote: git://github.com/sanger/aker-credentials.git
-  revision: ab120405c8a55506ff400921ab6cbd4472c8c6bc
+  revision: 0946e9c33227c00d77edb9924b5703c5cbd0130e
   specs:
     aker_credentials_gem (0.1.0)
       jwt
@@ -181,7 +181,7 @@ GEM
     factory_girl_rails (4.8.0)
       factory_girl (~> 4.8.0)
       railties (>= 3.0.0)
-    faraday (0.12.1)
+    faraday (0.12.2)
       multipart-post (>= 1.2, < 3)
     faraday_middleware (0.11.0.1)
       faraday (>= 0.7.4, < 1.0)

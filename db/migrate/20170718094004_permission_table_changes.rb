@@ -1,8 +1,7 @@
 class PermissionTableChanges < ActiveRecord::Migration[5.0]
   def change
-    add_column :permissions, :permission_type, :string, null: false
-
     ActiveRecord::Base.transaction do |t|
+      add_column :permissions, :permission_type, :string, null: true
       AkerPermissionGem::Permission.all.each do |p|
         [
           [:r, 'read'], [:w, 'write'], [:x, 'spend']
@@ -14,10 +13,13 @@ class PermissionTableChanges < ActiveRecord::Migration[5.0]
         p.destroy
       end
     end
-    add_index :permissions, [:permitted, :permission_type, :accessible_id, :accessible_type ], unique: true, name: :index_permissions_on_various
+
+    change_column :permissions, :permission_type, :string, null: false
 
     remove_column :permissions, :r
     remove_column :permissions, :w
     remove_column :permissions, :x
+
+    add_index :permissions, [:permitted, :permission_type, :accessible_id, :accessible_type ], unique: true, name: :index_permissions_on_various
   end
 end
