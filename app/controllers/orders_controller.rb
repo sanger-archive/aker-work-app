@@ -42,7 +42,7 @@ protected
   end
 
   def get_all_proposals_spendable_by_current_user
-    StudyClient::Node.where(cost_code: '!_none', spendable_by: [current_user.email] + current_user.groups).all
+    StudyClient::Node.where(cost_code: '!_none', spendable_by: [current_user.email] + current_user.groups).all.uniq {|p| p&.id}
   end
 
   def get_current_catalogues
