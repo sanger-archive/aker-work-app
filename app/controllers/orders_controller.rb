@@ -41,8 +41,8 @@ protected
     work_order.proposal
   end
 
-  def get_all_proposals
-    StudyClient::Node.where(cost_code: '!_none').all
+  def get_all_proposals_spendable_by_current_user
+    StudyClient::Node.where(cost_code: '!_none', spendable_by: current_user.email).all
   end
 
   def get_current_catalogues
@@ -57,7 +57,7 @@ protected
     step == steps.first
   end
 
-  helper_method :work_order, :get_all_aker_sets, :proposal, :get_all_proposals, :get_current_catalogues, :item_option_selections, :last_step?, :first_step?
+  helper_method :work_order, :get_all_aker_sets, :proposal, :get_all_proposals_spendable_by_current_user, :get_current_catalogues, :item_option_selections, :last_step?, :first_step?
 
 private
 

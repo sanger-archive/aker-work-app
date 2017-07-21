@@ -62,8 +62,8 @@ RSpec.describe OrdersController, type: :controller do
           allow(StudyClient::Node).to receive(:authorize!).and_raise(CanCan::AccessDenied)
           put :update, params: { work_order_id: @wo.id, work_order: { proposal_id: 1234 }, id: 'proposal'}
           expect(UpdateOrderService).not_to receive(:new)
-          expect(response.redirect_url).to be_nil          
-        end        
+          expect(response.redirect_url).to be_nil
+        end
       end
       context "when work order is at product step" do
         it "should show error and stay on step when no product is selected" do
@@ -89,10 +89,13 @@ RSpec.describe OrdersController, type: :controller do
       end
       context "when work order is at summary step" do
         it "should show error and stay on step when a proposal not authorised for the user is selected" do
-          allow(StudyClient::Node).to receive(:authorize!).and_raise(CanCan::AccessDenied)
-          put :update, params: { work_order_id: @wo.id, id: 'summary'}
+          proposal = double(:proposal, id: 123)
+          @wo.update_attributes(proposal_id: proposal.id)
+          allow(StudyClient::Node).to receive(:find).with(proposal.id).and_return(proposal)
+          allow(proposal).to receive(:first).and_return(proposal)
+          allow(StudyClient::Node).to receive(:authorize!).and_raise(AkerPermissionGem::NotAuthorized)
+          put :update, params: { work_order_id: @wo.id, id: 'summary' }
           expect(UpdateOrderService).not_to receive(:new)
-          expect(response.redirect_url).to be_nil          
         end
       end
     end
