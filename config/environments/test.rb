@@ -40,7 +40,7 @@ Rails.application.configure do
   # Raises error for missing translations
   # config.action_view.raise_on_missing_translations = true
 
-  config.study_url = 'http://external-server:3300/api/v1/nodes'
+  config.study_url = 'http://external-server:3300/api/v1'
   config.study_url_default_proxy = 'http://external-server:3300'
 
   config.set_url = 'http://external-server:3000/api/v1'
