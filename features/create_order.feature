@@ -69,8 +69,6 @@ And I should see "Total : £0.00"
 
 When I click on "Next"
 
-Then show me the page
-
 Then I should see "Step 5: Confirm Order"
 And I should see "testing_set_1"
 And I should see "product_test_1"
