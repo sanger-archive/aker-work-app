@@ -5,6 +5,86 @@
     "version": "v1"
   },
   "paths": {
+    "/api/v1/catalogue": {
+      "post": {
+        "summary": "Creates a new catalogue of products",
+        "tags": [
+          "Catalogues"
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "catalogue",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "catalogue": {
+                  "type": "object",
+                  "required": [
+                    "products"
+                  ],
+                  "properties": {
+                    "url": {
+                      "type": "string"
+                    },
+                    "lims_id": {
+                      "type": "string"
+                    },
+                    "pipeline": {
+                      "type": "string"
+                    },
+                    "products": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "name": {
+                            "type": "string"
+                          },
+                          "product_version": {
+                            "type": "integer"
+                          },
+                          "description": {
+                            "type": "string"
+                          },
+                          "availability": {
+                            "type": "string",
+                            "enum": [
+                              "available",
+                              "unavailable"
+                            ]
+                          },
+                          "TAT": {
+                            "type": "integer"
+                          },
+                          "requested_biomaterial_type": {
+                            "type": "string"
+                          },
+                          "product_class": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "catalogue created"
+          }
+        }
+      }
+    },
     "/api/v1/work_orders/{work_order_id}": {
       "get": {
         "summary": "Obtains the information of a work order",
