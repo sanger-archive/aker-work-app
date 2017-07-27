@@ -12,8 +12,19 @@ describe 'Work Orders API' do
   end
 
 
-  let(:instance_wo) { create(:work_order, status: WorkOrder.ACTIVE )}
+  let(:set_for_work_order) { made_up_set }
+  let(:catalogue) { create(:catalogue) }
+  let(:product) { create(:product, catalogue: catalogue) }
+
+  let(:proposal) { made_up_proposal }
+
+  let(:instance_wo) { 
+    create(:work_order, status: WorkOrder.ACTIVE, set_uuid: set_for_work_order.id,
+     product: product, proposal_id: proposal.id )
+  }
   let(:instance_wo2) { create(:work_order)}
+
+  let(:some_materials) { create(:material)}
   let(:work_order) { 
     json = build(:valid_work_order_completion_message_json) 
     json[:work_order][:work_order_id] = instance_wo.id
@@ -27,6 +38,18 @@ describe 'Work Orders API' do
     json
   }
 
+  path '/api/v1/work_orders/{work_order_id}' do
+    get 'Obtains the information of a work order' do
+      tags 'Work Orders'
+      produces 'application/json'
+      parameter name: :work_order_id, :in => :path, :type => :integer
+
+      response '200', 'work order obtained' do
+        let(:work_order_id) { instance_wo.id }
+        run_test!
+      end      
+    end
+  end
 
   path '/api/v1/work_orders/{work_order_id}/complete' do
 

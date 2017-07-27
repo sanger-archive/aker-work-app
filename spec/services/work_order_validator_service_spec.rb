@@ -24,6 +24,9 @@ RSpec.describe WorkOrderValidatorService do
     stub_request(:get, "#{Rails.configuration.material_url}materials/json_schema").
          to_return(status: 200, body: @material_schema, headers: {})
 
+    stub_request(:get, "#{Rails.configuration.material_url}materials/schema").
+         to_return(status: 200, body: @material_schema, headers: {})
+
     stub_request(:get, "#{Rails.configuration.material_url}containers/json_schema").
          to_return(status: 200, body: @container_schema, headers: {})
 

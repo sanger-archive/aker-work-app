@@ -38,7 +38,7 @@ Then I should have received the catalogue from the LIMS "flimsy" correctly
 Scenario: Creating a work order
 
 Given I already received the catalogue from LIMS "flimsy"
-Given the user "test@test" has permission "execute" for the proposal "Proposal 1"
+Given the user "test@test" has permission "spend" for the proposal "Proposal 1"
 
 When I go to the work order main page
 And I click on "Create New Work Order"

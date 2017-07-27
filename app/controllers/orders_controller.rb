@@ -12,7 +12,6 @@ class OrdersController < ApplicationController
 
   def update
     authorize! :write, work_order
-
     begin
       perform_update_authorization!
 

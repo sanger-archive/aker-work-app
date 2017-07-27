@@ -125,7 +125,7 @@ Given(/^the following proposals have been defined:$/) do |table|
   response_headers = {'Content-Type'=>'application/vnd.api+json'}
   @proposals ||= []
   table.hashes.each_with_index do |proposal, index|
-    node_template = {type: "nodes", attributes: { id: index, name: proposal['Name'], "cost-code".to_sym => proposal['Code']}}
+    node_template = {type: "nodes", attributes: { id: index, node_uuid: SecureRandom.uuid, name: proposal['Name'], "cost-code".to_sym => proposal['Code']}}
 
     stub_request(:get, "http://external-server:3300/api/v1/nodes/nodes/#{index}"). 
       with(headers: {'Accept'=>'application/vnd.api+json'}).
@@ -135,24 +135,28 @@ Given(/^the following proposals have been defined:$/) do |table|
     @proposals.push(node_template)
   end
 
+  @all_proposals = @proposals.map do |p| 
+    if p[:attributes][:'cost-code']
+      p[:attributes][:cost_code] = p[:attributes].delete(:'cost-code')
+    end
+    proposal = double('StudyClient::Node', p[:attributes])
+    allow(StudyClient::Node).to receive(:find).with(p[:attributes][:id]).and_return([proposal])
+    proposal
+  end
+  allow_any_instance_of(OrdersController).to receive(:get_all_proposals_spendable_by_current_user).and_return(@all_proposals)
+
   stub_request(:get, "http://external-server:3300/api/v1/nodes/nodes?filter%5Bcost_code%5D=!_none").
     with(headers: {'Accept'=>'application/vnd.api+json'}).
     to_return(status: 200, body: {data: @proposals}.to_json, headers: response_headers)  
 end
 
 Given(/^the user "([^"]*)" has permission "([^"]*)" for the proposal "([^"]*)"$/) do |email, role, proposal_name|
-  proposal_hash = @proposals.select{|proposal| proposal[:attributes][:name] == proposal_name}.first
-  proposal = double('StudyClient::Node', proposal_hash[:attributes])
-  #proposal = StudyClient::Node.find(proposal_hash[:attributes][:id])
   allow(StudyClient::Node).to receive(:authorize!) do |role_param, proposal_param, email_param|
     value = false
-    if role_param == role.to_sym && email_param == email
-      proposal_hash = @proposals.select{|proposal| proposal[:attributes][:name] == proposal_name}.first
-      if proposal_param.kind_of? String
-        value = true if proposal_param == proposal_hash[:attributes][:id].to_s
-      else
-        value = true if proposal_param.id == proposal_hash[:attributes][:id]
-      end
+    if role_param == role.to_sym && email_param.include?(email)
+      proposal = @all_proposals.select{|p| p.name == proposal_name}.first
+      
+      value = true if proposal_param.to_s == proposal.id.to_s
     end
     raise CanCan::AccessDenied.new('Not Authorized!') unless value
     value
@@ -209,6 +213,9 @@ Given(/^I have a biomaterials service running$/) do
 
     stub_request(:get, "#{Rails.configuration.material_url}materials/json_schema").
          to_return(status: 200, body: @material_schema, headers: {})
+
+    stub_request(:get, "#{Rails.configuration.material_url}materials/schema").
+         to_return(status: 200, body: @material_schema, headers: {})         
 
     stub_request(:get, "#{Rails.configuration.material_url}containers/json_schema").
          to_return(status: 200, body: @container_schema, headers: {})

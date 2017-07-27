@@ -5,7 +5,111 @@
     "version": "v1"
   },
   "paths": {
-    "/work_orders/{work_order_id}/complete": {
+    "/api/v1/catalogue": {
+      "post": {
+        "summary": "Creates a new catalogue of products",
+        "tags": [
+          "Catalogues"
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "catalogue",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "catalogue": {
+                  "type": "object",
+                  "required": [
+                    "products"
+                  ],
+                  "properties": {
+                    "url": {
+                      "type": "string"
+                    },
+                    "lims_id": {
+                      "type": "string"
+                    },
+                    "pipeline": {
+                      "type": "string"
+                    },
+                    "products": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "name": {
+                            "type": "string"
+                          },
+                          "product_version": {
+                            "type": "integer"
+                          },
+                          "description": {
+                            "type": "string"
+                          },
+                          "availability": {
+                            "type": "string",
+                            "enum": [
+                              "available",
+                              "unavailable"
+                            ]
+                          },
+                          "TAT": {
+                            "type": "integer"
+                          },
+                          "requested_biomaterial_type": {
+                            "type": "string"
+                          },
+                          "product_class": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "catalogue created"
+          }
+        }
+      }
+    },
+    "/api/v1/work_orders/{work_order_id}": {
+      "get": {
+        "summary": "Obtains the information of a work order",
+        "tags": [
+          "Work Orders"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "work_order_id",
+            "in": "path",
+            "type": "integer",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "work order obtained"
+          }
+        }
+      }
+    },
+    "/api/v1/work_orders/{work_order_id}/complete": {
       "post": {
         "summary": "Completes a work order",
         "tags": [
@@ -45,19 +149,19 @@
                     "updated_materials": {
                       "type": "array",
                       "items": {
-                        "$ref": "http://localhost:5000/materials/json_patch_schema"
+                        "$ref": "http://external-server:5000/materials/json_patch_schema"
                       }
                     },
                     "new_materials": {
                       "type": "array",
                       "items": {
-                        "$ref": "http://localhost:5000/materials/json_schema"
+                        "$ref": "http://external-server:5000/materials/schema"
                       }
                     },
                     "containers": {
                       "type": "array",
                       "items": {
-                        "$ref": "http://localhost:5000/containers/json_schema"
+                        "$ref": "http://external-server:5000/containers/json_schema"
                       }
                     }
                   }
@@ -83,7 +187,7 @@
         }
       }
     },
-    "/work_orders/{work_order_id}/cancel": {
+    "/api/v1/work_orders/{work_order_id}/cancel": {
       "post": {
         "summary": "Cancels a work order",
         "tags": [
@@ -123,19 +227,19 @@
                     "updated_materials": {
                       "type": "array",
                       "items": {
-                        "$ref": "http://localhost:5000/materials/json_patch_schema"
+                        "$ref": "http://external-server:5000/materials/json_patch_schema"
                       }
                     },
                     "new_materials": {
                       "type": "array",
                       "items": {
-                        "$ref": "http://localhost:5000/materials/json_schema"
+                        "$ref": "http://external-server:5000/materials/schema"
                       }
                     },
                     "containers": {
                       "type": "array",
                       "items": {
-                        "$ref": "http://localhost:5000/containers/json_schema"
+                        "$ref": "http://external-server:5000/containers/json_schema"
                       }
                     }
                   }
