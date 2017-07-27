@@ -48,6 +48,8 @@ Rails.application.configure do
 
   config.material_url = 'http://external-server:5000/'
 
+  config.stamp_url = 'http://external-server:7000/'
+
   config.work_order_completion_json = 'work_order_completion.json'
 
   config.jwt_secret_key = 'test'

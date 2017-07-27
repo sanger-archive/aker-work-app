@@ -42,6 +42,10 @@ class WorkOrder < ApplicationRecord
   scope :completed, -> { where(status: WorkOrder.COMPLETED) }
   scope :cancelled, -> { where(status: WorkOrder.CANCELLED) }
 
+  def materials
+    SetClient::Set.find_with_materials(set_uuid).first.materials
+  end
+
   def has_materials?(uuids)
     return true if uuids.empty?
     return false if set_uuid.nil?

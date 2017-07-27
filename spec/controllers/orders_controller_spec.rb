@@ -88,14 +88,36 @@ RSpec.describe OrdersController, type: :controller do
         end
       end
       context "when work order is at summary step" do
-        it "should show error and stay on step when a proposal not authorised for the user is selected" do
+        before do
           proposal = double(:proposal, id: 123)
           @wo.update_attributes(proposal_id: proposal.id)
           allow(StudyClient::Node).to receive(:find).with(proposal.id).and_return(proposal)
-          allow(proposal).to receive(:first).and_return(proposal)
-          allow(StudyClient::Node).to receive(:authorize!).and_raise(AkerPermissionGem::NotAuthorized)
-          put :update, params: { work_order_id: @wo.id, id: 'summary' }
-          expect(UpdateOrderService).not_to receive(:new)
+          allow(StudyClient::Node).to receive(:where).with(proposal.id).and_return(proposal)
+          allow(proposal).to receive(:first).and_return(proposal)          
+        end
+        context "when a proposal not authorised for the user is selected" do
+          before do
+            allow(StudyClient::Node).to receive(:authorize!).and_raise(AkerPermissionGem::NotAuthorized)
+          end
+          it "should show error and stay on step" do
+            put :update, params: { work_order_id: @wo.id, id: 'summary' }
+            expect(UpdateOrderService).not_to receive(:new)
+          end
+        end
+        context "when a set that contains materials that I am not authorised as sender" do
+          before do
+            materials = 5.times.map{ double('material', id: SecureRandom.uuid)}
+            set = double('set')
+            allow(set).to receive(:materials).and_return(materials)
+            allow(SetClient::Set).to receive(:find_with_materials).with(@wo.set_uuid).and_return([set])
+            allow(StudyClient::Node).to receive(:authorize!)
+            allow(StampClient::Permission).to receive(:check_catch).and_return(false)
+            allow(StampClient::Permission).to receive(:unpermitted_uuids).and_return([])
+          end
+          it "should show error and stay on step" do
+            put :update, params: { work_order_id: @wo.id, id: 'summary' }
+            expect(UpdateOrderService).not_to receive(:new)
+          end
         end
       end
     end

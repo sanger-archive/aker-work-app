@@ -62,6 +62,8 @@ Rails.application.configure do
 
   config.material_url = 'http://localhost:5000/'
 
+  config.stamp_url = 'http://localhost:7000/'
+
   config.jwt_secret_key = 'test'
 
   config.jwt_exp_time = 2 * 60
@@ -69,7 +71,7 @@ Rails.application.configure do
 
   config.jwt_secret_key = 'development'
 
-  config.enable_events_sending = true
+  config.enable_events_sending = false
   config.events_queue_name = 'aker.events'
   config.events_queue_connection = "amqp://guest:guest@localhost:5672"
 
