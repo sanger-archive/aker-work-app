@@ -39,6 +39,7 @@ Scenario: Creating a work order
 
 Given I already received the catalogue from LIMS "flimsy"
 Given the user "test@test" has permission "spend" for the proposal "Proposal 1"
+Given the user "test@test" has permission "spend" for the materials in the set "testing_set_1"
 
 When I go to the work order main page
 And I click on "Create New Work Order"
@@ -49,7 +50,6 @@ And I should see "testing_set_2"
 
 When I choose "testing_set_1"
 And I click on "Next"
-
 Then I should see "Step 2: Select Proposal"
 And I should see "Proposal 1"
 And I should see "Proposal 2"
@@ -87,6 +87,8 @@ Scenario: Trying a create a work order without proposal execute permission
 
 Given I already received the catalogue from LIMS "flimsy"
 Given the user "test@test" has permission "execute" for the proposal "Proposal 1"
+Given the user "test@test" has permission "spend" for the materials in the set "testing_set_1"
+Given the user "test@test" has permission "spend" for the materials in the set "testing_set_2"
 
 When I go to the work order main page
 And I click on "Create New Work Order"

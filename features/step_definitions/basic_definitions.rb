@@ -23,21 +23,28 @@ Given(/^the following sets are defined for user "([^"]*)":$/) do |user, table|
       { id: material_uuid, type: "materials" }
     end
 
-    @sets_for_user[user].push(
-      { 
-        id: "#{uuid}",
-        type: "sets",
-        relationships: { materials: { links: { 
-          "self"=> "http://external-server:3000/api/v1/sets/#{uuid}/relationships/materials", 
-          related: "http://external-server:3000/api/v1/sets/#{uuid}"}, 
-          data: materials} },
-        meta: { size: myset['Size'].to_i }, 
-        data: materials,
-        materials: materials,
-        included: materials,        
-        attributes: { name: myset['Name']  }
+    defined_set = { 
+      id: "#{uuid}",
+      type: "sets",
+      relationships: { 
+        materials: { 
+          links: { 
+            "self"=> "http://external-server:3000/api/v1/sets/#{uuid}/relationships/materials", 
+            related: "http://external-server:3000/api/v1/sets/#{uuid}"}, 
+            data: materials
+          } 
+      },
+      meta: { 
+        size: myset['Size'].to_i 
+      }, 
+      data: materials,
+      materials: materials,
+      included: materials,        
+      attributes: { 
+        name: myset['Name']  
       }
-    )
+    }
+    @sets_for_user[user].push(defined_set)
   end
   response_headers = {'Content-Type'=>'application/vnd.api+json'}
   
@@ -67,7 +74,8 @@ Given(/^the following sets are defined for user "([^"]*)":$/) do |user, table|
     stub_request(:patch, "http://external-server:3000/api/v1/sets/#{uuid}").
       with(body: {data: {id: uuid, type: 'sets', attributes: { locked: true}}}.to_json,
            headers: {'Accept'=>'application/vnd.api+json'}).
-      to_return(status: 200, body: {data: defined_set }.to_json,  headers: response_headers)        
+      to_return(status: 200, body: {data: defined_set }.to_json,  headers: response_headers)
+
   end
 end
 
@@ -148,6 +156,16 @@ Given(/^the following proposals have been defined:$/) do |table|
   stub_request(:get, "http://external-server:3300/api/v1/nodes/nodes?filter%5Bcost_code%5D=!_none").
     with(headers: {'Accept'=>'application/vnd.api+json'}).
     to_return(status: 200, body: {data: @proposals}.to_json, headers: response_headers)  
+end
+
+Given (/^the user "([^"]*)" has permission "([^"]*)" for the materials in the set "([^"]*)"$/) do |email, role, set_name|
+  my_set = @sets_for_user[email].select{|s| s[:attributes][:name] == set_name}.first
+  my_set = double('set', my_set)
+  allow(SetClient::Set).to receive(:find_with_materials).with(my_set.id).and_return([my_set])
+  materials = 5.times.map{ double('material', id: SecureRandom.uuid)}
+  allow(my_set).to receive(:materials).and_return(materials)
+  allow(StampClient::Permission).to receive(:check_catch).and_return(true)
+  allow(StampClient::Permission).to receive(:unpermitted_uuids).and_return([])
 end
 
 Given(/^the user "([^"]*)" has permission "([^"]*)" for the proposal "([^"]*)"$/) do |email, role, proposal_name|

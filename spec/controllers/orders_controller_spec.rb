@@ -9,6 +9,19 @@ RSpec.describe OrdersController, type: :controller do
     return user
   end
 
+  def mocked_set_with_authorized_materials
+    set = double('set')
+    mats = 5.times.map do 
+      mat = double('material') 
+      allow(mat).to receive(:id).and_return(SecureRandom.uuid)
+      mat
+    end
+
+    allow(StampClient::Permission).to receive(:check_catch).and_return(true)
+    allow(set).to receive(:materials).and_return(mats)    
+    set
+  end
+
   describe "#show" do
     context "when the order belongs to the current user" do
       it "should work" do
@@ -106,11 +119,12 @@ RSpec.describe OrdersController, type: :controller do
         end
         context "when a set that contains materials that I am not authorised as sender" do
           before do
+            allow(StudyClient::Node).to receive(:authorize!)
+
             materials = 5.times.map{ double('material', id: SecureRandom.uuid)}
             set = double('set')
             allow(set).to receive(:materials).and_return(materials)
             allow(SetClient::Set).to receive(:find_with_materials).with(@wo.set_uuid).and_return([set])
-            allow(StudyClient::Node).to receive(:authorize!)
             allow(StampClient::Permission).to receive(:check_catch).and_return(false)
             allow(StampClient::Permission).to receive(:unpermitted_uuids).and_return([])
           end
@@ -133,6 +147,8 @@ RSpec.describe OrdersController, type: :controller do
         allow(@wo).to receive(:save).and_return(true)
 
         wop = { original_set_uuid: 'bananas' }
+        set = mocked_set_with_authorized_materials
+        allow(SetClient::Set).to receive(:find_with_materials).with('bananas').and_return([set])
         put :update, params: { work_order_id: @wo.id, id: 'set', work_order: wop }
       end
 
@@ -170,6 +186,10 @@ RSpec.describe OrdersController, type: :controller do
         allow(@wo).to receive(:save).and_return(true)
 
         wop = { original_set_uuid: 'bananas' }
+
+        set = mocked_set_with_authorized_materials
+        allow(SetClient::Set).to receive(:find_with_materials).with('bananas').and_return([set])
+
         put :update, params: { work_order_id: @wo.id, id: 'set', work_order: wop }
       end
 
