@@ -13,7 +13,7 @@ Given(/^the following sets are defined for user "([^"]*)":$/) do |user, table|
     uuid = SecureRandom.uuid
     materials = myset['Size'].to_i.times.map do |i| 
       material_uuid = SecureRandom.uuid
-      material_obj = {"common_name"=>"Test", "donor_id"=>"Test", "gender"=>"Test", 
+      material_obj = {"scientific_name"=>"Test", "donor_id"=>"Test", "gender"=>"Test", 
         "phenotype"=>"Test", "supplier_name"=>"Test"}
 
       stub_request(:get, "#{Rails.configuration.material_url}/materials/#{material_uuid}").
@@ -222,7 +222,7 @@ end
 
 Given(/^I have a biomaterials service running$/) do
     @material_schema = %Q{
-      {"required": ["gender", "donor_id", "phenotype", "supplier_name", "common_name"], "type": "object", "properties": {"gender": {"required": true, "type": "string", "enum": ["male", "female", "unknown"]}, "date_of_receipt": {"type": "string", "format": "date"}, "material_type": {"enum": ["blood", "dna"], "type": "string"}, "donor_id": {"required": true, "type": "string"}, "phenotype": {"required": true, "type": "string"}, "supplier_name": {"required": true, "type": "string"}, "common_name": {"required": true, "type": "string", "enum": ["Homo Sapiens", "Mouse"]}, "parents": {"type": "list", "schema": {"type": "uuid", "data_relation": {"field": "_id", "resource": "materials", "embeddable": true}}}, "owner_id": {"type": "string"}}}
+      {"required": ["gender", "donor_id", "phenotype", "supplier_name", "scientific_name"], "type": "object", "properties": {"gender": {"required": true, "type": "string", "enum": ["male", "female", "unknown"]}, "date_of_receipt": {"type": "string", "format": "date"}, "material_type": {"enum": ["blood", "dna"], "type": "string"}, "donor_id": {"required": true, "type": "string"}, "phenotype": {"required": true, "type": "string"}, "supplier_name": {"required": true, "type": "string"}, "scientific_name": {"required": true, "type": "string", "enum": ["Homo Sapiens", "Mouse"]}, "parents": {"type": "list", "schema": {"type": "uuid", "data_relation": {"field": "_id", "resource": "materials", "embeddable": true}}}, "owner_id": {"type": "string"}}}
     }
 
     @container_schema = %Q{

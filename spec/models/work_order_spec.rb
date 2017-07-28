@@ -42,7 +42,7 @@ RSpec.describe WorkOrder, type: :model do
         'gender' => (i%2==0) ? 'male' : 'female',
         'donor_id' => 'donor #{i}',
         'phenotype' => 'phenotype #{i}',
-        'common_name' => 'Mouse',
+        'scientific_name' => 'Mouse',
         'available' => true,
       }
       double(:material, id: make_uuid, attributes: attributes)
@@ -265,7 +265,7 @@ RSpec.describe WorkOrder, type: :model do
           expect(dat[:gender]).to eq(mat.attributes['gender'])
           expect(dat[:donor_id]).to eq(mat.attributes['donor_id'])
           expect(dat[:phenotype]).to eq(mat.attributes['phenotype'])
-          expect(dat[:common_name]).to eq(mat.attributes['common_name'])
+          expect(dat[:scientific_name]).to eq(mat.attributes['scientific_name'])
         end
       end
     end
@@ -299,7 +299,7 @@ RSpec.describe WorkOrder, type: :model do
           gender: m.attributes['gender'],
           donor_id: m.attributes['donor_id'],
           phenotype: m.attributes['phenotype'],
-          common_name: m.attributes['common_name']
+          scientific_name: m.attributes['scientific_name']
         }
       end
 
