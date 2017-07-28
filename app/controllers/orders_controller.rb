@@ -73,7 +73,7 @@ private
       names: user_and_groups,
       material_uuids: element_ids
     })
-    raise AkerPermissionGem::NotAuthorized.new("Not authorised to perform #{role} on #{self} with the materials [#{StampClient::Permission.unpermitted_uuids.join(',')}]") unless value    
+    raise AkerPermissionGem::NotAuthorized.new("Not authorised to perform '#{role}' with the materials [#{StampClient::Permission.unpermitted_uuids.join(',')}]") unless value    
   end
 
   def perform_update_authorization!
