@@ -137,7 +137,7 @@ class WorkOrder < ApplicationRecord
             gender: m.attributes['gender'],
             donor_id: m.attributes['donor_id'],
             phenotype: m.attributes['phenotype'],
-            common_name: m.attributes['common_name']
+            scientific_name: m.attributes['scientific_name']
           }
     end
     describe_containers(material_ids, material_data)

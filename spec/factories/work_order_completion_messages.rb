@@ -13,7 +13,7 @@ FactoryGirl.define do
               "gender": "female",
               "donor_id": "id1",
               "supplier_name": "id1",
-              "common_name": "Mouse"
+              "scientific_name": "Mouse"
             },
           ],
 
@@ -22,7 +22,7 @@ FactoryGirl.define do
               "gender": "female",
               "donor_id": "id1",
               "supplier_name": "id1",
-              "common_name": "Mouse",
+              "scientific_name": "Mouse",
               "phenotype": '',
               "parents": [ "parent_id_1", "parent_id_2"],
               "container": {
@@ -85,7 +85,7 @@ FactoryGirl.define do
      "gender": "male", 
     "donor_id": "d",
      "phenotype": "dd",
-     "common_name": "Homo Sapiens",
+     "scientific_name": "Homo Sapiens",
     "container": {"barcode": "AKER2-1237", "address": "A:1"}
     }
         ],
