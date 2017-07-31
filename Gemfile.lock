@@ -1,4 +1,10 @@
 GIT
+  remote: git://github.com/harrietc52/aker-stamp-client.git
+  revision: d22cd56bf89eead7e3a06c9328d548569ab59c0b
+  specs:
+    aker_stamp_client (0.1.0)
+
+GIT
   remote: git://github.com/sanger/aker-authentication.git
   revision: 09c11204f386071fb194d97bcbf36abd248378f2
   specs:
@@ -130,6 +136,7 @@ GEM
     cliver (0.3.2)
     codeclimate-engine-rb (0.4.0)
       virtus (~> 1.0)
+    coderay (1.1.1)
     coercible (1.0.0)
       descendants_tracker (~> 0.0.1)
     coffee-rails (4.2.2)
@@ -248,6 +255,10 @@ GEM
       cliver (~> 0.3.1)
       websocket-driver (>= 0.2.0)
     powerpack (0.1.1)
+    pry (0.10.4)
+      coderay (~> 1.1.0)
+      method_source (~> 0.8.1)
+      slop (~> 3.4)
     public_suffix (2.0.5)
     puma (3.9.1)
     rack (2.0.3)
@@ -359,6 +370,7 @@ GEM
     simplecov-html (0.10.1)
     simplecov-rcov (0.2.3)
       simplecov (>= 0.4.1)
+    slop (3.6.0)
     spring (2.0.2)
       activesupport (>= 4.2)
     spring-watcher-listen (2.0.1)
@@ -426,6 +438,7 @@ DEPENDENCIES
   aker_authentication_gem!
   aker_credentials_gem!
   aker_permission_gem!
+  aker_stamp_client!
   bootstrap-sass (~> 3.3.6)
   bootstrap_form
   bunny (= 0.9.0.pre10)
@@ -446,6 +459,7 @@ DEPENDENCIES
   matcon_client!
   pg (~> 0.18)
   poltergeist
+  pry
   puma (~> 3.0)
   rails (~> 5.0.0, >= 5.0.0.1)
   rspec-json_expectations
@@ -470,4 +484,4 @@ DEPENDENCIES
   zipkin-tracer
 
 BUNDLED WITH
-   1.14.6
+   1.15.2

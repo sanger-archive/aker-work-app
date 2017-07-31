@@ -47,11 +47,14 @@ gem 'aker_permission_gem', github: 'sanger/aker-permission'
 gem 'aker-study-client', github: 'sanger/aker-study-client'
 gem 'aker-set-client', github: 'sanger/aker-set-client'
 gem 'matcon_client', github: 'sanger/aker-matcon-client'
+gem 'aker_stamp_client', github: 'harrietc52/aker-stamp-client'
 
 gem "bunny", "= 0.9.0.pre10"
 
 gem 'rswag'
 gem 'swagger-ui_rails'
+
+gem 'pry'
 
 group :development, :test do
   # Call 'byebug' anywhere in the code to stop execution and get a debugger console

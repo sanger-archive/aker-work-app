@@ -42,6 +42,10 @@ class WorkOrder < ApplicationRecord
   scope :completed, -> { where(status: WorkOrder.COMPLETED) }
   scope :cancelled, -> { where(status: WorkOrder.CANCELLED) }
 
+  def materials
+    SetClient::Set.find_with_materials(set_uuid).first.materials
+  end
+
   def has_materials?(uuids)
     return true if uuids.empty?
     return false if set_uuid.nil?
@@ -127,6 +131,7 @@ class WorkOrder < ApplicationRecord
   def lims_data
     material_ids = SetClient::Set.find_with_materials(set_uuid).first.materials.map{|m| m.id}
     materials = all_results(MatconClient::Material.where("_id" => {"$in" => material_ids}).result_set)
+    
     unless materials.all? { |m| m.attributes['available'] }
       raise "Some of the specified materials are not available."
     end

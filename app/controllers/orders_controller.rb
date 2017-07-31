@@ -12,7 +12,6 @@ class OrdersController < ApplicationController
 
   def update
     authorize! :write, work_order
-
     begin
       perform_update_authorization!
 
@@ -61,13 +60,36 @@ protected
 
 private
 
+  def user_and_groups_list
+    [current_user.email, current_user.groups].flatten
+  end
+
+  def stamp_client_authorize!(role, element_ids, user_and_groups)
+    element_ids = [element_ids].flatten
+    user_and_groups = [user_and_groups].flatten
+
+    value = StampClient::Permission.check_catch(data: {
+      permission_type: role,
+      names: user_and_groups,
+      material_uuids: element_ids
+    })
+    raise AkerPermissionGem::NotAuthorized.new("Not authorised to perform '#{role}' with the materials [#{StampClient::Permission.unpermitted_uuids.join(',')}]") unless value    
+  end
+
   def perform_update_authorization!
-    if step==:proposal
+    if step==:set
+      if !params[:work_order].nil? && work_order_params[:original_set_uuid]
+        original_set = SetClient::Set.find_with_materials(work_order_params[:original_set_uuid]).first
+        check_materials = original_set.materials
+        stamp_client_authorize!(:spend, check_materials.map(&:id), user_and_groups_list)
+      end
+    elsif step==:proposal
       unless params[:work_order].nil?
-        StudyClient::Node.authorize! :spend, work_order_params[:proposal_id], [current_user.email, current_user.groups].flatten
+        StudyClient::Node.authorize! :spend, work_order_params[:proposal_id], user_and_groups_list
       end
     elsif step==:summary
       StudyClient::Node.authorize! :spend, proposal.id, [current_user.email, current_user.groups].flatten
+      stamp_client_authorize!(:spend, work_order.materials.map(&:id), user_and_groups_list)
     end
   end
 
