@@ -62,7 +62,7 @@ Rails.application.configure do
 
   config.material_url = 'http://localhost:5000/'
 
-  config.stamp_url = 'http://localhost:7000/'
+  config.stamp_url = 'http://localhost:7000/api/v1'
 
   config.jwt_secret_key = 'test'
 

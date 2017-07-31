@@ -48,7 +48,7 @@ Rails.application.configure do
 
   config.material_url = 'http://external-server:5000/'
 
-  config.stamp_url = 'http://external-server:7000/'
+  config.stamp_url = 'http://external-server:7000/api/v1'
 
   config.work_order_completion_json = 'work_order_completion.json'
 
