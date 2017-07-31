@@ -1,10 +1,4 @@
 GIT
-  remote: git://github.com/harrietc52/aker-stamp-client.git
-  revision: 0c6d4411f8b3973d3df42533db6bb4049d1ad029
-  specs:
-    aker_stamp_client (0.1.0)
-
-GIT
   remote: git://github.com/sanger/aker-authentication.git
   revision: 09c11204f386071fb194d97bcbf36abd248378f2
   specs:
@@ -18,15 +12,15 @@ GIT
 
 GIT
   remote: git://github.com/sanger/aker-credentials.git
-  revision: 0946e9c33227c00d77edb9924b5703c5cbd0130e
+  revision: d6a7bfbe1dd7175f8eb5a41dec78a672451dcef7
   specs:
-    aker_credentials_gem (0.1.0)
+    aker_credentials_gem (0.1.1)
       jwt
       request_store
 
 GIT
   remote: git://github.com/sanger/aker-matcon-client.git
-  revision: ff828aa5570c95610c9a2a18a9400adcdae37c7a
+  revision: a5eb7fbfa0985ea305136ecd66d26c2bdf28bff9
   specs:
     matcon_client (0.2.1)
       activemodel
@@ -36,7 +30,7 @@ GIT
 
 GIT
   remote: git://github.com/sanger/aker-permission.git
-  revision: 84e258b187cda8108a764069b5c49e5fa6fc383e
+  revision: 51eb6543489bd163415c39910fb56c45b1966c31
   specs:
     aker_permission_gem (0.4.0)
       cancancan
@@ -46,6 +40,12 @@ GIT
   revision: 20a3bd511d96d4232ccae770b536013ec609a8e6
   specs:
     aker-set-client (0.2.0)
+
+GIT
+  remote: git://github.com/sanger/aker-stamp-client.git
+  revision: 0c6d4411f8b3973d3df42533db6bb4049d1ad029
+  specs:
+    aker_stamp_client (0.1.0)
 
 GIT
   remote: git://github.com/sanger/aker-study-client.git
@@ -190,7 +190,7 @@ GEM
       railties (>= 3.0.0)
     faraday (0.12.2)
       multipart-post (>= 1.2, < 3)
-    faraday_middleware (0.11.0.1)
+    faraday_middleware (0.12.0)
       faraday (>= 0.7.4, < 1.0)
     ffi (1.9.18)
     finagle-thrift (1.4.2)
@@ -293,7 +293,7 @@ GEM
     rb-fsevent (0.10.2)
     rb-inotify (0.9.10)
       ffi (>= 0.5.0, < 2)
-    reek (4.7.1)
+    reek (4.7.2)
       codeclimate-engine-rb (~> 0.4.0)
       parser (>= 2.4.0.0, < 2.5)
       rainbow (~> 2.0)
@@ -319,17 +319,17 @@ GEM
       rspec-mocks (~> 3.6.0)
       rspec-support (~> 3.6.0)
     rspec-support (3.6.0)
-    rswag (1.4.0)
-      rswag-api (= 1.4.0)
-      rswag-specs (= 1.4.0)
-      rswag-ui (= 1.4.0)
-    rswag-api (1.4.0)
+    rswag (1.5.0)
+      rswag-api (= 1.5.0)
+      rswag-specs (= 1.5.0)
+      rswag-ui (= 1.5.0)
+    rswag-api (1.5.0)
       railties (>= 3.1, < 6.0)
-    rswag-specs (1.4.0)
+    rswag-specs (1.5.0)
       activesupport (>= 3.1, < 6.0)
       json-schema (~> 2.2)
       railties (>= 3.1, < 6.0)
-    rswag-ui (1.4.0)
+    rswag-ui (1.5.0)
       actionpack (>= 3.1, < 6.0)
       railties (>= 3.1, < 6.0)
     rubocop (0.41.2)
@@ -390,7 +390,7 @@ GEM
     thor (0.19.4)
     thread_safe (0.3.6)
     thrift (0.9.3.0)
-    tilt (2.0.7)
+    tilt (2.0.8)
     timecop (0.9.1)
     turbolinks (5.0.1)
       turbolinks-source (~> 5)
