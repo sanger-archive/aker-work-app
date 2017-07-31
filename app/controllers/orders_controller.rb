@@ -68,12 +68,12 @@ private
     element_ids = [element_ids].flatten
     user_and_groups = [user_and_groups].flatten
 
-    value = StampClient::Permission.check_catch(data: {
+    value = StampClient::Permission.check_catch({
       permission_type: role,
       names: user_and_groups,
       material_uuids: element_ids
     })
-    raise AkerPermissionGem::NotAuthorized.new("Not authorised to perform '#{role}' with the materials [#{StampClient::Permission.unpermitted_uuids.join(',')}]") unless value    
+    raise AkerPermissionGem::NotAuthorized.new("Not authorised to perform '#{role}' with the materials [#{StampClient::Permission.unpermitted_uuids.join(',')}]") unless value
   end
 
   def perform_update_authorization!

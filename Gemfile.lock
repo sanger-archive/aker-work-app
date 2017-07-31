@@ -1,6 +1,6 @@
 GIT
   remote: git://github.com/harrietc52/aker-stamp-client.git
-  revision: d22cd56bf89eead7e3a06c9328d548569ab59c0b
+  revision: 0c6d4411f8b3973d3df42533db6bb4049d1ad029
   specs:
     aker_stamp_client (0.1.0)
 
