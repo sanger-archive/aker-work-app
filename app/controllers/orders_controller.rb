@@ -81,7 +81,7 @@ private
       if !params[:work_order].nil? && work_order_params[:original_set_uuid]
         original_set = SetClient::Set.find_with_materials(work_order_params[:original_set_uuid]).first
         check_materials = original_set.materials
-        stamp_client_authorize!(:spend, check_materials.map(&:id), user_and_groups_list)
+        stamp_client_authorize!(:consume, check_materials.map(&:id), user_and_groups_list)
       end
     elsif step==:proposal
       unless params[:work_order].nil?
@@ -89,7 +89,7 @@ private
       end
     elsif step==:summary
       StudyClient::Node.authorize! :spend, proposal.id, [current_user.email, current_user.groups].flatten
-      stamp_client_authorize!(:spend, work_order.materials.map(&:id), user_and_groups_list)
+      stamp_client_authorize!(:consume, work_order.materials.map(&:id), user_and_groups_list)
     end
   end
 
