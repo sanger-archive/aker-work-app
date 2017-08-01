@@ -23,21 +23,28 @@ Given(/^the following sets are defined for user "([^"]*)":$/) do |user, table|
       { id: material_uuid, type: "materials" }
     end
 
-    @sets_for_user[user].push(
-      { 
-        id: "#{uuid}",
-        type: "sets",
-        relationships: { materials: { links: { 
-          "self"=> "http://external-server:3000/api/v1/sets/#{uuid}/relationships/materials", 
-          related: "http://external-server:3000/api/v1/sets/#{uuid}"}, 
-          data: materials} },
-        meta: { size: myset['Size'].to_i }, 
-        data: materials,
-        materials: materials,
-        included: materials,        
-        attributes: { name: myset['Name']  }
+    defined_set = { 
+      id: "#{uuid}",
+      type: "sets",
+      relationships: { 
+        materials: { 
+          links: { 
+            "self"=> "http://external-server:3000/api/v1/sets/#{uuid}/relationships/materials", 
+            related: "http://external-server:3000/api/v1/sets/#{uuid}"}, 
+            data: materials
+          } 
+      },
+      meta: { 
+        size: myset['Size'].to_i 
+      }, 
+      data: materials,
+      materials: materials,
+      included: materials,        
+      attributes: { 
+        name: myset['Name']  
       }
-    )
+    }
+    @sets_for_user[user].push(defined_set)
   end
   response_headers = {'Content-Type'=>'application/vnd.api+json'}
   
@@ -67,7 +74,8 @@ Given(/^the following sets are defined for user "([^"]*)":$/) do |user, table|
     stub_request(:patch, "http://external-server:3000/api/v1/sets/#{uuid}").
       with(body: {data: {id: uuid, type: 'sets', attributes: { locked: true}}}.to_json,
            headers: {'Accept'=>'application/vnd.api+json'}).
-      to_return(status: 200, body: {data: defined_set }.to_json,  headers: response_headers)        
+      to_return(status: 200, body: {data: defined_set }.to_json,  headers: response_headers)
+
   end
 end
 
@@ -125,7 +133,7 @@ Given(/^the following proposals have been defined:$/) do |table|
   response_headers = {'Content-Type'=>'application/vnd.api+json'}
   @proposals ||= []
   table.hashes.each_with_index do |proposal, index|
-    node_template = {type: "nodes", attributes: { id: index, name: proposal['Name'], "cost-code".to_sym => proposal['Code']}}
+    node_template = {type: "nodes", attributes: { id: index, node_uuid: SecureRandom.uuid, name: proposal['Name'], "cost-code".to_sym => proposal['Code']}}
 
     stub_request(:get, "http://external-server:3300/api/v1/nodes/nodes/#{index}"). 
       with(headers: {'Accept'=>'application/vnd.api+json'}).
@@ -135,24 +143,38 @@ Given(/^the following proposals have been defined:$/) do |table|
     @proposals.push(node_template)
   end
 
+  @all_proposals = @proposals.map do |p| 
+    if p[:attributes][:'cost-code']
+      p[:attributes][:cost_code] = p[:attributes].delete(:'cost-code')
+    end
+    proposal = double('StudyClient::Node', p[:attributes])
+    allow(StudyClient::Node).to receive(:find).with(p[:attributes][:id]).and_return([proposal])
+    proposal
+  end
+  allow_any_instance_of(OrdersController).to receive(:get_all_proposals_spendable_by_current_user).and_return(@all_proposals)
+
   stub_request(:get, "http://external-server:3300/api/v1/nodes/nodes?filter%5Bcost_code%5D=!_none").
     with(headers: {'Accept'=>'application/vnd.api+json'}).
     to_return(status: 200, body: {data: @proposals}.to_json, headers: response_headers)  
 end
 
+Given (/^the user "([^"]*)" has permission "([^"]*)" for the materials in the set "([^"]*)"$/) do |email, role, set_name|
+  my_set = @sets_for_user[email].select{|s| s[:attributes][:name] == set_name}.first
+  my_set = double('set', my_set)
+  allow(SetClient::Set).to receive(:find_with_materials).with(my_set.id).and_return([my_set])
+  materials = 5.times.map{ double('material', id: SecureRandom.uuid)}
+  allow(my_set).to receive(:materials).and_return(materials)
+  allow(StampClient::Permission).to receive(:check_catch).and_return(true)
+  allow(StampClient::Permission).to receive(:unpermitted_uuids).and_return([])
+end
+
 Given(/^the user "([^"]*)" has permission "([^"]*)" for the proposal "([^"]*)"$/) do |email, role, proposal_name|
-  proposal_hash = @proposals.select{|proposal| proposal[:attributes][:name] == proposal_name}.first
-  proposal = double('StudyClient::Node', proposal_hash[:attributes])
-  #proposal = StudyClient::Node.find(proposal_hash[:attributes][:id])
   allow(StudyClient::Node).to receive(:authorize!) do |role_param, proposal_param, email_param|
     value = false
-    if role_param == role.to_sym && email_param == email
-      proposal_hash = @proposals.select{|proposal| proposal[:attributes][:name] == proposal_name}.first
-      if proposal_param.kind_of? String
-        value = true if proposal_param == proposal_hash[:attributes][:id].to_s
-      else
-        value = true if proposal_param.id == proposal_hash[:attributes][:id]
-      end
+    if role_param == role.to_sym && email_param.include?(email)
+      proposal = @all_proposals.select{|p| p.name == proposal_name}.first
+      
+      value = true if proposal_param.to_s == proposal.id.to_s
     end
     raise CanCan::AccessDenied.new('Not Authorized!') unless value
     value
@@ -209,6 +231,9 @@ Given(/^I have a biomaterials service running$/) do
 
     stub_request(:get, "#{Rails.configuration.material_url}materials/json_schema").
          to_return(status: 200, body: @material_schema, headers: {})
+
+    stub_request(:get, "#{Rails.configuration.material_url}materials/schema").
+         to_return(status: 200, body: @material_schema, headers: {})         
 
     stub_request(:get, "#{Rails.configuration.material_url}containers/json_schema").
          to_return(status: 200, body: @container_schema, headers: {})

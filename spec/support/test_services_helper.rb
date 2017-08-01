@@ -26,6 +26,8 @@ module TestServicesHelper
     stub_request(:get, "#{Rails.configuration.material_url}materials/json_schema").
         to_return(status: 200, body: @material_schema, headers: {})
 
+    stub_request(:get, "#{Rails.configuration.material_url}materials/schema").
+        to_return(status: 200, body: @material_schema, headers: {})
   end
 
   def webmock_matcon_schema
@@ -43,6 +45,32 @@ module TestServicesHelper
       user: instance_double("user", email: "user@here.com"))
   end
 
+  def made_up_set
+    headers = {'Accept'=>'application/vnd.api+json', 'Content-Type'=>'application/vnd.api+json'}
+    set_uuid = made_up_uuid
+    set = double(:set, id: set_uuid, type: 'sets', name: 'A set name', owner_id: nil, locked: true, meta: { size: 1 })
+
+
+    materials = 5.times.map{make_material}
+
+    allow(set).to receive(:materials).and_return(materials)
+
+    result = double('response')
+    result_set = double('result_set')
+
+    allow(result).to receive(:result_set).and_return(result_set)
+
+    WorkOrder.any_instance.stub(:all_results).and_return(materials)
+
+    allow(MatconClient::Material).to receive(:where).with("_id" => {"$in" => materials.map(&:id)}).and_return(result)
+    allow(SetClient::Set).to receive(:find_with_materials).with(set_uuid).and_return([set])
+
+    empty_response = double('result_set', result_set: nil)
+    allow(MatconClient::Container).to receive(:where).and_return(empty_response)
+
+    set
+  end
+
   def made_up_uuid
     SecureRandom.uuid
   end
@@ -58,7 +86,9 @@ module TestServicesHelper
 
 
   def make_material
-    mat= double('material', id: made_up_uuid)
+    mat= double('material', id: made_up_uuid, available: true)
+
+    allow(mat).to receive(:attributes).and_return({'id'=> mat.id, 'available'=> mat.available})
     allow(mat).to receive(:first).and_return(mat)
     mat
   end
@@ -68,6 +98,14 @@ module TestServicesHelper
     allow(container).to receive(:material_id=)
     allow(container).to receive(:save)
     container
+  end
+
+  def made_up_proposal
+    prop = double('proposal', name: 'a name', cost_code: 'a cost code', id: 1)
+
+    allow(StudyClient::Node).to receive(:find).with(prop.id).and_return([prop])
+
+    prop
   end
 
   def stub_matcon
