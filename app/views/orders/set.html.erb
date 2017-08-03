@@ -4,16 +4,19 @@
 
   <% if (work_order.set_uuid) %>
     <%= f.collection_radio_buttons(:original_set_uuid, [work_order.original_set],
-         :id, lambda { |s| s.name+" (size "+work_order.num_samples.to_s+"): "+s.uuid },
+         :id, lambda { |s| s.name + " (size " + work_order.num_samples.to_s +
+                      "): " + s.uuid + " | Created at: " + s.created_at },
           label: 'Selected set') %>
   <% else %>
 
-      <%= f.collection_radio_buttons(:original_set_uuid, get_all_aker_sets,
-         :id, lambda { |s| s.name+" (size "+s.meta["size"].to_s+"): "+s.uuid },
+      <%= f.collection_radio_buttons(:original_set_uuid,
+          (get_all_aker_sets.sort_by &:created_at).reverse!, :id,
+          lambda { |s| s.name + " (size " + s.meta["size"].to_s + "): " + s.uuid +
+            " | Created at: " + s.created_at },
           label: 'Please select a set') %>
 
   <% end %>
-
+  
   <%= render 'buttons', work_order: work_order, f: f %>
 
 <% end %>
