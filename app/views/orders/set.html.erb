@@ -3,61 +3,63 @@
 <%= bootstrap_form_for work_order, url: wizard_path, method: :put  do |f| %>
 
 <table class="table table-striped table-condensed" id="set-list-table">
-  <tr>
-    <thead>
+  <thead>
+    <tr>
       <th></th>
       <th>Submission Name</th>
       <th>Size</th>
       <th>Created</th>
       <th>ID</th>
-    </thead>
-  </tr>
-
-  <% if (work_order.set_uuid) %>
-
-    <% [work_order.original_set].each do |s| %>
-    <tr>
-      <td>
-        <%= f.radio_button(:original_set_uuid, s.id) %>
-      </td>
-      <td>
-        <%= s.name %>
-      </td>
-      <td>
-        <%= pluralize(work_order.num_samples, "Sample") %>
-      </td>
-      <td>
-        <%= time_ago_in_words(s.created_at) + " ago" %>
-      </td>
-      <td>
-        <%= s.uuid %>
-      </td>
     </tr>
+  </thead>
+
+  <tbody>
+    <% if (work_order.set_uuid) %>
+
+      <% [work_order.original_set].each do |s| %>
+      <tr>
+        <td>
+          <%= f.radio_button(:original_set_uuid, s.id) %>
+        </td>
+        <td>
+          <%= s.name %>
+        </td>
+        <td>
+          <%= pluralize(work_order.num_samples, "Sample") %>
+        </td>
+        <td>
+          <%= time_ago_in_words(s.created_at) + " ago" %>
+        </td>
+        <td>
+          <%= s.uuid %>
+        </td>
+      </tr>
+      <% end %>
+
+    <% else %>
+
+      <% (get_all_aker_sets.sort_by &:created_at).reverse!.each do |s| %>
+      <tr>
+        <td>
+          <%= f.radio_button(:original_set_uuid, s.id) %>
+        </td>
+        <td>
+          <%= s.name %>
+        </td>
+        <td>
+          <%= pluralize(s.meta["size"], "Sample") %>
+        </td>
+        <td>
+          <%= time_ago_in_words(s.created_at) + " ago" %>
+        </td>
+        <td>
+          <%= s.uuid %>
+        </td>
+      </tr>
+      <% end %>
+
     <% end %>
-
-  <% else %>
-
-    <% (get_all_aker_sets.sort_by &:created_at).reverse!.each do |s| %>
-    <tr>
-      <td>
-        <%= f.radio_button(:original_set_uuid, s.id) %>
-      </td>
-      <td>
-        <%= s.name %>
-      </td>
-      <td>
-        <%= pluralize(s.meta["size"], "Sample") %>
-      </td>
-      <td>
-        <%= time_ago_in_words(s.created_at) + " ago" %>
-      </td>
-      <td>
-        <%= s.uuid %>
-      </td>
-    </tr>
-    <% end %>
-
-  <% end %>
+  </tbody>
 </table>
 <%= render 'buttons', work_order: work_order, f: f %>
 <% end %>
