@@ -28,7 +28,7 @@ $(document).on("turbolinks:load", function() {
   // to be checked by clicking the row, instead of just the radio button
   $('#set-list-table tr').click(function (event) {
     if (event.target.type !== 'radio') {
-      $(':radio', this).trigger('click');
+      $(':radio', this).prop("checked", true);
     }
   })
 
