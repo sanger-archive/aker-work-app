@@ -30,7 +30,7 @@ protected
 
   def get_all_aker_sets
     if user_signed_in?
-      SetClient::Set.where(owner_id: current_user.email).all.select { |s| s.meta["size"] > 0 }
+      SetClient::Set.where(owner_id: current_user.email).order(created_at: :desc).all.select { |s| s.meta["size"] > 0 }
     else
       []
     end
