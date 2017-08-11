@@ -38,7 +38,7 @@
 
     <% else %>
 
-      <% (get_all_aker_sets.sort_by &:created_at).reverse!.each do |s| %>
+      <% get_all_aker_sets.each do |s| %>
       <tr>
         <td>
           <%= f.radio_button(:original_set_uuid, s.id) %>
