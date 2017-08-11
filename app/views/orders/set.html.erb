@@ -2,18 +2,64 @@
 
 <%= bootstrap_form_for work_order, url: wizard_path, method: :put  do |f| %>
 
-  <% if (work_order.set_uuid) %>
-    <%= f.collection_radio_buttons(:original_set_uuid, [work_order.original_set],
-         :id, lambda { |s| s.name+" (size "+work_order.num_samples.to_s+"): "+s.uuid },
-          label: 'Selected set') %>
-  <% else %>
+<table class="table table-striped table-condensed" id="set-list-table">
+  <thead>
+    <tr>
+      <th></th>
+      <th>Set Name</th>
+      <th>Size</th>
+      <th>Created</th>
+      <th>ID</th>
+    </tr>
+  </thead>
 
-      <%= f.collection_radio_buttons(:original_set_uuid, get_all_aker_sets,
-         :id, lambda { |s| s.name+" (size "+s.meta["size"].to_s+"): "+s.uuid },
-          label: 'Please select a set') %>
+  <tbody>
+    <% if (work_order.set_uuid) %>
 
-  <% end %>
+      <% [work_order.original_set].each do |s| %>
+      <tr>
+        <td>
+          <%= f.radio_button(:original_set_uuid, s.id) %>
+        </td>
+        <td>
+          <%= s.name %>
+        </td>
+        <td>
+          <%= pluralize(work_order.num_samples, "Sample") %>
+        </td>
+        <td>
+          <%= time_ago_in_words(s.created_at) + " ago" %>
+        </td>
+        <td>
+          <%= s.uuid %>
+        </td>
+      </tr>
+      <% end %>
 
-  <%= render 'buttons', work_order: work_order, f: f %>
+    <% else %>
 
+      <% get_all_aker_sets.each do |s| %>
+      <tr>
+        <td>
+          <%= f.radio_button(:original_set_uuid, s.id) %>
+        </td>
+        <td>
+          <%= s.name %>
+        </td>
+        <td>
+          <%= pluralize(s.meta["size"], "Sample") %>
+        </td>
+        <td>
+          <%= time_ago_in_words(s.created_at) + " ago" %>
+        </td>
+        <td>
+          <%= s.uuid %>
+        </td>
+      </tr>
+      <% end %>
+
+    <% end %>
+  </tbody>
+</table>
+<%= render 'buttons', work_order: work_order, f: f %>
 <% end %>

@@ -23,4 +23,13 @@ $(document).on("turbolinks:load", function() {
       minDate: '+0d'
     });
   });
+
+  // Used when selecting a set (create work order step 1) to allow a radio button
+  // to be checked by clicking the row, instead of just the radio button
+  $('#set-list-table tr').click(function (event) {
+    if (event.target.type !== 'radio') {
+      $(':radio', this).prop("checked", true);
+    }
+  })
+
 });
