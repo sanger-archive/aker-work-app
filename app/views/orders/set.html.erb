@@ -2,6 +2,8 @@
 
 <%= bootstrap_form_for work_order, url: wizard_path, method: :put  do |f| %>
 
+<%= render 'buttons', work_order: work_order, f: f %>
+
 <table class="table table-striped table-condensed" id="set-list-table">
   <thead>
     <tr>
@@ -61,5 +63,4 @@
     <% end %>
   </tbody>
 </table>
-<%= render 'buttons', work_order: work_order, f: f %>
 <% end %>
