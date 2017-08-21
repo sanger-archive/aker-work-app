@@ -73,7 +73,7 @@ private
       names: user_and_groups,
       material_uuids: element_ids
     })
-    raise AkerPermissionGem::NotAuthorized.new(stamp_permission_error(role, StampClient::Permission.unpermitted_uuids)) unless value
+    raise CanCan::AccessDenied.new(stamp_permission_error(role, StampClient::Permission.unpermitted_uuids)) unless value
   end
 
   def stamp_permission_error(role, uuids)
