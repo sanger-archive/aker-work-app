@@ -73,7 +73,17 @@ private
       names: user_and_groups,
       material_uuids: element_ids
     })
-    raise AkerPermissionGem::NotAuthorized.new("Not authorised to perform '#{role}' with the materials [#{StampClient::Permission.unpermitted_uuids.join(',')}]") unless value
+    raise CanCan::AccessDenied.new(stamp_permission_error(role, StampClient::Permission.unpermitted_uuids)) unless value
+  end
+
+  def stamp_permission_error(role, uuids)
+    uuids = StampClient::Permission.unpermitted_uuids
+    if uuids.length > 20
+      joined = uuids[0,20].to_s+' (too many to list)'
+    else
+      joined = uuids.to_s
+    end
+    "Not authorised to perform '#{role}' with the materials #{joined}"
   end
 
   def perform_update_authorization!
