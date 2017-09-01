@@ -25,10 +25,9 @@
 	    <% end %>
     <% end %>
 
-    <%= f.text_field :comment %>
+    <%= f.text_field :comment, label: 'Please add any advisory notes for the operations team' %>
     <%= f.text_field :desired_date, data: { behavior: "datepicker" } %>
 
   <%= render 'buttons', work_order: work_order, f: f %>
 
 <% end %>
-

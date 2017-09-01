@@ -11,14 +11,14 @@ RSpec.describe OrdersController, type: :controller do
 
   def mocked_set_with_authorized_materials
     set = double('set')
-    mats = 5.times.map do 
-      mat = double('material') 
+    mats = 5.times.map do
+      mat = double('material')
       allow(mat).to receive(:id).and_return(SecureRandom.uuid)
       mat
     end
 
     allow(StampClient::Permission).to receive(:check_catch).and_return(true)
-    allow(set).to receive(:materials).and_return(mats)    
+    allow(set).to receive(:materials).and_return(mats)
     set
   end
 
@@ -67,7 +67,7 @@ RSpec.describe OrdersController, type: :controller do
       context "when work order is at proposal step" do
         it "should show error and stay on step when no proposal is selected" do
           put :update, params: { work_order_id: @wo.id, id: 'proposal'}
-          expect(flash[:error]).to eq 'Please select a proposal to proceed.'
+          expect(flash[:error]).to eq 'Please select a project to proceed.'
           expect(UpdateOrderService).not_to receive(:new)
           expect(response.redirect_url).to be_nil
         end
@@ -106,7 +106,7 @@ RSpec.describe OrdersController, type: :controller do
           @wo.update_attributes(proposal_id: proposal.id)
           allow(StudyClient::Node).to receive(:find).with(proposal.id).and_return(proposal)
           allow(StudyClient::Node).to receive(:where).with(proposal.id).and_return(proposal)
-          allow(proposal).to receive(:first).and_return(proposal)          
+          allow(proposal).to receive(:first).and_return(proposal)
         end
         context "when a proposal not authorised for the user is selected" do
           before do
