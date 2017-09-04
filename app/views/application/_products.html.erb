@@ -4,7 +4,6 @@
 			<thead>
 				<tr>
 					<th>Product</th>
-					<th>Product UUID</th>
 					<th>Product version</th>
 					<th>Cost per sample</th>
 					<th>Biomaterial Type</th>
@@ -17,7 +16,6 @@
 			<tbody>
 				<tr>
 					<td><%= work_order.product.name %></td>
-					<td><%= work_order.product.product_uuid %></td>
 					<td><%= work_order.product.product_version %></td>
 					<td><%= number_to_currency(work_order.product.cost_per_sample, unit:'£') %></td>
 					<td><%= work_order.product.requested_biomaterial_type %></td>
