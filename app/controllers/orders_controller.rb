@@ -136,7 +136,7 @@ private
       flash[:error] = "Please select a set to proceed."
     end
     if step==:proposal
-      flash[:error] = "Please select a proposal to proceed."
+      flash[:error] = "Please select a project to proceed."
     end
     if step==:product
       flash[:error] = "Please select a product to proceed."

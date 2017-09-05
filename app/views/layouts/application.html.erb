@@ -13,9 +13,31 @@
   </head>
   <body>
 
-  <div class="container">
+    <nav class="navbar navbar-inverse">
+    <div class="container">
+    <div class="navbar-header">
+    <!-- Display the hamburger button if screen isn't wide enough -->
+    <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navBar">
+      <span class="icon-bar"></span>
+      <span class="icon-bar"></span>
+      <span class="icon-bar"></span>
+    </button>
+    <a class="navbar-brand" href="#">Aker</a>
+    </div>
+    <div class="collapse navbar-collapse" id="navBar">
+    <!-- <ul class="nav navbar-nav">
+      <li><%= link_to 'Creation', "#" %></li>
+    </ul> -->
+    <ul class="nav navbar-nav navbar-right">
+      <li><%= link_to 'Log Out', destroy_user_session_url, method: :delete if user_signed_in? %></li>
+    </ul>
+    </div>
+    </div>
+    </nav>
 
-    <div class="row page-header">
+  <div class="container" id="content">
+
+    <!-- <div class="row page-header">
       <div class="col-md-8">
         <h1>Aker <small>Work Orders</small></h1>
       </div>
@@ -23,9 +45,10 @@
         <%= yield(:title_button) if content_for?(:title_button) %>
         <%= link_to 'Log Out', destroy_user_session_url, class: 'btn btn-default vcenter', style: 'margin-top: 28px', method: :delete if user_signed_in? %>
       </div>
-    </div>
-
+    </div> -->
+    <h1>Work Orders</h1>
     <%= render "flashes" %>
+    <%= yield(:title_button) if content_for?(:title_button) %>
 
     <div class="row">
       <div class="col-md-12">

@@ -180,7 +180,7 @@ RSpec.describe UpdateOrderService do
         params = {}
         messages = {}
         expect(UpdateOrderService.new(params, @wo, messages).perform(:product)).to eq(false)
-        expect(messages[:error]).to include('proposal')
+        expect(messages[:error]).to include('project')
       end
     end
 
