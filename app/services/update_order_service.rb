@@ -65,7 +65,7 @@ private
     end
     return true if step==:proposal
     unless @work_order.proposal_id
-      add_error("Please select a proposal in an earlier step.")
+      add_error("Please select a project in an earlier step.")
       return false
     end
     return true if step==:product
@@ -75,7 +75,7 @@ private
     end
     return true if step==:cost
     unless @work_order.proposal_id
-      add_error("Please select a proposal in an earlier step.")
+      add_error("Please select a project in an earlier step.")
       return false
     end
     return true

@@ -1,4 +1,12 @@
-# README
+# Aker Work Orders GUI
 
-This README would normally document whatever steps are necessary to get the
-application up and running.
+This application allows users to create and manage work orders.
+
+# Setup
+## Dev environment
+To get a dev environment up and running, execute the following commands:
+* `rake db:setup`
+
+# Testing
+To run all test for this project, execute:
+`rake spec`
