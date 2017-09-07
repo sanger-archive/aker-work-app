@@ -28,10 +28,10 @@ RSpec.describe 'LockSetStep' do
   end
 
   context '#up' do
-    it 'locks the set' do
+    it 'updates the set' do
       expect(@work_order).to receive(:update_attributes!).with(finished_set_uuid: @finished_set.id)
       expect(@finished_set).to receive(:set_materials).with(@materials.map(&:id))
-      expect(@finished_set).to receive(:update_attributes).with(locked: true)
+      expect(@finished_set).to receive(:update_attributes).with(owner_id: @work_order.user.email, locked: true)
       @step.up        
     end
   end
