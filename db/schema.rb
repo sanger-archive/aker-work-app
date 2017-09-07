@@ -27,7 +27,7 @@ ActiveRecord::Schema.define(version: 20170718094004) do
 
   create_table "permissions", force: :cascade do |t|
     t.string   "permitted",       null: false
-    t.string   "accessible_type"
+    t.string   "accessible_type", null: false
     t.integer  "accessible_id",   null: false
     t.datetime "created_at",      null: false
     t.datetime "updated_at",      null: false

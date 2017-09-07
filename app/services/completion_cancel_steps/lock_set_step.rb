@@ -8,11 +8,11 @@ class LockSetStep
 	# Step 5 - New finished locked set
 	def up
 		timestamp = Time.now.strftime("%H:%M:%S-%d/%m/%y")
-		finished_set = SetClient::Set.create(name: "Work Order Completion #{@work_order.id} #{timestamp}", owner_id: @work_order.user.email)
+		finished_set = SetClient::Set.create(name: "Work Order Completion #{@work_order.id} #{timestamp}")
 		@work_order.update_attributes!(finished_set_uuid: finished_set.id)
 
 		finished_set.set_materials(@material_step.materials.map(&:id))
-		finished_set.update_attributes(locked: true)
+		finished_set.update_attributes(owner_id: @work_order.user.email, locked: true)
 	end
 
 	def down
