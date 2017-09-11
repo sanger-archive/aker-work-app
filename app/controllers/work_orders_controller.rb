@@ -19,7 +19,7 @@ class WorkOrdersController < ApplicationController
     if user_signed_in?
       @active_work_orders = WorkOrder.active.for_user(current_user)
       @pending_work_orders = WorkOrder.pending.for_user(current_user)
-      @completed_work_orders = WorkOrder.completed.for_user(current_user)
+      @completed_work_orders = WorkOrder.completed.for_user(current_user).order(created_at: :desc)
       @cancelled_work_orders = WorkOrder.cancelled.for_user(current_user)
     else
       @active_work_orders = []
