@@ -17,10 +17,10 @@ class WorkOrdersController < ApplicationController
 
   def index
     if user_signed_in?
-      @active_work_orders = WorkOrder.active.for_user(current_user)
-      @pending_work_orders = WorkOrder.pending.for_user(current_user)
+      @active_work_orders = WorkOrder.active.for_user(current_user).order(created_at: :desc)
+      @pending_work_orders = WorkOrder.pending.for_user(current_user).order(created_at: :desc)
       @completed_work_orders = WorkOrder.completed.for_user(current_user).order(created_at: :desc)
-      @cancelled_work_orders = WorkOrder.cancelled.for_user(current_user)
+      @cancelled_work_orders = WorkOrder.cancelled.for_user(current_user).order(created_at: :desc)
     else
       @active_work_orders = []
       @pending_work_orders = []
