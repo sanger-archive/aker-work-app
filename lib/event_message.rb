@@ -13,7 +13,7 @@ class EventMessage
   end
 
   def trace_id
-    ZipkinTracer::TraceContainer.current.next_id.trace_id.to_s
+    ZipkinTracer::TraceContainer.current&.next_id&.trace_id&.to_s
   end
 
   def generate_json
