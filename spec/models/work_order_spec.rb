@@ -337,7 +337,7 @@ RSpec.describe WorkOrder, type: :model do
         wo = build(:work_order)
         EventService = double('EventService')
         expect(EventService).not_to receive(:publish).with(an_instance_of(EventMessage))
-        expect{wo.generate_completed_and_cancel_event}.to raise_exception('You cannot generate an event from a work order that has not been submitted.')
+        expect{wo.generate_completed_and_cancel_event}.to raise_exception('You cannot generate an event from a work order that has not been completed.')
       end
     end
 

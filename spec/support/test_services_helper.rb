@@ -61,7 +61,7 @@ module TestServicesHelper
 
     allow(result).to receive(:result_set).and_return(result_set)
 
-    WorkOrder.any_instance.stub(:all_results).and_return(materials)
+    allow_any_instance_of(WorkOrder).to receive(:all_results).and_return(materials)
 
     allow(MatconClient::Material).to receive(:where).with("_id" => {"$in" => materials.map(&:id)}).and_return(result)
     allow(SetClient::Set).to receive(:find_with_materials).with(set_uuid).and_return([set])
