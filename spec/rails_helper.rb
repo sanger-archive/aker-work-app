@@ -58,12 +58,12 @@ RSpec.configure do |config|
   # arbitrary gems may also be filtered via:
   # config.filter_gems_from_backtrace("gem name")
 
-  # Capybara.register_driver :poltergeist_debug do |app|
-  #   Capybara::Poltergeist::Driver.new(app, :inspector => true)
-  # end
-  # Capybara.javascript_driver = :poltergeist_debug
+  Capybara.register_driver :poltergeist_debug do |app|
+    Capybara::Poltergeist::Driver.new(app, :inspector => true, :phantomjs_options => ["--proxy=#{ENV['HTTP_PROXY']}"])
+  end
+  Capybara.javascript_driver = :poltergeist_debug
 
-  Capybara.javascript_driver = :poltergeist
+  # Capybara.javascript_driver = :poltergeist
 
   config.include Capybara::DSL
 
