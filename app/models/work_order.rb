@@ -119,7 +119,6 @@ class WorkOrder < ApplicationRecord
   end
 
   def all_results(result_set)
-    return result_set unless result_set.has_next?
     results = result_set.to_a
     while result_set.has_next? do
       result_set = result_set.next

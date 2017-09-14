@@ -29,7 +29,7 @@ RSpec.describe WorkOrder, type: :model do
   end
 
   def make_result_set(items)
-    rs = double('result_set', has_next?: false, length: items.length)
+    rs = double('result_set', has_next?: false, length: items.length, to_a: items)
     allow(rs).to receive(:map) { |&block| items.map(&block) }
     allow(rs).to receive(:each) { |&block| items.each(&block) }
     allow(rs).to receive(:all?) { |&block| items.all?(&block) }
