@@ -9,11 +9,11 @@ class EventMessage
   end
 
   def self.annotate_zipkin(span)
-    @trace_id = span.to_h[:traceId]
+    #TODO - remove this when deployment project has been updated
   end
 
-  def self.trace_id
-    @trace_id
+  def trace_id
+    ZipkinTracer::TraceContainer.current.next_id.trace_id.to_s
   end
 
   def generate_json
@@ -49,7 +49,7 @@ class EventMessage
         "comment" => @work_order.comment,
         "quoted_price" => @work_order.total_cost,
         "desired_completion_date" => @work_order.desired_date,
-        "zipkin_trace_id": EventMessage.trace_id,
+        "zipkin_trace_id": trace_id,
         "num_materials": @work_order.set.meta["size"],
       },
     }.to_json
