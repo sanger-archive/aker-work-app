@@ -42,6 +42,7 @@ module TestServicesHelper
   def make_active_work_order
     work_order = instance_double("work_order", status: 'active',
       comment: 'any comment old',
+      close_comment: nil,
       user: instance_double("user", email: "user@here.com"))
   end
 
