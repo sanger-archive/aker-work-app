@@ -29,7 +29,7 @@ RSpec.describe WorkOrder, type: :model do
   end
 
   def make_result_set(items)
-    rs = double('result_set', has_next?: false, length: items.length)
+    rs = double('result_set', has_next?: false, length: items.length, to_a: items)
     allow(rs).to receive(:map) { |&block| items.map(&block) }
     allow(rs).to receive(:each) { |&block| items.each(&block) }
     allow(rs).to receive(:all?) { |&block| items.all?(&block) }
@@ -337,7 +337,7 @@ RSpec.describe WorkOrder, type: :model do
         wo = build(:work_order)
         EventService = double('EventService')
         expect(EventService).not_to receive(:publish).with(an_instance_of(EventMessage))
-        expect{wo.generate_completed_and_cancel_event}.to raise_exception('You cannot generate an event from a work order that has not been submitted.')
+        expect{wo.generate_completed_and_cancel_event}.to raise_exception('You cannot generate an event from a work order that has not been completed.')
       end
     end
 

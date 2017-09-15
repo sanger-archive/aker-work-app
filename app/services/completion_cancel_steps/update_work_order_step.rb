@@ -1,5 +1,5 @@
 class UpdateWorkOrderStep
-	attr_reader :status, :comment
+	attr_reader :old_status, :old_close_comment
 	def initialize(work_order, msg, finish_status)
 		@finish_status = finish_status
 		@work_order = work_order
@@ -8,15 +8,15 @@ class UpdateWorkOrderStep
 
 	# Step 4 - Update WorkOrder
 	def up
-		@status = @work_order.status
-		@comment = @work_order.comment
+		@old_status = @work_order.status
+		@old_close_comment = @work_order.close_comment
 		@work_order.update_attributes!(
-			status: @finish_status == 'complete' ? WorkOrder.COMPLETED : WorkOrder.CANCELLED,
-			comment: @msg[:work_order][:comment]
+			status: @finish_status.to_s == 'complete' ? WorkOrder.COMPLETED : WorkOrder.CANCELLED,
+			close_comment: @msg[:work_order][:comment]
 		)
 	end
 
 	def down
-		@work_order.update_attributes!(status: status, comment: comment)
+		@work_order.update_attributes!(status: old_status, close_comment: old_close_comment)
 	end
 end

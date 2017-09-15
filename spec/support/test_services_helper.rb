@@ -42,6 +42,7 @@ module TestServicesHelper
   def make_active_work_order
     work_order = instance_double("work_order", status: 'active',
       comment: 'any comment old',
+      close_comment: nil,
       user: instance_double("user", email: "user@here.com"))
   end
 
@@ -56,11 +57,9 @@ module TestServicesHelper
     allow(set).to receive(:materials).and_return(materials)
 
     result = double('response')
-    result_set = double('result_set')
+    result_set = double('result_set', to_a: materials, has_next?: false)
 
     allow(result).to receive(:result_set).and_return(result_set)
-
-    WorkOrder.any_instance.stub(:all_results).and_return(materials)
 
     allow(MatconClient::Material).to receive(:where).with("_id" => {"$in" => materials.map(&:id)}).and_return(result)
     allow(SetClient::Set).to receive(:find_with_materials).with(set_uuid).and_return([set])
