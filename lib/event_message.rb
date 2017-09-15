@@ -8,10 +8,6 @@ class EventMessage
     @status = params[:status] || @work_order.status
   end
 
-  def self.annotate_zipkin(span)
-    #TODO - remove this when deployment project has been updated
-  end
-
   def trace_id
     ZipkinTracer::TraceContainer.current&.next_id&.trace_id&.to_s
   end
