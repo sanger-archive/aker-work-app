@@ -48,9 +48,9 @@ Then I should see "Step 1: Select Set"
 And I should see "testing_set_1"
 And I should see "testing_set_2"
 
-When I choose "testing_set_1"
+When I choose "testing_set_1" in a table
 And I click on "Next"
-Then I should see "Step 2: Select Proposal"
+Then I should see "Step 2: Select Project"
 And I should see "Proposal 1"
 And I should see "Proposal 2"
 
@@ -73,7 +73,6 @@ Then I should see "Step 5: Confirm Order"
 And I should see "testing_set_1"
 And I should see "product_test_1"
 And I should see "Proposal 1"
-And I should see "Available"
 And I should see "Transcriptomics"
 And I should see "£0.00"
 
@@ -97,10 +96,10 @@ Then I should see "Step 1: Select Set"
 And I should see "testing_set_1"
 And I should see "testing_set_2"
 
-When I choose "testing_set_1"
+When I choose "testing_set_1" in a table
 And I click on "Next"
 
-Then I should see "Step 2: Select Proposal"
+Then I should see "Step 2: Select Project"
 And I should see "Proposal 1"
 And I should see "Proposal 2"
 
