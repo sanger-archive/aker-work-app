@@ -9,4 +9,4 @@ To get a dev environment up and running, execute the following commands:
 
 # Testing
 To run all test for this project, execute:
-`rake spec`
+`bundle exec rake`

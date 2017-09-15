@@ -73,7 +73,6 @@ class WorkOrdersController < ApplicationController
   end
 
   def finish(finish_status)
-
     validator = WorkOrderValidatorService.new(work_order, params_for_completion)
     valid = validator.validate?
     if valid
