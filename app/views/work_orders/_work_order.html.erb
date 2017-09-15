@@ -1,7 +1,7 @@
 <tr>
   <td><%= work_order.id %></td>
   <td><%= work_order.product&.name || "None Selected" %></td>
-  <td><%= work_order.updated_at %></td>
+  <td><%= localize(work_order.updated_at, format: :terse) %></td>
   <td>
     <% if work_order.active? || work_order.submitted? %>
 
