@@ -1,9 +1,9 @@
 <tr>
   <td><%= work_order.id %></td>
   <td><%= work_order.product&.name || "None Selected" %></td>
-  <td><%= work_order.updated_at %></td>
+  <td><%= localize(work_order.updated_at, format: :terse) %></td>
   <td>
-    <% if work_order.active? || work_order.submitted? %>
+    <% if work_order.active? || work_order.closed? %>
 
       <%= link_to 'View', work_order_path(work_order), class: 'btn btn-default' %>
 

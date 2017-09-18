@@ -5,44 +5,70 @@ require 'completion_cancel_steps/update_work_order_step'
 RSpec.describe 'UpdateWorkOrderStep' do
   include TestServicesHelper
 
-  def make_step(work_order, msg, status)
-    @step = UpdateWorkOrderStep.new(work_order, msg, status)
+  let(:new_comment) { 'Any comment' }
+  let(:mode) { 'complete' }
+  let(:work_order) do
+    wo = make_active_work_order
+    allow(wo).to receive(:update_attributes!)
+    wo
+  end
+
+  let(:step) { UpdateWorkOrderStep.new(work_order, msg, mode) }
+
+  let(:msg) { { work_order: { comment: new_comment } } }
+
+  def updated_attributes(new_status)
+    { status: new_status, close_comment: new_comment }
   end
 
   setup do
-    @work_order = make_active_work_order
-    @any_comment = 'Any comment'
-    @msg = { work_order: { comment: @any_comment } } 
-
-    allow(@work_order).to receive(:update_attributes!)
     stub_matcon
   end
 
-  context '#up' do
-    it 'should update the work order to complete' do
-      make_step(@work_order, @msg, 'complete')    
-      attrs = {status: WorkOrder.COMPLETED, comment: @any_comment}
-      expect(@work_order).to receive(:update_attributes!).with(attrs)
-      @step.up
+  describe '#up' do
+    context 'when completing' do
+      let(:mode) { 'complete' }
+
+      it 'should update the work order to complete' do
+        expect(work_order).to receive(:update_attributes!).with(updated_attributes(WorkOrder.COMPLETED))
+        step.up
+      end
+
+      it 'should store the old state in the step' do
+        old_status = work_order.status
+        old_close_comment = work_order.close_comment
+        step.up
+        expect(step.old_status).to eq(old_status)
+        expect(step.old_close_comment).to eq(old_close_comment)
+      end
     end
 
-    it 'should update the work order to cancel' do
-      make_step(@work_order, @msg, 'cancel')  
-      attrs = {status: WorkOrder.CANCELLED, comment: @any_comment}
-      expect(@work_order).to receive(:update_attributes!).with(attrs)
-      @step.up
+    context 'when cancelling' do
+      let(:mode) { 'cancel' }
+
+      it 'should update the work order to cancelled' do
+        expect(work_order).to receive(:update_attributes!).with(updated_attributes(WorkOrder.CANCELLED))
+        step.up
+      end
+      it 'should store the old state in the step' do
+        old_status = work_order.status
+        old_close_comment = work_order.close_comment
+        step.up
+        expect(step.old_status).to eq(old_status)
+        expect(step.old_close_comment).to eq(old_close_comment)
+      end
     end
   end
 
-  context '#down' do
-    it 'updates the order to ' do
-      make_step(@work_order, @msg, 'complete')  
-      attrs = {status: make_active_work_order.status, 
-        comment: make_active_work_order.comment}
-      allow(@step).to receive(:status).and_return(attrs[:status])
-      allow(@step).to receive(:comment).and_return(attrs[:comment])
-      expect(@work_order).to receive(:update_attributes!).with(attrs)
-      @step.down
+  describe '#down' do
+    let(:old_status) { 'active' }
+    let(:old_comment) { 'some old comment' }
+
+    it 'updates the order to its previous state' do
+      allow(step).to receive(:old_status).and_return(old_status)
+      allow(step).to receive(:old_close_comment).and_return(old_comment)
+      expect(work_order).to receive(:update_attributes!).with(status: old_status, close_comment: old_comment)
+      step.down
     end
   end
 end

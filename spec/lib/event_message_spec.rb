@@ -32,7 +32,7 @@ RSpec.describe 'EventMessage' do
 
       message = EventMessage.new(work_order: wo)
 
-      allow(EventMessage).to receive(:trace_id).and_return 'a_trace_id'
+      allow(message).to receive(:trace_id).and_return 'a_trace_id'
 
       Timecop.freeze do
         json = JSON.parse(message.generate_json)

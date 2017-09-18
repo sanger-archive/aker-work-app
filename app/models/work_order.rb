@@ -63,7 +63,7 @@ class WorkOrder < ApplicationRecord
     status == WorkOrder.ACTIVE
   end
 
-  def submitted?
+  def closed?
     status == WorkOrder.COMPLETED || status == WorkOrder.CANCELLED
   end
 
@@ -119,7 +119,6 @@ class WorkOrder < ApplicationRecord
   end
 
   def all_results(result_set)
-    return result_set unless result_set.has_next?
     results = result_set.to_a
     while result_set.has_next? do
       result_set = result_set.next
@@ -185,11 +184,11 @@ class WorkOrder < ApplicationRecord
   end
 
   def generate_completed_and_cancel_event
-    if submitted?
+    if closed?
       message = EventMessage.new(work_order: self)
       EventService.publish(message)
     else
-      raise 'You cannot generate an event from a work order that has not been submitted.'
+      raise 'You cannot generate an event from a work order that has not been completed.'
     end
   end
 

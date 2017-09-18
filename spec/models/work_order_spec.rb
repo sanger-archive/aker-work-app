@@ -29,7 +29,7 @@ RSpec.describe WorkOrder, type: :model do
   end
 
   def make_result_set(items)
-    rs = double('result_set', has_next?: false, length: items.length)
+    rs = double('result_set', has_next?: false, length: items.length, to_a: items)
     allow(rs).to receive(:map) { |&block| items.map(&block) }
     allow(rs).to receive(:each) { |&block| items.each(&block) }
     allow(rs).to receive(:all?) { |&block| items.all?(&block) }
@@ -335,16 +335,16 @@ RSpec.describe WorkOrder, type: :model do
     context 'if work order does not have status completed or cancelled' do
       it 'generates an event using the EventService' do
         wo = build(:work_order)
-        EventService = double('EventService')
+        EventService ||= double('EventService')
         expect(EventService).not_to receive(:publish).with(an_instance_of(EventMessage))
-        expect{wo.generate_completed_and_cancel_event}.to raise_exception('You cannot generate an event from a work order that has not been submitted.')
+        expect{wo.generate_completed_and_cancel_event}.to raise_exception('You cannot generate an event from a work order that has not been completed.')
       end
     end
 
     context 'if work order does have status completed or cancelled' do
       it 'generates an event using the EventService' do
         wo = build(:work_order, status: 'completed')
-        EventService = double('EventService')
+        EventService ||= double('EventService')
         allow(EventService).to receive(:publish)
         expect(EventService).to receive(:publish).with(an_instance_of(EventMessage))
         wo.generate_completed_and_cancel_event
@@ -356,7 +356,7 @@ RSpec.describe WorkOrder, type: :model do
     context 'if work order does not have status active' do
       it 'generates an event using the EventService' do
         wo = build(:work_order)
-        EventService = double('EventService')
+        EventService ||= double('EventService')
         expect(EventService).not_to receive(:publish).with(an_instance_of(EventMessage))
         expect{wo.generate_submitted_event}.to raise_exception('You cannot generate an submitted event from a work order that is not active.')
       end
@@ -365,7 +365,7 @@ RSpec.describe WorkOrder, type: :model do
     context 'if work order does have status active' do
       it 'generates an event using the EventService' do
         wo = build(:work_order, status: 'active')
-        EventService = double('EventService')
+        EventService ||= double('EventService')
         allow(EventService).to receive(:publish)
         expect(EventService).to receive(:publish).with(an_instance_of(EventMessage))
         wo.generate_submitted_event

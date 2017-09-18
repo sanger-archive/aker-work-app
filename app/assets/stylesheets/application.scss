@@ -1,5 +1,7 @@
 @import "bootstrap-sprockets";
-@import "paper.min";
+@import "variables";
+@import "bootstrap";
+@import "paper";
 @import "font-awesome-sprockets";
 @import "font-awesome";
 @import "jquery-ui";
@@ -21,7 +23,6 @@
   margin-right: -15px;
   margin-bottom: -15px;
 }
-
 
 body {
   background-color: #e0ebeb;
