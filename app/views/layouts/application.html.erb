@@ -29,7 +29,7 @@
       <li><%= link_to 'Creation', "#" %></li>
     </ul> -->
     <ul class="nav navbar-nav navbar-right">
-      <li><%= link_to 'Log Out', destroy_user_session_url, method: :delete if user_signed_in? %></li>
+      <li><%= link_to 'Log Out', destroy_user_session_path, method: :delete if user_signed_in? %></li>
     </ul>
     </div>
     </div>
@@ -43,7 +43,7 @@
       </div>
       <div class="col-md-4 text-right">
         <%= yield(:title_button) if content_for?(:title_button) %>
-        <%= link_to 'Log Out', destroy_user_session_url, class: 'btn btn-default vcenter', style: 'margin-top: 28px', method: :delete if user_signed_in? %>
+        <%= link_to 'Log Out', destroy_user_session_path, class: 'btn btn-default vcenter', style: 'margin-top: 28px', method: :delete if user_signed_in? %>
       </div>
     </div> -->
     <h1>Work Orders</h1>
