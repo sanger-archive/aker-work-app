@@ -8,6 +8,9 @@ require 'completion_cancel_steps/fail_step'
 
 class WorkOrdersController < ApplicationController
 
+  # SSO
+  before_action :require_jwt
+
   before_action :work_order, only: [:show, :complete, :cancel]
 
   # In the request from the LIMS to complete or cancel a work order, there is no
@@ -84,6 +87,12 @@ class WorkOrdersController < ApplicationController
   end
 
 private
+
+  def require_jwt
+    unless current_user
+      redirect_to Rails.configuration.login_url
+    end
+  end
 
   def params_for_completion
     p = { work_order: params.require(:work_order).as_json.deep_symbolize_keys }

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170914081304) do
+ActiveRecord::Schema.define(version: 20170925131105) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -51,20 +51,6 @@ ActiveRecord::Schema.define(version: 20170914081304) do
     t.string   "product_uuid"
     t.integer  "product_class"
     t.index ["catalogue_id"], name: "index_products_on_catalogue_id", using: :btree
-  end
-
-  create_table "users", force: :cascade do |t|
-    t.string   "email",               default: "", null: false
-    t.datetime "remember_created_at"
-    t.integer  "sign_in_count",       default: 0,  null: false
-    t.datetime "current_sign_in_at"
-    t.datetime "last_sign_in_at"
-    t.string   "current_sign_in_ip"
-    t.string   "last_sign_in_ip"
-    t.datetime "created_at",                       null: false
-    t.datetime "updated_at",                       null: false
-    t.string   "remember_token"
-    t.index ["email"], name: "index_users_on_email", unique: true, using: :btree
   end
 
   create_table "work_orders", force: :cascade do |t|

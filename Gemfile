@@ -1,5 +1,10 @@
 source 'https://rubygems.org'
 
+git_source(:github) do |repo_name|
+  repo_name = "#{repo_name}/#{repo_name}" unless repo_name.include?("/")
+  "https://github.com/#{repo_name}.git"
+end
+
 # Bundle edge Rails instead: gem 'rails', github: 'rails/rails'
 gem 'rails', '~> 5.0.0', '>= 5.0.0.1'
 # Use postgresql as the database for Active Record
@@ -40,8 +45,9 @@ gem 'zipkin-tracer'
 gem 'json-schema'
 gem 'json_api_client', github: 'sanger/json_api_client'
 
-gem 'aker_credentials_gem', github: 'sanger/aker-credentials'
-gem 'aker_authentication_gem', github: 'sanger/aker-authentication'
+# SSO change - use the
+gem 'aker_credentials_gem', github: 'sanger/aker-credentials', branch: 'noguest'
+
 gem 'aker_permission_gem', github: 'sanger/aker-permission'
 
 gem 'aker-study-client', github: 'sanger/aker-study-client'
