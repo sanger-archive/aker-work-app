@@ -128,7 +128,7 @@ private
         material_step,
         UpdateOldMaterialsStep.new(work_order, params_for_completion),
         UpdateWorkOrderStep.new(work_order, params_for_completion, finish_status),
-        LockSetStep.new(work_order, params_for_completion, material_step),
+        LockSetStep.new(work_order, params_for_completion, material_step)
       ])
 
       cleanup = !success

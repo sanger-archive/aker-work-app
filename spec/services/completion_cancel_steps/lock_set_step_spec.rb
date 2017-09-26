@@ -14,8 +14,7 @@ RSpec.describe 'LockSetStep' do
   setup do
     stub_matcon
     @work_order = make_work_order
-
-    @finished_set = instance_double('set', locked: false, owner_email: @work_order.owner_email, id: made_up_uuid)
+    @finished_set = instance_double('set', locked: false, owner_id: @work_order.owner_email, id: made_up_uuid)
 
 
     allow(SetClient::Set).to receive(:create).and_return(@finished_set)
@@ -32,7 +31,7 @@ RSpec.describe 'LockSetStep' do
     it 'updates the set' do
       expect(@work_order).to receive(:update_attributes!).with(finished_set_uuid: @finished_set.id)
       expect(@finished_set).to receive(:set_materials).with(@materials.map(&:id))
-      expect(@finished_set).to receive(:update_attributes).with(owner_email: @work_order.owner_email, locked: true)
+      expect(@finished_set).to receive(:update_attributes).with(owner_id: @work_order.owner_email, locked: true)
       @step.up
     end
   end

@@ -38,14 +38,14 @@ module TestServicesHelper
   end
 
   def make_work_order
-    @work_order = instance_double("work_order", owner_email: "test@sanger.ac.uk", id: made_up_id)
+    @work_order = instance_double("work_order", owner_email: "person@sanger.ac.uk", id: made_up_id)
   end
 
   def make_active_work_order
     instance_double("work_order", status: 'active',
       comment: 'any comment old',
       close_comment: nil,
-      owner_email: "test@sanger.ac.uk")
+      owner_email: "person@sanger.ac.uk")
   end
 
   def made_up_set
