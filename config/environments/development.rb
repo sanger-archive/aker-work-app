@@ -54,15 +54,15 @@ Rails.application.configure do
 
   config.action_mailer.delivery_method = :sendmail
 
-  config.study_url = 'http://aker-study-management-gui:3000/api/v1'
-  config.study_url_default_proxy = 'http://aker-study-management-gui:3000'
+  config.study_url = 'http://localhost:3300/api/v1'
+  config.study_url_default_proxy = 'http://localhost:3300'
 
-  config.set_url = 'http://aker-set-service:3000/api/v1'
-  config.set_url_default_proxy = 'http://aker-set-service:3000'
+  config.set_url = 'http://localhost:3000/api/v1'
+  config.set_url_default_proxy = 'http://localhost:3000'
 
-  config.material_url = 'http://aker-materials-service:5000/'
+  config.material_url = 'http://localhost:5000/'
 
-  config.stamp_url = 'http://aker-stamp-service:3000/api/v1'
+  config.stamp_url = 'http://localhost:7000/api/v1'
 
   config.jwt_secret_key = 'test'
 
@@ -73,7 +73,7 @@ Rails.application.configure do
 
   config.enable_events_sending = false
   config.events_queue_name = 'aker.events'
-  config.events_queue_connection = "amqp://guest:guest@aker-rabbitmq-1:5672"
+  config.events_queue_connection = "amqp://guest:guest@localhost:5672"
 
   config.work_order_completion_json = 'work_order_completion.json'
 
