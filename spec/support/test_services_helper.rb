@@ -1,3 +1,5 @@
+require 'rails_helper'
+
 module TestServicesHelper
 
   def allow_set_service_lock_set
@@ -124,7 +126,7 @@ module TestServicesHelper
         container
       end
       instance_double('result_set', has_next?: false, first: containers.first, to_a: containers)
-    end    
+    end
   end
 
   def materials_to_be_created(args)
@@ -161,4 +163,3 @@ module TestServicesHelper
 
 
 end
-
