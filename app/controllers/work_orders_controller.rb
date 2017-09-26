@@ -35,7 +35,7 @@ class WorkOrdersController < ApplicationController
   def create
     authorize! :create, WorkOrder
 
-    work_order = WorkOrder.create!(user: current_user)
+    work_order = WorkOrder.create!(owner_email: current_user.email)
 
     redirect_to work_order_build_path(
       id: Wicked::FIRST_STEP,

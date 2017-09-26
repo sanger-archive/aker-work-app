@@ -322,7 +322,7 @@ RSpec.describe WorkOrder, type: :model do
       @original_set = make_set
       @new_set = make_set
       allow(@original_set).to receive(:create_locked_clone).and_return(@new_set)
-      @wo = create(:work_order, id: 42, set_uuid: nil, set: nil, original_set_uuid: @original_set.uuid)
+      @wo = create(:work_order, id: 42, set_uuid: nil, set: nil, original_set_uuid: @original_set.uuid, owner_email: "user@sanger.ac.uk")
     end
 
     it "should call create_locked_clone on the original set" do
