@@ -15,11 +15,11 @@ class WorkOrdersController < ApplicationController
 
   # In the request from the LIMS to complete or cancel a work order, there is no
   # authenticated user in the request so we skip the authentication step
-  skip_authenticate_user :only => [:complete, :cancel, :get]
-  skip_authorization_check :only => [:index, :complete, :cancel, :get]
+  # skip_authenticate_user :only => [:complete, :cancel, :get]
+  # skip_authorization_check :only => [:index, :complete, :cancel, :get]
 
   def index
-    if user_signed_in?
+    if jwt_provided?
       @active_work_orders = WorkOrder.active.for_user(current_user).order(created_at: :desc)
       @pending_work_orders = WorkOrder.pending.for_user(current_user).order(created_at: :desc)
       @completed_work_orders = WorkOrder.completed.for_user(current_user).order(created_at: :desc)

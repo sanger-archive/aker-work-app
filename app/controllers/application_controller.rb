@@ -7,5 +7,5 @@ class ApplicationController < ActionController::Base
   include AkerPermissionControllerConfig
 
   helper_method :jwt_provided?
-  
+
 end

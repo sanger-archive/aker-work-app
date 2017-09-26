@@ -1,12 +1,11 @@
 require 'rails_helper'
+require 'ostruct'
 
 RSpec.describe OrdersController, type: :controller do
-  def setup_user
-    @request.env['devise.mapping'] = Devise.mappings[:user]
-    groups = ["cowboys"]
-    user = create(:user)
-    sign_in user
-    return user
+
+  before do
+    @user = OpenStruct.new(email: 'jeff@sanger.ac.uk', groups: ['world'])
+    allow(controller).to receive(:current_user).and_return(@user)
   end
 
   def mocked_set_with_authorized_materials
@@ -25,10 +24,9 @@ RSpec.describe OrdersController, type: :controller do
   describe "#show" do
     context "when the order belongs to the current user" do
       it "should work" do
-        user = setup_user
-        @wo = create(:work_order, user_id: user.id)
+        wo = create(:work_order, owner_email: @user.email)
 
-        get :show, params: { work_order_id: @wo.id, id: 'set' }
+        get :show, params: { work_order_id: wo.id, id: 'set' }
 
         expect(response).to have_http_status(:ok)
         expect(response.redirect_url).to be_nil
@@ -38,11 +36,10 @@ RSpec.describe OrdersController, type: :controller do
 
     context "when the order belongs to another user" do
       it "should fail authorisation" do
-        user = setup_user
-        user2 = create(:user, email: 'dirk@sanger.ac.uk')
-        @wo = create(:work_order, user_id: user2.id)
+        user2 = OpenStruct.new(email: 'dirk@sanger.ac.uk', groups: ['world'])
+        wo = create(:work_order, owner_email: user2.email)
 
-        get :show, params: { work_order_id: @wo.id, id: 'set' }
+        get :show, params: { work_order_id: wo.id, id: 'set' }
 
         expect(response).to have_http_status(:found)
         expect(response.redirect_url).to be_present
@@ -54,8 +51,7 @@ RSpec.describe OrdersController, type: :controller do
   describe "#update" do
     context "when there is nothing to update" do
       before do
-        user = setup_user
-        @wo = create(:work_order, user_id: user.id)
+        @wo = create(:work_order, owner_email: @user.email)
       end
       context "when work order is at set step" do
         it "should show error and stay on step when no set is selected" do
@@ -138,8 +134,7 @@ RSpec.describe OrdersController, type: :controller do
 
     context "when perform_step succeeds" do
       before do
-        user = setup_user
-        @wo = create(:work_order, user_id: user.id)
+        @wo = create(:work_order, owner_email: @user.email)
         allow(WorkOrder).to receive(:find).and_return(@wo)
         @uos = double('UpdateOrderService')
         allow(UpdateOrderService).to receive(:new).and_return(@uos)
@@ -177,8 +172,7 @@ RSpec.describe OrdersController, type: :controller do
 
     context "when perform_step fails" do
       before do
-        user = setup_user
-        @wo = create(:work_order, user_id: user.id)
+        @wo = create(:work_order, owner_email: @user.email)
         allow(WorkOrder).to receive(:find).and_return(@wo)
         @uos = double('UpdateOrderService')
         allow(UpdateOrderService).to receive(:new).and_return(@uos)
@@ -215,9 +209,8 @@ RSpec.describe OrdersController, type: :controller do
 
     context "when the order belongs to another user" do
       it "should fail authorisation" do
-        user = setup_user
-        user2 = create(:user, email: 'dirk@sanger.ac.uk')
-        @wo = create(:work_order, user_id: user2.id)
+        user2 = OpenStruct.new(email: 'dirk@sanger.ac.uk', groups: ['world'])
+        @wo = create(:work_order, owner_email: user2.email)
 
         expect(UpdateOrderService).not_to receive(:new)
 
@@ -229,5 +222,4 @@ RSpec.describe OrdersController, type: :controller do
       end
     end
   end
-
 end

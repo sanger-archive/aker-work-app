@@ -3,7 +3,7 @@ class CataloguesController < ApplicationController
 
   # Currently using flimsy service to populate catalogue of products
   # Will not implement SSO just yet...
-  skip_authenticate_user
+  # skip_authenticate_user
 
   def create
     Catalogue.create_with_products(catalogue_params)

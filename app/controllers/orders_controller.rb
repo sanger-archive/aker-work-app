@@ -1,11 +1,11 @@
 class OrdersController < ApplicationController
 
-  # SSO
-  before_action :require_jwt
-
   include Wicked::Wizard
 
   steps :set, :proposal, :product, :cost, :summary
+
+  # SSO
+  before_action :require_jwt
 
   def show
     authorize! :write, work_order

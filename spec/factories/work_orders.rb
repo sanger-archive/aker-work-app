@@ -1,5 +1,5 @@
 FactoryGirl.define do
   factory :work_order do
-    user
+    owner_email 'owner@sanger.ac.uk'
   end
 end

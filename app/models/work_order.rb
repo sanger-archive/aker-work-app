@@ -6,17 +6,18 @@ class WorkOrder < ApplicationRecord
   include AkerPermissionGem::Accessible
 
   belongs_to :product, optional: true
-  belongs_to :user
 
   after_initialize :create_uuid
   after_create :set_default_permission_email
+
+  validates :owner_email, presence: true
 
   def create_uuid
     self.work_order_uuid ||= SecureRandom.uuid
   end
 
   def set_default_permission_email
-    set_default_permission(user.email)
+    set_default_permission(owner_email)
   end
 
   def self.ACTIVE
@@ -35,7 +36,7 @@ class WorkOrder < ApplicationRecord
     'cancelled'
   end
 
-  scope :for_user, ->(user) { where(user_id: user.id) }
+  scope :for_user, -> (owner) { where(owner_email: owner.email) }
   scope :active, -> { where(status: WorkOrder.ACTIVE) }
   # status is either set, product, proposal
   scope :pending, -> { where('status NOT IN (?)', not_pending_status_list)}
@@ -130,7 +131,7 @@ class WorkOrder < ApplicationRecord
   def lims_data
     material_ids = SetClient::Set.find_with_materials(set_uuid).first.materials.map{|m| m.id}
     materials = all_results(MatconClient::Material.where("_id" => {"$in" => material_ids}).result_set)
-    
+
     unless materials.all? { |m| m.attributes['available'] }
       raise "Some of the specified materials are not available."
     end
