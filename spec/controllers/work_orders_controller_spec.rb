@@ -1,11 +1,9 @@
 require 'rails_helper'
 
 RSpec.describe WorkOrdersController, type: :controller do
-  def setup_user
-    @request.env['devise.mapping'] = Devise.mappings[:user]
-    groups = ["cowboys"]
-    user = create(:user)
-    sign_in user
+  def setup_user(name = "user")
+    user = OpenStruct.new(email: "#{name}@sanger.ac.uk", groups: ['world'])
+    allow(controller).to receive(:current_user).and_return(user)
     return user
   end
 
@@ -16,7 +14,7 @@ RSpec.describe WorkOrdersController, type: :controller do
 
         expect { post :create, params: {} }.to change(WorkOrder, :count).by(1)
         work_order = WorkOrder.last
-        expect(work_order.user_id).to eq user.id
+        expect(work_order.owner_email).to eq user.email
         expected_redirect = work_order_build_url(
           id: Wicked::FIRST_STEP,
           work_order_id: work_order.id
@@ -31,11 +29,11 @@ RSpec.describe WorkOrdersController, type: :controller do
     context "when the user is logged in" do
       it 'shows work orders belonging to the user' do
         user = setup_user
-        user2 = create(:user, email: 'jeff@sanger.ac.uk')
-        wo1 = WorkOrder.create(user_id: user.id, status: "product")
-        wo2 = WorkOrder.create(user_id: user2.id, status: "product")
-        wo3 = WorkOrder.create(user_id: user.id, status: WorkOrder.ACTIVE)
-        wo4 = WorkOrder.create(user_id: user2.id, status: WorkOrder.ACTIVE)
+        user2 = OpenStruct.new(email: 'jeff@sanger.ac.uk', groups: ['world'])
+        wo1 = WorkOrder.create(owner_email: user.email, status: "product")
+        wo2 = WorkOrder.create(owner_email: user2.email, status: "product")
+        wo3 = WorkOrder.create(owner_email: user.email, status: WorkOrder.ACTIVE)
+        wo4 = WorkOrder.create(owner_email: user2.email, status: WorkOrder.ACTIVE)
 
         get :index, params: {}
 
@@ -52,8 +50,8 @@ RSpec.describe WorkOrdersController, type: :controller do
   describe "#get" do
     context 'when the work order exists' do
       it 'renders the work order json' do
-        user = create(:user, email: 'jeff@sanger.ac.uk')
-        wo = WorkOrder.create(user_id: user.id, status: WorkOrder.ACTIVE)
+        user = setup_user("jeff")
+        wo = WorkOrder.create(owner_email: user.email, status: WorkOrder.ACTIVE)
         data = {alpha: :beta}
         expect_any_instance_of(WorkOrder).to receive(:lims_data).and_return(data)
         get :get, params: { id: wo.id }
@@ -64,6 +62,7 @@ RSpec.describe WorkOrdersController, type: :controller do
     end
     context 'when the work order does not exist' do
       it 'returns 404' do
+        setup_user
         get :get, params: { id: 0 }
         expect(response).to have_http_status(:not_found)
       end
@@ -74,7 +73,7 @@ RSpec.describe WorkOrdersController, type: :controller do
     context "when the work order is destructible" do
       before do
         user = setup_user
-        @wo = WorkOrder.create(user_id: user.id, status: "product")
+        @wo = WorkOrder.create(owner_email: user.email, status: "product")
 
         delete :destroy, params: { id: @wo.id }
       end
@@ -92,7 +91,7 @@ RSpec.describe WorkOrdersController, type: :controller do
     context "when the work order has already been issued" do
       before do
         user = setup_user
-        @wo = WorkOrder.create(user_id: user.id, status: 'active')
+        @wo = WorkOrder.create(owner_email: user.email, status: 'active')
 
         delete :destroy, params: { id: @wo.id }
       end
@@ -110,8 +109,8 @@ RSpec.describe WorkOrdersController, type: :controller do
     context "when the work order belongs to someone else" do
       before do
         user = setup_user
-        user2 = create(:user, email: 'jeff@sanger.ac.uk')
-        @wo = WorkOrder.create(user_id: user2.id, status: 'product')
+        user2 = OpenStruct.new(email: 'jeff@sanger.ac.uk', groups: ['world'])
+        @wo = WorkOrder.create(owner_email: user2.email, status: 'product')
 
         delete :destroy, params: { id: @wo.id }
       end
@@ -128,7 +127,7 @@ RSpec.describe WorkOrdersController, type: :controller do
     context "when the work order belongs to the current user" do
       it "succeeds" do
         user = setup_user
-        @wo = WorkOrder.create(user_id: user.id)
+        @wo = WorkOrder.create(owner_email: user.email)
 
         get :show, params: { id: @wo.id }
 
@@ -141,8 +140,8 @@ RSpec.describe WorkOrdersController, type: :controller do
     context "when the work order belongs to someone else" do
       it "still succeeds" do
         user = setup_user
-        user2 = create(:user, email: 'jeff@sanger.ac.uk')
-        @wo = WorkOrder.create(user_id: user2.id)
+        user2 = OpenStruct.new(email: 'jeff@sanger.ac.uk', groups: ['world'])
+        @wo = WorkOrder.create(owner_email: user2.email)
 
         get :show, params: { id: @wo.id }
 

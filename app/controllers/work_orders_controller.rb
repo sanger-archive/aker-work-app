@@ -15,7 +15,7 @@ class WorkOrdersController < ApplicationController
 
   # In the request from the LIMS to complete or cancel a work order, there is no
   # authenticated user in the request so we skip the authentication step
-  skip_authenticate_user :only => [:complete, :cancel, :get]
+  # skip_authenticate_user :only => [:complete, :cancel, :get]
   skip_authorization_check :only => [:index, :complete, :cancel, :get]
 
   def index
@@ -35,7 +35,7 @@ class WorkOrdersController < ApplicationController
   def create
     authorize! :create, WorkOrder
 
-    work_order = WorkOrder.create!(user: current_user)
+    work_order = WorkOrder.create!(owner_email: current_user.email)
 
     redirect_to work_order_build_path(
       id: Wicked::FIRST_STEP,
