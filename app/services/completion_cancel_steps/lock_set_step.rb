@@ -12,7 +12,7 @@ class LockSetStep
 		@work_order.update_attributes!(finished_set_uuid: finished_set.id)
 
 		finished_set.set_materials(@material_step.materials.map(&:id))
-		finished_set.update_attributes(owner_id: @work_order.user.email, locked: true)
+		finished_set.update_attributes(owner_id: @work_order.owner_email, locked: true)
 	end
 
 	def down
