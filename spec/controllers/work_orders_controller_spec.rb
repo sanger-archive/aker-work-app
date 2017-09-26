@@ -134,7 +134,7 @@ RSpec.describe WorkOrdersController, type: :controller do
 
     context "when the work order belongs to someone else" do
       it "still succeeds" do
-        user = OpenStruct.new(email: 'jeff@sanger.ac.uk', groups: ['world'])
+        user = setup_user("jeff")
         @wo = WorkOrder.create(owner_email: user.email)
 
         get :show, params: { id: @wo.id }
