@@ -38,21 +38,19 @@ module TestServicesHelper
   end
 
   def make_work_order
-    @work_order = instance_double("work_order", user: instance_double("user", email: "any"), id: made_up_id)
+    @work_order = instance_double("work_order", owner_email: "test@sanger.ac.uk", id: made_up_id)
   end
 
   def make_active_work_order
-    work_order = instance_double("work_order", status: 'active',
+    instance_double("work_order", status: 'active',
       comment: 'any comment old',
       close_comment: nil,
-      user: instance_double("user", email: "user@here.com"))
+      owner_email: "test@sanger.ac.uk")
   end
 
   def made_up_set
-    headers = {'Accept'=>'application/vnd.api+json', 'Content-Type'=>'application/vnd.api+json'}
     set_uuid = made_up_uuid
     set = double(:set, id: set_uuid, type: 'sets', name: 'A set name', owner_id: nil, locked: true, meta: { size: 1 })
-
 
     materials = 5.times.map{make_material}
 
@@ -160,6 +158,5 @@ module TestServicesHelper
       slot
     end
   end
-
 
 end

@@ -9,13 +9,11 @@ require 'completion_cancel_steps/fail_step'
 class WorkOrdersController < ApplicationController
 
   # SSO
-  before_action :require_jwt
-
-  before_action :work_order, only: [:show, :complete, :cancel]
-
   # In the request from the LIMS to complete or cancel a work order, there is no
   # authenticated user in the request so we skip the authentication step
-  # skip_authenticate_user :only => [:complete, :cancel, :get]
+  before_action :require_jwt, except: [:complete, :cancel, :get]
+  before_action :work_order, only: [:show, :complete, :cancel]
+
   skip_authorization_check :only => [:index, :complete, :cancel, :get]
 
   def index
@@ -60,7 +58,6 @@ class WorkOrdersController < ApplicationController
   end
 
   # -------- API ---------
-
   def get
     render json: work_order.lims_data, status: 200
   rescue ActiveRecord::RecordNotFound
@@ -125,13 +122,13 @@ private
     cleanup = false
     begin
       material_step = CreateNewMaterialsStep.new(work_order, params_for_completion)
+
       success = DispatchService.new.process([
         CreateContainersStep.new(work_order, params_for_completion),
         material_step,
         UpdateOldMaterialsStep.new(work_order, params_for_completion),
         UpdateWorkOrderStep.new(work_order, params_for_completion, finish_status),
         LockSetStep.new(work_order, params_for_completion, material_step),
-        # FailStep.new,
       ])
 
       cleanup = !success

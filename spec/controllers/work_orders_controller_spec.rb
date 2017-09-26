@@ -29,20 +29,16 @@ RSpec.describe WorkOrdersController, type: :controller do
     context "when the user is logged in" do
       it 'shows work orders belonging to the user' do
         user = setup_user
-        user2 = OpenStruct.new(email: 'jeff@sanger.ac.uk', groups: ['world'])
         wo1 = WorkOrder.create(owner_email: user.email, status: "product")
-        wo2 = WorkOrder.create(owner_email: user2.email, status: "product")
-        wo3 = WorkOrder.create(owner_email: user.email, status: WorkOrder.ACTIVE)
-        wo4 = WorkOrder.create(owner_email: user2.email, status: WorkOrder.ACTIVE)
+        wo2 = WorkOrder.create(owner_email: user.email, status: WorkOrder.ACTIVE)
 
         get :index, params: {}
-
         pending = controller.instance_variable_get("@pending_work_orders")
         expect(pending.length).to eq 1
         expect(pending.first).to eq wo1
         active = controller.instance_variable_get("@active_work_orders")
         expect(active.length).to eq 1
-        expect(active.first).to eq wo3
+        expect(active.first).to eq wo2
       end
     end
   end
@@ -108,9 +104,8 @@ RSpec.describe WorkOrdersController, type: :controller do
 
     context "when the work order belongs to someone else" do
       before do
-        user = setup_user
-        user2 = OpenStruct.new(email: 'jeff@sanger.ac.uk', groups: ['world'])
-        @wo = WorkOrder.create(owner_email: user2.email, status: 'product')
+        user = OpenStruct.new(email: 'jeff@sanger.ac.uk', groups: ['world'])
+        @wo = WorkOrder.create(owner_email: user.email, status: 'product')
 
         delete :destroy, params: { id: @wo.id }
       end
@@ -139,9 +134,8 @@ RSpec.describe WorkOrdersController, type: :controller do
 
     context "when the work order belongs to someone else" do
       it "still succeeds" do
-        user = setup_user
-        user2 = OpenStruct.new(email: 'jeff@sanger.ac.uk', groups: ['world'])
-        @wo = WorkOrder.create(owner_email: user2.email)
+        user = OpenStruct.new(email: 'jeff@sanger.ac.uk', groups: ['world'])
+        @wo = WorkOrder.create(owner_email: user.email)
 
         get :show, params: { id: @wo.id }
 
