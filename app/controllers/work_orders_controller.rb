@@ -9,9 +9,8 @@ require 'completion_cancel_steps/fail_step'
 class WorkOrdersController < ApplicationController
 
   # SSO
-  # In the request from the LIMS to complete or cancel a work order, there is no
-  # authenticated user in the request so we skip the authentication step
-  before_action :require_jwt, except: [:complete, :cancel, :get]
+  before_action :require_jwt
+  
   before_action :work_order, only: [:show, :complete, :cancel]
 
   skip_authorization_check :only => [:index, :complete, :cancel, :get]
