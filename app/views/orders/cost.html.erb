@@ -14,6 +14,8 @@ Number of samples : <%= num_samples.to_s.rjust(total_length-3) %>
             Total : <%= number_to_currency(total, unit: '£').to_s.rjust(total_length) %>
 </pre>
 
+<p style="color:red">&#9888; This cost comes from a mocked service, not from UBW.</p>
+
   <%= render 'buttons', work_order: work_order, f: f %>
 
 <% end %>
