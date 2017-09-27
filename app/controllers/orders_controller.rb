@@ -32,7 +32,7 @@ class OrdersController < ApplicationController
     end
 
     def get_all_aker_sets
-      if user_signed_in?
+      if jwt_provided?
         SetClient::Set.where(owner_id: current_user.email).order(created_at: :desc).all.select { |s| s.meta["size"] > 0 }
       else
         []
