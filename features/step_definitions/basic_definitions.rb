@@ -1,6 +1,6 @@
 Before do
-   user = OpenStruct.new(:email => 'test@test', :groups => ['world'])
-  ApplicationController.any_instance.stub(:current_user).and_return(user)
+  user = OpenStruct.new(:email => 'test@test', :groups => ['world'])
+ApplicationController.any_instance.stub(:current_user).and_return(user)
 end
 
 Given(/^I am logged in as user "([^"]*)"$/) do |username|
