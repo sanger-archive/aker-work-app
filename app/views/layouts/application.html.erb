@@ -25,18 +25,12 @@
     <a class="navbar-brand" href="#">Aker</a>
     </div>
     <div class="collapse navbar-collapse" id="navBar">
-    <!-- <ul class="nav navbar-nav">
-      <li><%= link_to 'Creation', "#" %></li>
-    </ul> -->
-    <ul class="nav navbar-nav navbar-right">
-      <li>
-        <% if jwt_provided? %>
+      <ul class="nav navbar-nav navbar-right">
+        <li><p class="navbar-text">Logged in as <%= current_user.email %></p></li>
+        <li>
           <%= link_to 'Log out', Rails.configuration.logout_url, method: :delete if Rails.configuration.logout_url %>
-        <% else %>
-          <%= link_to 'Log in', Rails.configuration.login_url if Rails.configuration.login_url %>
-        <% end %>
-      </li>
-    </ul>
+        </li>
+      </ul>
     </div>
     </div>
     </nav>

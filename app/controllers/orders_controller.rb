@@ -5,7 +5,7 @@ class OrdersController < ApplicationController
   steps :set, :proposal, :product, :cost, :summary
 
   # SSO
-  before_action :require_jwt
+  before_action :check_user_signed_in
 
   def show
     authorize! :write, work_order
@@ -32,11 +32,7 @@ class OrdersController < ApplicationController
     end
 
     def get_all_aker_sets
-      if jwt_provided?
-        SetClient::Set.where(owner_id: current_user.email).order(created_at: :desc).all.select { |s| s.meta["size"] > 0 }
-      else
-        []
-      end
+      SetClient::Set.where(owner_id: current_user.email).order(created_at: :desc).all.select { |s| s.meta["size"] > 0 }
     end
 
     def proposal
@@ -63,10 +59,8 @@ class OrdersController < ApplicationController
 
   private
 
-    def require_jwt
-      unless current_user
-        redirect_to Rails.configuration.login_url
-      end
+    def check_user_signed_in
+      redirect_to Rails.configuration.login_url unless current_user
     end
 
     def user_and_groups_list

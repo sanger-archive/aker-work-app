@@ -82,8 +82,7 @@ Rails.application.configure do
   config.action_mailer.default_url_options = { host: 'localhost', port: 3000 }
 
   # SSO
-  config.default_jwt_user = { email: ENV.fetch('USER', 'user') + '@sanger.ac.uk',
-                              groups: ['world'] }
+  config.default_jwt_user = { email: ENV.fetch('USER', 'user') + '@sanger.ac.uk', groups: ['world'] }
 
   config.login_url = '#'
   config.logout_url = '#'

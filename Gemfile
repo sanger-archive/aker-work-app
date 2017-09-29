@@ -46,7 +46,7 @@ gem 'json-schema'
 gem 'json_api_client', github: 'sanger/json_api_client'
 
 # SSO change - use the
-gem 'aker_credentials_gem', github: 'sanger/aker-credentials', branch: 'noguest'
+gem 'aker_credentials_gem', github: 'sanger/aker-credentials'
 
 gem 'aker_permission_gem', github: 'sanger/aker-permission'
 

@@ -9,24 +9,17 @@ require 'completion_cancel_steps/fail_step'
 class WorkOrdersController < ApplicationController
 
   # SSO
-  before_action :require_jwt
-  
+  before_action :check_user_signed_in
+
   before_action :work_order, only: [:show, :complete, :cancel]
 
   skip_authorization_check :only => [:index, :complete, :cancel, :get]
 
   def index
-    if jwt_provided?
-      @active_work_orders = WorkOrder.active.for_user(current_user).order(created_at: :desc)
-      @pending_work_orders = WorkOrder.pending.for_user(current_user).order(created_at: :desc)
-      @completed_work_orders = WorkOrder.completed.for_user(current_user).order(created_at: :desc)
-      @cancelled_work_orders = WorkOrder.cancelled.for_user(current_user).order(created_at: :desc)
-    else
-      @active_work_orders = []
-      @pending_work_orders = []
-      @completed_work_orders = []
-      @cancelled_work_orders = []
-    end
+    @active_work_orders = WorkOrder.active.for_user(current_user).order(created_at: :desc)
+    @pending_work_orders = WorkOrder.pending.for_user(current_user).order(created_at: :desc)
+    @completed_work_orders = WorkOrder.completed.for_user(current_user).order(created_at: :desc)
+    @cancelled_work_orders = WorkOrder.cancelled.for_user(current_user).order(created_at: :desc)
   end
 
   def create
@@ -84,10 +77,8 @@ class WorkOrdersController < ApplicationController
 
 private
 
-  def require_jwt
-    unless current_user
-      redirect_to Rails.configuration.login_url
-    end
+  def check_user_signed_in
+    redirect_to Rails.configuration.login_url unless current_user
   end
 
   def params_for_completion
