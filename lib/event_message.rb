@@ -20,7 +20,7 @@ class EventMessage
       "lims_id" => "aker",
       "uuid" => SecureRandom.uuid,
       "timestamp" => Time.now.utc.iso8601,
-      "user_identifier" => @work_order.user.email,
+      "user_identifier" => @work_order.owner_email,
       "roles" => [
         {
           "role_type" => "work_order",

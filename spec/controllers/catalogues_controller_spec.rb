@@ -1,11 +1,12 @@
 require 'rails_helper'
+require 'ostruct'
 
 RSpec.describe CataloguesController, type: :controller do
 
   describe "#create" do
 
     let (:catalogue) { double("Catalogue") }
-    let (:user) { create(:user) }
+    let (:user) { OpenStruct.new(email: 'jeff', groups: ['world']) }
 
     let (:headers) do
       { "Content-Type" => "application/json" }
@@ -13,8 +14,9 @@ RSpec.describe CataloguesController, type: :controller do
 
     context "when posting to /catalogue" do
       it "calls create_with_products method in the model" do
-        @request.env['devise.mapping'] = Devise.mappings[:user]
-        sign_in user
+        if user
+          allow_any_instance_of(CataloguesController).to receive(:current_user)
+        end
         expect(Catalogue).to receive(:create_with_products)
 
         post :create, params: { catalogue: {lims_id: 'a', pipeline: 'b', url: 'c', products: [] } }, headers: headers
