@@ -25,6 +25,11 @@ class OrdersController < ApplicationController
     end
   end
 
+  # redirect path to workorders#index
+  def finish_wizard_path
+    work_orders_path
+  end  
+
   protected
 
     def work_order
