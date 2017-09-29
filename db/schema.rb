@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170914081304) do
+ActiveRecord::Schema.define(version: 20170925150957) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -33,7 +33,6 @@ ActiveRecord::Schema.define(version: 20170914081304) do
     t.datetime "updated_at",      null: false
     t.string   "permission_type", null: false
     t.index ["accessible_type", "accessible_id"], name: "index_permissions_on_accessible_type_and_accessible_id", using: :btree
-    t.index ["permitted", "permission_type", "accessible_id", "accessible_type"], name: "index_permissions_on_various", unique: true, using: :btree
     t.index ["permitted"], name: "index_permissions_on_permitted", using: :btree
   end
 
@@ -53,20 +52,6 @@ ActiveRecord::Schema.define(version: 20170914081304) do
     t.index ["catalogue_id"], name: "index_products_on_catalogue_id", using: :btree
   end
 
-  create_table "users", force: :cascade do |t|
-    t.string   "email",               default: "", null: false
-    t.datetime "remember_created_at"
-    t.integer  "sign_in_count",       default: 0,  null: false
-    t.datetime "current_sign_in_at"
-    t.datetime "last_sign_in_at"
-    t.string   "current_sign_in_ip"
-    t.string   "last_sign_in_ip"
-    t.datetime "created_at",                       null: false
-    t.datetime "updated_at",                       null: false
-    t.string   "remember_token"
-    t.index ["email"], name: "index_users_on_email", unique: true, using: :btree
-  end
-
   create_table "work_orders", force: :cascade do |t|
     t.string   "status"
     t.datetime "created_at",        null: false
@@ -77,11 +62,12 @@ ActiveRecord::Schema.define(version: 20170914081304) do
     t.string   "comment"
     t.date     "desired_date"
     t.integer  "product_id"
-    t.integer  "user_id"
     t.integer  "total_cost"
     t.string   "finished_set_uuid"
     t.string   "work_order_uuid"
     t.string   "close_comment"
+    t.string   "owner_email"
+    t.index ["owner_email"], name: "index_work_orders_on_owner_email", using: :btree
     t.index ["product_id"], name: "index_work_orders_on_product_id", using: :btree
   end
 

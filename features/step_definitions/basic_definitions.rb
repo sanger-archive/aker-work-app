@@ -1,9 +1,10 @@
+Before do
+  user = OpenStruct.new(:email => 'test@test', :groups => ['world'])
+  ApplicationController.any_instance.stub(:current_user).and_return(user)
+end
+
 Given(/^I am logged in as user "([^"]*)"$/) do |username|
-  user = User.find_or_create_by(email: username)
-  visit '/users/sign_in'
-  fill_in "user_email", with: user.email
-  fill_in "user_password", with: ''
-  click_on "Log in"
+  visit root_path
 end
 
 Given(/^the following sets are defined for user "([^"]*)":$/) do |user, table|
