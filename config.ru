@@ -2,4 +2,7 @@
 
 require_relative 'config/environment'
 
-run Rails.application
+# If relative_url_root is non-nil, use that, otherwise use slash.
+map Rails.application.config.relative_url_root || '/' do
+  run Rails.application
+end
