@@ -2,7 +2,7 @@ require 'rails_helper'
 
 RSpec.describe WorkOrderValidatorService do
   before do
-    @work_order = create :work_order, status: 'active'
+    @work_order = create(:work_order, owner_email: "user@sanger.ac.uk", status: 'active')
     @msg = build :work_order_completion_message_json
     @msg[:work_order][:work_order_id] = @work_order.id
     @validator = WorkOrderValidatorService.new(@work_order, @msg)

@@ -8,31 +8,24 @@ require 'completion_cancel_steps/fail_step'
 
 class WorkOrdersController < ApplicationController
 
+  # SSO
+  before_action :check_user_signed_in
+
   before_action :work_order, only: [:show, :complete, :cancel]
 
-  # In the request from the LIMS to complete or cancel a work order, there is no
-  # authenticated user in the request so we skip the authentication step
-  skip_authenticate_user :only => [:complete, :cancel, :get]
   skip_authorization_check :only => [:index, :complete, :cancel, :get]
 
   def index
-    if user_signed_in?
-      @active_work_orders = WorkOrder.active.for_user(current_user).order(created_at: :desc)
-      @pending_work_orders = WorkOrder.pending.for_user(current_user).order(created_at: :desc)
-      @completed_work_orders = WorkOrder.completed.for_user(current_user).order(created_at: :desc)
-      @cancelled_work_orders = WorkOrder.cancelled.for_user(current_user).order(created_at: :desc)
-    else
-      @active_work_orders = []
-      @pending_work_orders = []
-      @completed_work_orders = []
-      @cancelled_work_orders = []
-    end
+    @active_work_orders = WorkOrder.active.for_user(current_user).order(created_at: :desc)
+    @pending_work_orders = WorkOrder.pending.for_user(current_user).order(created_at: :desc)
+    @completed_work_orders = WorkOrder.completed.for_user(current_user).order(created_at: :desc)
+    @cancelled_work_orders = WorkOrder.cancelled.for_user(current_user).order(created_at: :desc)
   end
 
   def create
     authorize! :create, WorkOrder
 
-    work_order = WorkOrder.create!(user: current_user)
+    work_order = WorkOrder.create!(owner_email: current_user.email)
 
     redirect_to work_order_build_path(
       id: Wicked::FIRST_STEP,
@@ -57,7 +50,6 @@ class WorkOrdersController < ApplicationController
   end
 
   # -------- API ---------
-
   def get
     render json: work_order.lims_data, status: 200
   rescue ActiveRecord::RecordNotFound
@@ -84,6 +76,10 @@ class WorkOrdersController < ApplicationController
   end
 
 private
+
+  def check_user_signed_in
+    redirect_to Rails.configuration.login_url unless current_user
+  end
 
   def params_for_completion
     p = { work_order: params.require(:work_order).as_json.deep_symbolize_keys }
@@ -116,13 +112,13 @@ private
     cleanup = false
     begin
       material_step = CreateNewMaterialsStep.new(work_order, params_for_completion)
+
       success = DispatchService.new.process([
         CreateContainersStep.new(work_order, params_for_completion),
         material_step,
         UpdateOldMaterialsStep.new(work_order, params_for_completion),
         UpdateWorkOrderStep.new(work_order, params_for_completion, finish_status),
-        LockSetStep.new(work_order, params_for_completion, material_step),
-        # FailStep.new,
+        LockSetStep.new(work_order, params_for_completion, material_step)
       ])
 
       cleanup = !success
