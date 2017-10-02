@@ -26,7 +26,7 @@ class CreateNewMaterialsStep
     @msg[:work_order][:new_materials].each do |mat|
       container = mat[:container]
       mat.delete(:container)
-      mat[:owner_id] = @work_order.user.email
+      mat[:owner_id] = @work_order.owner_email
       new_material = MatconClient::Material.create(mat)
       # if result set or array, get the material from it
       if new_material.class != MatconClient::Material

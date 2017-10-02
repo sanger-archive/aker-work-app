@@ -2,13 +2,17 @@ require 'rails_helper'
 
 RSpec.feature "Permissions", type: :feature do
 
-  let(:work_order) { create(:work_order, user: create(:user)) }
+  let (:work_order) do
+    user = OpenStruct.new(email: "user@sanger.ac.uk", groups: ['world'])
+    create(:work_order, owner_email: user.email)
+  end
 
   describe 'Work Orders' do
     context 'with a logged in user' do
 
       before :each do
-        sign_in create(:user)
+        @user = OpenStruct.new(email: "bob@sanger.ac.uk", groups: ['world'])
+        allow_any_instance_of(JWTCredentials).to receive(:current_user).and_return(@user)
       end
 
       context 'when trying to visit an in progress Work Order they do not have read permission on' do
