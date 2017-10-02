@@ -33,6 +33,7 @@ ActiveRecord::Schema.define(version: 20170925150957) do
     t.datetime "updated_at",      null: false
     t.string   "permission_type", null: false
     t.index ["accessible_type", "accessible_id"], name: "index_permissions_on_accessible_type_and_accessible_id", using: :btree
+    t.index ["permitted", "permission_type", "accessible_id", "accessible_type"], name: "index_permissions_on_various", unique: true, using: :btree
     t.index ["permitted"], name: "index_permissions_on_permitted", using: :btree
   end
 

@@ -5,7 +5,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <title>Aker - Work Orders</title>
+    <title>Work Orders | Aker </title>
 
     <%= stylesheet_link_tag    'application', media: 'all', 'data-turbolinks-track': 'reload' %>
     <%= javascript_include_tag 'application', 'data-turbolinks-track': 'reload' %>
@@ -25,7 +25,12 @@
     <a class="navbar-brand" href="#">Aker</a>
     </div>
     <div class="collapse navbar-collapse" id="navBar">
-      <ul class="nav navbar-nav navbar-right">
+    <ul class="nav navbar-nav">
+      <li>
+        <%= link_to 'Work Orders', root_path, id: ('current_page' if params[:controller] == 'work_orders') %>
+      </li>
+    </ul>
+    <ul class="nav navbar-nav navbar-right">
         <li><p class="navbar-text">Logged in as <%= current_user.email %></p></li>
         <li>
           <%= link_to 'Log out', Rails.configuration.logout_url, method: :delete if Rails.configuration.logout_url %>
@@ -41,11 +46,7 @@
     <%= render "flashes" %>
     <%= yield(:title_button) if content_for?(:title_button) %>
 
-    <div class="row">
-      <div class="col-md-12">
-        <%= yield %>
-      </div>
-    </div>
+    <%= yield %>
 
   </div>
 

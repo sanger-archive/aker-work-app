@@ -44,32 +44,32 @@ Given the user "test@test" has permission "spend" for the materials in the set "
 When I go to the work order main page
 And I click on "Create New Work Order"
 
-Then I should see "Step 1: Select Set"
+Then I should be on the step: "Select Set"
 And I should see "testing_set_1"
 And I should see "testing_set_2"
 
 When I choose "testing_set_1" in a table
 And I click on "Next"
-Then I should see "Step 2: Select Project"
+Then I should be on the step: "Select Project"
 And I should see "Proposal 1"
 And I should see "Proposal 2"
 
 When I choose "Proposal 1"
 And I click on "Next"
 
-Then I should see "Step 3: Select Product"
+Then I should be on the step: "Select Product"
 And I should see "product_test_1"
 And I should see "product_test_2"
 
 When I choose "product_test_1"
 And I click on "Next"
 
-Then I should see "Step 4: Cost summary"
+Then I should be on the step: "Cost"
 And I should see "Total : £0.00"
 
 When I click on "Next"
 
-Then I should see "Step 5: Confirm Order"
+Then I should be on the step: "Confirm"
 And I should see "testing_set_1"
 And I should see "product_test_1"
 And I should see "Proposal 1"
@@ -92,19 +92,19 @@ Given the user "test@test" has permission "spend" for the materials in the set "
 When I go to the work order main page
 And I click on "Create New Work Order"
 
-Then I should see "Step 1: Select Set"
+Then I should be on the step: "Select Set"
 And I should see "testing_set_1"
 And I should see "testing_set_2"
 
 When I choose "testing_set_1" in a table
 And I click on "Next"
 
-Then I should see "Step 2: Select Project"
+Then I should be on the step: "Select Project"
 And I should see "Proposal 1"
 And I should see "Proposal 2"
 
 When I choose "Proposal 2"
 And I click on "Next"
 
-Then I should not see "Step 3: Select Product"
+Then I should NOT be on the step: "Select Product"
 And I should see "Not Authorized!"
