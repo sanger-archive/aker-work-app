@@ -114,6 +114,14 @@ Given(/^I click on "([^"]*)"$/) do |text|
   click_on(text)
 end
 
+Given(/^I click on drop-down "([^"]*)"$/) do |dropdown|
+  find("##{dropdown}").click
+end
+
+Given(/^I click on "([^"]*)" in drop-down "([^"]*)"$/) do |value, dropdown|
+  select "#{value}", from: "#{dropdown}"
+end
+
 Then(/^show me the page$/) do
   save_and_open_page
 end

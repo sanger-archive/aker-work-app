@@ -63,7 +63,7 @@ RSpec.describe OrdersController, type: :controller do
       context "when work order is at proposal step" do
         it "should show error and stay on step when no proposal is selected" do
           put :update, params: { work_order_id: @wo.id, id: 'proposal'}
-          expect(flash[:error]).to eq 'Please select a project to proceed.'
+          expect(flash[:error]).to eq 'Please select a proposal to proceed.'
           expect(UpdateOrderService).not_to receive(:new)
           expect(response.redirect_url).to be_nil
         end
@@ -87,13 +87,6 @@ RSpec.describe OrdersController, type: :controller do
           expect(flash[:error]).to eq 'Please select a product to proceed.'
           expect(UpdateOrderService).not_to receive(:new)
           expect(response.redirect_url).to be_nil
-        end
-      end
-      context "when work order is at cost step" do
-        it "should be redirected to the summary step" do
-          put :update, params: { work_order_id: @wo.id, id: 'cost'}
-          expect(UpdateOrderService).not_to receive(:new)
-          expect(response.redirect_url).to include 'summary'
         end
       end
       context "when work order is at summary step" do

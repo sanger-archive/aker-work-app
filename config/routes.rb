@@ -17,4 +17,6 @@ Rails.application.routes.draw do
   	resources :build, controller: 'orders'
   end
 
+  resources :products, only: [:show]
+
 end
