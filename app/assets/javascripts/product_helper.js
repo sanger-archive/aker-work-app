@@ -40,7 +40,7 @@ function renderCostInformation(data) {
     const total = numOfSamples * costPerSample;
 
     const cost = {
-      num_of_samples: convertToCurrency(numOfSamples),
+      num_of_samples: numOfSamples,
       cost_per_sample: convertToCurrency(costPerSample),
       total: convertToCurrency(total)
     }
