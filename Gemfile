@@ -62,6 +62,9 @@ gem 'swagger-ui_rails'
 
 gem 'pry'
 
+gem 'js-routes'
+gem 'ejs'
+
 group :development, :test do
   # Call 'byebug' anywhere in the code to stop execution and get a debugger console
   gem 'byebug', platform: :mri

@@ -2,7 +2,7 @@ class OrdersController < ApplicationController
 
   include Wicked::Wizard
 
-  steps :set, :proposal, :product, :cost, :summary
+  steps :set, :proposal, :product, :summary
 
   # SSO
   before_action :check_user_signed_in
@@ -28,7 +28,7 @@ class OrdersController < ApplicationController
   # redirect path to workorders#index
   def finish_wizard_path
     work_orders_path
-  end  
+  end
 
   protected
 
@@ -48,6 +48,12 @@ class OrdersController < ApplicationController
       StudyClient::Node.where(cost_code: '!_none', spendable_by: [current_user.email] + current_user.groups).all.uniq {|p| p&.id}
     end
 
+    def get_current_catalogues_with_products
+      # format for grouped_options_for_select form helper method in product.html.erb
+      # include whether the product is not available i.e needs to be disabled, and initial blank option
+      get_current_catalogues.map{ |c| [c.pipeline, c.products.map{ |p| [p.name, p.id, {'disabled'=>p.availability != 'available'}] } ] }.insert(0, ['', ['']])
+    end
+
     def get_current_catalogues
       Catalogue.where(current: true).all
     end
@@ -60,7 +66,7 @@ class OrdersController < ApplicationController
       step == steps.first
     end
 
-    helper_method :work_order, :get_all_aker_sets, :proposal, :get_all_proposals_spendable_by_current_user, :get_current_catalogues, :item_option_selections, :last_step?, :first_step?
+    helper_method :work_order, :get_all_aker_sets, :proposal, :get_all_proposals_spendable_by_current_user, :get_current_catalogues, :get_current_catalogues_with_products, :item_option_selections, :last_step?, :first_step?
 
   private
 
@@ -113,10 +119,6 @@ class OrdersController < ApplicationController
 
     def perform_update
       if nothing_to_update
-        if step==:cost
-          render_wizard work_order
-          return
-        end
         show_flash_error
       else
         if perform_step
@@ -133,22 +135,14 @@ class OrdersController < ApplicationController
       else
         if step==:product
           # comment and desired date may have been updated, even though no project has been selected
-          return params[:work_order][:product_id].nil?
+          return params[:work_order][:product_id].blank?
         end
         return false
       end
     end
 
     def show_flash_error
-      if step==:set
-        flash[:error] = "Please select a set to proceed."
-      end
-      if step==:proposal
-        flash[:error] = "Please select a project to proceed."
-      end
-      if step==:product
-        flash[:error] = "Please select a product to proceed."
-      end
+      flash[:error] = "Please select a #{step} to proceed."
       render_wizard
     end
 
