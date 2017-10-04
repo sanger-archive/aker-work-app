@@ -14,6 +14,9 @@
 //= require jquery_ujs
 //= require turbolinks
 //= require bootstrap-sprockets
+//= require js-routes
+//= require product_helper
+//= require_tree ./templates
 //= require_tree .
 
 $(document).on("turbolinks:load", function() {
@@ -31,5 +34,4 @@ $(document).on("turbolinks:load", function() {
       $(':radio', this).prop("checked", true);
     }
   })
-
 });

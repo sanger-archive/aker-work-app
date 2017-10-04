@@ -58,16 +58,11 @@ When I choose "Proposal 1"
 And I click on "Next"
 
 Then I should be on the step: "Select Product"
-And I should see "product_test_1"
-And I should see "product_test_2"
-
-When I choose "product_test_1"
-And I click on "Next"
-
-Then I should be on the step: "Cost"
+And I should see "Choose a product:"
+Then I click on drop-down "product-select"
+Then I click on "product_test_1" in drop-down "product-select"
 And I should see "Total : £0.00"
-
-When I click on "Next"
+And I click on "Next"
 
 Then I should be on the step: "Confirm"
 And I should see "testing_set_1"
