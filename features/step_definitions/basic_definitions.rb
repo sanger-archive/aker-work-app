@@ -130,6 +130,18 @@ Then(/^I should see "([^"]*)"$/) do |text|
   expect(page.has_content?(text)).to eq(true)
 end
 
+Then(/^I should be on the step: "([^"]*)"$/) do |text|
+  within(:css, "div.active") do
+    expect(page.has_content?(text)).to eq(true)
+  end
+end
+
+Then(/^I should NOT be on the step: "([^"]*)"$/) do |text|
+  within(:css, "div.active") do
+    expect(page.has_content?(text)).not_to eq(true)
+  end
+end
+
 Then(/^I should not see "([^"]*)"$/) do |text|
   expect(page.has_content?(text)).to eq(false)
 end
