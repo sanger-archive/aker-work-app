@@ -75,6 +75,13 @@ RSpec.describe OrdersController, type: :controller do
         end
       end
       context "when work order is at product step" do
+        it "should show error and stay on step when product is empty" do
+          put :update, params: { work_order_id: @wo.id, id: 'product', work_order: {comment:"", desired_date:"", product_id:""}}
+          expect(flash[:error]).to eq 'Please select a product to proceed.'
+          expect(UpdateOrderService).not_to receive(:new)
+          expect(response.redirect_url).to be_nil
+        end
+
         it "should show error and stay on step when no product is selected" do
           put :update, params: { work_order_id: @wo.id, id: 'product', work_order: {comment:"", desired_date:""}}
           expect(flash[:error]).to eq 'Please select a product to proceed.'
