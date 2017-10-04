@@ -135,7 +135,7 @@ class OrdersController < ApplicationController
       else
         if step==:product
           # comment and desired date may have been updated, even though no project has been selected
-          return params[:work_order][:product_id].nil?
+          return params[:work_order][:product_id].blank?
         end
         return false
       end

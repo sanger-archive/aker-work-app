@@ -6,13 +6,8 @@
     { label: "Choose a product:" },
     { class: "selectpicker", id: "product-select", num_of_samples: work_order.num_samples } %>
 
-  <div id="product-information" style="display:none">
-    <%= render 'product' %>
-  </div>
-
-  <div id="cost-information" style="display:none">
-    <%= render 'cost' %>
-  </div>
+  <div id="product-information" style="display:none"></div>
+  <div id="cost-information" style="display:none"></div>
 
   <%= f.text_field :comment, label: 'Please add any advisory notes for the operations team' %>
   <%= f.text_field :desired_date, data: { behavior: "datepicker" } %>

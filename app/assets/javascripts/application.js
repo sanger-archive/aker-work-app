@@ -15,6 +15,7 @@
 //= require turbolinks
 //= require bootstrap-sprockets
 //= require js-routes
+//= require_tree ./templates
 //= require_tree .
 
 $(document).on("turbolinks:load", function() {
@@ -53,13 +54,18 @@ $(document).on("turbolinks:load", function() {
 });
 
 function renderProductInformation(data) {
-  $('#cost_per_sample').html(convertToCurrency(data.cost_per_sample));
-  $('#requested_biomaterial_type').html(data.requested_biomaterial_type);
-  $('#product_version').html(data.product_version);
-  $('#tat').html(data.TAT);
-  $('#description').html(data.description);
-  $('#availability').html(data.availability);
-  $('#product_class').html(data.product_class);
+  const product = {
+    cost_per_sample: convertToCurrency(data.cost_per_sample),
+    requested_biomaterial_type: data.requested_biomaterial_type,
+    product_version: data.product_version,
+    tat: data.tat,
+    description: data.description,
+    availability: data.availability,
+    product_class: data.product_class,
+  };
+  const result = JST['templates/product'](product);
+
+  $('#product-information').html(result);
   $('#product-information').show();
 }
 
@@ -68,9 +74,14 @@ function renderCostInformation(data) {
     const costPerSample = data.cost_per_sample;
     const total = numOfSamples * costPerSample;
 
-    $('#num-of-samples').html(convertToCurrency(numOfSamples));
-    $('#cost-per-sample').html(convertToCurrency(costPerSample));
-    $('#total').html(convertToCurrency(total));
+    const cost = {
+      num_of_samples: convertToCurrency(numOfSamples),
+      cost_per_sample: convertToCurrency(costPerSample),
+      total: convertToCurrency(total)
+    }
+    const result = JST['templates/cost'](cost);
+
+    $('#cost-information').html(result);
     $('#cost-information').show();
 }
 
