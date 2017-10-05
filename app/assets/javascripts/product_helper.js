@@ -23,7 +23,7 @@ function renderProductInformation(data) {
     cost_per_sample: convertToCurrency(data.cost_per_sample),
     requested_biomaterial_type: data.requested_biomaterial_type,
     product_version: data.product_version,
-    tat: data.tat,
+    tat: data.TAT,
     description: data.description,
     availability: data.availability,
     product_class: data.product_class,
