@@ -100,6 +100,12 @@ class WorkOrder < ApplicationRecord
     @set = set
   end
 
+  def finished_set
+    return nil unless finished_set_uuid
+    return @finished_set if @finished_set&.uuid==finished_set_uuid
+    @finished_set = SetClient::Set.find(finished_set_uuid).first
+  end
+
   def num_samples
     self.set && self.set.meta['size']
   end
@@ -186,7 +192,7 @@ class WorkOrder < ApplicationRecord
 
   def generate_completed_and_cancel_event
     if closed?
-      message = EventMessage.new(work_order: self)
+      message = EventMessage.new(work_order: self, status: status)
       EventService.publish(message)
     else
       raise 'You cannot generate an event from a work order that has not been completed.'

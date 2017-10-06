@@ -4,12 +4,38 @@ class EventMessage
   attr_reader :work_order
 
   def initialize(params)
-    @work_order = params[:work_order]
-    @status = params[:status] || @work_order.status
+    @work_order = params.fetch(:work_order)
+    @status = params.fetch(:status)
   end
 
   def trace_id
     ZipkinTracer::TraceContainer.current&.next_id&.trace_id&.to_s
+  end
+
+  def metadata
+    if @status=='submitted'
+      metadata_for_submitted
+    else
+      metadata_for_completed
+    end
+  end
+
+  def metadata_for_submitted
+    {
+      "comment" => @work_order.comment,
+      "quoted_price" => @work_order.total_cost,
+      "desired_completion_date" => @work_order.desired_date,
+      "zipkin_trace_id" => trace_id,
+      "num_materials" => @work_order.set.meta["size"],
+    }
+  end
+
+  def metadata_for_completed
+    {
+      "comment" => @work_order.close_comment,
+      "zipkin_trace_id" => trace_id,
+      "num_new_materials" => @work_order.finished_set.meta["size"],
+    }
   end
 
   def generate_json
@@ -41,13 +67,7 @@ class EventMessage
           "subject_uuid" => product.product_uuid,
         },
       ],
-      "metadata" => {
-        "comment" => @work_order.comment,
-        "quoted_price" => @work_order.total_cost,
-        "desired_completion_date" => @work_order.desired_date,
-        "zipkin_trace_id": trace_id,
-        "num_materials": @work_order.set.meta["size"],
-      },
+      "metadata" => metadata,
     }.to_json
   end
 
