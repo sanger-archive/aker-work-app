@@ -67,6 +67,22 @@ RSpec.describe WorkOrder, type: :model do
     return @set
   end
 
+  describe '#finished_set' do
+    context 'when the work order has a finished set uuid' do
+      let(:finished_set) { make_set(6) }
+      let(:wo) { build(:work_order, finished_set_uuid: finished_set.uuid) }
+      it "should return the finished set" do
+        expect(wo.finished_set).to eq finished_set
+      end
+    end
+    context 'when the work order has no finished set uuid' do
+      let(:wo) { build(:work_order) }
+      it "should return nil" do
+        expect(wo.finished_set).to be_nil
+      end
+    end
+  end
+
   describe "#set" do
     context "when work order has a set" do
       before do

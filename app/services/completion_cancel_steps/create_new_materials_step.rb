@@ -3,7 +3,6 @@ end
 
 class CreateNewMaterialsStep
 
-
 	attr_reader :materials, :modified_containers
 
   def initialize(work_order, msg)

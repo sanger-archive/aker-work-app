@@ -4,49 +4,163 @@ require 'support/test_services_helper'
 RSpec.describe 'EventMessage' do
   include TestServicesHelper
 
-  context '#initialize' do
+  describe '#initialize' do
     it 'is initalized with a param object' do
       w = double('work_order')
-      allow(w).to receive(:status)
-      message = EventMessage.new(work_order: w)
-      expect(message.work_order).not_to be_nil
+      message = EventMessage.new(work_order: w, status: 'complete')
+      expect(message.work_order).to be w
+      expect(message.instance_variable_get(:@status)).to eq('complete')
     end
   end
 
-  context '#generate_json' do
-    it 'generates a json' do
-      # user = OpenStruct.new(email: "user@sanger.ac.uk", groups: ['world'])
-      wo = build(:work_order, { owner_email: "user@sanger.ac.uk", status: WorkOrder.ACTIVE })
-      set = double(:set, uuid: 'set_uuid', id: 'set_uuid', meta: { 'size' => '4' })
-      proposal = double(:proposal, name: 'test proposal', node_uuid: '12345a')
-      product = build(:product, name: 'test product', product_uuid: '23456b')
+  describe '#generate_json' do
+    before do
+      allow(SecureRandom).to receive(:uuid).and_return(fake_uuid)
+    end
 
-      allow(SecureRandom).to receive(:uuid).and_return 'a_uuid'
-      allow(wo).to receive(:comment).and_return "A COMMENTTT"
-      allow(wo).to receive(:total_cost).and_return "50"
-      allow(wo).to receive(:desired_date).and_return "10-10-2001"
+    let(:set) { double(:set, uuid: 'set_uuid', id: 'set_uuid', meta: { 'size' => '4' }) }
+    let(:finished_set) { double(:set, uuid: 'finished_set_uuid', id: 'finished_set_uuid', meta: { 'size' => '2' }) }
+    let(:proposal) { double(:proposal, name: 'test proposal', node_uuid: '12345a') }
+    let(:product) { build(:product, name: 'test product', product_uuid: '23456b') }
+    let(:fake_uuid) { 'my_fake_uuid' }
+    let(:fake_trace) { 'my_trace_id' }
+    let(:first_comment) { 'first comment' }
+    let(:second_comment) { 'second comment' }
+    let(:expected_work_order_role) do
+      {
+        "role_type" => "work_order",
+        "subject_type" => "work_order",
+        "subject_friendly_name" => work_order.name,
+        "subject_uuid" => work_order.work_order_uuid,
+      }
+    end
+    let(:expected_proposal_role) do
+      {
+        "role_type" => "proposal",
+        "subject_type" => "proposal",
+        "subject_friendly_name" => proposal.name,
+        "subject_uuid" => proposal.node_uuid,
+      }
+    end
+    let(:expected_product_role) do
+      {
+        "role_type" => "product",
+        "subject_type" => "product",
+        "subject_friendly_name" => product.name,
+        "subject_uuid" => product.product_uuid,
+      }
+    end
 
+    let(:work_order) do
+      wo = build(:work_order, { owner_email: 'user@sanger.ac.uk', status: WorkOrder.ACTIVE })
+      allow(wo).to receive(:comment).and_return first_comment
+      allow(wo).to receive(:close_comment).and_return second_comment
+      allow(wo).to receive(:total_cost).and_return 50
+      allow(wo).to receive(:desired_date).and_return(Date.today+5)
       allow(wo).to receive(:set).and_return set
+      allow(wo).to receive(:finished_set).and_return finished_set
       allow(wo).to receive(:proposal).and_return proposal
       allow(wo).to receive(:product).and_return product
+      wo
+    end
 
-      message = EventMessage.new(work_order: wo)
+    let(:message) do
+      m = EventMessage.new(work_order: work_order, status: status)
+      allow(m).to receive(:trace_id).and_return fake_trace
+      m
+    end
 
-      allow(message).to receive(:trace_id).and_return 'a_trace_id'
-      
+    let(:json) do
       Timecop.freeze do
-        json = JSON.parse(message.generate_json)
+        json_data = JSON.parse(message.generate_json)
+        @timestamp = Time.now.utc.iso8601
+        json_data
+      end
+    end
 
-        expect(json["event_type"]).to eq 'aker.events.work_order.active'
-        expect(json["lims_id"]).to eq 'aker'
-        expect(json["uuid"]).to eq 'a_uuid'
-        expect(json["timestamp"]).to eq Time.now.utc.iso8601
-        expect(json["user_identifier"]).to eq wo.owner_email
-        expect(json["metadata"]["comment"]).to eq wo.comment
-        expect(json["metadata"]["quoted_price"]).to eq wo.total_cost
-        expect(json["metadata"]["desired_completion_date"]).to eq wo.desired_date
-        expect(json["metadata"]["zipkin_trace_id"]).to eq 'a_trace_id'
-        expect(json["metadata"]["num_materials"]).to eq '4'
+    let(:roles) { json['roles'] }
+    let(:metadata) { json['metadata'] }
+
+    shared_examples_for "event message json" do
+      it 'should have the correct event type' do
+        expect(json['event_type']).to eq("aker.events.work_order.#{status}")
+      end
+
+      it 'should have the correct lims id' do
+        expect(json['lims_id']).to eq('aker')
+      end
+
+      it 'should have the correct uuid' do
+        expect(json['uuid']).to eq(fake_uuid)
+      end
+
+      it 'should have the correct user identifier' do
+        expect(json['user_identifier']).to eq(work_order.owner_email)
+      end
+
+      it 'should have the correct timestamp' do
+        expect(json['timestamp']).to eq(@timestamp)
+      end
+
+      # Roles
+      it 'should have the correct number of roles' do
+        expect(roles.length).to eq(3)
+      end
+      it 'should include the product role' do
+        expect(roles).to include(expected_product_role)
+      end
+      it 'should include the proposal role' do
+        expect(roles).to include(expected_proposal_role)
+      end
+      it 'should include the work order role' do
+        expect(roles).to include(expected_work_order_role)
+      end
+    end
+
+    context 'when work order is submitted' do
+      let(:status) { 'submitted' }
+
+      it_behaves_like "event message json"
+
+      # Metadata
+      it 'should have the correct amount of metadata' do
+        expect(metadata.length).to eq(5)
+      end
+      it 'should have the correct comment' do
+        expect(metadata['comment']).to eq(first_comment)
+      end
+      it 'should have the correct quoted price' do
+        expect(metadata['quoted_price']).to eq(work_order.total_cost)
+      end
+      it 'should have the correct desired data' do
+        expect(metadata['desired_completion_date']).to eq(work_order.desired_date.to_s)
+      end
+      it 'should have the correct trace id' do
+        expect(metadata['zipkin_trace_id']).to eq(fake_trace)
+      end
+      it 'should have the correct num materials' do
+        expect(metadata['num_materials']).to eq(set.meta['size'])
+      end
+
+    end
+
+    context 'when work order is completed' do
+      let(:status) { 'completed' }
+
+      it_behaves_like "event message json"
+
+      # Metadata
+      it 'should have the correct amount of metadata' do
+        expect(metadata.length).to eq(3)
+      end
+      it 'should have the correct comment' do
+        expect(metadata['comment']).to eq(second_comment)
+      end
+      it 'should have the correct trace id' do
+        expect(metadata['zipkin_trace_id']).to eq(fake_trace)
+      end
+      it 'should have the correct num new materials' do
+        expect(metadata['num_new_materials']).to eq(finished_set.meta['size'])
       end
     end
   end
