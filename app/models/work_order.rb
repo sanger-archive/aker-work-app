@@ -102,7 +102,7 @@ class WorkOrder < ApplicationRecord
 
   def finished_set
     return nil unless finished_set_uuid
-    return @finished_Set if @finished_set&.uuid==finished_set_uuid
+    return @finished_set if @finished_set&.uuid==finished_set_uuid
     @finished_set = SetClient::Set.find(finished_set_uuid).first
   end
 
