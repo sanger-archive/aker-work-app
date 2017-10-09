@@ -9,7 +9,7 @@ require 'completion_cancel_steps/fail_step'
 class WorkOrdersController < ApplicationController
 
   # SSO
-  before_action :check_user_signed_in, except: [:complete, :cancel]
+  before_action :check_user_signed_in, except: [:complete, :cancel, :get]
 
   before_action :work_order, only: [:show, :complete, :cancel]
 
