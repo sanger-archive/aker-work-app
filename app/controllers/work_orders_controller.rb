@@ -8,12 +8,10 @@ require 'completion_cancel_steps/fail_step'
 
 class WorkOrdersController < ApplicationController
 
-  # SSO
-  before_action :check_user_signed_in, except: [:complete, :cancel]
-
   before_action :work_order, only: [:show, :complete, :cancel]
 
   skip_authorization_check only: [:index, :complete, :cancel, :get]
+  skip_credentials only: [:complete, :cancel, :get]
 
   def index
     @active_work_orders = WorkOrder.active.for_user(current_user).order(created_at: :desc)
@@ -76,10 +74,6 @@ class WorkOrdersController < ApplicationController
   end
 
 private
-
-  def check_user_signed_in
-    redirect_to Rails.configuration.login_url unless current_user
-  end
 
   def params_for_completion
     p = { work_order: params.require(:work_order).as_json.deep_symbolize_keys }

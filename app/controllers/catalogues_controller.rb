@@ -1,5 +1,6 @@
 class CataloguesController < ApplicationController
   skip_authorization_check only: :create
+  skip_credentials
 
   # Currently using flimsy service to populate catalogue of products
   # Will not implement SSO just yet...
