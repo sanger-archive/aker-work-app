@@ -9,7 +9,7 @@ require 'completion_cancel_steps/fail_step'
 class WorkOrdersController < ApplicationController
 
   # SSO
-  before_action :check_user_signed_in, except: [:complete, :cancel]
+  before_action :check_user_signed_in, except: [:complete, :cancel, :get]
 
   before_action :work_order, only: [:show, :complete, :cancel]
 
@@ -51,7 +51,7 @@ class WorkOrdersController < ApplicationController
 
   # -------- API ---------
   def get
-    render json: work_order.lims_data, status: 200
+    render json: work_order.lims_data_for_get, status: 200
   rescue ActiveRecord::RecordNotFound
     render json: {errors: [{status: '404', detail: 'Record not found'}]}, status: 404
   end
@@ -107,6 +107,16 @@ private
     @work_order ||= WorkOrder.find(params[:id])
   end
 
+  def text_for_finish_status(finish_status)
+    if (finish_status == 'complete')
+      return 'completed'
+    elsif (finish_status== 'cancel')
+      return 'cancelled'
+    else
+      return finish_status
+    end
+  end
+
   def complete_work_order(finish_status)
     success = false
     cleanup = false
@@ -134,10 +144,10 @@ private
     end
 
     if success
-      msg = flash[:notice] = 'Your work order is updated'
+      msg = flash[:notice] = "Your work order is #{text_for_finish_status(finish_status)}"
       generate_completed_and_cancel_event
     elsif cleanup
-      msg = flash[:error] = "The work order could not be updated"
+      msg = flash[:error] = "The work order could not be #{text_for_finish_status(finish_status)}"
     else
       msg = flash[:error] = "There has been a problem with the work order update. Please contact support."
     end
