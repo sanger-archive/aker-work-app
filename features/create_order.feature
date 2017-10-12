@@ -29,7 +29,6 @@ Given the following proposals have been defined:
 | Proposal 1 | 1     |
 | Proposal 2 | 2     |
 
-
 Scenario: Receiving a catalogue
 
 When the LIMS "flimsy" send me the catalogue

@@ -119,7 +119,8 @@ Given(/^I click on drop-down "([^"]*)"$/) do |dropdown|
 end
 
 Given(/^I click on "([^"]*)" in drop-down "([^"]*)"$/) do |value, dropdown|
-  select "#{value}", from: "#{dropdown}"
+  option = Product.find_by(name: value).id
+  select "#{option}", from: "#{dropdown}"
 end
 
 Then(/^show me the page$/) do
