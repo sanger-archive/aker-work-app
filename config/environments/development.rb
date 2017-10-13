@@ -84,7 +84,8 @@ Rails.application.configure do
   # SSO
   config.default_jwt_user = { email: ENV.fetch('USER', 'user') + '@sanger.ac.uk', groups: ['world'] }
 
-  config.login_url = '#'
-  config.logout_url = '#'
+  config.auth_service_url = 'http://localhost:9010'
+  config.login_url = config.auth_service_url+'/login'
+  config.logout_url = config.auth_service_url+'/logout'
 
 end
