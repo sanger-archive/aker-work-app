@@ -1,5 +1,6 @@
 Before do
   user = OpenStruct.new(:email => 'test@test', :groups => ['world'])
+  ApplicationController.any_instance.stub(:check_credentials)
   ApplicationController.any_instance.stub(:current_user).and_return(user)
 end
 
