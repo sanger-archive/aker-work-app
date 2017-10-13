@@ -4,9 +4,6 @@ class OrdersController < ApplicationController
 
   steps :set, :proposal, :product, :summary
 
-  # SSO
-  before_action :check_user_signed_in
-
   def show
     authorize! :write, work_order
 
@@ -69,10 +66,6 @@ class OrdersController < ApplicationController
     helper_method :work_order, :get_all_aker_sets, :proposal, :get_all_proposals_spendable_by_current_user, :get_current_catalogues, :get_current_catalogues_with_products, :item_option_selections, :last_step?, :first_step?
 
   private
-
-    def check_user_signed_in
-      redirect_to Rails.configuration.login_url unless current_user
-    end
 
     def user_and_groups_list
       [current_user.email, current_user.groups].flatten

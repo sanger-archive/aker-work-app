@@ -3,6 +3,7 @@ require 'rails_helper'
 RSpec.describe WorkOrdersController, type: :controller do
   def setup_user(name = "user")
     user = OpenStruct.new(email: "#{name}@sanger.ac.uk", groups: ['world'])
+    allow(controller).to receive(:check_credentials)
     allow(controller).to receive(:current_user).and_return(user)
     return user
   end
@@ -104,8 +105,8 @@ RSpec.describe WorkOrdersController, type: :controller do
 
     context "when the work order belongs to someone else" do
       before do
-        user = OpenStruct.new(email: 'jeff@sanger.ac.uk', groups: ['world'])
-        @wo = WorkOrder.create(owner_email: user.email, status: 'product')
+        setup_user
+        @wo = WorkOrder.create(owner_email: 'jeff@sanger.ac.uk', status: 'product')
 
         delete :destroy, params: { id: @wo.id }
       end

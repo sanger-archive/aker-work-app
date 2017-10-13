@@ -60,9 +60,10 @@ Rails.application.configure do
   config.jwt_exp_time = 2 * 60
   config.jwt_nbf_time = 1 * 60
 
-  config.default_jwt_user = { email: "user@sanger.ac.uk" }
+  #config.default_jwt_user = { email: "user@sanger.ac.uk" }
 
-  config.login_url = '#'
-  config.logout_url = '#'
+  config.auth_service_url = 'http://auth_service'
+  config.login_url = config.auth_service_url+'/login'
+  config.logout_url = config.auth_service_url+'/logout'
 
 end
