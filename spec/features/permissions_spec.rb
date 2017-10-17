@@ -12,6 +12,7 @@ RSpec.feature "Permissions", type: :feature do
 
       before :each do
         @user = OpenStruct.new(email: "bob@sanger.ac.uk", groups: ['world'])
+        allow_any_instance_of(JWTCredentials).to receive(:check_credentials)
         allow_any_instance_of(JWTCredentials).to receive(:current_user).and_return(@user)
       end
 

@@ -5,6 +5,7 @@ RSpec.describe OrdersController, type: :controller do
 
   before do
     @user = OpenStruct.new(email: 'jeff@sanger.ac.uk', groups: ['world'])
+    allow(controller).to receive(:check_credentials)
     allow(controller).to receive(:current_user).and_return(@user)
   end
 
