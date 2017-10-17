@@ -134,6 +134,14 @@ class WorkOrder < ApplicationRecord
     results
   end
 
+  def lims_data_for_get
+    data = lims_data
+    unless data[:work_order].nil?
+      data[:work_order][:status] = status
+    end
+    data
+  end
+
   def lims_data
     material_ids = SetClient::Set.find_with_materials(set_uuid).first.materials.map{|m| m.id}
     materials = all_results(MatconClient::Material.where("_id" => {"$in" => material_ids}).result_set)
