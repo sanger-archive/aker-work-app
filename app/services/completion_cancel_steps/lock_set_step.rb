@@ -11,7 +11,7 @@ class LockSetStep
     finished_set = SetClient::Set.create(name: "Work Order Completion #{@work_order.id} #{timestamp}")
     @work_order.update_attributes!(finished_set_uuid: finished_set.id)
 
-    finished_set.set_materials(@material_step.materials.map(&:id))
+    finished_set.set_materials(@material_step.materials.map(&:id)) if (@material_step.materials.length > 0)
     finished_set.update_attributes(owner_id: @work_order.owner_email, locked: true)
   end
 
