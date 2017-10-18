@@ -32,6 +32,10 @@ class UpdateOrderService
         return false unless create_locked_set
       end
 
+      if @work_order.set_uuid && @work_order.proposal_id && @work_order.product_id.nil?
+        return false unless validate_cost_code
+      end
+
       if @work_order.set_uuid && @work_order.product_id && @work_order.total_cost.nil?
         return false unless calculate_cost
       end
@@ -148,6 +152,20 @@ private
       return false
     end
     @work_order.update_attributes(total_cost: cost*n)
+    return true
+  end
+
+  def validate_cost_code
+    cost_code = @work_order.proposal.cost_code
+    if cost_code.nil?
+      add_error("The selected product does not have a cost code.")
+      return false
+    end
+
+    unless BillingFacadeClient.validate_cost_code?(cost_code)
+      add_error("The Billing service does not validate the cost code for the selected product.")
+      return false
+    end
     return true
   end
 

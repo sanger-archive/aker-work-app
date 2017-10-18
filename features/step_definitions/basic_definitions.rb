@@ -157,6 +157,10 @@ When(/^I choose "([^"]*)" in a table$/) do |text|
   page.find('tr', text: text).find('input').click
 end
 
+Given(/^the proposals are validated by the billing service$/) do
+  allow(BillingFacadeClient).to receive(:validate_cost_code?).and_return(true)
+end
+
 Given(/^the following proposals have been defined:$/) do |table|
   response_headers = {'Content-Type'=>'application/vnd.api+json'}
   @proposals ||= []

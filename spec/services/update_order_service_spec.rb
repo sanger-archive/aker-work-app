@@ -65,6 +65,7 @@ RSpec.describe UpdateOrderService do
 
     context "when the work order has a set" do
       before do
+        allow(BillingFacadeClient).to receive(:validate_cost_code?).and_return(true)
         @wo = order_at_step(:product)
       end
 
@@ -165,22 +166,38 @@ RSpec.describe UpdateOrderService do
         @wo = order_at_step(:proposal)
       end
 
-      it "should accept a proposal id" do
-        proposal = make_proposal
-        params = { 'proposal_id' => proposal.id }
-        messages = {}
-        expect(UpdateOrderService.new(params, @wo, messages).perform(:proposal)).to eq(true)
-        expect(messages[:error]).to be_nil
-
-        expect(@wo.proposal_id).to eq(proposal.id)
-        expect(@wo.status).to eq('product')
-      end
-
       it "should refuse a later step" do
         params = {}
         messages = {}
         expect(UpdateOrderService.new(params, @wo, messages).perform(:product)).to eq(false)
         expect(messages[:error]).to include('project')
+      end
+
+      context "when the billing service validates the proposal" do
+        before do
+          allow(BillingFacadeClient).to receive(:validate_cost_code?).and_return(true)
+        end
+        it "should accept a proposal id" do
+          proposal = make_proposal
+          params = { 'proposal_id' => proposal.id }
+          messages = {}
+          expect(UpdateOrderService.new(params, @wo, messages).perform(:proposal)).to eq(true)
+          expect(messages[:error]).to be_nil
+
+          expect(@wo.proposal_id).to eq(proposal.id)
+          expect(@wo.status).to eq('product')
+        end
+      end
+
+      context "when the billing service does not validate the proposal" do
+        it "should fail if the cost code of the proposal is not validated by the billing service" do
+          proposal = make_proposal
+          params = { 'proposal_id' => proposal.id }
+          allow(BillingFacadeClient).to receive(:validate_cost_code?).and_return(false)
+          messages = {}
+          expect(UpdateOrderService.new(params, @wo, messages).perform(:proposal)).to eq(false)
+          expect(messages[:error]).to include('Billing')
+        end        
       end
     end
 

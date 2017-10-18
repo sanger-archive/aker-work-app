@@ -55,6 +55,8 @@ Then I should be on the step: "Select Project"
 And I should see "Proposal 1"
 And I should see "Proposal 2"
 
+Given the proposals are validated by the billing service
+
 When I choose "Proposal 1"
 And I click on "Next"
 
@@ -98,6 +100,8 @@ And I click on "Next"
 Then I should be on the step: "Select Project"
 And I should see "Proposal 1"
 And I should see "Proposal 2"
+
+Given the proposals are validated by the billing service
 
 When I choose "Proposal 2"
 And I click on "Next"
