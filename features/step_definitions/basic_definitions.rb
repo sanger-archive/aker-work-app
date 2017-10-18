@@ -1,3 +1,5 @@
+require 'billing_facade_client'
+
 Before do
   user = OpenStruct.new(:email => 'test@test', :groups => ['world'])
   ApplicationController.any_instance.stub(:check_credentials)
@@ -217,6 +219,10 @@ Given(/^a LIMS named "([^"]*)" at url "([^"]*)" has the following catalogue read
     products.push(product.keys.reduce({}) {|memo, key| memo[mapping[key]] = product[key] ; memo })
   end
   @catalogues[lims_name] = {catalogue: {products: products, url: lims_url}}
+end
+
+When(/^all the products of the catalogue are valid products for the billing service$/) do
+  allow(BillingFacadeClient).to receive(:filter_invalid_product_names).and_return([])
 end
 
 When(/^the LIMS "([^"]*)" send me the catalogue$/) do |lims_name|

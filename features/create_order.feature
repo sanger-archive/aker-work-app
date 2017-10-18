@@ -29,6 +29,7 @@ Given the following proposals have been defined:
 | Proposal 1 | 1     |
 | Proposal 2 | 2     |
 
+Given all the products of the catalogue are valid products for the billing service
 
 Scenario: Receiving a catalogue
 
