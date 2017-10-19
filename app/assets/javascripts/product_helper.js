@@ -1,15 +1,21 @@
 // Used to show the selected product and cost infomation in 'Select Product' step
 $(document).on("turbolinks:load", function() {
+
+  $.ajaxSetup({
+    headers: {
+      'X-CSRF-Token': $('meta[name="csrf-token"]').attr('content')
+    }
+  });
+
   $('#product-select').change(function(event){
     var productId = $("#product-select").val();
+    var workOrderId = $("#work-order-id").val();
 
     $.ajax({
-      headers: {
-          'Accept' : 'application/vnd.api+json',
-          'Content-Type' : 'application/vnd.api+json'
-      },
-      url: Routes.product_path(productId),
-      type: 'GET',
+      url: '/api/v1/work_orders/'+workOrderId+'/products/'+productId,
+      method: 'GET',
+      dataType: 'json',
+      contentType: 'application/json',
       success: function(data){
         renderProductInformation(data);
         renderCostInformation(data);
@@ -20,7 +26,7 @@ $(document).on("turbolinks:load", function() {
 
 function renderProductInformation(data) {
   const product = {
-    cost_per_sample: convertToCurrency(data.cost_per_sample),
+    cost_per_sample: convertToCurrency(data.unit_price),
     requested_biomaterial_type: data.requested_biomaterial_type,
     product_version: data.product_version,
     tat: data.TAT,
@@ -36,7 +42,7 @@ function renderProductInformation(data) {
 
 function renderCostInformation(data) {
     const numOfSamples = $("#product-select").attr('num_of_samples');
-    const costPerSample = data.cost_per_sample;
+    const costPerSample = data.unit_price;
     const total = numOfSamples * costPerSample;
 
     const cost = {

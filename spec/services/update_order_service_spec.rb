@@ -20,7 +20,7 @@ RSpec.describe UpdateOrderService do
 
   def make_product(attrs=nil)
     @c1 = create(:catalogue)
-    x = { cost_per_sample: 5, catalogue_id: @c1.id }
+    x = { catalogue_id: @c1.id }
     x.merge!(attrs) if attrs
     create(:product, x)
   end
@@ -41,7 +41,8 @@ RSpec.describe UpdateOrderService do
     return create(:work_order, attrs) if step==:product
     @product = make_product
     attrs[:product_id] = @product.id
-    attrs[:total_cost] = @product.cost_per_sample*@clone_set.meta['size']
+    attrs[:cost_per_sample] = 17
+    attrs[:total_cost] = attrs[:cost_per_sample]*@clone_set.meta['size']
 
     return create(:work_order, attrs) if step==:cost
 
@@ -209,13 +210,18 @@ RSpec.describe UpdateOrderService do
       it "should accept a product" do
         expect(@wo.total_cost).to be_nil
         product = make_product
+
+        unit_cost = BigDecimal.new(17)
+        allow(BillingFacadeClient).to receive(:get_unit_price)
+          .with(@wo.proposal.cost_code, product.name).and_return(unit_cost)
+
         params = { 'product_id' => product.id }
         messages = {}
         expect(UpdateOrderService.new(params, @wo, messages).perform(:product)).to eq(true)
         expect(messages[:error]).to be_nil
 
         expect(@wo.product).to eq(product)
-        expect(@wo.total_cost).to eq(@clone_set.meta['size']*product.cost_per_sample)
+        expect(@wo.total_cost).to eq(@clone_set.meta['size']*@wo.cost_per_sample)
         expect(@wo.status).to eq('cost')
       end
 
@@ -227,53 +233,63 @@ RSpec.describe UpdateOrderService do
       end
 
       it "should fail if the cost cannot be calculated" do
-        product = make_product(cost_per_sample: nil)
+        product = make_product
+
+        unit_cost = nil
+        allow(BillingFacadeClient).to receive(:get_unit_price)
+          .with(@wo.proposal.cost_code, product.name).and_return(unit_cost)
+
         params = { 'product_id' => product.id }
         messages = {}
         expect(UpdateOrderService.new(params, @wo, messages).perform(:product)).to eq(false)
         expect(messages[:error]).to include('cost')
       end
-    end
 
-    context "when work order is at cost step" do
-      before do
-        @wo = order_at_step(:cost)
+      context "when a product is selected" do
+        let(:product) { make_product}
+
+        context "given we previously selected a proposal" do
+          let(:proposal) { @wo.proposal }
+          let(:cost_code) { @wo.proposal.cost_code }
+          let(:unit_price) { BigDecimal.new(17) }
+
+          context "when the unit price is verified by the billing service" do
+            it "should display the total cost for the product" do
+              allow(BillingFacadeClient).to receive(:get_unit_price).with(cost_code, product.name)
+                  .and_return(unit_price)
+
+              expect(BillingFacadeClient).to receive(:get_unit_price)
+                .with(cost_code, product.name)
+
+              params = { 'product_id' => product.id }
+              messages = {}
+              expect(UpdateOrderService.new(params, @wo, messages).perform(:product)).to eq(true)
+
+            end
+          end
+          context "when the unit price is not verified by the billing service" do
+            it "should fail and display an error message" do
+              allow(BillingFacadeClient).to receive(:get_unit_price).with(cost_code, product.name)
+                  .and_return(nil)
+
+              params = { 'product_id' => product.id }
+              messages = {}
+              expect(UpdateOrderService.new(params, @wo, messages).perform(:product)).to eq(false)
+              expect(messages[:error]).to include('missing product cost')
+            end
+          end
+        end
       end
-
-      context "when you revise the product step" do
-        before do
-          @product = make_product(cost_per_sample: 31)
-
-          expect(@wo.product).not_to eq(@product)
-          params = { 'product_id' => @product.id }
-          @messages = {}
-          @result = UpdateOrderService.new(params, @wo, @messages).perform(:product)
-        end
-
-        it "should return true" do
-          expect(@result).to eq(true)
-        end
-        it "should have no error" do
-          expect(@messages[:error]).to be_nil
-        end
-        it "should update the product" do
-          expect(@wo.product).to eq(@product)
-          expect(@wo.product_id).to eq(@product.id)
-        end
-        it "should recalculate the total cost" do
-          expect(@wo.total_cost).to eq(@wo.set.meta['size']*@product.cost_per_sample)
-        end
-        it "should go back to the cost step" do
-          expect(@wo.status).to eq('cost')
-        end
-      end
-
     end
 
     context "when work order is at summary step" do
       before do
         @wo = order_at_step(:summary)
         allow(@wo).to receive(:send_to_lims)
+      end
+
+      it "should have a total cost that can be obtained from unit prices and num samples" do
+        expect(@wo.total_cost).to eq(@wo.cost_per_sample * @wo.set.meta['size'])
       end
 
       it "should refuse if the product is suspended" do
@@ -302,6 +318,11 @@ RSpec.describe UpdateOrderService do
       it "should let you alter an earlier step" do
         product = make_product
         expect(@wo.product).not_to eq(product)
+
+        unit_cost = BigDecimal.new(17)
+        allow(BillingFacadeClient).to receive(:get_unit_price)
+          .with(@wo.proposal.cost_code, product.name).and_return(unit_cost)
+
         params = { 'product_id' => product.id }
         messages = {}
         expect(UpdateOrderService.new(params, @wo, messages).perform(:product)).to eq(true)

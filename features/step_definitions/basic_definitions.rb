@@ -157,8 +157,25 @@ When(/^I choose "([^"]*)" in a table$/) do |text|
   page.find('tr', text: text).find('input').click
 end
 
-Given(/^the proposals are validated by the billing service$/) do
-  allow(BillingFacadeClient).to receive(:validate_cost_code?).and_return(true)
+# Given(/^the proposals are validated by the billing service$/) do
+#  allow(BillingFacadeClient).to receive(:validate_cost_code?).and_return(true)
+#end
+
+Given(/^the following unit prices are defined by the Billing service:$/) do |table|
+  product_names = []
+  table.hashes.each_with_index do |billing|
+    allow(BillingFacadeClient).to receive(:validate_cost_code?)
+      .with(billing['Cost Code']).and_return(true)
+    allow(BillingFacadeClient).to receive(:validate_product_name?)
+      .with(billing['Product Name']).and_return(true)
+    allow(BillingFacadeClient).to receive(:get_unit_price)
+      .with(billing['Cost Code'], billing['Product Name'])
+        .and_return(BigDecimal.new(billing['Unit Price']))
+    product_names.push(billing['Product Name'])
+  end
+  allow(BillingFacadeClient).to receive(:filter_invalid_product_names)
+    .with(product_names)
+      .and_return([])
 end
 
 Given(/^the following proposals have been defined:$/) do |table|
@@ -225,9 +242,9 @@ Given(/^a LIMS named "([^"]*)" at url "([^"]*)" has the following catalogue read
   @catalogues[lims_name] = {catalogue: {products: products, url: lims_url}}
 end
 
-When(/^all the products of the catalogue are valid products for the billing service$/) do
-  allow(BillingFacadeClient).to receive(:filter_invalid_product_names).and_return([])
-end
+#When(/^all the products of the catalogue are valid products for the billing service$/) do
+#  allow(BillingFacadeClient).to receive(:filter_invalid_product_names).and_return([])
+#end
 
 When(/^the LIMS "([^"]*)" send me the catalogue$/) do |lims_name|
   post catalogue_path, @catalogues[lims_name]

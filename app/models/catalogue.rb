@@ -14,7 +14,7 @@ class Catalogue < ApplicationRecord
 
   		product_params.each do |pp|
         pp[:product_class] = Product.human_product_class_to_symbol(pp[:product_class] )
-  			Product.create!(pp.merge({ catalogue_id: catalogue_id, cost_per_sample: price_placeholder}))
+  			Product.create!(pp.merge({ catalogue_id: catalogue_id }))
   		end
   	end
   	catalogue

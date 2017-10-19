@@ -1,4 +1,6 @@
 # Class to handle updating a work order during the work order wizard.
+require 'billing_facade_client'
+
 class UpdateOrderService
 
   attr_reader :messages
@@ -141,8 +143,8 @@ private
   end
 
   def calculate_cost
-    cost = @work_order.product&.cost_per_sample
-    if cost.nil?
+    unit_cost = BillingFacadeClient.get_unit_price(@work_order.proposal.cost_code, @work_order.product.name)
+    if unit_cost.nil?
       add_error("The cost could not be calculated because of missing product cost information.")
       return false
     end
@@ -151,7 +153,8 @@ private
       add_error("The cost could not be calculated because of missing sample information.")
       return false
     end
-    @work_order.update_attributes(total_cost: cost*n)
+    @work_order.update_attributes(cost_per_sample: unit_cost)
+    @work_order.update_attributes(total_cost: unit_cost*n)
     return true
   end
 

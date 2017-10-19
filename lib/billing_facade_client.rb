@@ -1,31 +1,36 @@
 require 'faraday'
+require 'bigdecimal'
 
 module BillingFacadeClient
 
-  def self.validate_single_value(url)
-    r = connection.get(url)
+  def self.validate_single_value(path)
+    r = connection.get(path)
     return false unless r.status == 200
-    response = JSON.parse(r.body)
-    return response["verified"]    
+    response = JSON.parse(r.body).symbolize_keys
+    return response[:verified]
   end
 
-  def self.validate_multiple_values(url, params)
-    r = connection.post("/accounts/verify", params.to_json )
+  def self.validate_multiple_values(path, params)
+    r = connection.post(path, params.to_json )
     return [] if r.status==200
     response = JSON.parse(r.body)
     invalid_cost_codes = response.keys.select{|cost_code| !response[cost_code] }
     return invalid_cost_codes    
-  end    
+  end
 
-  def self.get_unit_price(product_name, cost_code)
-    r = connection.get("/products/#{product_name}/accounts/#{cost_code}/unit_price")
-    return false unless r.status == 200
-    response = JSON.parse(r.body)
-    if response["verified"]
-      return response["unitPrice"]
+  def self.get_cost_information_for_products(cost_code, product_names)
+    r = connection.post("/accounts/#{cost_code}/unit_price", product_names.to_json)
+    response = JSON.parse(r.body).symbolize_keys
+    return response
+  end
+
+  def self.get_unit_price(cost_code, product_name)
+    response = get_cost_information_for_products(cost_code, [product_name]).first
+    if response && response[:verified]
+      return BigDecimal.new(response[:unitPrice])
     else
       return nil
-    end
+    end    
   end
 
   def self.validate_product_name?(product_name)
