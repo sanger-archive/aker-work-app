@@ -264,7 +264,9 @@ Given(/^I already received the catalogue from LIMS "([^"]*)"/) do |lims_name|
 end
 
 Given(/^I save the order$/) do
+  allow(BillingFacadeClient).to receive(:send_event)
   WorkOrder.any_instance.stub(:send_to_lims).and_return(true)
+
   step('I click on "Save & Exit"')
 end
 

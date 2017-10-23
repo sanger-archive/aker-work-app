@@ -28,7 +28,7 @@ $(document).on("turbolinks:load", function() {
 });
 
 function renderError(msg) {
-  let errorMsg = '<div class="alert-danger alert alert-dismissible" role="alert">'+msg+'</div>';
+  var errorMsg = '<div class="alert-danger alert alert-dismissible" role="alert">'+msg+'</div>';
   $("#flash-display").html(errorMsg);
 }
 
