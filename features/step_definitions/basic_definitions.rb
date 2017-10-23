@@ -332,6 +332,8 @@ When(/^I send a cancel message from the LIMS to the work order application$/) do
 end
 
 When(/^I prepare for a finish message$/) do
+  allow(BillingFacadeClient).to receive(:send_event)
+
   set_double = double("set")
   allow(set_double).to receive(:id)
   allow(set_double).to receive(:set_materials)

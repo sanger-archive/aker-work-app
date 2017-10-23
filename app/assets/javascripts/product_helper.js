@@ -19,10 +19,18 @@ $(document).on("turbolinks:load", function() {
       success: function(data){
         renderProductInformation(data);
         renderCostInformation(data);
+      },
+      error: function() {
+        renderError('There was an error while accessing the Billing service');
       }
     });
   });
 });
+
+function renderError(msg) {
+  let errorMsg = '<div class="alert-danger alert alert-dismissible" role="alert">'+msg+'</div>';
+  $("#flash-display").html(errorMsg);
+}
 
 function renderProductInformation(data) {
   const product = {

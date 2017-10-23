@@ -68,7 +68,7 @@ RSpec.describe('BillingFacadeClient') do
     let(:product_names) { ['a','b','c'] }
 
     it 'performs a call to the unit price action for the proposal' do
-      data = {'my': true, 'data': false}
+      data = [{'my': true, 'data': false}]
       stub_request(:post, url).with(body: product_names.to_json).
         to_return(status: 200, body: data.to_json)
       expect(BillingFacadeClient.get_cost_information_for_products(cost_code, product_names)).to eq(data)

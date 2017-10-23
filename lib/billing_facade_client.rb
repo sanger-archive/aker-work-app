@@ -3,6 +3,12 @@ require 'bigdecimal'
 
 module BillingFacadeClient
 
+  def self.send_event(work_order, name)
+    connection.post("/events", {eventName: name, workOrderId: work_order.id}.to_json)
+    return true if r.status==200
+    return false
+  end
+
   def self.validate_single_value(path)
     r = connection.get(path)
     return false unless r.status == 200
@@ -20,7 +26,7 @@ module BillingFacadeClient
 
   def self.get_cost_information_for_products(cost_code, product_names)
     r = connection.post("/accounts/#{cost_code}/unit_price", product_names.to_json)
-    response = JSON.parse(r.body).symbolize_keys
+    response = JSON.parse(r.body).map{|o| o.symbolize_keys}
     return response
   end
 
