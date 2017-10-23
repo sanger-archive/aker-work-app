@@ -1,9 +1,4 @@
-require 'billing_facade_client'
-
 class ProductsController < ApplicationController
-  #skip_authorization_check only: :show_product_inside_work_order
-  #skip_credentials
-
   def show_product_inside_work_order
     @work_order = WorkOrder.find(params[:id])
     authorize! :read, @work_order

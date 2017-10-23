@@ -12,18 +12,11 @@ Rails.application.routes.draw do
       get '', to: 'work_orders#get'
 
       get 'products/:product_id', to: 'products#show_product_inside_work_order'
-      #resources :products, only: [:show] do
-      #  get 'unit_price', to: 'products#unit_price'
-      #end
     end
   end
 
   resources :work_orders do
   	resources :build, controller: 'orders'
   end
-
-  #resources :products, only: [:show] do
-  #  post 'unit_price', to: 'products#unit_price'
-  #end
 
 end

@@ -12,21 +12,21 @@ module BillingFacadeClient
   def self.validate_single_value(path)
     r = connection.get(path)
     return false unless r.status == 200
-    response = JSON.parse(r.body).symbolize_keys
+    response = JSON.parse(r.body, symbolize_names: true)
     return response[:verified]
   end
 
   def self.validate_multiple_values(path, params)
     r = connection.post(path, params.to_json )
     return [] if r.status==200
-    response = JSON.parse(r.body)
+    response = JSON.parse(r.body, symbolize_names: true)
     invalid_cost_codes = response.keys.select{|cost_code| !response[cost_code] }
     return invalid_cost_codes    
   end
 
   def self.get_cost_information_for_products(cost_code, product_names)
     r = connection.post("/accounts/#{cost_code}/unit_price", product_names.to_json)
-    response = JSON.parse(r.body).map{|o| o.symbolize_keys}
+    response = JSON.parse(r.body, symbolize_names: true)
     return response
   end
 
