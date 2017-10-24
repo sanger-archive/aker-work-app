@@ -56,7 +56,7 @@ module BillingFacadeClient
   end
 
   def self.connection
-    Faraday.new(:url => Rails.application.config.billing_facade_url, 
+    Faraday.new(:url => Rails.application.config.billing_facade_url, ssl: { verify: false },
       headers: {'Content-Type': 'application/json', "Accept" => "application/json"})
   end
 end
