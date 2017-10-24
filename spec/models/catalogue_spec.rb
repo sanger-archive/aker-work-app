@@ -28,7 +28,6 @@ RSpec.describe Catalogue, type: :model do
         product = products.first
         expect(product.name).to eq "Cake"
         expect(product.description).to eq "delicious"
-        expect(product.cost_per_sample).to eq 0
         expect(product.product_class).to eq 'dna_sequencing'
       end
 

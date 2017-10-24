@@ -362,6 +362,7 @@ RSpec.describe WorkOrder, type: :model do
         wo = build(:work_order, status: 'completed')
         EventService ||= double('EventService')
         allow(EventService).to receive(:publish)
+        allow(BillingFacadeClient).to receive(:send_event).with(wo, 'completed')
         expect(EventService).to receive(:publish).with(an_instance_of(EventMessage))
         wo.generate_completed_and_cancel_event
       end
@@ -373,6 +374,7 @@ RSpec.describe WorkOrder, type: :model do
       it 'generates an event using the EventService' do
         wo = build(:work_order)
         EventService ||= double('EventService')
+        allow(BillingFacadeClient).to receive(:send_event).with(wo, 'submitted')
         expect(EventService).not_to receive(:publish).with(an_instance_of(EventMessage))
         expect{wo.generate_submitted_event}.to raise_exception('You cannot generate an submitted event from a work order that is not active.')
       end
@@ -383,6 +385,7 @@ RSpec.describe WorkOrder, type: :model do
         wo = build(:work_order, status: 'active')
         EventService ||= double('EventService')
         allow(EventService).to receive(:publish)
+        allow(BillingFacadeClient).to receive(:send_event).with(wo, 'submitted')
         expect(EventService).to receive(:publish).with(an_instance_of(EventMessage))
         wo.generate_submitted_event
       end

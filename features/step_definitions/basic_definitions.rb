@@ -1,3 +1,5 @@
+require 'billing_facade_client'
+
 Before do
   user = OpenStruct.new(:email => 'test@test', :groups => ['world'])
   ApplicationController.any_instance.stub(:check_credentials)
@@ -155,6 +157,27 @@ When(/^I choose "([^"]*)" in a table$/) do |text|
   page.find('tr', text: text).find('input').click
 end
 
+# Given(/^the proposals are validated by the billing service$/) do
+#  allow(BillingFacadeClient).to receive(:validate_cost_code?).and_return(true)
+#end
+
+Given(/^the following unit prices are defined by the Billing service:$/) do |table|
+  product_names = []
+  table.hashes.each_with_index do |billing|
+    allow(BillingFacadeClient).to receive(:validate_cost_code?)
+      .with(billing['Cost Code']).and_return(true)
+    allow(BillingFacadeClient).to receive(:validate_product_name?)
+      .with(billing['Product Name']).and_return(true)
+    allow(BillingFacadeClient).to receive(:get_unit_price)
+      .with(billing['Cost Code'], billing['Product Name'])
+        .and_return(BigDecimal.new(billing['Unit Price']))
+    product_names.push(billing['Product Name'])
+  end
+  allow(BillingFacadeClient).to receive(:filter_invalid_product_names)
+    .with(product_names)
+      .and_return([])
+end
+
 Given(/^the following proposals have been defined:$/) do |table|
   response_headers = {'Content-Type'=>'application/vnd.api+json'}
   @proposals ||= []
@@ -219,6 +242,10 @@ Given(/^a LIMS named "([^"]*)" at url "([^"]*)" has the following catalogue read
   @catalogues[lims_name] = {catalogue: {products: products, url: lims_url}}
 end
 
+#When(/^all the products of the catalogue are valid products for the billing service$/) do
+#  allow(BillingFacadeClient).to receive(:filter_invalid_product_names).and_return([])
+#end
+
 When(/^the LIMS "([^"]*)" send me the catalogue$/) do |lims_name|
   post catalogue_path, @catalogues[lims_name]
 end
@@ -237,7 +264,9 @@ Given(/^I already received the catalogue from LIMS "([^"]*)"/) do |lims_name|
 end
 
 Given(/^I save the order$/) do
+  allow(BillingFacadeClient).to receive(:send_event)
   WorkOrder.any_instance.stub(:send_to_lims).and_return(true)
+
   step('I click on "Save & Exit"')
 end
 
@@ -305,6 +334,8 @@ When(/^I send a cancel message from the LIMS to the work order application$/) do
 end
 
 When(/^I prepare for a finish message$/) do
+  allow(BillingFacadeClient).to receive(:send_event)
+
   set_double = double("set")
   allow(set_double).to receive(:id)
   allow(set_double).to receive(:set_materials)

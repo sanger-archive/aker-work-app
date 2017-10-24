@@ -50,6 +50,8 @@ Rails.application.configure do
 
   config.stamp_url = 'http://external-server:7000/api/v1'
 
+  config.billing_facade_url = 'http://external-server:3601'
+
   config.work_order_completion_json = 'work_order_completion.json'
 
   config.jwt_secret_key = 'test'

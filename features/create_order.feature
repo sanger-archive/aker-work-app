@@ -29,6 +29,10 @@ Given the following proposals have been defined:
 | Proposal 1 | 1     |
 | Proposal 2 | 2     |
 
+Given the following unit prices are defined by the Billing service:
+| Cost Code | Product Name   | Unit Price |
+| 1         | product_test_1 | 17.4       |
+| 2         | product_test_2 | 32.33      |
 
 Scenario: Receiving a catalogue
 
@@ -61,7 +65,7 @@ Then I should be on the step: "Select Product"
 And I should see "Choose a product:"
 Then I click on drop-down "product-select"
 Then I click on "product_test_1" in drop-down "product-select"
-And I should see "Total : £0.00"
+And I should see "Total : £52.20"
 And I click on "Next"
 
 Then I should be on the step: "Confirm"
@@ -69,7 +73,7 @@ And I should see "testing_set_1"
 And I should see "product_test_1"
 And I should see "Proposal 1"
 And I should see "Transcriptomics"
-And I should see "£0.00"
+And I should see "£52.20"
 
 When I save the order
 
