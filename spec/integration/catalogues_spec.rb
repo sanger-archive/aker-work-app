@@ -9,6 +9,7 @@ describe 'Catalogues API' do
   before do
     webmock_matcon_schema
     allow_set_service_lock_set
+    allow_billing_service_validate_all
   end
 
 

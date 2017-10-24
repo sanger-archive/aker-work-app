@@ -77,6 +77,8 @@ Rails.application.configure do
 
   config.work_order_completion_json = 'work_order_completion.json'
 
+  config.billing_facade_url = 'http://localhost:3601'
+
   config.fake_ldap = true
 
   config.action_mailer.default_url_options = { host: 'localhost', port: 3000 }

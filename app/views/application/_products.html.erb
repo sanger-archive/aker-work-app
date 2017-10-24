@@ -16,7 +16,7 @@
 				<tr>
 					<td><%= work_order.product.name %></td>
 					<td><%= work_order.product.product_version %></td>
-					<td><%= number_to_currency(work_order.product.cost_per_sample, unit:'£') %></td>
+					<td><%= number_to_currency(work_order.cost_per_sample, unit:'£') %></td>
 					<td><%= work_order.product.requested_biomaterial_type %></td>
 					<td><%= work_order.product.TAT %></td>
 					<td><%= work_order.product.description %></td>

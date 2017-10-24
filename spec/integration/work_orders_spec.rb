@@ -10,6 +10,8 @@ describe 'Work Orders API' do
   before do
     webmock_matcon_schema
     allow_set_service_lock_set
+
+    allow(BillingFacadeClient).to receive(:send_event)
   end
 
 
