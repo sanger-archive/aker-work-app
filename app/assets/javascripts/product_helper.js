@@ -12,7 +12,7 @@ $(document).on("turbolinks:load", function() {
     var workOrderId = $("#work-order-id").val();
 
     $.ajax({
-      url: '/api/v1/work_orders/'+workOrderId+'/products/'+productId,
+      url: '/work-orders/api/v1/work_orders/'+workOrderId+'/products/'+productId,
       method: 'GET',
       dataType: 'json',
       contentType: 'application/json',
