@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20171019104645) do
+ActiveRecord::Schema.define(version: 20171026124133) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -54,8 +54,8 @@ ActiveRecord::Schema.define(version: 20171019104645) do
 
   create_table "work_orders", force: :cascade do |t|
     t.string   "status"
-    t.datetime "created_at",                                null: false
-    t.datetime "updated_at",                                null: false
+    t.datetime "created_at",                                                null: false
+    t.datetime "updated_at",                                                null: false
     t.string   "original_set_uuid"
     t.string   "set_uuid"
     t.integer  "proposal_id"
@@ -68,6 +68,7 @@ ActiveRecord::Schema.define(version: 20171019104645) do
     t.string   "close_comment"
     t.string   "owner_email"
     t.decimal  "cost_per_sample",   precision: 8, scale: 2
+    t.boolean  "material_updated",                          default: false
     t.index ["owner_email"], name: "index_work_orders_on_owner_email", using: :btree
     t.index ["product_id"], name: "index_work_orders_on_product_id", using: :btree
   end
