@@ -68,6 +68,9 @@ class WorkOrdersController < ApplicationController
     valid = validator.validate?
     if valid
       result = complete_work_order(finish_status)
+      if params_for_completion[:work_order][:updated_materials].length >= 1
+         work_order.update(material_updated: true)
+      end
     else
       result = validator.errors
     end
