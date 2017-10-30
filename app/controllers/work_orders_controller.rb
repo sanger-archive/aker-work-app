@@ -63,6 +63,7 @@ class WorkOrdersController < ApplicationController
   end
 
   def finish(finish_status)
+    RequestStore.store[:x_authorisation] = { email: work_order.owner_email, groups: ['world'] }
     validator = WorkOrderValidatorService.new(work_order, params_for_completion)
     valid = validator.validate?
     if valid
@@ -114,6 +115,11 @@ private
   def complete_work_order(finish_status)
     success = false
     cleanup = false
+    # We need to send JWT in our requests to restful microservices
+    #  specifying the work order owner as the responsible user.
+    # The JWTSerializer middleware takes the user info from the
+    #  request store.
+    RequestStore.store[:x_authorisation] = { email: work_order.owner_email, groups: ['world'] }
     begin
       material_step = CreateNewMaterialsStep.new(work_order, params_for_completion)
 
