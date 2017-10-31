@@ -44,8 +44,6 @@ RSpec.describe UpdateOrderService do
     attrs[:cost_per_sample] = 17
     attrs[:total_cost] = attrs[:cost_per_sample]*@clone_set.meta['size']
 
-    return create(:work_order, attrs) if step==:cost
-
     return create(:work_order, attrs)
   end
 
@@ -222,13 +220,13 @@ RSpec.describe UpdateOrderService do
 
         expect(@wo.product).to eq(product)
         expect(@wo.total_cost).to eq(@clone_set.meta['size']*@wo.cost_per_sample)
-        expect(@wo.status).to eq('cost')
+        expect(@wo.status).to eq('summary')
       end
 
       it "should refuse a later step" do
         params = {}
         messages = {}
-        expect(UpdateOrderService.new(params, @wo, messages).perform(:cost)).to eq(false)
+        expect(UpdateOrderService.new(params, @wo, messages).perform(:summary)).to eq(false)
         expect(messages[:error]).to include('product')
       end
 
