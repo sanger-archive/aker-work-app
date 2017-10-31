@@ -53,6 +53,7 @@
     </div>
     </nav>
 
+  <div class="container" id="content">
     <div class="row">
       <div class="col-md-8">
         <h1>Work Orders</h1>
@@ -63,8 +64,6 @@
     </div>
 
     <%= render "flashes" %>
-    <%= yield(:title_button) if content_for?(:title_button) %>
-
     <%= yield %>
 
   </div>
