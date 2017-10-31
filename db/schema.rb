@@ -68,7 +68,7 @@ ActiveRecord::Schema.define(version: 20171026124133) do
     t.string   "close_comment"
     t.string   "owner_email"
     t.decimal  "cost_per_sample",   precision: 8, scale: 2
-    t.boolean  "material_updated",                          default: false
+    t.boolean  "material_updated",                          default: false, null: false
     t.index ["owner_email"], name: "index_work_orders_on_owner_email", using: :btree
     t.index ["product_id"], name: "index_work_orders_on_product_id", using: :btree
   end
