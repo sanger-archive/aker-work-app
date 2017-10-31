@@ -9,9 +9,9 @@
       </thead>
       <tbody>
         <tr>
-          <td><%= work_order.original_set.name %></td>
-          <td><%= link_to 'View', "#{Rails.configuration.urls[:sets]}/simple/sets/#{work_order.original_set_uuid}", class: 'btn btn-default', style: "margin-right: 10px;" %>
-            <%= link_to 'Order Work', work_orders_path(set_id: work_order.original_set_uuid), method: 'post', class: 'btn btn-success' %></td>
+          <td><%= work_order.set.name %></td>
+          <td><%= link_to 'View', "#{Rails.configuration.urls[:sets]}/simple/sets/#{work_order.set_uuid}", class: 'btn btn-default', style: "margin-right: 10px;" %>
+            <%= link_to 'Order Work', work_orders_path(set_id: work_order.set_uuid), method: 'post', class: 'btn btn-success' %></td>
         </tr>
       </tbody>
     </table>
@@ -31,9 +31,9 @@
       <tbody>
         <% if work_order.material_updated %>
         <tr>
-          <td>[Updated Metadata] <%= work_order.original_set.name %></td>
-          <td><%= link_to 'View', "#{Rails.configuration.urls[:sets]}/simple/sets/#{work_order.original_set_uuid}", class: 'btn btn-default', style: "margin-right: 10px;" %>
-            <%= link_to 'Order Work', work_orders_path(set_id: work_order.original_set_uuid), method: 'post', class: 'btn btn-success' %></td>
+          <td>[Updated Metadata] <%= work_order.set.name %></td>
+          <td><%= link_to 'View', "#{Rails.configuration.urls[:sets]}/simple/sets/#{work_order.set_uuid}", class: 'btn btn-default', style: "margin-right: 10px;" %>
+            <%= link_to 'Order Work', work_orders_path(set_id: work_order.set_uuid), method: 'post', class: 'btn btn-success' %></td>
         </tr>
         <% end %>
         <% if work_order.finished_set %>
