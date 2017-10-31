@@ -1,22 +1,24 @@
 <div class="row">
   <div class="col-md-12">
     <div style="margin: 10px 0">
-      <% unless first_step? %>
-        <%= link_to 'Back', previous_wizard_path, class: 'btn btn-default' %>
+      <% if (last_step?) %>
+        <%= f.submit "Save & Exit", class: "btn btn-success pull-right" %>
+      <% else %>
+        <%= f.submit "Next", class: "btn btn-primary pull-right" %>
       <% end %>
 
-      <% if (last_step?) %>
-        <%= f.submit "Save & Exit", class: "btn btn-primary", style: "float: right" %>
-      <% else %>
-        <%= f.submit "Next", class: "btn btn-default", style: "float: right" %>
+      <% unless first_step? %>
+        <%= link_to 'Previous', previous_wizard_path,
+              class: 'btn btn-warning',
+              data: { confirm: 'Are you sure you wish to go back? You will loose any progress on the curent step' },
+              style: "margin-right: 10px;" %>
       <% end %>
 
       <% unless work_order.active? %>
-        <%= link_to 'Cancel', work_order,
+        <%= link_to 'Cancel Work Order', work_order,
               method: :delete,
               class: 'btn btn-danger',
-              data: { confirm: 'Are you sure you wish to cancel this work order?' },
-              style: "float: right; margin-right: 7px"
+              data: { confirm: 'Are you sure you wish to cancel this work order?' }
         %>
       <% end %>
     </div>

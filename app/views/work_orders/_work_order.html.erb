@@ -9,7 +9,7 @@
 
     <% else %>
 
-      <%= link_to 'Continue', work_order_build_path(id: work_order.status, work_order_id: work_order.id), class: 'btn btn-primary' %>
+      <%= link_to 'Continue', work_order_build_path(id: work_order.status, work_order_id: work_order.id), class: 'btn btn-primary', style: "margin-right: 10px" %>
 
       <%= link_to 'Cancel', work_order,
             method: :delete,
