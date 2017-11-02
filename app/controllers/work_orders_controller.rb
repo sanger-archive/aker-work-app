@@ -23,7 +23,7 @@ class WorkOrdersController < ApplicationController
   def create
     authorize! :create, WorkOrder
 
-    work_order = WorkOrder.create!(owner_email: current_user.email)
+    work_order = WorkOrder.create!(owner_email: current_user.email, original_set_uuid: params[:set_id])
 
     redirect_to work_order_build_path(
       id: Wicked::FIRST_STEP,
@@ -63,10 +63,18 @@ class WorkOrdersController < ApplicationController
   end
 
   def finish(finish_status)
+    # We need to send JWT in our requests to restful microservices
+    #  specifying the work order owner as the responsible user.
+    # The JWTSerializer middleware takes the user info from the
+    #  request store.
+    RequestStore.store[:x_authorisation] = { email: work_order.owner_email, groups: ['world'] }
     validator = WorkOrderValidatorService.new(work_order, params_for_completion)
     valid = validator.validate?
     if valid
       result = complete_work_order(finish_status)
+      if params_for_completion[:work_order][:updated_materials].length >= 1
+         work_order.update(material_updated: true)
+      end
     else
       result = validator.errors
     end

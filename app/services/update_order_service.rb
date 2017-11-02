@@ -56,7 +56,7 @@ class UpdateOrderService
 private
 
   def next_status(step)
-    steps = [:set, :proposal, :product, :cost, :summary]
+    steps = [:set, :proposal, :product, :summary]
     i = steps.index(step)
     return step.to_s if i.nil?
     return 'active' if i+1==steps.length
@@ -77,11 +77,6 @@ private
     return true if step==:product
     unless @work_order.product_id
       add_error("Please select a product in an earlier step.")
-      return false
-    end
-    return true if step==:cost
-    unless @work_order.proposal_id
-      add_error("Please select a project in an earlier step.")
       return false
     end
     return true

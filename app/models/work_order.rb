@@ -60,6 +60,11 @@ class WorkOrder < ApplicationRecord
     [WorkOrder.ACTIVE, WorkOrder.BROKEN, WorkOrder.COMPLETED, WorkOrder.CANCELLED]
   end
 
+  def pending?
+    # Returns true if the work order wizard has not yet been completed
+    WorkOrder.not_pending_status_list.exclude?(status)
+  end
+
   def active?
     status == WorkOrder.ACTIVE
   end
