@@ -4,13 +4,13 @@
       <thead>
         <tr>
           <th>Input Set</th>
-          <th>Actions</th>
+          <th></th>
         </tr>
       </thead>
       <tbody>
         <tr>
           <td><%= work_order.set.name %></td>
-          <td><%= link_to 'View', "#{Rails.configuration.urls[:sets]}/simple/sets/#{work_order.set_uuid}", class: 'btn btn-default', style: "margin-right: 10px;" %>
+          <td align="right"><%= link_to 'View', "#{Rails.configuration.urls[:sets]}/simple/sets/#{work_order.set_uuid}", class: 'btn btn-default', style: "margin-right: 10px;" %>
             <%= link_to 'Order Work', work_orders_path(set_id: work_order.set_uuid), method: 'post', class: 'btn btn-success' unless work_order.pending? %></td>
         </tr>
       </tbody>
@@ -25,21 +25,21 @@
       <thead>
         <tr>
           <th>Output Set</th>
-          <th>Actions</th>
+          <th></th>
         </tr>
       </thead>
       <tbody>
         <% if work_order.material_updated %>
         <tr>
           <td>[Updated Metadata] <%= work_order.set.name %></td>
-          <td><%= link_to 'View', "#{Rails.configuration.urls[:sets]}/simple/sets/#{work_order.set_uuid}", class: 'btn btn-default', style: "margin-right: 10px;" %>
+          <td align="right"><%= link_to 'View', "#{Rails.configuration.urls[:sets]}/simple/sets/#{work_order.set_uuid}", class: 'btn btn-default', style: "margin-right: 10px;" %>
             <%= link_to 'Order Work', work_orders_path(set_id: work_order.set_uuid), method: 'post', class: 'btn btn-success' %></td>
         </tr>
         <% end %>
         <% if work_order.finished_set %>
         <tr>
           <td><%= work_order.finished_set.name %></td>
-          <td><%= link_to 'View', "#{Rails.configuration.urls[:sets]}/simple/sets/#{work_order.finished_set_uuid}", class: 'btn btn-default', style: "margin-right: 10px;" %>
+          <td align="right"><%= link_to 'View', "#{Rails.configuration.urls[:sets]}/simple/sets/#{work_order.finished_set_uuid}", class: 'btn btn-default', style: "margin-right: 10px;" %>
             <%= link_to 'Order Work', work_orders_path(set_id: work_order.finished_set_uuid), method: 'post',  class: 'btn btn-success' %></td>
         </tr>
         <% end %>
