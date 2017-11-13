@@ -8,6 +8,7 @@ RSpec.describe WorkOrder, type: :model do
 
   before do
     @barcode_index = 100
+    stub_const("BillingFacadeClient", double('BillingFacadeClient'))
   end
 
   def make_barcode
