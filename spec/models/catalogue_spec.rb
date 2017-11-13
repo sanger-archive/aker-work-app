@@ -34,4 +34,23 @@ RSpec.describe Catalogue, type: :model do
     end
 
   end
+
+  describe '#lims_id' do
+    it 'should be sanitised' do
+      expect(create(:catalogue, lims_id: "    My  \t  LIMS  \n").lims_id).to eq('My LIMS')
+    end
+  end
+
+  describe 'validation' do
+    it 'should not be valid without a lims_id' do
+      expect(build(:catalogue, lims_id: nil)).not_to be_valid
+    end
+    it 'should not be valid with a blank lims_id after sanitisation' do
+      expect(build(:catalogue, lims_id: "   \n  \t    ")).not_to be_valid
+    end
+    it 'should be valid with a lims_id after sanitisation' do
+      expect(build(:catalogue, lims_id: "    My  \t  LIMS  \n")).to be_valid
+    end
+  end
+
 end

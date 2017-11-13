@@ -7,6 +7,9 @@ class WorkOrder < ApplicationRecord
 
   belongs_to :product, optional: true
 
+  before_validation :sanitise_owner
+  before_save :sanitise_owner
+
   after_initialize :create_uuid
   after_create :set_default_permission_email
 
@@ -75,6 +78,15 @@ class WorkOrder < ApplicationRecord
 
   def broken!
     update_attributes(status: WorkOrder.BROKEN)
+  end
+
+  def sanitise_owner
+    if owner_email
+      sanitised = owner_email.strip.downcase
+      if sanitised != owner_email
+        self.owner_email = sanitised
+      end
+    end
   end
 
   def proposal
