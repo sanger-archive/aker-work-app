@@ -10,14 +10,15 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20171026124133) do
+ActiveRecord::Schema.define(version: 20171113094502) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
+  enable_extension "citext"
 
   create_table "catalogues", force: :cascade do |t|
     t.string   "url"
-    t.string   "lims_id"
+    t.citext   "lims_id",    null: false
     t.string   "pipeline"
     t.boolean  "current"
     t.datetime "created_at", null: false
@@ -26,7 +27,7 @@ ActiveRecord::Schema.define(version: 20171026124133) do
   end
 
   create_table "permissions", force: :cascade do |t|
-    t.string   "permitted",       null: false
+    t.citext   "permitted",       null: false
     t.string   "accessible_type", null: false
     t.integer  "accessible_id",   null: false
     t.datetime "created_at",      null: false
@@ -66,7 +67,7 @@ ActiveRecord::Schema.define(version: 20171026124133) do
     t.string   "finished_set_uuid"
     t.string   "work_order_uuid"
     t.string   "close_comment"
-    t.string   "owner_email"
+    t.citext   "owner_email"
     t.decimal  "cost_per_sample",   precision: 8, scale: 2
     t.boolean  "material_updated",                          default: false, null: false
     t.index ["owner_email"], name: "index_work_orders_on_owner_email", using: :btree
