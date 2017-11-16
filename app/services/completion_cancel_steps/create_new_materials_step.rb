@@ -49,6 +49,8 @@ class CreateNewMaterialsStep
         @container_previous_contents[container_instance.id] ||= {}
         @container_previous_contents[container_instance.id][slot.address] = slot.material_id
 
+        slot.material_id = new_material.id
+
         # Add the containers_to_save to a list to save them afterwards.
         # Don't add the same container twice.
         containers_to_save.push(container_instance) unless containers_to_save.include?(container_instance)
