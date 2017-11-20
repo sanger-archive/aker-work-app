@@ -8,6 +8,7 @@ RSpec.describe WorkOrder, type: :model do
 
   before do
     @barcode_index = 100
+    stub_const("BillingFacadeClient", double('BillingFacadeClient'))
   end
 
   def make_barcode
@@ -222,6 +223,12 @@ RSpec.describe WorkOrder, type: :model do
     end
   end
 
+  describe '#owner_email' do
+    it 'should be sanitised' do
+      expect(create(:work_order, owner_email: '    ALPHA@BETA   ').owner_email).to eq('alpha@beta')
+    end
+  end
+
   describe "#lims_data" do
 
     def make_container(materials)
@@ -389,6 +396,18 @@ RSpec.describe WorkOrder, type: :model do
         expect(EventService).to receive(:publish).with(an_instance_of(EventMessage))
         wo.generate_submitted_event
       end
+    end
+  end
+
+  describe '#validation' do
+    it 'should be invalid with no owner_email' do
+      expect(build(:work_order, owner_email: nil)).to be_invalid
+    end
+    it 'should be invalid with an empty owner_email after sanitisation' do
+      expect(build(:work_order, owner_email: "   \n   \t   ")).to be_invalid
+    end
+    it 'should be valid with a non-empty owner_email after sanitisation' do
+      expect(build(:work_order, owner_email: "    ALPHA@BETA   ")).to be_valid
     end
   end
 end

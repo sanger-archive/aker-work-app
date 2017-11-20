@@ -239,7 +239,7 @@ Given(/^a LIMS named "([^"]*)" at url "([^"]*)" has the following catalogue read
       'Material Type' => 'requested_biomaterial_type', 'TAT' => 'TAT', 'Product Class' => 'product_class'}
     products.push(product.keys.reduce({}) {|memo, key| memo[mapping[key]] = product[key] ; memo })
   end
-  @catalogues[lims_name] = {catalogue: {products: products, url: lims_url}}
+  @catalogues[lims_name] = {catalogue: {products: products, url: lims_url, lims_id: lims_name }}
 end
 
 #When(/^all the products of the catalogue are valid products for the billing service$/) do

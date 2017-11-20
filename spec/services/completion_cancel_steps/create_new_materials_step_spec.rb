@@ -93,6 +93,7 @@ RSpec.describe 'CreateNewMaterialsStep' do
           material = make_material
           allow(material).to receive(:to_a).and_return([material])
           allow(MatconClient::Material).to receive(:create).and_return(material)
+          expect(@container_mock.slots.select{|s| s.address == 'A:1'}.first).to receive(:material_id=).with(material.id)
           @step.up
         end
       end
@@ -111,6 +112,7 @@ RSpec.describe 'CreateNewMaterialsStep' do
           material = make_material
           allow(material).to receive(:to_a).and_return([material])
           allow(MatconClient::Material).to receive(:create).and_return(material)
+          expect(@container_mock.slots.first).to receive(:material_id=).with(material.id)
           @step.up
         end
       end

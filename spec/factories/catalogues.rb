@@ -1,6 +1,6 @@
 FactoryGirl.define do
   factory :catalogue do
-    
+    lims_id 'my lims'
   end
 
   factory :catalogue_json, class: Hash do |catalogue|
