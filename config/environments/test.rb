@@ -46,7 +46,7 @@ Rails.application.configure do
   config.set_url = 'http://external-server:3000/api/v1'
   config.set_url_default_proxy = 'http://external-server:3000'
 
-  config.material_url = 'http://external-server:5000/'
+  config.material_url = 'http://external-server:5000'
 
   config.stamp_url = 'http://external-server:7000/api/v1'
 
