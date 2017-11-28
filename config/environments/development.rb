@@ -62,7 +62,7 @@ Rails.application.configure do
   config.set_url = 'http://localhost:3000/api/v1'
   config.set_url_default_proxy = 'http://localhost:3000'
 
-  config.material_url = 'http://localhost:5000/'
+  config.material_url = 'http://localhost:5000'
 
   config.stamp_url = 'http://localhost:7000/api/v1'
 
