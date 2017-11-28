@@ -1,15 +1,4 @@
 GIT
-  remote: https://github.com/emrojo/aker-matcon-client.git
-  revision: 9176ecc6f096bfe52df669dc9c2a60b34f51e277
-  branch: bugfix_remote_slash_from_material_url
-  specs:
-    matcon_client (0.2.1)
-      activemodel
-      activesupport
-      faraday
-      faraday_middleware
-
-GIT
   remote: https://github.com/sanger/aker-credentials.git
   revision: 49a8a0a2811878744d2d6869784b3bdb885804a4
   specs:
@@ -18,6 +7,16 @@ GIT
       faraday
       jwt
       request_store
+
+GIT
+  remote: https://github.com/sanger/aker-matcon-client.git
+  revision: 49fd2508606569b44245227f6b9e30dc4c54b720
+  specs:
+    matcon_client (0.2.1)
+      activemodel
+      activesupport
+      faraday
+      faraday_middleware
 
 GIT
   remote: https://github.com/sanger/aker-permission.git
