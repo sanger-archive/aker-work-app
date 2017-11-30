@@ -53,6 +53,7 @@ RSpec.describe 'EventMessage' do
 
     let(:work_order) do
       wo = build(:work_order, { owner_email: 'user@sanger.ac.uk', status: WorkOrder.ACTIVE })
+      allow(wo).to receive(:id).and_return 123
       allow(wo).to receive(:comment).and_return first_comment
       allow(wo).to receive(:close_comment).and_return second_comment
       allow(wo).to receive(:total_cost).and_return 50
@@ -124,8 +125,12 @@ RSpec.describe 'EventMessage' do
 
       # Metadata
       it 'should have the correct amount of metadata' do
-        expect(metadata.length).to eq(5)
+        expect(metadata.length).to eq(6)
       end
+      it 'should have the correct work order id' do
+        expect(metadata['work_order_id']).to eq(work_order.id)
+      end
+
       it 'should have the correct comment' do
         expect(metadata['comment']).to eq(first_comment)
       end
@@ -150,8 +155,12 @@ RSpec.describe 'EventMessage' do
       it_behaves_like "event message json"
 
       # Metadata
+      it 'should have the correct work order id' do
+        expect(metadata['work_order_id']).to eq(work_order.id)
+      end
+
       it 'should have the correct amount of metadata' do
-        expect(metadata.length).to eq(3)
+        expect(metadata.length).to eq(4)
       end
       it 'should have the correct comment' do
         expect(metadata['comment']).to eq(second_comment)

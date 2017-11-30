@@ -4,7 +4,7 @@ class WorkOrderMailer < ApplicationMailer
 		@work_order = work_order
 		@exception = exception
 		status = work_order.status == 'active' ? 'submitted' : work_order.status
-    mail(to: 'hc6@sanger.ac.uk', subject: "Message failed to be added to the queue for Work Order #{work_order.id} #{status} event.")
+    mail(to: 'akerdev@sanger.ac.uk', subject: "Message failed to be added to the queue for Work Order #{work_order.id} #{status} event.")
 	end
 
 end

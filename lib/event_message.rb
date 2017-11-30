@@ -22,6 +22,7 @@ class EventMessage
 
   def metadata_for_submitted
     {
+      "work_order_id" => @work_order.id,
       "comment" => @work_order.comment,
       "quoted_price" => @work_order.total_cost,
       "desired_completion_date" => @work_order.desired_date,
@@ -32,6 +33,7 @@ class EventMessage
 
   def metadata_for_completed
     {
+      "work_order_id" => @work_order.id,
       "comment" => @work_order.close_comment,
       "zipkin_trace_id" => trace_id,
       "num_new_materials" => @work_order.finished_set.meta["size"],
