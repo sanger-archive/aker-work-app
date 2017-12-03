@@ -298,7 +298,7 @@ Given(/^I have a biomaterials service running$/) do
 end
 
 Given(/^I created a work order "([^"]*)"$/) do |arg1|
-    @work_order = FactoryGirl.create(:work_order)
+    @work_order = FactoryBot.create(:work_order)
 end
 
 Given(/^I process the work order "([^"]*)" with the LIMS/) do |arg1|
@@ -312,7 +312,7 @@ end
 When(/^I send a completion message from the LIMS to the work order application$/) do
   step('I prepare for a finish message')
 
-  @work_order_completion_msg = FactoryGirl.build(:valid_work_order_completion_message_json)
+  @work_order_completion_msg = FactoryBot.build(:valid_work_order_completion_message_json)
   @work_order_completion_msg[:work_order][:work_order_id]=@work_order.id
 
   header "HTTP_ACCEPT", "application/json"
@@ -324,7 +324,7 @@ end
 When(/^I send a cancel message from the LIMS to the work order application$/) do
   step('I prepare for a finish message')
 
-  @work_order_completion_msg = FactoryGirl.build(:valid_work_order_completion_message_json)
+  @work_order_completion_msg = FactoryBot.build(:valid_work_order_completion_message_json)
   @work_order_completion_msg[:work_order][:work_order_id]=@work_order.id
 
   header "HTTP_ACCEPT", "application/json"

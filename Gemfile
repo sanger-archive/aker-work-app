@@ -96,7 +96,7 @@ group :development, :test do
   gem 'capybara'
   # database_cleaner is not required, but highly recommended
   gem 'database_cleaner'
-  gem 'factory_girl_rails'
+  gem 'factory_bot_rails'
   gem 'launchy'
   gem 'poltergeist'
   gem 'rspec-rails', '~> 3.4'
