@@ -4,7 +4,7 @@ require 'bigdecimal'
 module BillingFacadeClient
 
   def self.send_event(work_order, name)
-    connection.post("/events", {eventName: name, workOrderId: work_order.id}.to_json)
+    r = connection.post("/events", {eventName: name, workOrderId: work_order.id}.to_json)
     return true if r.status==200
     return false
   end
@@ -21,7 +21,7 @@ module BillingFacadeClient
     return [] if r.status==200
     response = JSON.parse(r.body, symbolize_names: true)
     invalid_cost_codes = response.keys.select{|cost_code| !response[cost_code] }
-    return invalid_cost_codes    
+    return invalid_cost_codes
   end
 
   def self.get_cost_information_for_products(cost_code, product_names)
@@ -36,7 +36,7 @@ module BillingFacadeClient
       return BigDecimal.new(response[:unitPrice])
     else
       return nil
-    end    
+    end
   end
 
   def self.validate_product_name?(product_name)

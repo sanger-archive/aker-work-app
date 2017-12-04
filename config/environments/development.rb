@@ -71,9 +71,16 @@ Rails.application.configure do
 
   config.jwt_secret_key = 'development'
 
-  config.enable_events_sending = false
-  config.events_queue_name = 'aker.events'
-  config.events_queue_connection = "amqp://guest:guest@localhost:5672"
+  config.events = {
+    enabled: false,
+    broker_host: 'localhost',
+    broker_port: '5672',
+    broker_username: 'guest',
+    broker_password: 'guest',
+    exchange_name: 'aker.events',
+    warehouse_queue_name: 'aker.events.warehouse',
+    notification_queue_name: 'aker.events.notifications'
+  }
 
   config.work_order_completion_json = 'work_order_completion.json'
 
@@ -84,16 +91,15 @@ Rails.application.configure do
   config.action_mailer.default_url_options = { host: 'localhost', port: 3000 }
 
   # SSO
-  config.default_jwt_user = { email: ENV.fetch('USER', 'user') + '@sanger.ac.uk', groups: ['world'] }
+  config.default_jwt_user = { email: ENV.fetch('USER', 'user') + '@sanger.ac.uk',
+                              groups: ['world'] }
 
-  config.auth_service_url = 'http://localhost:9010'
-  config.login_url = config.auth_service_url+'/login'
-  config.logout_url = config.auth_service_url+'/logout'
+  config.login_url = config.auth_service_url + '/login'
+  config.logout_url = config.auth_service_url + '/logout'
 
-  config.urls = { submission: "",
-                  permissions: "",
-                  sets: "",
-                  projects: "",
-                  work_orders: "" }
-
+  config.urls = { submission: '',
+                  permissions: '',
+                  sets: '',
+                  projects: '',
+                  work_orders: '' }
 end

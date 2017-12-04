@@ -1,4 +1,4 @@
-FactoryGirl.define do
+FactoryBot.define do
   factory :catalogue do
     lims_id 'my lims'
   end

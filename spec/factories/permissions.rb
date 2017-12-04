@@ -1,4 +1,4 @@
-FactoryGirl.define do
+FactoryBot.define do
   factory :permission do
     accessible nil
     permitted "blackbeard@sanger.ac.uk"
