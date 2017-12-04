@@ -1,4 +1,4 @@
-FactoryGirl.define do
+FactoryBot.define do
   factory :work_order_completion_message_json, class: Hash do |work_order|
     initialize_with { Hash.new.merge({
         "work_order": {
