@@ -25,7 +25,7 @@ module BillingFacadeClient
   end
 
   def self.get_cost_information_for_products(cost_code, product_names)
-    r = connection.post("/accounts/#{cost_code}/unit_price", product_names.to_json)
+    r = connection.post("/accounts/#{encode_for_url(cost_code)}/unit_price", product_names.to_json)
     response = JSON.parse(r.body, symbolize_names: true)
     return response
   end
@@ -39,12 +39,16 @@ module BillingFacadeClient
     end
   end
 
+  def self.encode_for_url(str)
+    ERB::Util.url_encode(str)
+  end
+
   def self.validate_product_name?(product_name)
-    validate_single_value("/products/#{product_name}/verify")
+    validate_single_value("/products/#{encode_for_url(product_name)}/verify")
   end
 
   def self.validate_cost_code?(cost_code)
-    validate_single_value("/accounts/#{cost_code}/verify")
+    validate_single_value("/accounts/#{encode_for_url(cost_code)}/verify")
   end
 
   def self.filter_invalid_cost_codes(cost_codes)

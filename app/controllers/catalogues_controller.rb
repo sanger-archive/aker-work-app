@@ -1,3 +1,5 @@
+require 'billing_facade_client'
+
 class CataloguesController < ApplicationController
   skip_authorization_check only: :create
   skip_credentials
