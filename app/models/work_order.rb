@@ -166,14 +166,20 @@ class WorkOrder < ApplicationRecord
     unless materials.all? { |m| m.attributes['available'] }
       raise "Some of the specified materials are not available."
     end
+
     material_data = materials.map do |m|
           {
             _id: m.id,
+            is_tumour: m.attributes['is_tumour'],
+            supplier_name: m.attributes['supplier_name'],
+            taxon_id: m.attributes['taxon_id'],
+            tissue_type: m.attributes['tissue_type'],
             container: nil,
             gender: m.attributes['gender'],
             donor_id: m.attributes['donor_id'],
             phenotype: m.attributes['phenotype'],
-            scientific_name: m.attributes['scientific_name']
+            scientific_name: m.attributes['scientific_name'],
+            available: m.attributes['available']
           }
     end
     describe_containers(material_ids, material_data)

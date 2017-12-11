@@ -1,4 +1,11 @@
 GIT
+  remote: https://github.com/sanger/aker-billing-facade-client.git
+  revision: dac6edeed2c0259da687a027a2a77f5234701250
+  specs:
+    aker-billing-facade-client (0.1.0)
+      faraday
+
+GIT
   remote: https://github.com/sanger/aker-credentials.git
   revision: 49a8a0a2811878744d2d6869784b3bdb885804a4
   specs:
@@ -441,6 +448,7 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  aker-billing-facade-client!
   aker-set-client!
   aker-study-client!
   aker_credentials_gem!
