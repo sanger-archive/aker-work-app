@@ -42,7 +42,10 @@ class OrdersController < ApplicationController
     end
 
     def get_all_proposals_spendable_by_current_user
-      StudyClient::Node.where(cost_code: '!_none', spendable_by: [current_user.email] + current_user.groups).all.uniq {|p| p&.id}
+      StudyClient::Node.where(
+        node_type: 'subproject', 
+        with_parent_spendable_by: [current_user.email] + current_user.groups
+      ).all.uniq {|p| p&.id}
     end
 
     def get_current_catalogues_with_products
