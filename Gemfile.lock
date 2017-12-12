@@ -123,6 +123,7 @@ GEM
     backports (3.10.3)
     bindex (0.5.0)
     bootstrap_form (2.7.0)
+    brakeman (4.0.1)
     builder (3.2.3)
     bunny (0.9.0.pre10)
       amq-protocol (>= 1.4.0)
@@ -456,6 +457,7 @@ DEPENDENCIES
   aker_stamp_client!
   bootstrap-sass (~> 3.3.6)!
   bootstrap_form
+  brakeman
   bunny (= 0.9.0.pre10)
   byebug
   capybara
