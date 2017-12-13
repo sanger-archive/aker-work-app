@@ -93,7 +93,7 @@ private
     # 2 - Validate Word Order exists
     work_order = WorkOrder.find_by(id: @msg[:work_order][:work_order_id])
     if work_order.nil?
-      return error_return(404, "Work order #{@msg[:work_order][:work_order_id]} does not exist")
+      return error_return(404, "Work Order #{@msg[:work_order][:work_order_id]} does not exist")
     end
     return true if work_order == @work_order
     error_return(422, "Wrong work order specified")
@@ -138,7 +138,3 @@ private
   end
 
 end
-
-
-
-
