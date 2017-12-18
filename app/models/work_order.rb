@@ -129,7 +129,7 @@ class WorkOrder < ApplicationRecord
 
   # Create a locked set from this work order's original set.
   def create_locked_set
-    self.set = original_set.create_locked_clone("Work order #{id}")
+    self.set = original_set.create_locked_clone("Work Order #{id}")
     save!
   end
 

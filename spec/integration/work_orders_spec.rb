@@ -14,38 +14,40 @@ describe 'Work Orders API' do
     allow(BillingFacadeClient).to receive(:send_event)
   end
 
-
   let(:set_for_work_order) { made_up_set }
   let(:catalogue) { create(:catalogue) }
   let(:product) { create(:product, catalogue: catalogue) }
 
   let(:proposal) { made_up_proposal }
 
-  let(:instance_wo) {
-    create(:work_order, status: WorkOrder.ACTIVE, set_uuid: set_for_work_order.id,
-     product: product, proposal_id: proposal.id )
-  }
-  let(:instance_wo2) { create(:work_order)}
+  let(:instance_wo) do
+    create(:work_order, status: WorkOrder.ACTIVE,
+                        set_uuid: set_for_work_order.id,
+                        product: product,
+                        proposal_id: proposal.id)
+  end
 
-  let(:some_materials) { create(:material)}
-  let(:work_order) {
+  let(:instance_wo2) { create(:work_order) }
+
+  let(:work_order) do
     json = build(:valid_work_order_completion_message_json)
     json[:work_order][:work_order_id] = instance_wo.id
     json
-  }
+  end
+
   let(:work_order_id) { work_order[:work_order][:work_order_id] }
 
-  let(:invalid_work_order) {
+  let(:invalid_work_order) do
     json = build(:valid_work_order_completion_message_json)
     json[:work_order][:work_order_id] = instance_wo2.id
     json
-  }
+  end
 
   path '/api/v1/work_orders/{work_order_id}' do
     get 'Obtains the information of a work order' do
       tags 'Work Orders'
       produces 'application/json'
-      parameter name: :work_order_id, :in => :path, :type => :integer
+      parameter name: :work_order_id, in: :path, type: :integer
 
       response '200', 'work order obtained' do
         let(:work_order_id) { instance_wo.id }
@@ -55,14 +57,13 @@ describe 'Work Orders API' do
   end
 
   path '/api/v1/work_orders/{work_order_id}/complete' do
-
     post 'Completes a work order' do
       tags 'Work Orders'
       consumes 'application/json'
       produces 'application/json'
-      parameter name: :work_order_id, :in => :path, :type => :integer
+      parameter name: :work_order_id, in: :path, type: :integer
       parameter name: :work_order, in: :body,
-        schema: JSON.parse(WorkOrderValidatorService.schema_content)
+                schema: JSON.parse(WorkOrderValidatorService.schema_content)
 
       response '200', 'work order found' do
         run_test!
@@ -75,7 +76,7 @@ describe 'Work Orders API' do
 
       response '502', 'the work order could not be updated' do
         before do
-          allow(SetClient::Set).to receive(:create).and_raise("a problem")
+          expect_any_instance_of(LockSetStep).to receive(:up).and_raise('error')
         end
         run_test!
       end
@@ -83,14 +84,13 @@ describe 'Work Orders API' do
   end
 
   path '/api/v1/work_orders/{work_order_id}/cancel' do
-
     post 'Cancels a work order' do
       tags 'Work Orders'
       consumes 'application/json'
       produces 'application/json'
-      parameter name: :work_order_id, :in => :path, :type => :string
+      parameter name: :work_order_id, in: :path, type: :string
       parameter name: :work_order, in: :body,
-        schema: JSON.parse(WorkOrderValidatorService.schema_content)
+                schema: JSON.parse(WorkOrderValidatorService.schema_content)
 
       response '200', 'work order found' do
         run_test!
@@ -103,7 +103,7 @@ describe 'Work Orders API' do
 
       response '502', 'the work order could not be updated' do
         before do
-          allow(SetClient::Set).to receive(:create).and_raise("a problem")
+          expect_any_instance_of(LockSetStep).to receive(:up).and_raise('error')
         end
         run_test!
       end
