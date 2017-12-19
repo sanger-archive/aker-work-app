@@ -160,7 +160,7 @@ private
       return false
     end
 
-    unless BillingFacadeClient.validate_cost_code?(cost_code)
+    unless BillingFacadeClient.validate_subproject_cost_code?(cost_code)
       add_error("The Billing service does not validate the cost code for the selected product.")
       return false
     end
