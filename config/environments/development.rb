@@ -75,6 +75,7 @@ Rails.application.configure do
     enabled: false,
     broker_host: 'localhost',
     broker_port: '5672',
+    broker_vhost: '/',
     broker_username: 'guest',
     broker_password: 'guest',
     exchange_name: 'aker.events',
