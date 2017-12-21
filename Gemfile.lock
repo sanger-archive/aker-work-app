@@ -47,9 +47,9 @@ GIT
 
 GIT
   remote: https://github.com/sanger/aker-study-client.git
-  revision: 46f00717d5c68f9dcd70e8407dd9b1712bb7ebc9
+  revision: 1ae82548bcdb1c1d1ca84cf46e3bbf405b7299de
   specs:
-    aker-study-client (0.2.1)
+    aker-study-client (0.2.2)
 
 GIT
   remote: https://github.com/sanger/bootstrap-sass.git

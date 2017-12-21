@@ -184,6 +184,12 @@ class WorkOrder < ApplicationRecord
     end
     describe_containers(material_ids, material_data)
 
+    if proposal.subproject?
+      project = StudyClient::Node.find(proposal.parent_id).first
+    else
+      project = proposal
+    end
+
     {
       work_order: {
         product_name: product.name,
@@ -191,8 +197,8 @@ class WorkOrder < ApplicationRecord
         product_uuid: product.product_uuid,
         work_order_id: id,
         comment: comment,
-        proposal_id: proposal_id,
-        proposal_name: proposal.name,
+        project_uuid: project.node_uuid,
+        project_name: project.name,
         cost_code: proposal.cost_code,
         desired_date: desired_date,
         materials: material_data,

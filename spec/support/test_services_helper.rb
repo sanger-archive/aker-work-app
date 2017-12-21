@@ -104,12 +104,10 @@ module TestServicesHelper
     container
   end
 
-  def made_up_proposal
-    prop = double('proposal', name: 'a name', cost_code: 'a cost code', id: 1)
-
-    allow(StudyClient::Node).to receive(:find).with(prop.id).and_return([prop])
-
-    prop
+  def make_node(name, cost_code, id, parent_id, is_sub, is_proj)
+    n = double('node', name: name, cost_code: cost_code, id: id, parent_id: parent_id, subproject?: is_sub, project?: is_proj, node_uuid: SecureRandom.uuid)
+    allow(StudyClient::Node).to receive(:find).with(n.id).and_return([n])
+    return n
   end
 
   def stub_matcon
