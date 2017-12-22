@@ -18,7 +18,8 @@ describe 'Work Orders API' do
   let(:catalogue) { create(:catalogue) }
   let(:product) { create(:product, catalogue: catalogue) }
 
-  let(:proposal) { made_up_proposal }
+  let(:project) { make_node('my project', 'S0001', 1, 0, false, true) }
+  let(:proposal) { make_node('my proposal', 'S0001-0', 2, project.id, true, false) }
 
   let(:instance_wo) do
     create(:work_order, status: WorkOrder.ACTIVE,

@@ -23,10 +23,13 @@ RSpec.describe WorkOrder, type: :model do
     return s
   end
 
-  def make_proposal
-    proposal = double('proposal', name: 'Operation Wolf', cost_code: 'S1001', id: 42)
-    allow(StudyClient::Node).to receive(:find).with(proposal.id).and_return([proposal])
-    return proposal
+  let(:project) { make_node('Operation Wolf', 'S1001', 41, 40, false, true) }
+  let(:proposal) { make_node('Operation Thunderbolt', 'S1001-0', 42, project.id, true, false) }
+
+  def make_node(name, cost_code, id, parent_id, is_sub, is_proj)
+    n = double('node', name: name, cost_code: cost_code, id: id, parent_id: parent_id, subproject?: is_sub, project?: is_proj, node_uuid: make_uuid)
+    allow(StudyClient::Node).to receive(:find).with(n.id).and_return([n])
+    return n
   end
 
   def make_result_set(items)
@@ -145,12 +148,11 @@ RSpec.describe WorkOrder, type: :model do
   describe "#proposal" do
     context "when the work order has a proposal id" do
       before do
-        @proposal = make_proposal
-        @wo = build(:work_order, proposal_id: @proposal.id)
+        @wo = build(:work_order, proposal_id: proposal.id)
       end
 
       it "should find and return the proposal" do
-        expect(@wo.proposal).to eq(@proposal)
+        expect(@wo.proposal).to eq(proposal)
       end
 
     end
@@ -251,9 +253,8 @@ RSpec.describe WorkOrder, type: :model do
     before do
       make_set_with_materials
       make_container(@materials)
-      @proposal = make_proposal
       product = build(:product, name: 'Soylent Green', product_version: 3, product_uuid: 'abc123')
-      @wo = build(:work_order, product: product, proposal_id: @proposal.id, set_uuid: @set.id,
+      @wo = build(:work_order, product: product, proposal_id: proposal.id, set_uuid: @set.id,
                   id: 616, comment: 'hello', desired_date: '2020-01-01')
     end
 
@@ -275,9 +276,9 @@ RSpec.describe WorkOrder, type: :model do
         expect(data[:product_uuid]).to eq(@wo.product.product_uuid)
         expect(data[:work_order_id]).to eq(@wo.id)
         expect(data[:comment]).to eq(@wo.comment)
-        expect(data[:proposal_id]).to eq(@proposal.id)
-        expect(data[:proposal_name]).to eq(@proposal.name)
-        expect(data[:cost_code]).to eq(@proposal.cost_code)
+        expect(data[:project_uuid]).to eq(project.node_uuid)
+        expect(data[:project_name]).to eq(project.name)
+        expect(data[:cost_code]).to eq(proposal.cost_code)
         expect(data[:desired_date]).to eq(@wo.desired_date)
         material_data = data[:materials]
         expect(material_data.length).to eq(@materials.length)
