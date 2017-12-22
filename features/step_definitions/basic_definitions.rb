@@ -72,7 +72,7 @@ Given(/^the following sets are defined for user "([^"]*)":$/) do |user, table|
 
 
     stub_request(:post, "http://external-server:3000/api/v1/sets/#{uuid}/clone").
-      with(body: {data: {attributes: {name: "Work order #{index+1}"}}}.to_json,
+      with(body: {data: {attributes: {name: "Work Order #{index+1}"}}}.to_json,
            headers: {'Accept'=>'application/vnd.api+json'}).
       to_return(status: 200, body: {data: defined_set }.to_json,  headers: response_headers)
 
@@ -99,7 +99,7 @@ Given(/^a set named "([^"]*)" of \d* elements is defined$/) do |set_name, size_s
       headers: response_headers)
 
   stub_request(:post, "http://external-server:3000/api/v1/sets/#{@uuid}/clone").
-    with(body: {data: {attributes: {name: "Work order 1"}}}.to_json,
+    with(body: {data: {attributes: {name: "Work Order 1"}}}.to_json,
          headers: {'Accept'=>'application/vnd.api+json'}).
     to_return(status: 200, body: {data: @set_instance }.to_json,  headers: response_headers)
 
