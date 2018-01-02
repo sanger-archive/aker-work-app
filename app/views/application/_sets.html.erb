@@ -39,15 +39,15 @@
         <% if work_order.material_updated %>
         <tr>
           <td>[Updated Metadata] <%= work_order.set.name %></td>
-          <td align="right"><%= link_to 'View', "#{Rails.configuration.urls[:sets]}/simple/sets/#{work_order.set_uuid}", class: 'btn btn-default', style: "margin-right: 10px;" %>
-            <%= link_to 'Order Work', work_orders_path(set_id: work_order.set_uuid), method: 'post', class: 'btn btn-success' %></td>
+          <td align="right"><%= link_to 'View', "#{Rails.configuration.urls[:sets]}/simple/sets/#{work_order.set_uuid}", class: 'btn btn-default', style: "margin-right: 10px;", target: :_blank %>
+            <%= link_to 'Order Work', work_orders_path(set_id: work_order.set_uuid), method: 'post', class: 'btn btn-success', target: :_blank %></td>
         </tr>
         <% end %>
         <% if work_order.finished_set %>
         <tr>
           <td><%= work_order.finished_set.name %></td>
-          <td align="right"><%= link_to 'View', "#{Rails.configuration.urls[:sets]}/simple/sets/#{work_order.finished_set_uuid}", class: 'btn btn-default', style: "margin-right: 10px;" %>
-            <%= link_to 'Order Work', work_orders_path(set_id: work_order.finished_set_uuid), method: 'post',  class: 'btn btn-success' %></td>
+          <td align="right"><%= link_to 'View', "#{Rails.configuration.urls[:sets]}/simple/sets/#{work_order.finished_set_uuid}", class: 'btn btn-default', style: "margin-right: 10px;", target: :_blank %>
+            <%= link_to 'Order Work', work_orders_path(set_id: work_order.finished_set_uuid), method: 'post',  class: 'btn btn-success', target: :_blank %></td>
         </tr>
         <% end %>
       </tbody>
