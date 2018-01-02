@@ -12,8 +12,8 @@
         <tr>
           <td><%= work_order.original_set.name %></td>
           <td><%= "This is the set you selected, which may have been modified since this work order was created" %></td>
-          <td align="right"><%= link_to 'Edit', "#{Rails.configuration.urls[:sets]}/simple/sets/#{work_order.original_set_uuid}", class: 'btn btn-primary', style: "margin-right: 10px;", target: :_blank %>
-            <%= link_to 'Order Work', work_orders_path(set_id: work_order.set_uuid), method: 'post', class: ('btn btn-success' unless work_order.pending?), target: :_blank %></td>
+          <td align="right"><%= link_to 'Edit', "#{Rails.configuration.urls[:sets]}/simple/sets/#{work_order.original_set_uuid}", class: 'btn btn-primary', target: :_blank %>
+            <%= link_to 'Order Work', work_orders_path(set_id: work_order.original_set_uuid), method: 'post', class: 'btn btn-success', style: "margin-left: 10px;", target: :_blank unless work_order.pending? %></td>
         </tr>
         <tr>
           <td><%= work_order.set.name %></td>
