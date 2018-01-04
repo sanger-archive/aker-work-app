@@ -54,8 +54,6 @@ Rails.application.configure do
 
   config.work_order_completion_json = 'work_order_completion.json'
 
-  config.jwt_secret_key = 'test'
-
   config.events = {
     enabled: false,
     broker_host: 'localhost',
@@ -68,9 +66,7 @@ Rails.application.configure do
   }
 
   config.fake_ldap = true
-
-  config.jwt_exp_time = 2 * 60
-  config.jwt_nbf_time = 1 * 60
+  config.jwt_secret_key = 'test'
 
   config.auth_service_url = 'http://auth_service'
   config.login_url = config.auth_service_url + '/login'
