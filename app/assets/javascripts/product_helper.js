@@ -53,6 +53,9 @@ function createProductDefinition(path) {
     i == 0 ? defaultKey = 'start' : defaultKey = path[i-1];
     let options = availableLinks[defaultKey];
     selectHtml += createSelectElement(options, path[i], i);
+    if (i < path.length-1) {
+      selectHtml += '\u27a1';
+    }
   }
   return selectHtml;
 }
