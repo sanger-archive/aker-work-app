@@ -36,8 +36,10 @@ function renderError(msg) {
 function renderDefaultProductDefinition(data) {
   // mocking the database
   let path = getProductData();
-  var productOptions = createProductDefinition(path);
-
+  let productOptions = '';
+  if (path) {
+     productOptions = createProductDefinition(path);
+  }
   $('#product-definition').html(productOptions);
   $('#product-definition').show();
 
@@ -133,7 +135,7 @@ function convertToCurrency(input) {
 };
 
 function getProductData() {
-  let defaultPath;
+  let defaultPath = '';
   let selectedProduct = $('#product-select option:selected')[0].text;
   if (selectedProduct == "Quality Control"){
     defaultPath = ['Quantification','Genotyping HumGen SNP'];
