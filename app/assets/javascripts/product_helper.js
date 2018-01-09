@@ -19,6 +19,7 @@ $(document).on("turbolinks:load", function() {
       success: function(data){
         renderProductInformation(data);
         renderCostInformation(data);
+        renderDefaultProductDefinition(data);
       },
       error: function() {
         renderError('There was an error while accessing the Billing service');
@@ -30,6 +31,66 @@ $(document).on("turbolinks:load", function() {
 function renderError(msg) {
   var errorMsg = '<div class="alert-danger alert alert-dismissible" role="alert">'+msg+'</div>';
   $("#flash-display").html(errorMsg);
+}
+
+function renderDefaultProductDefinition(data) {
+  // mocking the database
+  let path = getProductData();
+  var productOptions = createProductDefinition(path);
+
+  $('#product-definition').html(productOptions);
+  $('#product-definition').show();
+
+  createSelectListeners();
+}
+
+function createProductDefinition(path) {
+  var selectHtml = '<label>Choose options:</label><br>';
+  for (let i = 0; i < path.length; ++i) {
+    let defaultKey;
+    i == 0 ? defaultKey = 'start' : defaultKey = path[i-1];
+    let options = availableLinks[defaultKey];
+    selectHtml += createSelectElement(options, path[i], i);
+  }
+  return selectHtml;
+}
+
+function createSelectElement(options, defaultOption, selectNumber) {
+  let selectString = `<select style="width:200px" id="select${selectNumber}">`;
+  if (typeof(options) == 'string') {
+    selectString += "<option>" + options + "</option>";
+  } else {
+    for (let i = 0; i < options.length; ++i) {
+      if (defaultOption == options[i]) {
+        selectString += "<option selected>" + options[i] + "</option>";
+      } else {
+        selectString += "<option>" + options[i] + "</option>";
+      }
+    }
+  }
+  selectString += '</select>';
+  return selectString;
+}
+
+function createSelectListeners(){
+  let productDefinition = $('#product-definition')[0];
+  let numOfSelects = productDefinition.childElementCount
+  for (let i = 0; i < numOfSelects; ++i) {
+    $(`#select${i}`).change(function(){
+      let newValue = $(`#select${i}`).val();
+      onSelectChange(i, newValue);
+    });
+  }
+}
+
+function onSelectChange(selectId, newValue){
+  let newPath = getProductData().slice(0);
+  newPath[selectId] = newValue;
+  var productOptions = createProductDefinition(newPath);
+
+  $('#product-definition').html(productOptions);
+  $('#product-definition').show();
+  createSelectListeners();
 }
 
 function renderProductInformation(data) {
@@ -70,3 +131,19 @@ function convertToCurrency(input) {
   }
   return '£' + input.toFixed(2);
 };
+
+function getProductData() {
+  let defaultPath;
+  let selectedProduct = $('#product-select option:selected')[0].text;
+  if (selectedProduct == "Quality Control"){
+    defaultPath = ['Quantification','Genotyping HumGen SNP'];
+    availableLinks = {
+      'start': ['Genotyping CGP SNP','Genotyping DDD SNP','Genotyping HumGen SNP','Quantification'],
+      'Genotyping CGP SNP': 'end',
+      'Genotyping DDD SNP': 'end',
+      'Genotyping HumGen SNP':'end',
+      'Quantification': ['Genotyping CGP SNP','Genotyping DDD SNP','Genotyping HumGen SNP'],
+    }
+  }
+  return defaultPath;
+}
