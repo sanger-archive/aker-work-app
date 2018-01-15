@@ -30,8 +30,16 @@ class EventMessage
       'quoted_price' => @work_order.total_cost,
       'desired_completion_date' => @work_order.desired_date,
       'zipkin_trace_id' => trace_id,
-      'num_materials' => @work_order.set.meta['size']
+      'num_materials' => num_materials
     }
+  end
+
+  def num_materials
+    if (@work_order.set&.meta && @work_order.set.meta['size'])
+      @work_order.set.meta['size']
+    else
+      0
+    end
   end
 
   def metadata_for_completed
@@ -39,8 +47,16 @@ class EventMessage
       'work_order_id' => @work_order.id,
       'comment' => @work_order.close_comment,
       'zipkin_trace_id' => trace_id,
-      'num_new_materials' => @work_order.finished_set.meta['size']
+      'num_new_materials' => num_new_materials
     }
+  end
+
+  def num_new_materials
+    if (@work_order.finished_set&.meta && @work_order.finished_set.meta['size'])
+      @work_order.finished_set.meta['size']
+    else
+      0
+    end
   end
 
   def generate_json
