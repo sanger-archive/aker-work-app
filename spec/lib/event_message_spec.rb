@@ -132,6 +132,13 @@ RSpec.describe 'EventMessage' do
 
       it_behaves_like 'event message json'
 
+      context 'when there is no set defined for the work order' do
+        it 'generates the message without raising an exception' do
+          allow(work_order).to receive(:set).and_return nil
+          expect(metadata['num_materials']).to eq(0)
+        end
+      end
+
       # Metadata
       it 'should have the correct amount of metadata' do
         expect(metadata.length).to eq(6)
@@ -162,6 +169,13 @@ RSpec.describe 'EventMessage' do
 
       it_behaves_like 'event message json'
 
+      context 'when there is no finished set as a result of the work order' do
+        it 'generates the message without raising an exception' do
+          allow(work_order).to receive(:finished_set).and_return nil
+          expect(metadata['num_new_materials']).to eq(0)
+        end
+      end      
+
       # Metadata
       it 'should have the correct work order id' do
         expect(metadata['work_order_id']).to eq(work_order.id)
@@ -179,6 +193,7 @@ RSpec.describe 'EventMessage' do
       it 'should have the correct num new materials' do
         expect(metadata['num_new_materials']).to eq(finished_set.meta['size'])
       end
+
     end
   end
 end
