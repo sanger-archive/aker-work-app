@@ -1,4 +1,5 @@
 // Used to show the selected product and cost infomation in 'Select Product' step
+
 $(document).on("turbolinks:load", function() {
 
   $.ajaxSetup({
@@ -35,8 +36,8 @@ function renderError(msg) {
 
 function renderDefaultProductDefinition(data) {
   // mocking the database
-  let path = getProductData();
-  let productOptions = '';
+  var path = getProductData();
+  var productOptions = '';
   if (path) {
      productOptions = createProductDefinition(path);
   }
@@ -48,10 +49,10 @@ function renderDefaultProductDefinition(data) {
 
 function createProductDefinition(path) {
   var selectHtml = '<label>Choose options:</label><br>';
-  for (let i = 0; i < path.length; ++i) {
-    let defaultKey;
+  for (var i = 0; i < path.length; ++i) {
+    var defaultKey;
     i == 0 ? defaultKey = 'start' : defaultKey = path[i-1];
-    let options = availableLinks[defaultKey];
+    var options = availableLinks[defaultKey];
     selectHtml += createSelectElement(options, path[i], i);
     if (i < path.length-1) {
       selectHtml += '\u27a1';
@@ -61,11 +62,11 @@ function createProductDefinition(path) {
 }
 
 function createSelectElement(options, defaultOption, selectNumber) {
-  let selectString = `<select style="width:200px" id="select${selectNumber}">`;
+  var selectString = "<select style='width:200px' id='select"+selectNumber+"'>";
   if (typeof(options) == 'string') {
     selectString += "<option>" + options + "</option>";
   } else {
-    for (let i = 0; i < options.length; ++i) {
+    for (var i = 0; i < options.length; ++i) {
       if (defaultOption == options[i]) {
         selectString += "<option selected>" + options[i] + "</option>";
       } else {
@@ -78,18 +79,18 @@ function createSelectElement(options, defaultOption, selectNumber) {
 }
 
 function createSelectListeners(){
-  let productDefinition = $('#product-definition')[0];
-  let numOfSelects = productDefinition.childElementCount
-  for (let i = 0; i < numOfSelects; ++i) {
-    $(`#select${i}`).change(function(){
-      let newValue = $(`#select${i}`).val();
+  var productDefinition = $('#product-definition')[0];
+  var numOfSelects = productDefinition.childElementCount
+  for (var i = 0; i < numOfSelects; ++i) {
+    $("#select"+i).change(function(){
+      var newValue = $("#select"+i).val();
       onSelectChange(i, newValue);
     });
   }
 }
 
 function onSelectChange(selectId, newValue){
-  let newPath = getProductData().slice(0);
+  var newPath = getProductData().slice(0);
   newPath[selectId] = newValue;
   var productOptions = createProductDefinition(newPath);
 
@@ -99,7 +100,7 @@ function onSelectChange(selectId, newValue){
 }
 
 function renderProductInformation(data) {
-  const product = {
+  var product = {
     cost_per_sample: convertToCurrency(data.unit_price),
     requested_biomaterial_type: data.requested_biomaterial_type,
     product_version: data.product_version,
@@ -108,23 +109,23 @@ function renderProductInformation(data) {
     availability: data.availability,
     product_class: data.product_class,
   };
-  const result = JST['templates/product'](product);
+  var result = JST['templates/product'](product);
 
   $('#product-information').html(result);
   $('#product-information').show();
 }
 
 function renderCostInformation(data) {
-    const numOfSamples = $("#product-select").attr('num_of_samples');
-    const costPerSample = data.unit_price;
-    const total = numOfSamples * costPerSample;
+    var numOfSamples = $("#product-select").attr('num_of_samples');
+    var costPerSample = data.unit_price;
+    var total = numOfSamples * costPerSample;
 
-    const cost = {
+    var cost = {
       num_of_samples: numOfSamples,
       cost_per_sample: convertToCurrency(costPerSample),
       total: convertToCurrency(total)
     }
-    const result = JST['templates/cost'](cost);
+    var result = JST['templates/cost'](cost);
 
     $('#cost-information').html(result);
     $('#cost-information').show();
@@ -138,8 +139,8 @@ function convertToCurrency(input) {
 };
 
 function getProductData() {
-  let defaultPath = '';
-  let selectedProduct = $('#product-select option:selected')[0].text;
+  var defaultPath = '';
+  var selectedProduct = $('#product-select option:selected')[0].text;
   if (selectedProduct == "Quality Control"){
     defaultPath = ['Quantification','Genotyping HumGen SNP'];
     availableLinks = {
