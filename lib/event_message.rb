@@ -44,7 +44,7 @@ class EventMessage
   end
 
   def generate_json
-    proposal = @work_order.proposal
+    project = @work_order.proposal
     product = @work_order.product
     {
       'event_type' => "aker.events.work_order.#{@status}",
@@ -60,10 +60,10 @@ class EventMessage
           'subject_uuid' => @work_order.work_order_uuid
         },
         {
-          'role_type' => 'proposal',
-          'subject_type' => 'proposal',
-          'subject_friendly_name' => proposal.name,
-          'subject_uuid' => proposal.node_uuid
+          'role_type' => 'project',
+          'subject_type' => 'project',
+          'subject_friendly_name' => project.name,
+          'subject_uuid' => project.node_uuid
         },
         {
           'role_type' => 'product',
