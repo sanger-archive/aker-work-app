@@ -105,7 +105,8 @@ module TestServicesHelper
   end
 
   def make_node(name, cost_code, id, parent_id, is_sub, is_proj)
-    n = double('node', name: name, cost_code: cost_code, id: id, parent_id: parent_id, subproject?: is_sub, project?: is_proj, node_uuid: SecureRandom.uuid)
+    n = double('node', name: name, cost_code: cost_code, id: id, parent_id: parent_id, subproject?: is_sub, project?: is_proj,
+               node_uuid: SecureRandom.uuid, data_release_uuid: nil)
     allow(StudyClient::Node).to receive(:find).with(n.id).and_return([n])
     return n
   end

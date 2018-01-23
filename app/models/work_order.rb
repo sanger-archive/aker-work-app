@@ -199,6 +199,7 @@ class WorkOrder < ApplicationRecord
         comment: comment,
         project_uuid: project.node_uuid,
         project_name: project.name,
+        data_release_uuid: project.data_release_uuid,
         cost_code: proposal.cost_code,
         desired_date: desired_date,
         materials: material_data,
