@@ -32,6 +32,9 @@ class WorkOrder < ApplicationRecord
     'active'
   end
 
+  # The work order is in the 'broken' state when processing some operation
+  # on it failed, and the correct state could not be recovered.
+  # A broken work order can only be fixed by manual intervention.
   def self.BROKEN
     'broken'
   end
