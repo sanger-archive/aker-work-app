@@ -29,7 +29,7 @@ RSpec.describe 'EventMessage' do
         meta: { 'size' => '2' }
       )
     end
-    let(:proposal) { double(:proposal, name: 'test proposal', node_uuid: '12345a') }
+    let(:project) { double(:project, name: 'test project', node_uuid: '12345a') }
     let(:product) { build(:product, name: 'test product', product_uuid: '23456b') }
     let(:fake_uuid) { 'my_fake_uuid' }
     let(:fake_trace) { 'my_trace_id' }
@@ -43,12 +43,12 @@ RSpec.describe 'EventMessage' do
         'subject_uuid' => work_order.work_order_uuid
       }
     end
-    let(:expected_proposal_role) do
+    let(:expected_project_role) do
       {
-        'role_type' => 'proposal',
-        'subject_type' => 'proposal',
-        'subject_friendly_name' => proposal.name,
-        'subject_uuid' => proposal.node_uuid
+        'role_type' => 'project',
+        'subject_type' => 'project',
+        'subject_friendly_name' => project.name,
+        'subject_uuid' => project.node_uuid
       }
     end
     let(:expected_product_role) do
@@ -69,7 +69,7 @@ RSpec.describe 'EventMessage' do
       allow(wo).to receive(:desired_date).and_return(Time.zone.today + 5)
       allow(wo).to receive(:set).and_return set
       allow(wo).to receive(:finished_set).and_return finished_set
-      allow(wo).to receive(:proposal).and_return proposal
+      allow(wo).to receive(:proposal).and_return project
       allow(wo).to receive(:product).and_return product
       wo
     end
@@ -119,8 +119,8 @@ RSpec.describe 'EventMessage' do
       it 'should include the product role' do
         expect(roles).to include(expected_product_role)
       end
-      it 'should include the proposal role' do
-        expect(roles).to include(expected_proposal_role)
+      it 'should include the project role' do
+        expect(roles).to include(expected_project_role)
       end
       it 'should include the work order role' do
         expect(roles).to include(expected_work_order_role)
@@ -131,6 +131,13 @@ RSpec.describe 'EventMessage' do
       let(:status) { 'submitted' }
 
       it_behaves_like 'event message json'
+
+      context 'when there is no set defined for the work order' do
+        it 'generates the message without raising an exception' do
+          allow(work_order).to receive(:set).and_return nil
+          expect(metadata['num_materials']).to eq(0)
+        end
+      end
 
       # Metadata
       it 'should have the correct amount of metadata' do
@@ -162,6 +169,13 @@ RSpec.describe 'EventMessage' do
 
       it_behaves_like 'event message json'
 
+      context 'when there is no finished set as a result of the work order' do
+        it 'generates the message without raising an exception' do
+          allow(work_order).to receive(:finished_set).and_return nil
+          expect(metadata['num_new_materials']).to eq(0)
+        end
+      end      
+
       # Metadata
       it 'should have the correct work order id' do
         expect(metadata['work_order_id']).to eq(work_order.id)
@@ -179,6 +193,7 @@ RSpec.describe 'EventMessage' do
       it 'should have the correct num new materials' do
         expect(metadata['num_new_materials']).to eq(finished_set.meta['size'])
       end
+
     end
   end
 end

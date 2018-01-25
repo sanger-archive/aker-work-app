@@ -52,7 +52,7 @@ gem 'aker_credentials_gem', github: 'sanger/aker-credentials'
 gem 'aker_permission_gem', github: 'sanger/aker-permission'
 gem 'aker-set-client', github: 'sanger/aker-set-client'
 gem 'aker_stamp_client', github: 'sanger/aker-stamp-client'
-gem 'aker-study-client', github: 'sanger/aker-study-client'
+gem 'aker-study-client', '>= 0.2.3', github: 'sanger/aker-study-client'
 gem 'aker-billing-facade-client', github: 'sanger/aker-billing-facade-client'
 # Official Sass port of Bootstrap 2 and 3. http://getbootstrap.com/css/#sass
 gem 'bootstrap-sass', '~> 3.3.6', github: 'sanger/bootstrap-sass'
