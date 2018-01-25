@@ -47,9 +47,9 @@ GIT
 
 GIT
   remote: https://github.com/sanger/aker-study-client.git
-  revision: 1ae82548bcdb1c1d1ca84cf46e3bbf405b7299de
+  revision: b773988cea70b3fd5f4416e4f52a5e8cc49265aa
   specs:
-    aker-study-client (0.2.2)
+    aker-study-client (0.2.3)
 
 GIT
   remote: https://github.com/sanger/bootstrap-sass.git
@@ -453,7 +453,7 @@ PLATFORMS
 DEPENDENCIES
   aker-billing-facade-client!
   aker-set-client!
-  aker-study-client!
+  aker-study-client (>= 0.2.3)!
   aker_credentials_gem!
   aker_permission_gem!
   aker_stamp_client!

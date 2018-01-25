@@ -2,6 +2,9 @@ require 'lims_client'
 require 'event_message'
 require 'securerandom'
 
+# A work order, either in the progress of being defined (pending),
+# or fully defined and waiting to be completed (active),
+# or one that has been completed or cancelled (closed).
 class WorkOrder < ApplicationRecord
   include AkerPermissionGem::Accessible
 
@@ -23,10 +26,15 @@ class WorkOrder < ApplicationRecord
     set_default_permission(owner_email)
   end
 
+  # The work order is in the 'active' state when it has been ordered
+  #  and the order has yet to be completed or cancelled.
   def self.ACTIVE
     'active'
   end
 
+  # The work order is in the 'broken' state when processing some operation
+  # on it failed, and the correct state could not be recovered.
+  # A broken work order can only be fixed by manual intervention.
   def self.BROKEN
     'broken'
   end
@@ -159,6 +167,8 @@ class WorkOrder < ApplicationRecord
     data
   end
 
+  # This method returns a JSON description of the order that will be sent to a LIMS to order work.
+  # It includes information that must be loaded from other services (study, set, etc.).
   def lims_data
     material_ids = SetClient::Set.find_with_materials(set_uuid).first.materials.map{|m| m.id}
     materials = all_results(MatconClient::Material.where("_id" => {"$in" => material_ids}).result_set)
@@ -199,6 +209,7 @@ class WorkOrder < ApplicationRecord
         comment: comment,
         project_uuid: project.node_uuid,
         project_name: project.name,
+        data_release_uuid: project.data_release_uuid,
         cost_code: proposal.cost_code,
         desired_date: desired_date,
         materials: material_data,

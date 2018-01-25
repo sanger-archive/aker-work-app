@@ -23,11 +23,12 @@ RSpec.describe WorkOrder, type: :model do
     return s
   end
 
-  let(:project) { make_node('Operation Wolf', 'S1001', 41, 40, false, true) }
-  let(:proposal) { make_node('Operation Thunderbolt', 'S1001-0', 42, project.id, true, false) }
+  let(:project) { make_node('Operation Wolf', 'S1001', 41, 40, false, true, SecureRandom.uuid) }
+  let(:proposal) { make_node('Operation Thunderbolt', 'S1001-0', 42, project.id, true, false, nil) }
 
-  def make_node(name, cost_code, id, parent_id, is_sub, is_proj)
-    n = double('node', name: name, cost_code: cost_code, id: id, parent_id: parent_id, subproject?: is_sub, project?: is_proj, node_uuid: make_uuid)
+  def make_node(name, cost_code, id, parent_id, is_sub, is_proj, data_release_uuid)
+    n = double('node', name: name, cost_code: cost_code, id: id, parent_id: parent_id, subproject?: is_sub, project?: is_proj,
+               node_uuid: make_uuid, data_release_uuid: data_release_uuid)
     allow(StudyClient::Node).to receive(:find).with(n.id).and_return([n])
     return n
   end
@@ -278,6 +279,7 @@ RSpec.describe WorkOrder, type: :model do
         expect(data[:comment]).to eq(@wo.comment)
         expect(data[:project_uuid]).to eq(project.node_uuid)
         expect(data[:project_name]).to eq(project.name)
+        expect(data[:data_release_uuid]).to eq(project.data_release_uuid)
         expect(data[:cost_code]).to eq(proposal.cost_code)
         expect(data[:desired_date]).to eq(@wo.desired_date)
         material_data = data[:materials]
