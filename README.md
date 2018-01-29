@@ -10,5 +10,3 @@ To create the databases for the dev environment: `rake db:setup`
 To run ALL the tests for this project: `bundle exec rake`
 
 To run just the rspec tests: `bundle exec rspec`
-
-To run just the cucumber tests: `bundle exec cucumber`
