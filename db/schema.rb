@@ -10,11 +10,37 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180131145036) do
+ActiveRecord::Schema.define(version: 20180131161729) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
   enable_extension "citext"
+
+  create_table "aker_process_module_pairings", force: :cascade do |t|
+    t.integer "from"
+    t.integer "to"
+    t.boolean "default_path",    null: false
+    t.integer "aker_process_id"
+    t.index ["aker_process_id"], name: "index_aker_process_module_pairings_on_aker_process_id", using: :btree
+    t.index ["from", "to"], name: "index_on_aker_pairings", unique: true, using: :btree
+  end
+
+  create_table "aker_process_modules", force: :cascade do |t|
+    t.string "name", null: false
+  end
+
+  create_table "aker_processes", force: :cascade do |t|
+    t.string  "name", null: false
+    t.integer "TAT"
+  end
+
+  create_table "aker_product_processes", force: :cascade do |t|
+    t.integer "product_id"
+    t.integer "aker_process_id"
+    t.integer "stage",           null: false
+    t.index ["aker_process_id"], name: "index_aker_product_processes_on_aker_process_id", using: :btree
+    t.index ["product_id"], name: "index_aker_product_processes_on_product_id", using: :btree
+  end
 
   create_table "catalogues", force: :cascade do |t|
     t.string   "url"
@@ -36,32 +62,6 @@ ActiveRecord::Schema.define(version: 20180131145036) do
     t.index ["accessible_type", "accessible_id"], name: "index_permissions_on_accessible_type_and_accessible_id", using: :btree
     t.index ["permitted", "permission_type", "accessible_id", "accessible_type"], name: "index_permissions_on_various", unique: true, using: :btree
     t.index ["permitted"], name: "index_permissions_on_permitted", using: :btree
-  end
-
-  create_table "process_module_pairings", force: :cascade do |t|
-    t.integer "from"
-    t.integer "to"
-    t.boolean "default_path"
-    t.integer "process_id"
-    t.index ["from", "to"], name: "index_on_pairings", unique: true, using: :btree
-    t.index ["process_id"], name: "index_process_module_pairings_on_process_id", using: :btree
-  end
-
-  create_table "process_modules", force: :cascade do |t|
-    t.string "name"
-  end
-
-  create_table "processes", force: :cascade do |t|
-    t.string  "name"
-    t.integer "TAT"
-  end
-
-  create_table "product_processes", force: :cascade do |t|
-    t.integer "product_id"
-    t.integer "process_id"
-    t.integer "stage"
-    t.index ["process_id"], name: "index_product_processes_on_process_id", using: :btree
-    t.index ["product_id"], name: "index_product_processes_on_product_id", using: :btree
   end
 
   create_table "products", force: :cascade do |t|
