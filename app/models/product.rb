@@ -1,5 +1,7 @@
 class Product < ApplicationRecord
   belongs_to :catalogue
+  has_many :product_processes, foreign_key: :product_id, class_name: "Aker::ProductProcess"
+  has_many :processes, through: :product_processes, source: :aker_process
 
   enum availability: { suspended: 0, available: 1 }
   enum product_class: { dna_sequencing: 0, genotyping: 1, transcriptomics: 2, cell_line_creation: 3 }
@@ -19,6 +21,6 @@ class Product < ApplicationRecord
 
   def self.product_class_symbol_to_human_product_class(product_class_symbol)
     I18n.t("activerecord.attributes.#{model_name.i18n_key}.product_class.#{product_class_symbol}")
-  end  
+  end
 
 end

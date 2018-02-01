@@ -100,6 +100,8 @@ ActiveRecord::Schema.define(version: 20180131161729) do
     t.index ["product_id"], name: "index_work_orders_on_product_id", using: :btree
   end
 
+  add_foreign_key "aker_product_processes", "aker_processes"
+  add_foreign_key "aker_product_processes", "products"
   add_foreign_key "products", "catalogues"
   add_foreign_key "work_orders", "products"
 end
