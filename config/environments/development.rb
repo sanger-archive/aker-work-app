@@ -77,7 +77,8 @@ Rails.application.configure do
     broker_password: 'guest',
     exchange_name: 'aker.events',
     warehouse_queue_name: 'aker.events.warehouse',
-    notification_queue_name: 'aker.events.notifications'
+    notification_queue_name: 'aker.events.notifications',
+    catalogue_queue_name: 'aker.events.catalogue'
   }
 
   config.work_order_completion_json = 'work_order_completion.json'
