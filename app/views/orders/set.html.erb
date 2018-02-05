@@ -1,5 +1,5 @@
 <%= render partial: 'order_header' %>
-
+<% setNames = [] %>
 <%= bootstrap_form_for work_order, url: wizard_path, method: :put  do |f| %>
 
   <%= render 'buttons', work_order: work_order, f: f %>
@@ -53,6 +53,7 @@
         <% end %>
       <% else %>
         <% get_all_aker_sets.each do |s| %>
+        <% setNames.push(s.name) %>
         <tr>
           <td>
             <%= f.radio_button(:original_set_uuid, s.id) %>
@@ -74,6 +75,7 @@
 <% end %>
 <script>
   var setServiceURL = '<%= Rails.application.config.set_url %>';
+  var setNames = Array.from(<%= raw setNames.to_json %>)
 
   // Allows pressing enter in the search form to perform the search, instead of
   // submitting the main form

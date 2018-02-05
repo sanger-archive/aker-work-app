@@ -25,13 +25,19 @@ function setSearch() {
         $("#set-result").text('');
       }
     } else {
+      if (setNames.includes(setName.toLowerCase())) {
+        $("#set-result").css("color", "orange");
+        $("#set-result").text("Set already in list");
+        return;
+      }
+
       setResults.push(setName.toLowerCase());
       // Get set metadata from response
       var setID = response.data[0].id;
       var setSize = response.data[0].meta.size;
 
       if (setSize == 0) {
-        $("#set-result").css("color", "red");
+        $("#set-result").css("color", "orange");
         $("#set-result").text("Set is empty");
         return;
       }
