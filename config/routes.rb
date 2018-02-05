@@ -4,6 +4,8 @@ Rails.application.routes.draw do
   mount Rswag::Api::Engine => '/api-docs'
   root 'work_orders#index'
 
+  get '/sets/:set_name', to: 'work_orders#set_search'
+
   scope '/api/v1' do
     post 'catalogue', to: 'catalogues#create'
     scope 'work_orders/:id' do
