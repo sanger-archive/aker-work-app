@@ -1,15 +1,12 @@
-// Stores the names of all returned sets. Used later to prevent duplicates
-var setResults = (function () {
-  var setArray = []
-  return setArray
-})();
 
 function setSearch() {
   var setName = document.getElementById("set-name").value;
   setName = setName.trim();
 
-  // Set has been search previously, so don't bother searching again
-  if (setResults.includes(setName.toLowerCase())) {
+  // Set name already loaded, so don't try and load it again
+  if (setNames.includes(setName.toLowerCase())) {
+    $("#set-result").css("color", "orange");
+    $("#set-result").text("Set already in list");
     return;
   }
 
@@ -25,13 +22,7 @@ function setSearch() {
         $("#set-result").text('');
       }
     } else {
-      if (setNames.includes(setName.toLowerCase())) {
-        $("#set-result").css("color", "orange");
-        $("#set-result").text("Set already in list");
-        return;
-      }
 
-      setResults.push(setName.toLowerCase());
       // Get set metadata from response
       var setNameCaseMatched = response.data[0].attributes.name;
       var setID = response.data[0].id;
@@ -43,6 +34,8 @@ function setSearch() {
         return;
       }
       var setCreationDate = response.data[0].attributes.created_at;
+
+      setNames.push(setName.toLowerCase());
 
       // Add a row to the table for the returned set
       $('#set-list-table tbody').prepend(`<tr>
