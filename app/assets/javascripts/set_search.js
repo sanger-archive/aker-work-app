@@ -29,6 +29,12 @@ function setSearch() {
       // Get set metadata from response
       var setID = response.data[0].id;
       var setSize = response.data[0].meta.size;
+
+      if (setSize == 0) {
+        $("#set-result").css("color", "red");
+        $("#set-result").text("Set is empty");
+        return;
+      }
       var setCreationDate = response.data[0].attributes.created_at;
 
       // Add a row to the table for the returned set
