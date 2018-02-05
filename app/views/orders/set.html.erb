@@ -75,7 +75,8 @@
 <% end %>
 <script>
   var setServiceURL = '<%= Rails.application.config.set_url %>';
-  var setNames = Array.from(<%= raw setNames.to_json %>)
+  var setNames = Array.from(<%= raw setNames.to_json %>);
+  var relativeRoot = '<%= Rails.application.config.relative_url_root.presence || '/' %>';
 
   // Allows pressing enter in the search form to perform the search, instead of
   // submitting the main form

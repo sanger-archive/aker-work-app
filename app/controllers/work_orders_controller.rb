@@ -50,7 +50,7 @@ class WorkOrdersController < ApplicationController
   # Returns JSON containing the set service query result for about the set being
   # searched
   def set_search
-    connection = Faraday.new(url: "#{Rails.application.config.set_url}#{Rails.application.config.relative_url_root}")
+    connection = Faraday.new(url: "#{Rails.application.config.set_url}")
     begin
       r = connection.get('sets?filter[name]=' + params[:set_name])
       render json: r.body
