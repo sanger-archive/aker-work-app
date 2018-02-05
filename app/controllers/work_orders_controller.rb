@@ -10,7 +10,7 @@ class WorkOrdersController < ApplicationController
 
   before_action :work_order, only: [:show, :complete, :cancel]
 
-  skip_authorization_check only: [:index, :complete, :cancel, :get]
+  skip_authorization_check only: [:index, :complete, :cancel, :get, :set_search]
   skip_credentials only: [:complete, :cancel, :get]
 
   def index
@@ -45,6 +45,18 @@ class WorkOrdersController < ApplicationController
 
   def show
     authorize! :read, work_order
+  end
+
+  # Returns JSON containing the set service query result for about the set being
+  # searched
+  def set_search
+    connection = Faraday.new(url: "#{Rails.application.config.set_url}")
+    begin
+      r = connection.get('/sets?filter[name]=' + params[:set_name])
+      render json: r.body
+    rescue Faraday::ConnectionFailed => e
+      render json: nil, status: 404
+    end
   end
 
   # -------- API ---------
