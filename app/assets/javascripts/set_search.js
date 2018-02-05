@@ -24,7 +24,7 @@ function setSearch() {
       // Set is already present in the list, so select it for the user
       if (setNames.includes(setName.toLowerCase())) {
         $("#set-result").css("color", "orange");
-        $("#set-result").text("Set already in list, it's been selected for you");
+        $("#set-result").text("Set already in list. It's been selected for you");
         $("input[name=work_order\\[original_set_uuid\\]][value=" + setID + "]").prop('checked', true);
         return;
       }
