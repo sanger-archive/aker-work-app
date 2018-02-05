@@ -53,7 +53,7 @@
         <% end %>
       <% else %>
         <% get_all_aker_sets.each do |s| %>
-        <% setNames.push(s.name) %>
+        <% setNames.push(s.name.downcase) %>
         <tr>
           <td>
             <%= f.radio_button(:original_set_uuid, s.id) %>
