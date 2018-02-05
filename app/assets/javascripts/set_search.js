@@ -3,13 +3,6 @@ function setSearch() {
   var setName = document.getElementById("set-name").value;
   setName = setName.trim();
 
-  // Set name already loaded, so don't try and load it again
-  if (setNames.includes(setName.toLowerCase())) {
-    $("#set-result").css("color", "orange");
-    $("#set-result").text("Set already in list");
-    return;
-  }
-
   var url = `${setServiceURL}/sets?filter[name]=` + setName;
 
   $.get( url, function( response ) {
@@ -22,18 +15,26 @@ function setSearch() {
         $("#set-result").text('');
       }
     } else {
-
       // Get set metadata from response
       var setNameCaseMatched = response.data[0].attributes.name;
       var setID = response.data[0].id;
       var setSize = response.data[0].meta.size;
+      var setCreationDate = response.data[0].attributes.created_at;
 
+      // Set is already present in the list, so select it for the user
+      if (setNames.includes(setName.toLowerCase())) {
+        $("#set-result").css("color", "orange");
+        $("#set-result").text("Set already in list, it's been selected for you");
+        $("input[name=work_order\\[original_set_uuid\\]][value=" + setID + "]").prop('checked', true);
+        return;
+      }
+
+      // Set is empty, throw an error
       if (setSize == 0) {
         $("#set-result").css("color", "orange");
         $("#set-result").text("Set is empty");
         return;
       }
-      var setCreationDate = response.data[0].attributes.created_at;
 
       setNames.push(setName.toLowerCase());
 
