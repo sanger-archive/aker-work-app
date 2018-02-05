@@ -3,7 +3,7 @@ function setSearch() {
   var setName = document.getElementById("set-name").value;
   setName = setName.trim();
 
-  var url = '/sets/' + setName;
+  var url = relativeRoot + 'sets/' + setName;
 
   $.get( url, function( response ) {
     if (response.data[0] === undefined) {
