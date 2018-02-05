@@ -33,6 +33,7 @@ function setSearch() {
 
       setResults.push(setName.toLowerCase());
       // Get set metadata from response
+      var setNameCaseMatched = response.data[0].attributes.name;
       var setID = response.data[0].id;
       var setSize = response.data[0].meta.size;
 
@@ -52,7 +53,7 @@ function setSearch() {
             </label>
           </div>
         </td>
-        <td>${setName}</td>
+        <td>${setNameCaseMatched}</td>
         <td>${setSize} ${setSize > 1 ? "Samples" : "Sample"}</td>
         <td>${timeSince(setCreationDate)} ago</td>
         </tr>`);
