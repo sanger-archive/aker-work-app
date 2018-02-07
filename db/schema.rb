@@ -26,7 +26,10 @@ ActiveRecord::Schema.define(version: 20180131161729) do
   end
 
   create_table "aker_process_modules", force: :cascade do |t|
-    t.string "name", null: false
+    t.string  "name",            null: false
+    t.integer "aker_process_id"
+    t.index ["aker_process_id", "name"], name: "index_aker_process_modules_on_aker_process_id_and_name", unique: true, using: :btree
+    t.index ["aker_process_id"], name: "index_aker_process_modules_on_aker_process_id", using: :btree
   end
 
   create_table "aker_processes", force: :cascade do |t|
@@ -100,6 +103,7 @@ ActiveRecord::Schema.define(version: 20180131161729) do
     t.index ["product_id"], name: "index_work_orders_on_product_id", using: :btree
   end
 
+  add_foreign_key "aker_process_modules", "aker_processes"
   add_foreign_key "aker_product_processes", "aker_processes"
   add_foreign_key "aker_product_processes", "products"
   add_foreign_key "products", "catalogues"
