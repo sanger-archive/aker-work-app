@@ -1,6 +1,8 @@
 class Product < ApplicationRecord
+  validates :catalogue_id, presence: true
+
   belongs_to :catalogue
-  has_many :product_processes, foreign_key: :product_id, class_name: "Aker::ProductProcess"
+  has_many :product_processes, foreign_key: :product_id, dependent: :destroy, class_name: "Aker::ProductProcess"
   has_many :processes, through: :product_processes, source: :aker_process
 
   enum availability: { suspended: 0, available: 1 }

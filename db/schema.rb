@@ -10,19 +10,22 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180131161729) do
+ActiveRecord::Schema.define(version: 20180208140900) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
   enable_extension "citext"
 
   create_table "aker_process_module_pairings", force: :cascade do |t|
-    t.integer "from"
-    t.integer "to"
+    t.integer "from_step_id"
+    t.integer "to_step_id"
+    t.integer "external_id"
     t.boolean "default_path",    null: false
     t.integer "aker_process_id"
     t.index ["aker_process_id"], name: "index_aker_process_module_pairings_on_aker_process_id", using: :btree
-    t.index ["from", "to"], name: "index_on_aker_pairings", unique: true, using: :btree
+    t.index ["from_step_id", "to_step_id"], name: "index_on_aker_pairings", unique: true, using: :btree
+    t.index ["from_step_id"], name: "index_aker_process_module_pairings_on_from_step_id", using: :btree
+    t.index ["to_step_id"], name: "index_aker_process_module_pairings_on_to_step_id", using: :btree
   end
 
   create_table "aker_process_modules", force: :cascade do |t|
@@ -33,7 +36,8 @@ ActiveRecord::Schema.define(version: 20180131161729) do
   end
 
   create_table "aker_processes", force: :cascade do |t|
-    t.string  "name", null: false
+    t.integer "external_id"
+    t.string  "name",        null: false
     t.integer "TAT"
   end
 
@@ -72,13 +76,12 @@ ActiveRecord::Schema.define(version: 20180131161729) do
     t.datetime "created_at",                             null: false
     t.datetime "updated_at",                             null: false
     t.integer  "catalogue_id"
-    t.integer  "TAT"
     t.string   "requested_biomaterial_type"
     t.integer  "product_version"
     t.integer  "availability",               default: 1
     t.string   "description"
-    t.string   "product_uuid"
     t.integer  "product_class"
+    t.integer  "external_id"
     t.index ["catalogue_id"], name: "index_products_on_catalogue_id", using: :btree
   end
 
