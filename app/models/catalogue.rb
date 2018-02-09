@@ -20,6 +20,7 @@ class Catalogue < ApplicationRecord
   		product_params.each do |pp|
         # replace id key with external_id
         pp["external_id"] = pp.delete "id"
+        # TODO: Figure out what's happening with this product_class stuff
         # pp["product_class"] = Product.human_product_class_to_symbol(pp["product_class"])
         accepted_product_keys = ["name", "description", "product_version", "availability", "requested_biomaterial_type", "product_class", "external_id"]
 
