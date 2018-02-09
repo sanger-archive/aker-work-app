@@ -17,11 +17,10 @@ class Catalogue < ApplicationRecord
       catalogue = create!(catalogue_params.select { |k,v| (accepted_catalogue_keys.include?(k)) }.merge({current: true}))
   		product_params = catalogue_params['products']
       price_placeholder = 0
-
   		product_params.each do |pp|
         # replace id key with external_id
         pp["external_id"] = pp.delete "id"
-        pp["product_class"] = Product.human_product_class_to_symbol(pp["product_class"] )
+        # pp["product_class"] = Product.human_product_class_to_symbol(pp["product_class"])
         accepted_product_keys = ["name", "description", "product_version", "availability", "requested_biomaterial_type", "product_class", "external_id"]
 
         product = Product.create!(pp.select { |k,v| (accepted_product_keys.include?(k)) }.merge({ catalogue_id: catalogue.id }))
@@ -31,14 +30,16 @@ class Catalogue < ApplicationRecord
           accepted_process_keys = ["name", "TAT", "external_id"]
           p.select { |k,v| (accepted_process_keys.include?(k)) }
           process = Aker::Process.create!(p.select { |k,v| (accepted_process_keys.include?(k)) })
-
           Aker::ProductProcess.create!(product_id: product.id, aker_process_id: process.id, stage: p["stage"])
 
           p["process_module_pairings"].each do |pm|
-            Aker::ProcessModule.create!(name: pm["to_step"], aker_process_id: process.id)
+            unless pm["to_step"].nil?
+              to_module = Aker::ProcessModule.where(name: pm["to_step"], aker_process_id: process.id).first_or_create
+            end
 
-            from_module = Aker::ProcessModule.find_by(name: pm["from_step"], aker_process_id: process.id) || Aker::NullProcessModule.new
-            to_module = Aker::ProcessModule.find_by(name: pm["to_step"], aker_process_id: process.id) || Aker::NullProcessModule.new
+            unless pm["from_step"].nil?
+              from_module = Aker::ProcessModule.where(name: pm["from_step"], aker_process_id: process.id).first_or_create
+            end
 
             pm["external_id"] = pm.delete "id"
             Aker::ProcessModulePairings.create!(to_step: to_module, from_step: from_module,
