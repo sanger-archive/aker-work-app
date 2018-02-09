@@ -1,59 +1,89 @@
 <%= render partial: 'order_header' %>
-
+<% setNames = [] %>
 <%= bootstrap_form_for work_order, url: wizard_path, method: :put  do |f| %>
 
-<%= render 'buttons', work_order: work_order, f: f %>
+  <%= render 'buttons', work_order: work_order, f: f %>
 
-<table class="table table-striped table-condensed" id="set-list-table">
-  <thead>
-    <tr>
-      <th></th>
-      <th>Set Name</th>
-      <th>Size</th>
-      <th>Created</th>
-    </tr>
-  </thead>
-
-  <tbody>
-    <% if (work_order.set_uuid) %>
-
-      <% [work_order.original_set].each do |s| %>
-      <tr>
-        <td>
-          <%= f.radio_button(:original_set_uuid, s.id) %>
-        </td>
-        <td>
-          <%= s.name %>
-        </td>
-        <td>
-          <%= pluralize(work_order.num_samples, "Sample") %>
-        </td>
-        <td>
-          <%= time_ago_in_words(s.created_at) + " ago" %>
-        </td>
-      </tr>
+  <div class="row">
+    <div class="col-md-8">
+      <h2>My Sets</h2>
+      <div>
+        All the sets that you have created, as well as those you've searched for
+      </div>
+    </div>
+    <div class="col-md-4">
+      <% unless work_order.set_uuid %>
+      <div class="pull-right">
+        <h4>Search</h4>
+        <input type="text" autocomplete="off" id="set-name" style="margin-right: 5px;">
+        <button type="button" class="btn btn-primary btn-sm" onClick="setSearch()" id="set-search" style="margin-bottom: 5px;">Add Set</button>
+        <div id="set-result"></div>
+      </div>
       <% end %>
+    </div>
+  </div>
 
-    <% else %>
-
-      <% get_all_aker_sets.each do |s| %>
+  <table class="table table-striped table-condensed" id="set-list-table">
+    <thead>
       <tr>
-        <td>
-          <%= f.radio_button(:original_set_uuid, s.id) %>
-        </td>
-        <td>
-          <%= s.name %>
-        </td>
-        <td>
-          <%= pluralize(s.meta["size"], "Sample") %>
-        </td>
-        <td>
-          <%= time_ago_in_words(s.created_at) + " ago" %>
-        </td>
+        <th></th>
+        <th>Set Name</th>
+        <th>Size</th>
+        <th>Created</th>
       </tr>
-      <% end %>
+    </thead>
 
-    <% end %>
-  </tbody>
-</table>
+    <tbody>
+      <% if (work_order.set_uuid) %>
+        <% [work_order.original_set].each do |s| %>
+        <tr>
+          <td>
+            <%= f.radio_button(:original_set_uuid, s.id) %>
+          </td>
+          <td>
+            <%= s.name %>
+          </td>
+          <td>
+            <%= pluralize(work_order.num_samples, "Sample") %>
+          </td>
+          <td>
+            <%= time_ago_in_words(s.created_at) + " ago" %>
+          </td>
+        </tr>
+        <% end %>
+      <% else %>
+        <% get_all_aker_sets.each do |s| %>
+        <% setNames.push(s.name.downcase) %>
+        <tr>
+          <td>
+            <%= f.radio_button(:original_set_uuid, s.id) %>
+          </td>
+          <td>
+            <%= s.name %>
+          </td>
+          <td>
+            <%= pluralize(s.meta["size"], "Sample") %>
+          </td>
+          <td>
+            <%= time_ago_in_words(s.created_at) + " ago" %>
+          </td>
+        </tr>
+        <% end %>
+      <% end %>
+    </tbody>
+  </table>
 <% end %>
+<script>
+  var setServiceURL = '<%= Rails.application.config.set_url %>';
+  var setNames = Array.from(<%= raw setNames.to_json %>);
+  var relativeRoot = '<%= Rails.application.config.relative_url_root.presence || '' %>';
+
+  // Allows pressing enter in the search form to perform the search, instead of
+  // submitting the main form
+  $("#set-name").on("keypress", function (e) {
+    if (e.keyCode == 13) {
+      $("#set-search").click();
+      return false;
+    }
+  });
+</script>

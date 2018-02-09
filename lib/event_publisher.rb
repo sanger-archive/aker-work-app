@@ -35,7 +35,7 @@ class EventPublisher
 
   def publish(message)
     create_connection unless connected?
-    @exchange.publish(message.generate_json)
+    @exchange.publish(message.generate_json, routing_key: EventMessage::ROUTING_KEY)
     @channel.wait_for_confirms
     raise 'There is an unconfirmed set.' if @channel.unconfirmed_set.count.positive?
   end
@@ -75,7 +75,7 @@ class EventPublisher
     # Create a fanout exchange which will send messages to all queues bound to the exchange and
     #   make the exchange durable: Durable exchanges survive broker restart, transient exchanges
     #   do not (http://rubybunny.info/articles/durability.html)
-    @exchange = @channel.fanout(@exchange_name, durable: true)
+    @exchange = @channel.topic(@exchange_name, durable: true)
 
     # Creates the dead letter exchange aker.events.deadletters (https://www.rabbitmq.com/dlx.html)
     @dlx = @channel.fanout(dl_exchange_name, durable: true)
@@ -89,17 +89,17 @@ class EventPublisher
                    durable: true,
                    arguments: {
                      "x-dead-letter-exchange": @dlx.name
-                   }).bind(@exchange)
+                   }).bind(@exchange, routing_key: '#')
     # notifications_queue
     @channel.queue(@notification_queue_name,
                    auto_delete: false,
                    durable: true,
                    arguments: {
                      "x-dead-letter-exchange": @dlx.name
-                   }).bind(@exchange)
+                   }).bind(@exchange, routing_key: '#')
     # Dead letter queues
     dl_queue_name = @exchange_name + '.deadletters'
-    @channel.queue(dl_queue_name).bind(@dlx, durable: true)
+    @channel.queue(dl_queue_name, durable: true).bind(@dlx, durable: true)
 
     # To be able to wait_for_confirms in publish()
     @channel.confirm_select
