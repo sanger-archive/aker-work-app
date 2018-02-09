@@ -69,12 +69,12 @@ Rails.application.configure do
   config.jwt_secret_key = 'development'
 
   config.events = {
-    enabled: false,
+    enabled: true,
     broker_host: 'localhost',
     broker_port: '5672',
-    broker_vhost: '/',
-    broker_username: 'guest',
-    broker_password: 'guest',
+    broker_vhost: 'aker',
+    broker_username: 'work_orders',
+    broker_password: 'password',
     exchange_name: 'aker.events',
     warehouse_queue_name: 'aker.events.warehouse',
     notification_queue_name: 'aker.events.notifications',

@@ -41,11 +41,19 @@ class EventConsumer
 
   def start_listening
     @channel = @connection.create_channel
-    @queue = @channel.queue(@catalogue_queue_name, durable: true).bind(@exchange_name)
+    dl_exchange_name = @exchange_name + '.deadletters'
+    @dlx = @channel.fanout(dl_exchange_name, durable: true)
+    @queue = @channel.queue(@catalogue_queue_name,
+                   auto_delete: false,
+                   durable: true,
+                   arguments: {
+                     "x-dead-letter-exchange": @dlx.name
+                   }).bind(@exchange_name, routing_key: 'aker.events.catalogue.new')
 
     begin
       @queue.subscribe do |delivery_info, metadata, body|
-        data = JSON.parse(body)["catalogue"]
+        data = JSON.parse(body)[0]["catalogue"]
+        puts data
         Catalogue.create_with_products(data)
       end
     rescue Interrupt  => _
