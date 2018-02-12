@@ -8,7 +8,6 @@ class Product < ApplicationRecord
   enum availability: { suspended: 0, available: 1 }
   enum product_class: { dna_sequencing: 0, genotyping: 1, transcriptomics: 2, cell_line_creation: 3 }
 
-  # TODO: get rid of these
   def product_class_text
     return 'No product class set' if product_class.nil?
     self.class.product_class_symbol_to_human_product_class(product_class)

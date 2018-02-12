@@ -19,15 +19,6 @@ class Catalogue < ApplicationRecord
       price_placeholder = 0
 
       create_products(product_params, catalogue.id)
-  		# product_params.each do |pp|
-      #   # Store ID from message as the external ID for the product
-      #   pp["external_id"] = pp.delete "id"
-      #
-      #   accepted_product_keys = ["name", "description", "product_version", "availability", "requested_biomaterial_type", "product_class", "external_id"]
-      #   product = Product.create!(pp.select { |k,v| (accepted_product_keys.include?(k)) }.merge({ catalogue_id: catalogue.id }))
-      #
-      #   create_process(pp["processes"], product.id)
-  		# end
   	end
   	catalogue
   end
