@@ -17,25 +17,42 @@ class Catalogue < ApplicationRecord
       catalogue = create!(catalogue_params.select { |k,v| (accepted_catalogue_keys.include?(k)) }.merge({ current: true }))
   		product_params = catalogue_params['products']
       price_placeholder = 0
-  		product_params.each do |pp|
-        # Store ID from message as the external ID for the product
-        pp["external_id"] = pp.delete "id"
 
-        accepted_product_keys = ["name", "description", "product_version", "availability", "requested_biomaterial_type", "product_class", "external_id"]
-        product = Product.create!(pp.select { |k,v| (accepted_product_keys.include?(k)) }.merge({ catalogue_id: catalogue.id }))
-
-        create_process(pp["processes"], product.id)
-  		end
+      create_products(product_params, catalogue.id)
+  		# product_params.each do |pp|
+      #   # Store ID from message as the external ID for the product
+      #   pp["external_id"] = pp.delete "id"
+      #
+      #   accepted_product_keys = ["name", "description", "product_version", "availability", "requested_biomaterial_type", "product_class", "external_id"]
+      #   product = Product.create!(pp.select { |k,v| (accepted_product_keys.include?(k)) }.merge({ catalogue_id: catalogue.id }))
+      #
+      #   create_process(pp["processes"], product.id)
+  		# end
   	end
   	catalogue
   end
 
-  def sanitise_lims
-    if lims_id
-      sanitised = lims_id.strip.gsub(/\s+/,' ')
-      if sanitised != lims_id
-        self.lims_id = sanitised
-      end
+  def self.create_products(products, catalogue_id)
+    products.each do |pp|
+      # Store ID from message as the external ID for the product
+      pp["external_id"] = pp.delete "id"
+
+      accepted_product_keys = ["name", "description", "product_version", "availability", "requested_biomaterial_type", "product_class", "external_id"]
+      product = Product.create!(pp.select { |k,v| (accepted_product_keys.include?(k)) }.merge({ catalogue_id: catalogue_id }))
+
+      create_processes(pp["processes"], product.id)
+    end
+  end
+
+  def self.create_processes(processes, product_id)
+    processes.each do |p|
+      p["external_id"] = p.delete "id"
+      accepted_process_keys = ["name", "TAT", "external_id"]
+      p.select { |k,v| (accepted_process_keys.include?(k)) }
+      process = Aker::Process.create!(p.select { |k,v| (accepted_process_keys.include?(k)) })
+      Aker::ProductProcess.create!(product_id: product_id, aker_process_id: process.id, stage: p["stage"])
+
+      create_process_modules(p["process_module_pairings"], process.id)
     end
   end
 
@@ -56,14 +73,12 @@ class Catalogue < ApplicationRecord
     end
   end
 
-  def self.create_process(processes, product_id)
-    processes.each do |p|
-      p["external_id"] = p.delete "id"
-      accepted_process_keys = ["name", "TAT", "external_id"]
-      p.select { |k,v| (accepted_process_keys.include?(k)) }
-      process = Aker::Process.create!(p.select { |k,v| (accepted_process_keys.include?(k)) })
-      Aker::ProductProcess.create!(product_id: product_id, aker_process_id: process.id, stage: p["stage"])
-      create_process_modules(p["process_module_pairings"], process.id)
+  def sanitise_lims
+    if lims_id
+      sanitised = lims_id.strip.gsub(/\s+/,' ')
+      if sanitised != lims_id
+        self.lims_id = sanitised
+      end
     end
   end
 end
