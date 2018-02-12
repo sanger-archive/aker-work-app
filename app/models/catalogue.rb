@@ -36,12 +36,14 @@ class Catalogue < ApplicationRecord
   end
 
   def self.create_processes(processes, product_id)
-    processes.each do |p|
+    processes.each_with_index do |p, i|
       p["external_id"] = p.delete "id"
       accepted_process_keys = ["name", "TAT", "external_id"]
       p.select { |k,v| (accepted_process_keys.include?(k)) }
       process = Aker::Process.create!(p.select { |k,v| (accepted_process_keys.include?(k)) })
-      Aker::ProductProcess.create!(product_id: product_id, aker_process_id: process.id, stage: p["stage"])
+      # Stage is determined by the order each process appears in the array.
+      # First stage is 1. I'm sorry.
+      Aker::ProductProcess.create!(product_id: product_id, aker_process_id: process.id, stage: i + 1)
 
       create_process_modules(p["process_module_pairings"], process.id)
     end
