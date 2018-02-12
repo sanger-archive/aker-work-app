@@ -20,20 +20,11 @@ class Catalogue < ApplicationRecord
   		product_params.each do |pp|
         # Store ID from message as the external ID for the product
         pp["external_id"] = pp.delete "id"
-        # TODO: Figure out what's happening with this product_class stuff
-        # pp["product_class"] = Product.human_product_class_to_symbol(pp["product_class"])
-        accepted_product_keys = ["name", "description", "product_version", "availability", "requested_biomaterial_type", "product_class", "external_id"]
 
+        accepted_product_keys = ["name", "description", "product_version", "availability", "requested_biomaterial_type", "product_class", "external_id"]
         product = Product.create!(pp.select { |k,v| (accepted_product_keys.include?(k)) }.merge({ catalogue_id: catalogue.id }))
 
-        pp["processes"].each do |p|
-          p["external_id"] = p.delete "id"
-          accepted_process_keys = ["name", "TAT", "external_id"]
-          p.select { |k,v| (accepted_process_keys.include?(k)) }
-          process = Aker::Process.create!(p.select { |k,v| (accepted_process_keys.include?(k)) })
-          Aker::ProductProcess.create!(product_id: product.id, aker_process_id: process.id, stage: p["stage"])
-          create_process_module_pairings(p["process_module_pairings"], process.id)
-        end
+        create_process(pp["processes"], product.id)
   		end
   	end
   	catalogue
@@ -48,7 +39,7 @@ class Catalogue < ApplicationRecord
     end
   end
 
-  def self.create_process_module_pairings(process_module_pairing, process_id)
+  def self.create_process_modules(process_module_pairing, process_id)
     process_module_pairing.each do |pm|
       # Create the process module(s), if they don't already exist
       unless pm["to_step"].nil?
@@ -62,6 +53,17 @@ class Catalogue < ApplicationRecord
       # Create the pairing represented by the current 'pm'
       Aker::ProcessModulePairings.create!(to_step: to_module, from_step: from_module,
         default_path: pm["default_path"], aker_process_id: process_id)
+    end
+  end
+
+  def self.create_process(processes, product_id)
+    processes.each do |p|
+      p["external_id"] = p.delete "id"
+      accepted_process_keys = ["name", "TAT", "external_id"]
+      p.select { |k,v| (accepted_process_keys.include?(k)) }
+      process = Aker::Process.create!(p.select { |k,v| (accepted_process_keys.include?(k)) })
+      Aker::ProductProcess.create!(product_id: product_id, aker_process_id: process.id, stage: p["stage"])
+      create_process_modules(p["process_module_pairings"], process.id)
     end
   end
 end
