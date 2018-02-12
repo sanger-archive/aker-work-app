@@ -48,8 +48,9 @@ class Catalogue < ApplicationRecord
     end
   end
 
-  def self.create_process_module_pairings(process_modules, process_id)
-    process_modules.each do |pm|
+  def self.create_process_module_pairings(process_module_pairing, process_id)
+    process_module_pairing.each do |pm|
+      # Create the process module(s), if they don't already exist
       unless pm["to_step"].nil?
         to_module = Aker::ProcessModule.where(name: pm["to_step"], aker_process_id: process_id).first_or_create
       end
@@ -58,9 +59,9 @@ class Catalogue < ApplicationRecord
         from_module = Aker::ProcessModule.where(name: pm["from_step"], aker_process_id: process_id).first_or_create
       end
 
-      pm["external_id"] = pm.delete "id"
+      # Create the pairing represented by the current 'pm'
       Aker::ProcessModulePairings.create!(to_step: to_module, from_step: from_module,
-        default_path: pm["default_path"], aker_process_id: process_id, external_id: pm["external_id"])
+        default_path: pm["default_path"], aker_process_id: process_id)
     end
   end
 end

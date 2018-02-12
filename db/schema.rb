@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180208140900) do
+ActiveRecord::Schema.define(version: 20180212102251) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -19,11 +19,10 @@ ActiveRecord::Schema.define(version: 20180208140900) do
   create_table "aker_process_module_pairings", force: :cascade do |t|
     t.integer "from_step_id"
     t.integer "to_step_id"
-    t.integer "external_id"
     t.boolean "default_path",    null: false
     t.integer "aker_process_id"
     t.index ["aker_process_id"], name: "index_aker_process_module_pairings_on_aker_process_id", using: :btree
-    t.index ["from_step_id", "to_step_id"], name: "index_on_aker_pairings", unique: true, using: :btree
+    t.index ["from_step_id", "to_step_id", "aker_process_id"], name: "index_on_aker_pairings", unique: true, using: :btree
     t.index ["from_step_id"], name: "index_aker_process_module_pairings_on_from_step_id", using: :btree
     t.index ["to_step_id"], name: "index_aker_process_module_pairings_on_to_step_id", using: :btree
   end
