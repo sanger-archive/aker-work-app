@@ -13,6 +13,7 @@ class Product < ApplicationRecord
     self.class.product_class_symbol_to_human_product_class(product_class)
   end
 
+  # TODO: get rid of these
   def availability_text
     I18n.t("activerecord.attributes.#{model_name.i18n_key}.availability.#{availability}")
   end

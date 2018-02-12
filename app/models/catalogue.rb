@@ -14,11 +14,11 @@ class Catalogue < ApplicationRecord
   		where(lims_id: lims_id).update_all(current: false)
 
       accepted_catalogue_keys = ['pipeline', 'url', 'lims_id']
-      catalogue = create!(catalogue_params.select { |k,v| (accepted_catalogue_keys.include?(k)) }.merge({current: true}))
+      catalogue = create!(catalogue_params.select { |k,v| (accepted_catalogue_keys.include?(k)) }.merge({ current: true }))
   		product_params = catalogue_params['products']
       price_placeholder = 0
   		product_params.each do |pp|
-        # replace id key with external_id
+        # Store ID from message as the external ID for the product
         pp["external_id"] = pp.delete "id"
         # TODO: Figure out what's happening with this product_class stuff
         # pp["product_class"] = Product.human_product_class_to_symbol(pp["product_class"])
@@ -62,6 +62,5 @@ class Catalogue < ApplicationRecord
       Aker::ProcessModulePairings.create!(to_step: to_module, from_step: from_module,
         default_path: pm["default_path"], aker_process_id: process_id, external_id: pm["external_id"])
     end
-    puts "done!"
   end
 end
