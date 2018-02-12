@@ -32,21 +32,7 @@ class Catalogue < ApplicationRecord
           p.select { |k,v| (accepted_process_keys.include?(k)) }
           process = Aker::Process.create!(p.select { |k,v| (accepted_process_keys.include?(k)) })
           Aker::ProductProcess.create!(product_id: product.id, aker_process_id: process.id, stage: p["stage"])
-
-          p["process_module_pairings"].each do |pm|
-            unless pm["to_step"].nil?
-              to_module = Aker::ProcessModule.where(name: pm["to_step"], aker_process_id: process.id).first_or_create
-            end
-
-            unless pm["from_step"].nil?
-              from_module = Aker::ProcessModule.where(name: pm["from_step"], aker_process_id: process.id).first_or_create
-            end
-
-            pm["external_id"] = pm.delete "id"
-            Aker::ProcessModulePairings.create!(to_step: to_module, from_step: from_module,
-              default_path: pm["default_path"], aker_process_id: process.id, external_id: pm["external_id"])
-          end
-
+          create_process_module_pairings(p["process_module_pairings"], process.id)
         end
   		end
   	end
@@ -60,5 +46,22 @@ class Catalogue < ApplicationRecord
         self.lims_id = sanitised
       end
     end
+  end
+
+  def self.create_process_module_pairings(process_modules, process_id)
+    process_modules.each do |pm|
+      unless pm["to_step"].nil?
+        to_module = Aker::ProcessModule.where(name: pm["to_step"], aker_process_id: process_id).first_or_create
+      end
+
+      unless pm["from_step"].nil?
+        from_module = Aker::ProcessModule.where(name: pm["from_step"], aker_process_id: process_id).first_or_create
+      end
+
+      pm["external_id"] = pm.delete "id"
+      Aker::ProcessModulePairings.create!(to_step: to_module, from_step: from_module,
+        default_path: pm["default_path"], aker_process_id: process_id, external_id: pm["external_id"])
+    end
+    puts "done!"
   end
 end
