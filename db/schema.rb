@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180212102251) do
+ActiveRecord::Schema.define(version: 20180212141820) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -84,30 +84,43 @@ ActiveRecord::Schema.define(version: 20180212102251) do
     t.index ["catalogue_id"], name: "index_products_on_catalogue_id", using: :btree
   end
 
+  create_table "work_order_module_choices", force: :cascade do |t|
+    t.integer "work_order_id"
+    t.integer "aker_process_modules_id"
+    t.integer "position"
+    t.index ["aker_process_modules_id"], name: "index_work_order_module_choices_on_aker_process_modules_id", using: :btree
+    t.index ["work_order_id"], name: "index_work_order_module_choices_on_work_order_id", using: :btree
+  end
+
   create_table "work_orders", force: :cascade do |t|
     t.string   "status"
-    t.datetime "created_at",                                                null: false
-    t.datetime "updated_at",                                                null: false
+    t.datetime "created_at",                                                           null: false
+    t.datetime "updated_at",                                                           null: false
     t.string   "original_set_uuid"
     t.string   "set_uuid"
     t.integer  "proposal_id"
     t.string   "comment"
     t.date     "desired_date"
     t.integer  "product_id"
-    t.decimal  "total_cost",        precision: 8, scale: 2
+    t.decimal  "total_cost",                   precision: 8, scale: 2
     t.string   "finished_set_uuid"
     t.string   "work_order_uuid"
     t.string   "close_comment"
     t.citext   "owner_email"
-    t.decimal  "cost_per_sample",   precision: 8, scale: 2
-    t.boolean  "material_updated",                          default: false, null: false
+    t.decimal  "cost_per_sample",              precision: 8, scale: 2
+    t.boolean  "material_updated",                                     default: false, null: false
+    t.integer  "work_order_module_choices_id"
     t.index ["owner_email"], name: "index_work_orders_on_owner_email", using: :btree
     t.index ["product_id"], name: "index_work_orders_on_product_id", using: :btree
+    t.index ["work_order_module_choices_id"], name: "index_work_orders_on_work_order_module_choices_id", using: :btree
   end
 
   add_foreign_key "aker_process_modules", "aker_processes"
   add_foreign_key "aker_product_processes", "aker_processes"
   add_foreign_key "aker_product_processes", "products"
   add_foreign_key "products", "catalogues"
+  add_foreign_key "work_order_module_choices", "aker_process_modules", column: "aker_process_modules_id"
+  add_foreign_key "work_order_module_choices", "work_orders"
   add_foreign_key "work_orders", "products"
+  add_foreign_key "work_orders", "work_order_module_choices", column: "work_order_module_choices_id"
 end
