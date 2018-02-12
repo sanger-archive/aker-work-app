@@ -5,6 +5,6 @@ class AddWorkOrderModuleChoices < ActiveRecord::Migration[5.0]
       t.references :aker_process_modules, foreign_key: true
       t.integer :position
     end
-    add_reference :work_orders, :work_order_module_choices, foreign_key: true
+    add_reference :work_orders, :module_choices, foreign_key: { to_table: :work_order_module_choices }
   end
 end
