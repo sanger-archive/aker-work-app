@@ -212,6 +212,7 @@ class WorkOrder < ApplicationRecord
         cost_code: proposal.cost_code,
         desired_date: desired_date,
         materials: material_data,
+        modules: module_choices,
       }
     }
   end
@@ -257,4 +258,11 @@ class WorkOrder < ApplicationRecord
     end
   end
 
+  def module_choices
+    module_choices = []
+    WorkOrderModuleChoice.where(work_order_id: id).order(:position).pluck(:aker_process_modules_id).each do |id|
+      module_choices.push(Aker::ProcessModule.find(id).name)
+    end
+    debugger
+  end
 end

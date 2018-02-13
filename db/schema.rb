@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180212141820) do
+ActiveRecord::Schema.define(version: 20180213141025) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -109,8 +109,6 @@ ActiveRecord::Schema.define(version: 20180212141820) do
     t.citext   "owner_email"
     t.decimal  "cost_per_sample",   precision: 8, scale: 2
     t.boolean  "material_updated",                          default: false, null: false
-    t.integer  "module_choices_id"
-    t.index ["module_choices_id"], name: "index_work_orders_on_module_choices_id", using: :btree
     t.index ["owner_email"], name: "index_work_orders_on_owner_email", using: :btree
     t.index ["product_id"], name: "index_work_orders_on_product_id", using: :btree
   end
@@ -122,5 +120,4 @@ ActiveRecord::Schema.define(version: 20180212141820) do
   add_foreign_key "work_order_module_choices", "aker_process_modules", column: "aker_process_modules_id"
   add_foreign_key "work_order_module_choices", "work_orders"
   add_foreign_key "work_orders", "products"
-  add_foreign_key "work_orders", "work_order_module_choices", column: "module_choices_id"
 end
