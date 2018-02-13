@@ -7,7 +7,6 @@ Rails.application.routes.draw do
   get '/sets/:set_name', to: 'work_orders#set_search'
 
   scope '/api/v1' do
-    post 'catalogue', to: 'catalogues#create'
     scope 'work_orders/:id' do
       post 'complete', to: 'work_orders#complete'
       post 'cancel', to: 'work_orders#cancel'
