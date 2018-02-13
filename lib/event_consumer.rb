@@ -52,8 +52,7 @@ class EventConsumer
 
     begin
       @queue.subscribe do |delivery_info, metadata, body|
-        data = JSON.parse(body)[0]["catalogue"]
-        puts data
+        data = JSON.parse(body, symbolize_names: true)[0][:catalogue]
         Catalogue.create_with_products(data)
       end
     rescue Interrupt  => _
