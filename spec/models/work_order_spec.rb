@@ -254,7 +254,7 @@ RSpec.describe WorkOrder, type: :model do
     before do
       make_set_with_materials
       make_container(@materials)
-      product = build(:product, name: 'Soylent Green', product_version: 3, product_uuid: 'abc123')
+      product = build(:product, name: 'Soylent Green', product_version: 3)
       @wo = build(:work_order, product: product, proposal_id: proposal.id, set_uuid: @set.id,
                   id: 616, comment: 'hello', desired_date: '2020-01-01')
     end
@@ -274,7 +274,6 @@ RSpec.describe WorkOrder, type: :model do
         data = @wo.lims_data()[:work_order]
         expect(data[:product_name]).to eq(@wo.product.name)
         expect(data[:product_version]).to eq(@wo.product.product_version)
-        expect(data[:product_uuid]).to eq(@wo.product.product_uuid)
         expect(data[:work_order_id]).to eq(@wo.id)
         expect(data[:comment]).to eq(@wo.comment)
         expect(data[:project_uuid]).to eq(project.node_uuid)
