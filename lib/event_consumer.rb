@@ -50,14 +50,17 @@ class EventConsumer
                      "x-dead-letter-exchange": @dlx.name
                    }).bind(@exchange_name, routing_key: 'aker.events.catalogue.new')
 
-    begin
-      @queue.subscribe do |delivery_info, metadata, body|
+    @queue.subscribe(:manual_ack => true) do |delivery_info, metadata, body|
+      begin
         data = JSON.parse(body)[0]["catalogue"]
         puts data
         Catalogue.create_with_products(data)
+        @channel.ack(delivery_info.delivery_tag)
+      rescue StandardError => e
+        puts e
+        puts e.backtrace
+        @channel.reject(delivery_info.delivery_tag)
       end
-    rescue Interrupt  => _
-      puts "Interrupt!"
     end
   end
 
