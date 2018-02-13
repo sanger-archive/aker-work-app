@@ -52,7 +52,7 @@ class EventConsumer
 
     @queue.subscribe(:manual_ack => true) do |delivery_info, metadata, body|
       begin
-        data = JSON.parse(body)[0]["catalogue"]
+        data = JSON.parse(body, symbolize_names: true)[0][:catalogue]
         puts data
         Catalogue.create_with_products(data)
         @channel.ack(delivery_info.delivery_tag)

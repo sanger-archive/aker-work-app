@@ -30,7 +30,7 @@ RSpec.describe 'EventMessage' do
       )
     end
     let(:project) { double(:project, name: 'test project', node_uuid: '12345a') }
-    let(:product) { build(:product, name: 'test product', product_uuid: '23456b') }
+    let(:product) { build(:product, name: 'test product') }
     let(:fake_uuid) { 'my_fake_uuid' }
     let(:fake_trace) { 'my_trace_id' }
     let(:first_comment) { 'first comment' }
@@ -56,7 +56,9 @@ RSpec.describe 'EventMessage' do
         'role_type' => 'product',
         'subject_type' => 'product',
         'subject_friendly_name' => product.name,
-        'subject_uuid' => product.product_uuid
+        # subject_uuid now points to the product's ID within Aker, as the UUID
+        # no longer exists.
+        'subject_uuid' => product.id
       }
     end
 

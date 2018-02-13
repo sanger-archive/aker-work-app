@@ -87,7 +87,9 @@ class EventMessage
           'role_type' => 'product',
           'subject_type' => 'product',
           'subject_friendly_name' => product.name,
-          'subject_uuid' => product.product_uuid
+          # subject_uuid now points to the product's ID within Aker, as the UUID
+          # no longer exists.
+          'subject_uuid' => product.id
         }
       ],
       'metadata' => metadata

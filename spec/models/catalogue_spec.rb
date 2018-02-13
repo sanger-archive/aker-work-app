@@ -9,12 +9,14 @@ RSpec.describe Catalogue, type: :model do
       before do
         @cat1 = Catalogue.create!(lims_id: lims_id, url: "somewhere", pipeline: "cells", current: true)
         @cat2 = Catalogue.create!(lims_id: other_lims_id, url: "somewhere else", pipeline: "cells", current: true)
-        @cat3 = Catalogue.create_with_products(
-          lims_id: lims_id, url: "france", pipeline: "cells", 'products' => [
-            { name: "Cake", product_version: "2", description: "delicious", availability: "available",
-              TAT: 3, requested_biomaterial_type: "flour", product_class: "DNA Sequencing" }
-          ]
-        )
+        @cat3 = Catalogue.create_with_products(lims_id: lims_id, url: "france", pipeline: "cells",
+          products: [{ id: 2, name: "QC", description: "Lorem Ipsum", product_version: 1, availability: 1,
+          requested_biomaterial_type: "blood", product_class: "genotyping", processes: [
+            { id: 2, name: "QC", stage: 1, TAT: 5, process_module_pairings: [
+              { from_step: nil, to_step: "Quantification", default_path: true},
+              { from_step: "Genotyping HumGen SNP", to_step: nil, default_path: true},
+              { from_step: "Quantification", to_step: "Genotyping CGP SNP", default_path: true}
+        ]}]}])
       end
 
       it "marks other catalogues as not current" do
@@ -26,13 +28,11 @@ RSpec.describe Catalogue, type: :model do
         products = Product.where(catalogue_id: @cat3.id).all
         expect(products.length).to eq 1
         product = products.first
-        expect(product.name).to eq "Cake"
-        expect(product.description).to eq "delicious"
-        expect(product.product_class).to eq 'dna_sequencing'
+        expect(product.name).to eq 'QC'
+        expect(product.description).to eq 'Lorem Ipsum'
+        expect(product.product_class).to eq 'genotyping'
       end
-
     end
-
   end
 
   describe '#lims_id' do
@@ -45,9 +45,11 @@ RSpec.describe Catalogue, type: :model do
     it 'should not be valid without a lims_id' do
       expect(build(:catalogue, lims_id: nil)).not_to be_valid
     end
+
     it 'should not be valid with a blank lims_id after sanitisation' do
       expect(build(:catalogue, lims_id: "   \n  \t    ")).not_to be_valid
     end
+
     it 'should be valid with a lims_id after sanitisation' do
       expect(build(:catalogue, lims_id: "    My  \t  LIMS  \n")).to be_valid
     end
