@@ -174,7 +174,7 @@ RSpec.describe 'EventMessage' do
           allow(work_order).to receive(:finished_set).and_return nil
           expect(metadata['num_new_materials']).to eq(0)
         end
-      end      
+      end
 
       # Metadata
       it 'should have the correct work order id' do
@@ -193,7 +193,6 @@ RSpec.describe 'EventMessage' do
       it 'should have the correct num new materials' do
         expect(metadata['num_new_materials']).to eq(finished_set.meta['size'])
       end
-
     end
   end
 end
