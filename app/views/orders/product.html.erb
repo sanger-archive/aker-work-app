@@ -16,3 +16,6 @@
   <%= render 'buttons', work_order: work_order, f: f %>
 
 <% end %>
+<script>
+  var relativeRoot = '<%= Rails.application.config.relative_url_root.presence || '' %>';
+</script>

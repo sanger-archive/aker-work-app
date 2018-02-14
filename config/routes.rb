@@ -5,6 +5,7 @@ Rails.application.routes.draw do
   root 'work_orders#index'
 
   get '/sets/:set_name', to: 'work_orders#set_search'
+  get '/products/:product_id', to: 'products#get_product_description'
 
   scope '/api/v1' do
     post 'catalogue', to: 'catalogues#create'
