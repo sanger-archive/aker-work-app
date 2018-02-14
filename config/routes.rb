@@ -8,7 +8,6 @@ Rails.application.routes.draw do
   get '/products/:product_id', to: 'products#get_product_description'
 
   scope '/api/v1' do
-    post 'catalogue', to: 'catalogues#create'
     scope 'work_orders/:id' do
       post 'complete', to: 'work_orders#complete'
       post 'cancel', to: 'work_orders#cancel'
