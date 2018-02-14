@@ -1,6 +1,8 @@
 Rails.application.configure do
   # Settings specified here will take precedence over those in config/application.rb.
 
+  # config.relative_url_root = '/work-orders'
+
   # In the development environment your application's code is reloaded on
   # every request. This slows down response time but is perfect for development
   # since you don't have to restart the web server when you make code changes.
@@ -51,4 +53,52 @@ Rails.application.configure do
   # Use an evented file watcher to asynchronously detect changes in source code,
   # routes, locales, etc. This feature depends on the listen gem.
   config.file_watcher = ActiveSupport::EventedFileUpdateChecker
+
+  config.action_mailer.delivery_method = :sendmail
+
+  config.study_url = 'http://localhost:3300/api/v1'
+  config.study_url_default_proxy = 'http://localhost:3300'
+
+  config.set_url = 'http://localhost:3000/api/v1'
+  config.set_url_default_proxy = 'http://localhost:3000'
+
+  config.material_url = 'http://localhost:5000'
+
+  config.stamp_url = 'http://localhost:7000/api/v1'
+
+  config.jwt_secret_key = 'development'
+
+  config.events = {
+    enabled: false,
+    broker_host: 'localhost',
+    broker_port: '5672',
+    broker_vhost: '/',
+    broker_username: 'guest',
+    broker_password: 'guest',
+    exchange_name: 'aker.events',
+    warehouse_queue_name: 'aker.events.warehouse',
+    notification_queue_name: 'aker.events.notifications'
+  }
+
+  config.work_order_completion_json = 'work_order_completion.json'
+
+  config.billing_facade_url = 'http://localhost:3601'
+
+  config.fake_ldap = true
+
+  config.action_mailer.default_url_options = { host: 'localhost', port: 3000 }
+
+  # SSO
+  config.default_jwt_user = { email: ENV.fetch('USER', 'user') + '@sanger.ac.uk',
+                              groups: ['world'] }
+
+  config.auth_service_url = 'http://localhost:9010'
+  config.login_url = config.auth_service_url + '/login'
+  config.logout_url = config.auth_service_url + '/logout'
+
+  config.urls = { submission: '',
+                  permissions: '',
+                  sets: '',
+                  projects: '',
+                  work_orders: '' }
 end

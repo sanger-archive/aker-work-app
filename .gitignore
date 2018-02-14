@@ -15,3 +15,8 @@
 
 # Ignore Byebug command history file.
 .byebug_history
+
+coverage
+
+work-orders_development
+work-orders_test

@@ -3,7 +3,7 @@ Rails.application.configure do
 
   # The test environment is used exclusively to run your application's
   # test suite. You never need to work with it otherwise. Remember that
-  # your test database is "scratch space" for the test suite and is wiped
+  # your test database is 'scratch space' for the test suite and is wiped
   # and recreated between test runs. Don't rely on the data there!
   config.cache_classes = true
 
@@ -39,4 +39,43 @@ Rails.application.configure do
 
   # Raises error for missing translations
   # config.action_view.raise_on_missing_translations = true
+
+  config.study_url = 'http://external-server:3300/api/v1'
+  config.study_url_default_proxy = 'http://external-server:3300'
+
+  config.set_url = 'http://external-server:3000/api/v1'
+  config.set_url_default_proxy = 'http://external-server:3000'
+
+  config.material_url = 'http://external-server:5000'
+
+  config.stamp_url = 'http://external-server:7000/api/v1'
+
+  config.billing_facade_url = 'http://external-server:3601'
+
+  config.work_order_completion_json = 'work_order_completion.json'
+
+  config.events = {
+    enabled: false,
+    broker_host: 'localhost',
+    broker_port: '5672',
+    broker_username: 'guest',
+    broker_password: 'guest',
+    exchange_name: 'aker.events',
+    warehouse_queue_name: 'aker.events.warehouse',
+    notification_queue_name: 'aker.events.notifications'
+  }
+
+  config.fake_ldap = true
+  config.jwt_secret_key = 'test'
+
+  config.auth_service_url = 'http://auth_service'
+  config.login_url = config.auth_service_url + '/login'
+  config.logout_url = config.auth_service_url + '/logout'
+
+  config.urls = { submission: '',
+                  permissions: '',
+                  sets: '',
+                  projects: '',
+                  work_orders: '' }
+
 end

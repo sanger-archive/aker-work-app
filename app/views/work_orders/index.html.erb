@@ -1,17 +1,33 @@
 <% content_for :title_button do %>
-  <%= link_to 'Create New Work Order', new_work_order_url, class: 'btn btn-success vcenter', style: 'margin-top: 28px' %>
+  <%= link_to 'Create New Work Order', work_orders_path, method: 'post',
+        class: 'btn btn-success pull-right',
+        style: "margin-top: 23px" %>
 <% end %>
 
 <div class="row">
   <div class="col-md-12">
-    <h2>Incomplete Work Orders</h2>
+    <h2>Unsubmitted Work Orders</h2>
     <%= render "work_orders_table", work_orders: @pending_work_orders %>
   </div>
 </div>
 
 <div class="row">
   <div class="col-md-12">
-    <h2>Completed Work Orders</h2>
+    <h2>Submitted Work Orders</h2>
     <%= render "work_orders_table", work_orders: @active_work_orders %>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-md-12">
+    <h2>Completed Work Orders</h2>
+    <%= render "work_orders_table", work_orders: @completed_work_orders %>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-md-12">
+    <h2>Cancelled Work Orders</h2>
+    <%= render "work_orders_table", work_orders: @cancelled_work_orders %>
   </div>
 </div>

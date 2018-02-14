@@ -1,11 +1,12 @@
-<div class="row">
-  <div class="col-md-12">
-    <h3><%= title %></h3>
-  </div>
-</div>
-
-<div class="progress">
-  <div class="progress-bar progress-bar-striped progress-bar-success" role="progressbar" aria-valuenow="<%= progress %>" aria-valuemin="0" aria-valuemax="100" style="width: <%= progress %>%">
-    <span class="sr-only"><%= progress %>% Complete (success)</span>
-  </div>
+<div class="row" id="progress-bar">
+  <% wizard_steps.each_with_index do |step, index| %>
+    <div class="col-xs-2 <%= "col-xs-offset-2" if index == 0 %> bs-wizard-step <%= step_classes(index) %>">
+      <div class="text-center"><%= step_titles[index] %></div>
+      <div class="progress">
+        <div class="progress-bar"></div>
+      </div>
+      <%= link_to '', step.to_s, class: "step-indicator",
+            data: { confirm: 'Are you sure you wish to go back? You will lose unsaved progress on the curent step' } %>
+    </div>
+  <% end %>
 </div>

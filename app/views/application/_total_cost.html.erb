@@ -1,0 +1,18 @@
+<div class="row">
+  <div class="col-md-12">
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>Number of samples</th>
+          <th>Total cost</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><%= work_order.num_samples %></td>
+          <td><%= number_to_currency(work_order.total_cost, unit: '£') %></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

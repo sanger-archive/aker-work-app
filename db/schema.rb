@@ -10,75 +10,70 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20161027133255) do
+ActiveRecord::Schema.define(version: 20171113094502) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
+  enable_extension "citext"
 
-  create_table "item_option_selections", force: :cascade do |t|
-    t.integer  "item_id"
-    t.integer  "product_option_id"
-    t.integer  "product_option_value_id"
-    t.datetime "created_at",              null: false
-    t.datetime "updated_at",              null: false
-    t.index ["item_id"], name: "index_item_option_selections_on_item_id", using: :btree
-    t.index ["product_option_id"], name: "index_item_option_selections_on_product_option_id", using: :btree
-    t.index ["product_option_value_id"], name: "index_item_option_selections_on_product_option_value_id", using: :btree
-  end
-
-  create_table "items", force: :cascade do |t|
-    t.integer  "work_order_id"
-    t.integer  "product_id"
-    t.datetime "created_at",    null: false
-    t.datetime "updated_at",    null: false
-    t.index ["product_id"], name: "index_items_on_product_id", using: :btree
-    t.index ["work_order_id"], name: "index_items_on_work_order_id", using: :btree
-  end
-
-  create_table "product_option_values", force: :cascade do |t|
-    t.integer  "product_option_id"
-    t.string   "value"
-    t.datetime "created_at",        null: false
-    t.datetime "updated_at",        null: false
-    t.index ["product_option_id"], name: "index_product_option_values_on_product_option_id", using: :btree
-  end
-
-  create_table "product_options", force: :cascade do |t|
-    t.integer  "product_id"
-    t.string   "name"
+  create_table "catalogues", force: :cascade do |t|
+    t.string   "url"
+    t.citext   "lims_id",    null: false
+    t.string   "pipeline"
+    t.boolean  "current"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["product_id"], name: "index_product_options_on_product_id", using: :btree
+    t.index ["lims_id"], name: "index_catalogues_on_lims_id", using: :btree
+  end
+
+  create_table "permissions", force: :cascade do |t|
+    t.citext   "permitted",       null: false
+    t.string   "accessible_type", null: false
+    t.integer  "accessible_id",   null: false
+    t.datetime "created_at",      null: false
+    t.datetime "updated_at",      null: false
+    t.string   "permission_type", null: false
+    t.index ["accessible_type", "accessible_id"], name: "index_permissions_on_accessible_type_and_accessible_id", using: :btree
+    t.index ["permitted", "permission_type", "accessible_id", "accessible_type"], name: "index_permissions_on_various", unique: true, using: :btree
+    t.index ["permitted"], name: "index_permissions_on_permitted", using: :btree
   end
 
   create_table "products", force: :cascade do |t|
     t.string   "name"
-    t.integer  "shop_id"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["shop_id"], name: "index_products_on_shop_id", using: :btree
-  end
-
-  create_table "shops", force: :cascade do |t|
-    t.string   "name"
-    t.string   "product_schema_uri"
-    t.boolean  "enabled",            default: true
-    t.datetime "created_at",                        null: false
-    t.datetime "updated_at",                        null: false
+    t.datetime "created_at",                             null: false
+    t.datetime "updated_at",                             null: false
+    t.integer  "catalogue_id"
+    t.integer  "TAT"
+    t.string   "requested_biomaterial_type"
+    t.integer  "product_version"
+    t.integer  "availability",               default: 1
+    t.string   "description"
+    t.string   "product_uuid"
+    t.integer  "product_class"
+    t.index ["catalogue_id"], name: "index_products_on_catalogue_id", using: :btree
   end
 
   create_table "work_orders", force: :cascade do |t|
     t.string   "status"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
+    t.datetime "created_at",                                                null: false
+    t.datetime "updated_at",                                                null: false
+    t.string   "original_set_uuid"
+    t.string   "set_uuid"
+    t.integer  "proposal_id"
+    t.string   "comment"
+    t.date     "desired_date"
+    t.integer  "product_id"
+    t.decimal  "total_cost",        precision: 8, scale: 2
+    t.string   "finished_set_uuid"
+    t.string   "work_order_uuid"
+    t.string   "close_comment"
+    t.citext   "owner_email"
+    t.decimal  "cost_per_sample",   precision: 8, scale: 2
+    t.boolean  "material_updated",                          default: false, null: false
+    t.index ["owner_email"], name: "index_work_orders_on_owner_email", using: :btree
+    t.index ["product_id"], name: "index_work_orders_on_product_id", using: :btree
   end
 
-  add_foreign_key "item_option_selections", "items"
-  add_foreign_key "item_option_selections", "product_option_values"
-  add_foreign_key "item_option_selections", "product_options"
-  add_foreign_key "items", "products"
-  add_foreign_key "items", "work_orders"
-  add_foreign_key "product_option_values", "product_options"
-  add_foreign_key "product_options", "products"
-  add_foreign_key "products", "shops"
+  add_foreign_key "products", "catalogues"
+  add_foreign_key "work_orders", "products"
 end

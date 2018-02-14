@@ -14,4 +14,25 @@
 //= require jquery_ujs
 //= require turbolinks
 //= require bootstrap-sprockets
+//= require js-routes
+//= require product_helper
+//= require set_search
+//= require_tree ./templates
 //= require_tree .
+
+$(document).on("turbolinks:load", function() {
+  $("[data-behavior~=datepicker]").each(function() {
+    $(this).datepicker({
+      dateFormat: 'yy-mm-dd',
+      minDate: '+0d'
+    });
+  });
+
+  // Used when selecting a set (create work order step 1) to allow a radio button
+  // to be checked by clicking the row, instead of just the radio button
+  $('#set-list-table tr').click(function (event) {
+    if (event.target.type !== 'radio') {
+      $(':radio', this).prop("checked", true);
+    }
+  })
+});

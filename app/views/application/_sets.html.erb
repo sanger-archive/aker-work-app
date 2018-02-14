@@ -1,0 +1,57 @@
+<div class="row">
+  <div class="col-md-12">
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>Input Set</th>
+          <th></th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><%= work_order.original_set.name %></td>
+          <td><%= "This is the set you selected, which may have been modified since this work order was created" %></td>
+          <td align="right"><%= link_to 'Edit', "#{Rails.configuration.urls[:sets]}/simple/sets/#{work_order.original_set_uuid}", class: 'btn btn-primary', target: :_blank %>
+            <%= link_to 'Order Work', work_orders_path(set_id: work_order.original_set_uuid), method: 'post', class: 'btn btn-success', style: "margin-left: 10px;", target: :_blank unless work_order.pending? %></td>
+        </tr>
+        <tr>
+          <td><%= work_order.set.name %></td>
+          <td><%= "This is a locked clone of your selected set, used for auditing purposes. Its contents are the exact materials this work was ordered on." %></td>
+          <td align="right"><%= link_to 'View', "#{Rails.configuration.urls[:sets]}/simple/sets/#{work_order.set_uuid}", class: 'btn btn-default', target: :_blank %>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<% if work_order.closed? %>
+<div class="row">
+  <div class="col-md-12">
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>Output Set</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% if work_order.material_updated %>
+        <tr>
+          <td>[Updated Metadata] <%= work_order.set.name %></td>
+          <td align="right"><%= link_to 'View', "#{Rails.configuration.urls[:sets]}/simple/sets/#{work_order.set_uuid}", class: 'btn btn-default', style: "margin-right: 10px;", target: :_blank %>
+            <%= link_to 'Order Work', work_orders_path(set_id: work_order.set_uuid), method: 'post', class: 'btn btn-success', target: :_blank %></td>
+        </tr>
+        <% end %>
+        <% if work_order.finished_set %>
+        <tr>
+          <td><%= work_order.finished_set.name %></td>
+          <td align="right"><%= link_to 'View', "#{Rails.configuration.urls[:sets]}/simple/sets/#{work_order.finished_set_uuid}", class: 'btn btn-default', style: "margin-right: 10px;", target: :_blank %>
+            <%= link_to 'Order Work', work_orders_path(set_id: work_order.finished_set_uuid), method: 'post',  class: 'btn btn-success', target: :_blank %></td>
+        </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+</div>
+<% end %>

@@ -1,4 +1,12 @@
-# README
+# Aker - Work Orders
 
-This README would normally document whatever steps are necessary to get the
-application up and running.
+This application allows users to create and manage work orders.
+
+# Setup
+## Dev environment
+To create the databases for the dev environment: `rake db:setup`
+
+# Testing
+To run ALL the tests for this project: `bundle exec rake`
+
+To run just the rspec tests: `bundle exec rspec`
