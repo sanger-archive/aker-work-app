@@ -6,6 +6,8 @@ require 'event_publisher'
 class EventMessage
   attr_reader :work_order
 
+  ROUTING_KEY = 'aker.events.work_order'
+
   def initialize(params)
     @work_order = params.fetch(:work_order)
     @status = params.fetch(:status)
@@ -35,7 +37,7 @@ class EventMessage
   end
 
   def num_materials
-    if (@work_order.set&.meta && @work_order.set.meta['size'])
+    if @work_order.set&.meta && @work_order.set.meta['size']
       @work_order.set.meta['size']
     else
       0
@@ -52,7 +54,7 @@ class EventMessage
   end
 
   def num_new_materials
-    if (@work_order.finished_set&.meta && @work_order.finished_set.meta['size'])
+    if @work_order.finished_set&.meta && @work_order.finished_set.meta['size']
       @work_order.finished_set.meta['size']
     else
       0
