@@ -263,6 +263,5 @@ class WorkOrder < ApplicationRecord
     WorkOrderModuleChoice.where(work_order_id: id).order(:position).pluck(:aker_process_modules_id).each do |id|
       module_choices.push(Aker::ProcessModule.find(id).name)
     end
-    debugger
   end
 end
