@@ -23,80 +23,22 @@ $(document).on("turbolinks:load", function() {
         renderDefaultProductDefinition(data);
       },
       error: function() {
+        hideProductInfo();
         renderError('There was an error while accessing the Billing service');
       }
     });
   });
 });
 
+function hideProductInfo() {
+  $("#product-select-description").hide();
+  $("#product-information").hide();
+  $("#cost-information").hide();
+}
+
 function renderError(msg) {
   var errorMsg = '<div class="alert-danger alert alert-dismissible" role="alert">'+msg+'</div>';
   $("#flash-display").html(errorMsg);
-}
-
-function renderDefaultProductDefinition(data) {
-  // mocking the database
-  var path = getProductData();
-  var productOptions = '';
-  if (path) {
-     productOptions = createProductDefinition(path);
-  }
-  $('#product-definition').html(productOptions);
-  $('#product-definition').show();
-
-  createSelectListeners();
-}
-
-function createProductDefinition(path) {
-  var selectHtml = '<label>Choose options:</label><br>';
-  for (var i = 0; i < path.length; ++i) {
-    var defaultKey;
-    i == 0 ? defaultKey = 'start' : defaultKey = path[i-1];
-    var options = availableLinks[defaultKey];
-    selectHtml += createSelectElement(options, path[i], i);
-    if (i < path.length-1) {
-      selectHtml += '\u27a1';
-    }
-  }
-  return selectHtml;
-}
-
-function createSelectElement(options, defaultOption, selectNumber) {
-  var selectString = "<select style='width:200px' id='select"+selectNumber+"'>";
-  if (typeof(options) == 'string') {
-    selectString += "<option>" + options + "</option>";
-  } else {
-    for (var i = 0; i < options.length; ++i) {
-      if (defaultOption == options[i]) {
-        selectString += "<option selected>" + options[i] + "</option>";
-      } else {
-        selectString += "<option>" + options[i] + "</option>";
-      }
-    }
-  }
-  selectString += '</select>';
-  return selectString;
-}
-
-function createSelectListeners(){
-  var productDefinition = $('#product-definition')[0];
-  var numOfSelects = productDefinition.childElementCount
-  for (var i = 0; i < numOfSelects; ++i) {
-    $("#select"+i).change(function(){
-      var newValue = $("#select"+i).val();
-      onSelectChange(i, newValue);
-    });
-  }
-}
-
-function onSelectChange(selectId, newValue){
-  var newPath = getProductData().slice(0);
-  newPath[selectId] = newValue;
-  var productOptions = createProductDefinition(newPath);
-
-  $('#product-definition').html(productOptions);
-  $('#product-definition').show();
-  createSelectListeners();
 }
 
 function renderProductInformation(data) {
@@ -138,18 +80,28 @@ function convertToCurrency(input) {
   return '£' + input.toFixed(2);
 };
 
-function getProductData() {
-  var defaultPath = '';
-  var selectedProduct = $('#product-select option:selected')[0].text;
-  if (selectedProduct == "Quality Control"){
-    defaultPath = ['Quantification','Genotyping HumGen SNP'];
-    availableLinks = {
-      'start': ['Genotyping CGP SNP','Genotyping DDD SNP','Genotyping HumGen SNP','Quantification'],
-      'Genotyping CGP SNP': 'end',
-      'Genotyping DDD SNP': 'end',
-      'Genotyping HumGen SNP':'end',
-      'Quantification': ['Genotyping CGP SNP','Genotyping DDD SNP','Genotyping HumGen SNP'],
+function renderDefaultProductDefinition(data) {
+  var productData = getProductData(data.id).then( function(response) {
+    var availableLinks = response.data.available_links;
+    var defaultPath = response.data.default_path;
+    ReactDOM.render(
+      React.createElement(ProductDescription, {availableLinks: availableLinks, defaultPath: defaultPath}, null),
+      document.getElementById('product-select-description')
+    );
+  });
+  $("#product-select-description").show();
+}
+
+function getProductData(product_id) {
+  var url = relativeRoot + '/products/' + product_id;
+
+  return $.get( url, function( response ) {
+    if (response.data === undefined) {
+      // Product doesn't exist or service is down
+    } else {
+      defaultPath = response.data.default_path;
+      availableLinks = response.data.available_links;
     }
-  }
-  return defaultPath;
+    return { defaultPath: defaultPath, availableLinks: availableLinks };
+  });
 }

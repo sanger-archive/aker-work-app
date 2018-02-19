@@ -12,6 +12,7 @@ class ProductsController < ApplicationController
     render json: @product.as_json.merge(unit_price: price, cost_code: cost_code).to_json
   end
 
+
   # Returns JSON containing the set service query result for about the set being
   # searched
   def get_product_description
