@@ -9,22 +9,17 @@ class ProductsController < ApplicationController
     cost_code = @work_order.proposal.cost_code
     price = BillingFacadeClient.get_unit_price(cost_code, @product.name)
 
-    render json: @product.as_json.merge(unit_price: price, cost_code: cost_code).to_json
-  end
-
-
-  # Returns JSON containing the set service query result for about the set being
-  # searched
-  def get_product_description
-    product_id = params["product_id"]
     # Currently assuming there is only one process to one product
-    process = Product.find(product_id).processes[0]
+    process = @product.processes[0]
     process_module_pairings = Aker::ProcessModulePairings.where(aker_process_id: process.id)
 
     available_links = build_available_links(process_module_pairings)
     default_path = build_default_path(process_module_pairings)
 
-    render json: { "data": { "available_links": available_links, "default_path": default_path } }
+    render json: @product.as_json.merge(
+      unit_price: price, cost_code: cost_code, available_links: available_links, default_path: default_path
+    ).to_json
+
   end
 
   def build_available_links(pairings)

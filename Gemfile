@@ -45,7 +45,8 @@ gem 'uglifier', '~> 3.2'
 gem 'wicked'
 gem 'zipkin-tracer'
 gem 'webpacker', '~> 3.2'
-# gem 'react-rails'
+gem 'webpacker-react', "~> 0.3.2"
+gem 'react-rails'
 
 ###
 # Sanger gems

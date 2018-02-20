@@ -11,7 +11,7 @@ import React from 'react';
 import ReactDOM from 'react-dom'
 import { render } from 'react-dom';
 import ProductDescription from '../components/product_description';
+import WebpackerReact from 'webpacker-react'
 
-window.React=React
-window.ReactDOM=ReactDOM
-window.ProductDescription=ProductDescription
+WebpackerReact.setup({ProductDescription}) // ES6 shorthand for {Hello: Hello}
+

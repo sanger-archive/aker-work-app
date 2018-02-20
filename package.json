@@ -5,7 +5,10 @@
     "prop-types": "^15.6.0",
     "react": "^16.2.0",
     "react-dom": "^16.2.0",
-    "react-select": "^1.2.1"
+    "react-select": "^1.2.1",
+    "react-select-plus": "^1.1.0",
+    "react_ujs": "^2.4.4",
+    "webpacker-react": "^0.3.2"
   },
   "devDependencies": {
     "webpack-dev-server": "^2.11.1"

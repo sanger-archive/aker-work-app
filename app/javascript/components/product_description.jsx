@@ -1,39 +1,150 @@
 import React, { Fragment } from 'react';
-import Select from 'react-select';
 import ReactDOM from 'react-dom'
 
 class ProductDescription extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      selectedPath: this.props.defaultPath
+      selectedPath: this.props.defaultPath,
+      showProductInfo: false
     }
-    this.onSelectChange = this.onSelectChange.bind(this);
+    this.onProductOptionsSelectChange = this.onProductOptionsSelectChange.bind(this);
+    this.onProductSelectChange = this.onProductSelectChange.bind(this);
+    this.getProductInfo = this.getProductInfo.bind(this);
+    this.processProductInfo = this.processProductInfo.bind(this);
   }
 
-  onSelectChange(event) {
+  onProductSelectChange(event) {
+    event.preventDefault();
+    const selectedProductId = event.target.selectedOptions[0].id;
+    if (selectedProductId) {
+      this.setState({ showProductInfo: true })
+      this.getProductInfo(selectedProductId);
+    } else {
+      this.setState({ showProductInfo: false })
+    }
+  }
+
+  onProductOptionsSelectChange(event) {
     event.preventDefault();
     const newPath = this.state.selectedPath;
     newPath[event.target.id]= event.target.value
     this.setState({selectedPath: newPath})
   }
 
+  getProductInfo(productId) {
+    const workOrderId = $("#work-order-id").val();
+    const path = Routes.root_path()+'api/v1/work_orders/'+workOrderId+'/products/'+productId;
+
+    fetch(path)
+      .then((response) => response.json())
+      .then(this.processProductInfo)
+  }
+
+  processProductInfo(responseJSON) {
+    const links = responseJSON.available_links;
+    const path = responseJSON.default_path;
+    this.setState({selectedPath: path, availableLinks: links, productInfo: responseJSON})
+  }
+
   render() {
-    const links = this.props.availableLinks
-    const selectedPath = this.state.selectedPath
+    var productOptionComponents = [];
+
+    if (this.state.showProductInfo && this.state.productInfo) {
+      productOptionComponents = (
+        <Fragment>
+          <ProductOptionLabel />
+          <ProductOptionSelectDropdowns links={this.state.availableLinks} path={this.state.selectedPath} onChange={this.onProductOptionsSelectChange}/>
+          <ProductInformation data={this.state.productInfo} />
+          <CostInformation data={this.state.productInfo} />
+        </Fragment>
+      );
+    }
+
     return (
       <div>
-        <SelectLabel />
-        <SelectDropdowns links={links} path={selectedPath} onChange={this.onSelectChange}/>
+        <ProductLabel />
+        <ProductSelectElement catalogueList={this.props.data} onChange={this.onProductSelectChange}/>
+        { productOptionComponents }
       </div>
     );
   }
 }
 
-class SelectLabel extends React.Component {
+class ProductLabel extends React.Component {
   render() {
     return (
       <Fragment>
+        <label>Choose a product:</label>
+        <br />
+      </Fragment>
+    );
+  }
+}
+
+class ProductSelectElement extends React.Component {
+  render() {
+    let optionGroups = (
+      <Fragment>
+        <ProductSelectOptionGroup catalogueList={this.props.catalogueList}/>
+      </Fragment>
+    );
+
+    return (
+      <select onChange={this.props.onChange}>
+        {optionGroups}
+      </select>
+    );
+  }
+}
+
+class ProductSelectOptionGroup extends React.Component {
+  render() {
+    var optionGroups = [];
+
+    this.props.catalogueList.forEach(function(catalogue, index) {
+      let name = catalogue[0];
+      let productList = catalogue[1];
+      optionGroups.push(
+        <optgroup key={index} label={name}>
+          <ProductSelectOptGroupOption productList={productList}/>
+        </optgroup>
+      );
+    });
+
+    return (
+      <Fragment>
+        { optionGroups }
+      </Fragment>
+    )
+  }
+}
+
+class ProductSelectOptGroupOption extends React.Component {
+  render() {
+    var options = [];
+
+    this.props.productList.forEach(function(product, index){
+      let productName = product[0]
+      let productId = product[1]
+      options.push(
+        <option key={index} id={productId}>{productName}</option>
+      );
+    });
+
+    return (
+      <Fragment>
+        { options }
+      </Fragment>
+    );
+  }
+}
+
+class ProductOptionLabel extends React.Component {
+  render() {
+    return (
+      <Fragment>
+        <br />
         <label>Choose options:</label>
         <br />
       </Fragment>
@@ -41,7 +152,7 @@ class SelectLabel extends React.Component {
   }
 }
 
-class SelectDropdowns extends React.Component {
+class ProductOptionSelectDropdowns extends React.Component {
   render() {
     const select_dropdowns = [];
     let options= [];
@@ -58,7 +169,7 @@ class SelectDropdowns extends React.Component {
           return;
         }
       }
-      select_dropdowns.push(<SelectElement selected={name} options={options} key={index} id={index} onChange={this.props.onChange} />)
+      select_dropdowns.push(<ProductOptionSelectElement selected={name} options={options} key={index} id={index} onChange={this.props.onChange} />)
     })
 
     return (
@@ -69,11 +180,11 @@ class SelectDropdowns extends React.Component {
   }
 }
 
-class SelectElement extends React.Component {
+class ProductOptionSelectElement extends React.Component {
   render() {
     const select_options = [];
     this.props.options.forEach((option, index) => {
-      select_options.push(<SelectOption name={option} key={index} />)
+      select_options.push(<ProductOptionSelectOption name={option} key={index} />)
     })
     return (
       <select value={this.props.selected} onChange={this.props.onChange} id={this.props.id}>
@@ -83,7 +194,7 @@ class SelectElement extends React.Component {
   }
 }
 
-class SelectOption extends React.Component {
+class ProductOptionSelectOption extends React.Component {
   render() {
    const option_name = this.props.name;
     return (
@@ -92,6 +203,54 @@ class SelectOption extends React.Component {
       </Fragment>
     );
   }
+}
+
+class ProductInformation extends React.Component {
+  render() {
+    const data = this.props.data;
+    const cost = convertToCurrency(data.unit_price)
+    return (
+      <Fragment>
+        <br />
+          <pre>{`
+            Cost per sample: ${cost}
+            Requested biomaterial type: ${data.requested_biomaterial_type}
+            Product version: ${data.product_version}
+            TAT: ${data.tat}
+            Description: ${data.description}
+            Availability: ${data.availability}
+            Product class: ${data.product_class}
+          `}</pre>
+      </Fragment>
+    );
+  }
+}
+
+class CostInformation extends React.Component {
+  render() {
+    const data = this.props.data;
+    const numOfSamples = $("#num-of-samples").val();
+    const costPerSample = data.unit_price;
+    const total = numOfSamples * costPerSample;
+
+    return (
+      <Fragment>
+          <pre>{`
+            Number of samples: ${numOfSamples}
+            Cost per sample: ${costPerSample}
+
+            Total: ${total}
+          `}</pre>
+      </Fragment>
+    );
+  }
+}
+
+function convertToCurrency(input) {
+  if (typeof(input)=='string') {
+    input = parseInt(input)
+  }
+  return '£' + input.toFixed(2);
 }
 
 export default ProductDescription;
