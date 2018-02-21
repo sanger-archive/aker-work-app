@@ -51,11 +51,19 @@ class Catalogue < ApplicationRecord
     process_module_pairing.each do |pm|
       # Create the process module(s), if they don't already exist
       unless pm[:to_step].nil?
-        to_module = Aker::ProcessModule.where(name: pm[:to_step], aker_process_id: process_id).first_or_create
+        if validate_module_name(pm[:to_step])
+          to_module = Aker::ProcessModule.where(name: pm[:to_step], aker_process_id: process_id).first_or_create
+        else
+          raise "Procuess module #{pm[:to_step]} is not valid."
+        end
       end
 
       unless pm[:from_step].nil?
-        from_module = Aker::ProcessModule.where(name: pm[:from_step], aker_process_id: process_id).first_or_create
+        if validate_module_name(pm[:from_step])
+          from_module = Aker::ProcessModule.where(name: pm[:from_step], aker_process_id: process_id).first_or_create
+        else
+          raise "Procuess module #{pm[:from_step]} is not valid."
+        end
       end
 
       # Create the pairing represented by the current 'pm'
@@ -71,5 +79,10 @@ class Catalogue < ApplicationRecord
         self.lims_id = sanitised
       end
     end
+  end
+
+  def self.validate_module_name(module_name)
+    uri_module_name = module_name.gsub(' ', '_').downcase
+    BillingFacadeClient.validate_process_module_name(uri_module_name)
   end
 end
