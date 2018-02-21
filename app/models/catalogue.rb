@@ -16,8 +16,6 @@ class Catalogue < ApplicationRecord
       accepted_catalogue_keys = [:pipeline, :url, :lims_id]
       catalogue = create!(catalogue_params.select { |k,v| (accepted_catalogue_keys.include?(k)) }.merge({ current: true }))
   		product_params = catalogue_params[:products]
-      # TODO: price_placeholder doesn't look as though it's used anywhere. Remove?
-      price_placeholder = 0
 
       create_products(product_params, catalogue.id)
   	end

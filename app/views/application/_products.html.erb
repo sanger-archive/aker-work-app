@@ -7,7 +7,7 @@
 					<th>Product version</th>
 					<th>Cost per sample</th>
 					<th>Biomaterial Type</th>
-					<th>TAT</th>
+					<th>Total TAT</th>
 					<th>Description</th>
 					<th>Product Class</th>
 				</tr>
@@ -18,7 +18,7 @@
 					<td><%= work_order.product.product_version %></td>
 					<td><%= number_to_currency(work_order.cost_per_sample, unit:'£') %></td>
 					<td><%= work_order.product.requested_biomaterial_type %></td>
-					<td>TODO</td>
+					<td><%= total_TAT(work_order) %></td>
 					<td><%= work_order.product.description %></td>
 					<td><%= work_order.product.product_class_text %></td>
 				</tr>
