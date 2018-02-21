@@ -12,6 +12,7 @@ class ProductDescription extends React.Component {
     this.onProductSelectChange = this.onProductSelectChange.bind(this);
     this.getProductInfo = this.getProductInfo.bind(this);
     this.processProductInfo = this.processProductInfo.bind(this);
+    this.injectProductInfoIntoForm = this.injectProductInfoIntoForm.bind(this);
   }
 
   onProductSelectChange(event) {
@@ -47,10 +48,22 @@ class ProductDescription extends React.Component {
     this.setState({selectedPath: path, availableLinks: links, productInfo: responseJSON})
   }
 
+  injectProductInfoIntoForm(){
+    const productId = this.state.productInfo.id;
+    const productOptions = this.state.selectedPath;
+
+    // convert productOptions into json string. pass into the value in another hidden input
+    $('#injected_product_info').html(
+      "<input type='hidden' name='work_order[product_id]' value="+productId+">"
+    )
+  }
+
   render() {
     var productOptionComponents = [];
 
     if (this.state.showProductInfo && this.state.productInfo) {
+      this.injectProductInfoIntoForm();
+
       productOptionComponents = (
         <Fragment>
           <ProductOptionLabel />

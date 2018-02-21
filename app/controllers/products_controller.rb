@@ -1,5 +1,4 @@
 class ProductsController < ApplicationController
-  skip_authorization_check only: [:get_product_description]
 
   def show_product_inside_work_order
     @work_order = WorkOrder.find(params[:id])

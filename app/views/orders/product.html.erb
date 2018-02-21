@@ -2,6 +2,8 @@
 
 <%= bootstrap_form_for work_order, url: wizard_path, method: :put  do |f| %>
 
+  <div id='injected_product_info'></div>
+
   <input type='hidden' disabled='disabled' id="work-order-id" value="<%= work_order.id %>" />
   <input type='hidden' disabled='disabled' id="num-of-samples" value="<%= work_order.num_samples %>" />
 
@@ -13,6 +15,3 @@
   <%= render 'buttons', work_order: work_order, f: f %>
 
 <% end %>
-<script>
-  var relativeRoot = '<%= Rails.application.config.relative_url_root.presence || '' %>';
-</script>
