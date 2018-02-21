@@ -19,7 +19,7 @@ class UpdateOrderService
     @work_order_params[:status] = step.to_s
 
     # In product step, product_options injected into work_order_params in OrdersContoller
-    if step==:product
+    if (step==:product && @work_order_params[:product_options])
       product_options =  URI.decode_www_form_component(@work_order_params[:product_options]).split(',')
     end
     @work_order_params.delete(:product_options)

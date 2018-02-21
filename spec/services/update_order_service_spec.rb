@@ -196,13 +196,16 @@ RSpec.describe UpdateOrderService do
           messages = {}
           expect(UpdateOrderService.new(params, @wo, messages).perform(:proposal)).to eq(false)
           expect(messages[:error]).to include('Billing')
-        end        
+        end
       end
     end
 
     context "when work order is at product step" do
       before do
         @wo = order_at_step(:product)
+        aker_process = Aker::Process.create(name: 'process', TAT: 1)
+        Aker::ProcessModule.create(name: 'module1', aker_process_id: aker_process.id)
+        Aker::ProcessModule.create(name: 'module2', aker_process_id: aker_process.id)
       end
 
       it "should accept a product" do
@@ -213,7 +216,7 @@ RSpec.describe UpdateOrderService do
         allow(BillingFacadeClient).to receive(:get_unit_price)
           .with(@wo.proposal.cost_code, product.name).and_return(unit_cost)
 
-        params = { 'product_id' => product.id }
+        params = { product_id: product.id, product_options: 'module1,module2'}
         messages = {}
         expect(UpdateOrderService.new(params, @wo, messages).perform(:product)).to eq(true)
         expect(messages[:error]).to be_nil
@@ -259,7 +262,8 @@ RSpec.describe UpdateOrderService do
               expect(BillingFacadeClient).to receive(:get_unit_price)
                 .with(cost_code, product.name)
 
-              params = { 'product_id' => product.id }
+              params = { product_id: product.id, product_options: 'module1,module2'}
+
               messages = {}
               expect(UpdateOrderService.new(params, @wo, messages).perform(:product)).to eq(true)
 
@@ -284,6 +288,10 @@ RSpec.describe UpdateOrderService do
       before do
         @wo = order_at_step(:summary)
         allow(@wo).to receive(:send_to_lims)
+
+        aker_process = Aker::Process.create(name: 'process', TAT: 1)
+        Aker::ProcessModule.create(name: 'module1', aker_process_id: aker_process.id)
+        Aker::ProcessModule.create(name: 'module2', aker_process_id: aker_process.id)
       end
 
       it "should have a total cost that can be obtained from unit prices and num samples" do
@@ -321,7 +329,8 @@ RSpec.describe UpdateOrderService do
         allow(BillingFacadeClient).to receive(:get_unit_price)
           .with(@wo.proposal.cost_code, product.name).and_return(unit_cost)
 
-        params = { 'product_id' => product.id }
+        params = { product_id: product.id, product_options: 'module1,module2'}
+
         messages = {}
         expect(UpdateOrderService.new(params, @wo, messages).perform(:product)).to eq(true)
         expect(messages[:error]).to be_nil
