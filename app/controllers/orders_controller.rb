@@ -43,7 +43,7 @@ class OrdersController < ApplicationController
 
     def get_all_proposals_spendable_by_current_user
       StudyClient::Node.where(
-        node_type: 'subproject', 
+        node_type: 'subproject',
         with_parent_spendable_by: [current_user.email] + current_user.groups
       ).all.uniq {|p| p&.id}
     end
@@ -148,7 +148,7 @@ class OrdersController < ApplicationController
 
     def work_order_params
       params.require(:work_order).permit(
-        :status, :original_set_uuid, :proposal_id, :product_id, :comment, :desired_date
+        :status, :original_set_uuid, :proposal_id, :product_id, :product_options :comment, :desired_date
       )
     end
 

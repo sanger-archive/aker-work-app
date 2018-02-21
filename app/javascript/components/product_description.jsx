@@ -51,10 +51,14 @@ class ProductDescription extends React.Component {
   injectProductInfoIntoForm(){
     const productId = this.state.productInfo.id;
     const productOptions = this.state.selectedPath;
+    const encodesProductOptions = encodeURIComponent(productOptions)
 
-    // convert productOptions into json string. pass into the value in another hidden input
-    $('#injected_product_info').html(
+    $('#injected_product_id').html(
       "<input type='hidden' name='work_order[product_id]' value="+productId+">"
+    )
+
+    $('#injected_product_options').html(
+      "<input type='hidden' name='work_order[product_options]' value="+encodesProductOptions+">"
     )
   }
 

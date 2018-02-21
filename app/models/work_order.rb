@@ -9,6 +9,7 @@ class WorkOrder < ApplicationRecord
   include AkerPermissionGem::Accessible
 
   belongs_to :product, optional: true
+  has_many :work_order_module_choice, dependent: :destroy
 
   before_validation :sanitise_owner
   before_save :sanitise_owner
@@ -263,5 +264,6 @@ class WorkOrder < ApplicationRecord
     WorkOrderModuleChoice.where(work_order_id: id).order(:position).pluck(:aker_process_modules_id).each do |id|
       module_choices.push(Aker::ProcessModule.find(id).name)
     end
+    module_choices
   end
 end

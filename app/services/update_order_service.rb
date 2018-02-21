@@ -18,6 +18,12 @@ class UpdateOrderService
   def perform(step)
     @work_order_params[:status] = step.to_s
 
+    # In product step, product_options injected into work_order_params in OrdersContoller
+    if step==:product
+      product_options =  URI.decode_www_form_component(@work_order_params[:product_options]).split(',')
+    end
+    @work_order_params.delete(:product_options)
+
     return false if block_any_update
     return false if block_set_change
 
@@ -27,7 +33,6 @@ class UpdateOrderService
       # force the cost to be recalculated if we're updating the product
       @work_order_params['total_cost'] = nil
     end
-
     if @work_order.update_attributes(@work_order_params)
       if @work_order.original_set_uuid && @work_order.set_uuid.nil?
         return false unless check_set_contents
@@ -40,6 +45,10 @@ class UpdateOrderService
 
       if @work_order.set_uuid && @work_order.product_id && @work_order.total_cost.nil?
         return false unless calculate_cost
+      end
+
+      if step==:product
+        create_work_order_module_choices(product_options)
       end
 
       if step==:summary
@@ -165,6 +174,14 @@ private
       return false
     end
     return true
+  end
+
+  def create_work_order_module_choices(product_options)
+    work_order_id = @work_order.id
+    product_options.each_with_index do |module_name, index|
+      module_id = Aker::ProcessModule.find_by(name: module_name).id
+      WorkOrderModuleChoice.create!(work_order_id: work_order_id, aker_process_modules_id: module_id, position: index)
+    end
   end
 
   def send_order
