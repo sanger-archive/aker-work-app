@@ -50,7 +50,8 @@ class EventConsumer
                      "x-dead-letter-exchange": @dlx.name
                    }).bind(@exchange_name, routing_key: 'aker.events.catalogue.new')
 
-    @queue.subscribe(:manual_ack => true) do |delivery_info, metadata, body|
+    @queue.subscribe(manual_ack: true) do |delivery_info, metadata, body|
+      data = nil
       begin
         data = JSON.parse(body, symbolize_names: true)[:catalogue]
         puts data
@@ -60,7 +61,16 @@ class EventConsumer
         puts e
         puts e.backtrace
         @channel.reject(delivery_info.delivery_tag)
+        handle_catalogue_failure(data)
       end
+    end
+  end
+
+  def handle_catalogue_failure(data)
+    if data && data[:lims_id]
+      # Something went wrong! Cancel the current catalogue for the offending LIMS
+      puts "Cancelling catalogue"
+      Catalogue.where(lims_id: data[:lims_id]).update_all(current: false)
     end
   end
 
