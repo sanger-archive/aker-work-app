@@ -40,7 +40,6 @@ class Catalogue < ApplicationRecord
     processes.each_with_index do |p, i|
       p[:external_id] = p.delete :id
       accepted_process_keys = [:name, :TAT, :external_id]
-      p.select { |k,v| (accepted_process_keys.include?(k)) }
       process = Aker::Process.create!(p.select { |k,v| (accepted_process_keys.include?(k)) })
       # Stage is determined by the order each process appears in the array.
       # First stage is 1. I'm sorry.
