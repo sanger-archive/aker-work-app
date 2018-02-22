@@ -3,19 +3,16 @@ require 'rails_helper'
 RSpec.describe Product, type: :model do
   describe "#availability" do
     it "can be available" do
-      product = build(:product, availability: :available)
-      expect(product.available?).to eq true
-      expect(product.suspended?).to eq false
-      expect(product.availability).to eq 'available'
+      product = build(:product, availability: true)
+      expect(product.availability).to eq true
     end
     it "can be suspended" do
-      product = build(:product, availability: :suspended)
-      expect(product.available?).to eq false
-      expect(product.suspended?).to eq true
-      expect(product.availability).to eq 'suspended'
+      product = build(:product, availability: false)
+      expect(product.availability).to eq false
     end
-    it "cannot be bananas" do
-      expect { build(:product, availability: :bananas) }.to raise_error(ArgumentError)
+    it "default is true" do
+      product = build(:product)
+      expect(product.availability).to eq true
     end
   end
 
@@ -23,9 +20,9 @@ RSpec.describe Product, type: :model do
     context "when there are products" do
       before do
         @c1 = create(:catalogue)
-        @p1 = create(:product, availability: :available, catalogue_id: @c1.id)
-        @p2 = create(:product, availability: :suspended, catalogue_id: @c1.id)
-        @p3 = create(:product, availability: :available, catalogue_id: @c1.id)
+        @p1 = create(:product, availability: true, catalogue_id: @c1.id)
+        @p2 = create(:product, availability: false, catalogue_id: @c1.id)
+        @p3 = create(:product, availability: true, catalogue_id: @c1.id)
       end
 
       it "can find available products" do

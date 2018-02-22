@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180213141025) do
+ActiveRecord::Schema.define(version: 20180222121021) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -77,10 +77,10 @@ ActiveRecord::Schema.define(version: 20180213141025) do
     t.integer "catalogue_id"
     t.string "requested_biomaterial_type"
     t.integer "product_version"
-    t.integer "availability", default: 1
     t.string "description"
     t.integer "product_class"
     t.integer "external_id"
+    t.boolean "availability", default: true, null: false
     t.index ["catalogue_id"], name: "index_products_on_catalogue_id"
   end
 

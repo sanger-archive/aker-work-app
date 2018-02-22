@@ -299,7 +299,7 @@ RSpec.describe UpdateOrderService do
       end
 
       it "should refuse if the product is suspended" do
-        @wo.product.update_attributes(availability: :suspended)
+        @wo.product.update_attributes(availability: false)
         params = {}
         messages = {}
         expect(UpdateOrderService.new(params, @wo, messages).perform(:summary)).to eq(false)

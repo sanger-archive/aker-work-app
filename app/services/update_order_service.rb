@@ -185,7 +185,7 @@ private
   end
 
   def send_order
-    if @work_order.product.suspended?
+    if @work_order.product.availability==false
       add_notice("That product is suspended and cannot currently be ordered.")
       return false
     end
