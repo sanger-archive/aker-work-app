@@ -47,23 +47,28 @@ class Catalogue < ApplicationRecord
     end
   end
 
+  def self.validate_module_names(process_module_pairing)
+    module_names = process_module_pairing.map { |pm| [pm[:to_step], pm[:from_step]] }.flatten.compact.uniq
+    bad_modules = module_names.reject { |m| validate_module_name(m) }
+    unless bad_modules.empty?
+      raise "Process module could not be validated: #{bad_modules}"
+    end
+  end
+
   def self.create_process_modules(process_module_pairing, process_id)
+    validate_module_names(process_module_pairing)
     process_module_pairing.each do |pm|
       # Create the process module(s), if they don't already exist
-      unless pm[:to_step].nil?
-        if validate_module_name(pm[:to_step])
-          to_module = Aker::ProcessModule.where(name: pm[:to_step], aker_process_id: process_id).first_or_create
-        else
-          raise "Procuess module #{pm[:to_step]} is not valid."
-        end
+      if pm[:to_step]
+        to_module  = Aker::ProcessModule.where(name: pm[:to_step], aker_process_id: process_id).first_or_create
+      else
+        to_module = nil
       end
 
-      unless pm[:from_step].nil?
-        if validate_module_name(pm[:from_step])
-          from_module = Aker::ProcessModule.where(name: pm[:from_step], aker_process_id: process_id).first_or_create
-        else
-          raise "Procuess module #{pm[:from_step]} is not valid."
-        end
+      if pm[:from_step]
+        from_module = Aker::ProcessModule.where(name: pm[:to_step], aker_process_id: process_id).first_or_create
+      else
+        from_module = nil
       end
 
       # Create the pairing represented by the current 'pm'
