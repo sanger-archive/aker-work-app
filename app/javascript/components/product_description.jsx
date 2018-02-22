@@ -13,6 +13,8 @@ class ProductDescription extends React.Component {
     this.getProductInfo = this.getProductInfo.bind(this);
     this.processProductInfo = this.processProductInfo.bind(this);
     this.injectProductInfoIntoForm = this.injectProductInfoIntoForm.bind(this);
+    this.checkResponse = this.checkResponse.bind(this);
+    this.catchError = this.catchError.bind(this);
   }
 
   onProductSelectChange(event) {
@@ -29,7 +31,9 @@ class ProductDescription extends React.Component {
   onProductOptionsSelectChange(event) {
     event.preventDefault();
     const newPath = this.state.selectedPath;
-    newPath[event.target.id]= event.target.value
+    const selectedName = event.target.selectedOptions[0].text
+    const selectedId = event.target.value
+    newPath[event.target.id] = {id: selectedId, name: selectedName}
     this.setState({selectedPath: newPath})
   }
 
@@ -38,8 +42,21 @@ class ProductDescription extends React.Component {
     const path = Routes.root_path()+'api/v1/work_orders/'+workOrderId+'/products/'+productId;
 
     fetch(path)
-      .then((response) => response.json())
+      .then(this.checkResponse)
       .then(this.processProductInfo)
+      .catch(this.catchError)
+  }
+
+  checkResponse(response) {
+    if (response.ok) {
+      this.setState({errorMessage: null})
+      return response.json()
+    }
+    return Promise.reject(Error(response.statusText))
+  }
+
+  catchError(error) {
+    this.setState({errorMessage: error.message})
   }
 
   processProductInfo(responseJSON) {
@@ -51,7 +68,8 @@ class ProductDescription extends React.Component {
   injectProductInfoIntoForm(){
     const productId = this.state.productInfo.id;
     const productOptions = this.state.selectedPath;
-    const encodesProductOptions = encodeURIComponent(productOptions)
+    const productOptionIds = productOptions.map((product) => { return product.id});
+    const encodesProductOptions = JSON.stringify(productOptionIds)
 
     $('#injected_product_id').html(
       "<input type='hidden' name='work_order[product_id]' value="+productId+">"
@@ -80,10 +98,23 @@ class ProductDescription extends React.Component {
 
     return (
       <div>
+        <ErrorConsole msg={this.state.errorMessage}/>
         <ProductLabel />
         <ProductSelectElement catalogueList={this.props.data} onChange={this.onProductSelectChange}/>
         { productOptionComponents }
       </div>
+    );
+  }
+}
+
+class ErrorConsole extends React.Component {
+  render() {
+    var error = <div></div>
+    if (this.props.msg) {
+      error = <div className='alert alert-danger'>{this.props.msg}</div>
+    }
+    return (
+      error
     );
   }
 }
@@ -177,16 +208,16 @@ class ProductOptionSelectDropdowns extends React.Component {
     const links = this.props.links;
     const path = this.props.path;
 
-    path.forEach((name, index)=>{
+    path.forEach((obj, index)=>{
       if (index == 0) {
         options = links.start;
       } else {
-        options = links[path[index-1]]
+        options = links[path[index-1].name]
         if (options.length==1 && options.includes('end')) {
           return;
         }
       }
-      select_dropdowns.push(<ProductOptionSelectElement selected={name} options={options} key={index} id={index} onChange={this.props.onChange} />)
+      select_dropdowns.push(<ProductOptionSelectElement selected={obj} options={options} key={index} id={index} onChange={this.props.onChange} />)
     })
 
     return (
@@ -201,10 +232,10 @@ class ProductOptionSelectElement extends React.Component {
   render() {
     const select_options = [];
     this.props.options.forEach((option, index) => {
-      select_options.push(<ProductOptionSelectOption name={option} key={index} />)
+      select_options.push(<ProductOptionSelectOption obj={option} key={index} />)
     })
     return (
-      <select value={this.props.selected} onChange={this.props.onChange} id={this.props.id}>
+      <select value={this.props.selected.id} onChange={this.props.onChange} id={this.props.id}>
         { select_options }
       </select>
     )
@@ -213,10 +244,10 @@ class ProductOptionSelectElement extends React.Component {
 
 class ProductOptionSelectOption extends React.Component {
   render() {
-   const option_name = this.props.name;
+   const productObject = this.props.obj;
     return (
       <Fragment>
-        <option value={option_name}>{option_name}</option>
+        <option value={productObject.id}>{productObject.name}</option>
       </Fragment>
     );
   }

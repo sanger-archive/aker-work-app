@@ -20,7 +20,7 @@ class UpdateOrderService
 
     # In product step, product_options injected into work_order_params in OrdersContoller
     if (step==:product && @work_order_params[:product_options])
-      product_options =  URI.decode_www_form_component(@work_order_params[:product_options]).split(',')
+      product_options = JSON.parse(@work_order_params[:product_options])
     end
     @work_order_params.delete(:product_options)
 
@@ -178,8 +178,7 @@ private
 
   def create_work_order_module_choices(product_options)
     work_order_id = @work_order.id
-    product_options.each_with_index do |module_name, index|
-      module_id = Aker::ProcessModule.find_by(name: module_name).id
+    product_options.each_with_index do |module_id, index|
       WorkOrderModuleChoice.create!(work_order_id: work_order_id, aker_process_modules_id: module_id, position: index)
     end
   end
