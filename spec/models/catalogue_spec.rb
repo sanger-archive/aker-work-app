@@ -7,6 +7,7 @@ RSpec.describe Catalogue, type: :model do
 
     context "when creating" do
       before do
+        allow(BillingFacadeClient).to receive(:validate_process_module_name).and_return(true)
         @cat1 = Catalogue.create!(lims_id: lims_id, url: "somewhere", pipeline: "cells", current: true)
         @cat2 = Catalogue.create!(lims_id: other_lims_id, url: "somewhere else", pipeline: "cells", current: true)
         @cat3 = Catalogue.create_with_products(lims_id: lims_id, url: "france", pipeline: "cells",
