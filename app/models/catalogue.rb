@@ -10,12 +10,14 @@ class Catalogue < ApplicationRecord
   def self.create_with_products(catalogue_params)
   	catalogue = nil
   	transaction do
+      product_params = catalogue_params[:products]
+      validate_module_names(product_params)
+
       lims_id = catalogue_params[:lims_id]
   		where(lims_id: lims_id).update_all(current: false)
 
       accepted_catalogue_keys = [:pipeline, :url, :lims_id]
       catalogue = create!(catalogue_params.select { |k,v| (accepted_catalogue_keys.include?(k)) }.merge({ current: true }))
-  		product_params = catalogue_params[:products]
 
       create_products(product_params, catalogue.id)
   	end
@@ -47,8 +49,14 @@ class Catalogue < ApplicationRecord
     end
   end
 
-  def self.validate_module_names(process_module_pairing)
-    module_names = process_module_pairing.map { |pm| [pm[:to_step], pm[:from_step]] }.flatten.compact.uniq
+  def self.validate_module_names(product_params)
+    module_names = product_params.map do |pp|
+      pp[:processes].map do |pr|
+        pr[:process_module_pairings].map do |pm|
+          [pm[:to_step], pm[:from_step]]
+        end
+      end
+    end .flatten.compact.uniq
     bad_modules = module_names.reject { |m| validate_module_name(m) }
     unless bad_modules.empty?
       raise "Process module could not be validated: #{bad_modules}"
@@ -56,7 +64,6 @@ class Catalogue < ApplicationRecord
   end
 
   def self.create_process_modules(process_module_pairing, process_id)
-    validate_module_names(process_module_pairing)
     process_module_pairing.each do |pm|
       # Create the process module(s), if they don't already exist
       if pm[:to_step]
