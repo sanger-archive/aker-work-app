@@ -171,11 +171,11 @@ class WorkOrder < ApplicationRecord
   # This method returns a JSON description of the order that will be sent to a LIMS to order work.
   # It includes information that must be loaded from other services (study, set, etc.).
   def lims_data
-    material_ids = SetClient::Set.find_with_materials(set_uuid).first.materials.map{|m| m.id}
-    materials = all_results(MatconClient::Material.where("_id" => {"$in" => material_ids}).result_set)
-
     # Raise exception if module names are not valid from BillingFacadeMock
     validate_module_names(module_choices)
+
+    material_ids = SetClient::Set.find_with_materials(set_uuid).first.materials.map{|m| m.id}
+    materials = all_results(MatconClient::Material.where("_id" => {"$in" => material_ids}).result_set)
 
     unless materials.all? { |m| m.attributes['available'] }
       raise "Some of the specified materials are not available."
