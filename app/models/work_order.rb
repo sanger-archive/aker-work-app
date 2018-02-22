@@ -174,6 +174,9 @@ class WorkOrder < ApplicationRecord
     material_ids = SetClient::Set.find_with_materials(set_uuid).first.materials.map{|m| m.id}
     materials = all_results(MatconClient::Material.where("_id" => {"$in" => material_ids}).result_set)
 
+    # Raise exception if module names are not valid from BillingFacadeMock
+    validate_module_names(module_choices)
+
     unless materials.all? { |m| m.attributes['available'] }
       raise "Some of the specified materials are not available."
     end
@@ -266,4 +269,17 @@ class WorkOrder < ApplicationRecord
     end
     module_choices
   end
+
+  def validate_module_names(module_names)
+    bad_modules = module_names.reject { |m| validate_module_name(m) }
+    unless bad_modules.empty?
+      raise "Process module could not be validated: #{bad_modules}"
+    end
+  end
+
+  def validate_module_name(module_name)
+    uri_module_name = module_name.gsub(' ', '_').downcase
+    BillingFacadeClient.validate_process_module_name(uri_module_name)
+  end
+
 end
