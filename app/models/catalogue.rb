@@ -8,20 +8,26 @@ class Catalogue < ApplicationRecord
   validates :lims_id, presence: true
 
   def self.create_with_products(catalogue_params)
-  	catalogue = nil
-  	transaction do
-      product_params = catalogue_params[:products]
-      validate_module_names(product_params)
+    catalogue = nil
+    begin
+      transaction do
+        product_params = catalogue_params[:products]
+        validate_module_names(product_params)
 
-      lims_id = catalogue_params[:lims_id]
-  		where(lims_id: lims_id).update_all(current: false)
+        lims_id = catalogue_params[:lims_id]
+        where(lims_id: lims_id).update_all(current: false)
 
-      accepted_catalogue_keys = [:pipeline, :url, :lims_id]
-      catalogue = create!(catalogue_params.select { |k,v| (accepted_catalogue_keys.include?(k)) }.merge({ current: true }))
+        accepted_catalogue_keys = %i[pipeline url lims_id]
+        catalogue = create!(catalogue_params.select { |k, _v| accepted_catalogue_keys.include?(k) }.merge( current: true ))
 
-      create_products(product_params, catalogue.id)
-  	end
-  	catalogue
+        create_products(product_params, catalogue.id)
+      end
+    # rescue => ex
+      # publish_event(catalogue_params, false, ex)
+    # else
+      # publish_event(catalogue_params, true)
+    end
+    catalogue
   end
 
   def self.create_products(products, catalogue_id)
@@ -29,8 +35,8 @@ class Catalogue < ApplicationRecord
       # Store ID from message as the external ID for the product
       pp[:external_id] = pp.delete :id
 
-      accepted_product_keys = [:name, :description, :product_version, :availability, :requested_biomaterial_type, :product_class, :external_id]
-      product = Product.create!(pp.select { |k,v| (accepted_product_keys.include?(k)) }.merge({ catalogue_id: catalogue_id }))
+      accepted_product_keys = %i[name description product_version availability requested_biomaterial_type product_class external_id]
+      product = Product.create!(pp.select { |k, _v| accepted_product_keys.include?(k) }.merge({ catalogue_id: catalogue_id }))
 
       create_processes(pp[:processes], product.id)
     end
@@ -39,8 +45,8 @@ class Catalogue < ApplicationRecord
   def self.create_processes(processes, product_id)
     processes.each_with_index do |p, i|
       p[:external_id] = p.delete :id
-      accepted_process_keys = [:name, :TAT, :external_id]
-      process = Aker::Process.create!(p.select { |k,v| (accepted_process_keys.include?(k)) })
+      accepted_process_keys = %i[name TAT external_id]
+      process = Aker::Process.create!(p.select { |k, _v| accepted_process_keys.include?(k) })
       # Stage is determined by the order each process appears in the array.
       # First stage is 1. I'm sorry.
       Aker::ProductProcess.create!(product_id: product_id, aker_process_id: process.id, stage: i + 1)
@@ -67,7 +73,7 @@ class Catalogue < ApplicationRecord
     process_module_pairing.each do |pm|
       # Create the process module(s), if they don't already exist
       if pm[:to_step]
-        to_module  = Aker::ProcessModule.where(name: pm[:to_step], aker_process_id: process_id).first_or_create
+        to_module = Aker::ProcessModule.where(name: pm[:to_step], aker_process_id: process_id).first_or_create
       else
         to_module = nil
       end
@@ -79,22 +85,28 @@ class Catalogue < ApplicationRecord
       end
 
       # Create the pairing represented by the current 'pm'
-      Aker::ProcessModulePairings.create!(to_step: to_module, from_step: from_module,
-        default_path: pm[:default_path], aker_process_id: process_id)
+      Aker::ProcessModulePairings.create!(
+        to_step: to_module,
+        from_step: from_module,
+        default_path: pm[:default_path],
+        aker_process_id: process_id
+      )
     end
   end
 
+  # def self.publish_event(catalogue_params, valid, error_msg = nil)
+  #   message = EventMessage.new(catalogue: catalogue_params.merge(valid: valid), error: error_msg)
+  #   EventService.publish(message)
+  # end
+
   def sanitise_lims
-    if lims_id
-      sanitised = lims_id.strip.gsub(/\s+/,' ')
-      if sanitised != lims_id
-        self.lims_id = sanitised
-      end
-    end
+    return unless lims_id
+    sanitised = lims_id.strip.gsub(/\s+/, ' ')
+    self.lims_id = sanitised if sanitised != lims_id
   end
 
   def self.validate_module_name(module_name)
-    uri_module_name = module_name.gsub(' ', '_').downcase
+    uri_module_name = module_name.tr(' ', '_').downcase
     BillingFacadeClient.validate_process_module_name(uri_module_name)
   end
 end

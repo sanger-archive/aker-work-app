@@ -5,12 +5,18 @@ require 'event_publisher'
 # Encapsulate a message from the work orders application to be sent to the mesage broker.
 class EventMessage
   attr_reader :work_order
+  attr_reader :catalogue
 
   ROUTING_KEY = 'aker.events.work_order'
 
   def initialize(params)
-    @work_order = params.fetch(:work_order)
-    @status = params.fetch(:status)
+    # For Work Order message
+    @work_order = params.fetch(:work_order, nil)
+    @status = params.fetch(:status, nil)
+
+    # For Catalogue message
+    @catalogue = params.fetch(:catalogue, nil)
+    @catalogue_error = params.fetch(:error, nil)
   end
 
   def trace_id
@@ -61,7 +67,19 @@ class EventMessage
     end
   end
 
+  # wrapper method to create the JSON message
   def generate_json
+    if @work_order
+      generate_work_order_json
+    elsif @catalogue_error
+      generate_rejected_catalogue_json
+    elsif @catalogue
+      generate_accepted_catalogue_json
+    end
+  end
+
+  # Generate the JSON for a Work Order event
+  def generate_work_order_json
     project = @work_order.proposal
     product = @work_order.product
     {
@@ -93,6 +111,31 @@ class EventMessage
         }
       ],
       'metadata' => metadata
+    }.to_json
+  end
+
+  # Generate the JSON for a catalogue accepted event
+  def generate_accepted_catalogue_json
+    {
+      'event_type' => 'aker.events.catalogue.accepted',
+      'timestamp' => Time.now.utc.iso8601,
+      'uuid' => SecureRandom.uuid,
+      'metadata' => {
+        'lims_id' => @catalogue[:lims_id],
+        'pipeline' => @catalogue[:pipeline]
+      }
+    }.to_json
+  end
+
+  # Generate the JSON for a catalogue rejected event
+  def generate_rejected_catalogue_json
+    {
+      'event_type' => 'aker.events.catalogue.rejected',
+      'timestamp' => Time.now.utc.iso8601,
+      'uuid' => SecureRandom.uuid,
+      'metadata' => {
+        'error' => @catalogue_error
+      }
     }.to_json
   end
 end

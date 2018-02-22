@@ -43,33 +43,53 @@ class EventConsumer
     @channel = @connection.create_channel
     dl_exchange_name = @exchange_name + '.deadletters'
     @dlx = @channel.fanout(dl_exchange_name, durable: true)
-    @queue = @channel.queue(@catalogue_queue_name,
-                   auto_delete: false,
-                   durable: true,
-                   arguments: {
-                     "x-dead-letter-exchange": @dlx.name
-                   }).bind(@exchange_name, routing_key: 'aker.events.catalogue.new')
+    @queue = @channel.queue(
+      @catalogue_queue_name,
+      auto_delete: false,
+      durable: true,
+      arguments: {
+        "x-dead-letter-exchange": @dlx.name
+      }
+    ).bind(@exchange_name, routing_key: 'aker.events.catalogue.new')
 
     @queue.subscribe(manual_ack: true) do |delivery_info, metadata, body|
       data = nil
       begin
         data = JSON.parse(body, symbolize_names: true)[:catalogue]
-        puts data
         Catalogue.create_with_products(data)
         @channel.ack(delivery_info.delivery_tag)
+      rescue JSON::ParserError => e
+        # JSON Parsing failed. This error is caught separately as the standard
+        # message tends to include a chunk (if not all) of the malformed
+        # catalog, so we supply our own shorter error for the event
+        Rails.logger.error("Catalogue malformed with exception: #{e}")
+        Rails.logger.error(e.backtrace.join("\n"))
+        Rails.logger.error("Malformed message: \n #{body}")
+        publish_event(data, 'JSON Parser raised an error')
       rescue StandardError => e
-        puts e
-        puts e.backtrace
+        # Something has gone wrong in the processing of the catalog
+        Rails.logger.error("Catalog processing failed with exception: #{e}")
+        Rails.logger.error(e.backtrace.join("\n"))
+        Rails.logger.error("Catalogue Invalid. JSON received: \n #{data}")
         @channel.reject(delivery_info.delivery_tag)
         handle_catalogue_failure(data)
+        publish_event(data, e.message)
+      else
+        # Everything seems to have worked, so publish publish a catalog accepted
+        # event
+        publish_event(data)
       end
     end
+  end
+
+  def publish_event(catalogue_params, error_msg = nil)
+    message = EventMessage.new(catalogue: catalogue_params, error: error_msg)
+    EventService.publish(message)
   end
 
   def handle_catalogue_failure(data)
     if data && data[:lims_id]
       # Something went wrong! Cancel the current catalogue for the offending LIMS
-      puts "Cancelling catalogue"
       Catalogue.where(lims_id: data[:lims_id]).update_all(current: false)
     end
   end
@@ -80,5 +100,4 @@ class EventConsumer
       @connection.close
     end
   end
-
 end
