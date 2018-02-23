@@ -196,6 +196,18 @@ RSpec.describe WorkOrder, type: :model do
       end
     end
 
+    context "when the Set Client can not find the original set" do
+      before do
+        @uuid = SecureRandom.uuid
+        allow(SetClient::Set).to receive(:find).with(@uuid).and_raise(JsonApiClient::Errors::NotFound, "a message")
+        @wo = build(:work_order, original_set_uuid: @uuid)
+      end
+
+      it "should return nil" do
+        expect(@wo.original_set).to be_nil
+      end
+    end
+
     context "when original_set is assigned in the work order" do
       before do
         @wo = build(:work_order, original_set: nil, original_set_uuid: nil)

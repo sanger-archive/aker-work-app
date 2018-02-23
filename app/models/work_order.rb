@@ -107,7 +107,11 @@ class WorkOrder < ApplicationRecord
   def original_set
     return nil unless original_set_uuid
     return @original_set if @original_set&.uuid==original_set_uuid
-    @original_set = SetClient::Set.find(original_set_uuid).first
+    begin
+      @original_set = SetClient::Set.find(original_set_uuid).first
+    rescue JsonApiClient::Errors::NotFound => e
+      return nil
+    end
   end
 
   def original_set=(orig_set)
