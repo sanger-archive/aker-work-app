@@ -12,7 +12,6 @@ class ProductDescription extends React.Component {
     this.onProductSelectChange = this.onProductSelectChange.bind(this);
     this.getProductInfo = this.getProductInfo.bind(this);
     this.processProductInfo = this.processProductInfo.bind(this);
-    this.injectProductInfoIntoForm = this.injectProductInfoIntoForm.bind(this);
     this.checkResponse = this.checkResponse.bind(this);
     this.catchError = this.catchError.bind(this);
   }
@@ -65,40 +64,43 @@ class ProductDescription extends React.Component {
     this.setState({selectedPath: path, availableLinks: links, productInfo: responseJSON})
   }
 
-  injectProductInfoIntoForm(){
-    const productId = this.state.productInfo.id;
-    const productOptions = this.state.selectedPath;
-    const productOptionIds = productOptions.map((product) => { return product.id});
-    const encodesProductOptions = JSON.stringify(productOptionIds)
-
-    $('#injected_product_id').html(
-      "<input type='hidden' name='work_order[product_id]' value="+productId+">"
-    )
-
-    $('#injected_product_options').html(
-      "<input type='hidden' name='work_order[product_options]' value="+encodesProductOptions+">"
-    )
+  serializedProductOptions() {
+    if (this.state.selectedPath) {
+      const productOptionIds = this.state.selectedPath.map((product) => { 
+        return product.id
+      }).filter((productId) => { return productId !== 'end' })
+      return JSON.stringify(productOptionIds)
+    } else {
+      return ""
+    }
   }
 
   render() {
     var productOptionComponents = [];
 
     if (this.state.showProductInfo && this.state.productInfo) {
-      this.injectProductInfoIntoForm();
+      //this.injectProductInfoIntoForm();
 
       productOptionComponents = (
         <Fragment>
           <ProductOptionLabel />
-          <ProductOptionSelectDropdowns links={this.state.availableLinks} path={this.state.selectedPath} onChange={this.onProductOptionsSelectChange}/>
+          <div className="col-md-12">
+            <ProductOptionSelectDropdowns links={this.state.availableLinks} path={this.state.selectedPath} onChange={this.onProductOptionsSelectChange}/>
+          </div>
           <ProductInformation data={this.state.productInfo} />
           <CostInformation data={this.state.productInfo} />
         </Fragment>
       );
     }
 
+    const productId = this.state.productInfo ? this.state.productInfo.id : ""
+
     return (
       <div>
         <ErrorConsole msg={this.state.errorMessage}/>
+        <input type='hidden' name='work_order[product_id]' value={productId} />
+        <input type='hidden' name='work_order[product_options]' value={this.serializedProductOptions()} />
+
         <ProductLabel />
         <ProductSelectElement catalogueList={this.props.data} onChange={this.onProductSelectChange}/>
         { productOptionComponents }
@@ -139,7 +141,7 @@ class ProductSelectElement extends React.Component {
     );
 
     return (
-      <select onChange={this.props.onChange}>
+      <select className="form-control" onChange={this.props.onChange}>
         {optionGroups}
       </select>
     );
@@ -217,7 +219,8 @@ class ProductOptionSelectDropdowns extends React.Component {
           return;
         }
       }
-      select_dropdowns.push(<ProductOptionSelectElement selected={obj} options={options} key={index} id={index} onChange={this.props.onChange} />)
+      let selected = options.filter((o) => { return obj.id == o.id})[0]
+      select_dropdowns.push(<ProductOptionSelectElement selected={selected} options={options} key={index} id={index} onChange={this.props.onChange} />)
     })
 
     return (
@@ -234,8 +237,9 @@ class ProductOptionSelectElement extends React.Component {
     this.props.options.forEach((option, index) => {
       select_options.push(<ProductOptionSelectOption obj={option} key={index} />)
     })
+    const selection = this.props.selected ? this.props.selected.id : ""
     return (
-      <select value={this.props.selected.id} onChange={this.props.onChange} id={this.props.id}>
+      <select className="form-control" value={selection} onChange={this.props.onChange} id={this.props.id}>
         { select_options }
       </select>
     )

@@ -2,8 +2,6 @@
 
 <%= bootstrap_form_for work_order, url: wizard_path, method: :put  do |f| %>
 
-  <div id='injected_product_id'></div>
-  <div id='injected_product_options'></div>
 
   <input type='hidden' disabled='disabled' id="work-order-id" value="<%= work_order.id %>" />
   <input type='hidden' disabled='disabled' id="num-of-samples" value="<%= work_order.num_samples %>" />

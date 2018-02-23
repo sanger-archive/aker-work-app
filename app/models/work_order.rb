@@ -9,7 +9,7 @@ class WorkOrder < ApplicationRecord
   include AkerPermissionGem::Accessible
 
   belongs_to :product, optional: true
-  has_many :work_order_module_choice, dependent: :destroy
+  has_many :work_order_module_choices, dependent: :destroy
 
   before_validation :sanitise_owner
   before_save :sanitise_owner

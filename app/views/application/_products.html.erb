@@ -26,3 +26,21 @@
 		</table>
 	</div>
 </div>
+
+<div class="row">
+	<div class="col-md-12">
+		<table class="table table-striped">
+			<thead>
+				<tr>
+					<th>Process Module</th>
+					<th>Position</th>
+				</tr>
+			</thead>
+			<tbody>
+				<% work_order.work_order_module_choices.each do |mod| %>
+				  <tr><td><%= mod.process_module.name %></td><td><%= mod.position %></td></li>
+				<% end %>
+			</tbody>
+		</table>
+	</div>
+</div>

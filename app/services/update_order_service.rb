@@ -178,6 +178,11 @@ private
 
   def create_work_order_module_choices(product_options)
     work_order_id = @work_order.id
+    
+    # Remove the previously selected options (if any)
+    WorkOrderModuleChoice.where(work_order_id: work_order_id).each(&:destroy)
+
+    # Update with the new options
     product_options.each_with_index do |module_id, index|
       WorkOrderModuleChoice.create!(work_order_id: work_order_id, aker_process_modules_id: module_id, position: index)
     end

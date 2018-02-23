@@ -79,10 +79,11 @@ class Catalogue < ApplicationRecord
       end
 
       if pm[:from_step]
-        from_module = Aker::ProcessModule.where(name: pm[:to_step], aker_process_id: process_id).first_or_create
+        from_module = Aker::ProcessModule.where(name: pm[:from_step], aker_process_id: process_id).first_or_create
       else
         from_module = nil
       end
+
 
       # Create the pairing represented by the current 'pm'
       Aker::ProcessModulePairings.create!(
