@@ -178,7 +178,7 @@ private
 
   def create_work_order_module_choices(product_options)
     work_order_id = @work_order.id
-    
+
     # Remove the previously selected options (if any)
     WorkOrderModuleChoice.where(work_order_id: work_order_id).each(&:destroy)
 

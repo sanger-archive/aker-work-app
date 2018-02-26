@@ -227,6 +227,20 @@ RSpec.describe UpdateOrderService do
         expect(@wo.status).to eq('summary')
       end
 
+      it "should create work order module choice" do
+        product = make_product
+        messages = {}
+        unit_cost = BigDecimal.new(17)
+        allow(BillingFacadeClient).to receive(:get_unit_price)
+          .with(@wo.proposal.cost_code, product.name).and_return(unit_cost)
+
+        params = { product_id: product.id, product_options: [module1.id, module2.id].to_json}
+        expect(UpdateOrderService.new(params, @wo, messages).perform(:product)).to eq(true)
+        wo_module_choice = WorkOrderModuleChoice.where(work_order_id: @wo.id)
+        expect(wo_module_choice.length).to eq 2
+        expect(wo_module_choice.map(&:aker_process_modules_id)).to eq [module1.id, module2.id]
+      end
+
       it "should refuse a later step" do
         params = {}
         messages = {}

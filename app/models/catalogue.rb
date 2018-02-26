@@ -51,20 +51,6 @@ class Catalogue < ApplicationRecord
     end
   end
 
-  def self.validate_module_names(product_params)
-    module_names = product_params.map do |pp|
-      pp[:processes].map do |pr|
-        pr[:process_module_pairings].map do |pm|
-          [pm[:to_step], pm[:from_step]]
-        end
-      end
-    end .flatten.compact.uniq
-    bad_modules = module_names.reject { |m| validate_module_name(m) }
-    unless bad_modules.empty?
-      raise "Process module could not be validated: #{bad_modules}"
-    end
-  end
-
   def self.create_process_modules(process_module_pairing, process_id)
     process_module_pairing.each do |pm|
       # Create the process module(s), if they don't already exist
@@ -95,6 +81,20 @@ class Catalogue < ApplicationRecord
     return unless lims_id
     sanitised = lims_id.strip.gsub(/\s+/, ' ')
     self.lims_id = sanitised if sanitised != lims_id
+  end
+
+  def self.validate_module_names(product_params)
+    module_names = product_params.map do |pp|
+      pp[:processes].map do |pr|
+        pr[:process_module_pairings].map do |pm|
+          [pm[:to_step], pm[:from_step]]
+        end
+      end
+    end .flatten.compact.uniq
+    bad_modules = module_names.reject { |m| validate_module_name(m) }
+    unless bad_modules.empty?
+      raise "Process module could not be validated: #{bad_modules}"
+    end
   end
 
   def self.validate_module_name(module_name)
