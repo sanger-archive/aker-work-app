@@ -22,10 +22,6 @@ class Catalogue < ApplicationRecord
 
         create_products(product_params, catalogue.id)
       end
-    # rescue => ex
-      # publish_event(catalogue_params, false, ex)
-    # else
-      # publish_event(catalogue_params, true)
     end
     catalogue
   end
@@ -94,11 +90,6 @@ class Catalogue < ApplicationRecord
       )
     end
   end
-
-  # def self.publish_event(catalogue_params, valid, error_msg = nil)
-  #   message = EventMessage.new(catalogue: catalogue_params.merge(valid: valid), error: error_msg)
-  #   EventService.publish(message)
-  # end
 
   def sanitise_lims
     return unless lims_id
