@@ -41,7 +41,7 @@ class ProductDescription extends React.Component {
   }
 
   getProductInfo(productId) {
-    const workOrderId = $("#work-order-id").val();
+    const workOrderId = this.props.workOrderId;
     const path = Routes.root_path()+'api/v1/work_orders/'+workOrderId+'/products/'+productId;
 
     fetch(path, {credentials: 'include'})
@@ -90,14 +90,14 @@ class ProductDescription extends React.Component {
       //this.injectProductInfoIntoForm();
 
       productOptionComponents = (
-        <React.Fragment>
+        <Fragment>
           <ProductOptionLabel />
           <div className="col-md-12">
             <ProductOptionSelectDropdowns links={this.state.availableLinks} path={this.state.selectedPath} onChange={this.onProductOptionsSelectChange}/>
           </div>
           <ProductInformation data={this.state.productInfo} />
           <CostInformation data={this.state.productInfo} />
-        </React.Fragment>
+        </Fragment>
       );
     }
 
@@ -215,8 +215,7 @@ class ProductOptionSelectDropdowns extends React.Component {
     const select_dropdowns = [];
     let options= [];
 
-    const links = this.props.links;
-    const path = this.props.path;
+    const {links, path} = this.props;
 
     path.forEach((obj, index)=>{
       if (index == 0) {
