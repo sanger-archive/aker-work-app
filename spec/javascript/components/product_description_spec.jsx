@@ -7,9 +7,9 @@ import ProductDescription from "../../../app/javascript/components/product_descr
 
 describe('<ProductDescription />', () => {
   context('when rendering it', () => {
-    it('renders', () => {
+    it('renders the select element', () => {
       let wrapper = shallow(<ProductDescription />);
-      expect(wrapper.find('div')).to.have.length(1);
+      expect(wrapper.find('ProductSelectElement')).to.have.length(1);
     })
   })
 })
