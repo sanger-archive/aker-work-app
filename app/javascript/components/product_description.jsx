@@ -82,14 +82,14 @@ class ProductDescription extends React.Component {
       //this.injectProductInfoIntoForm();
 
       productOptionComponents = (
-        <Fragment>
+        <React.Fragment>
           <ProductOptionLabel />
           <div className="col-md-12">
             <ProductOptionSelectDropdowns links={this.state.availableLinks} path={this.state.selectedPath} onChange={this.onProductOptionsSelectChange}/>
           </div>
           <ProductInformation data={this.state.productInfo} />
           <CostInformation data={this.state.productInfo} />
-        </Fragment>
+        </React.Fragment>
       );
     }
 

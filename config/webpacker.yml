@@ -51,6 +51,7 @@ development:
 
 test:
   <<: *default
+  resolved_paths: ['app/javascript']
   compile: true
 
   # Compile test packs to a separate directory

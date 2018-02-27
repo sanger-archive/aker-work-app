@@ -11,9 +11,10 @@
         "useBuiltIns": true
       }
     ],
-    "react"
+    "react","es2015"
   ],
   "plugins": [
+    "transform-react-jsx",
     "syntax-dynamic-import",
     "transform-object-rest-spread",
     [
