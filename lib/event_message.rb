@@ -120,8 +120,10 @@ class EventMessage
       'event_type' => 'aker.events.catalogue.accepted',
       'timestamp' => Time.now.utc.iso8601,
       'uuid' => SecureRandom.uuid,
+      'roles' => [],
+      'user_identifier' => @catalogue[:lims_id],
+      'lims_id' => @catalogue[:lims_id],
       'metadata' => {
-        'lims_id' => @catalogue[:lims_id],
         'pipeline' => @catalogue[:pipeline]
       }
     }.to_json
@@ -133,6 +135,9 @@ class EventMessage
       'event_type' => 'aker.events.catalogue.rejected',
       'timestamp' => Time.now.utc.iso8601,
       'uuid' => SecureRandom.uuid,
+      'roles' => [],
+      'user_identifier' => @catalogue[:lims_id],
+      'lims_id' => @catalogue[:lims_id],
       'metadata' => {
         'error' => @catalogue_error
       }
