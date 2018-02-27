@@ -29,10 +29,14 @@ class ProductDescription extends React.Component {
 
   onProductOptionsSelectChange(event) {
     event.preventDefault();
-    const newPath = this.state.selectedPath;
+    let newPath = this.state.selectedPath;
     const selectedName = event.target.selectedOptions[0].text
     const selectedId = event.target.value
-    newPath[event.target.id] = {id: selectedId, name: selectedName}
+    const pos = parseInt(event.target.id, 10)
+    newPath[pos] = {id: selectedId, name: selectedName}
+    if (this.state.availableLinks[selectedName][0].name=='end') {
+      newPath[pos+1] = {name: 'end', id: 'end'};
+    }
     this.setState({selectedPath: newPath})
   }
 
@@ -66,13 +70,17 @@ class ProductDescription extends React.Component {
 
   serializedProductOptions() {
     if (this.state.selectedPath) {
-      const productOptionIds = this.state.selectedPath.map((product) => { 
+      const productOptionIds = this.state.selectedPath.filter((product) => { return product.name !== 'end' }).map((product) => { 
         return product.id
-      }).filter((productId) => { return productId !== 'end' })
+      })
       return JSON.stringify(productOptionIds)
     } else {
       return ""
     }
+  }
+
+  componentDidUpdate() {
+    //this.setState({selectedPath: })
   }
 
   render() {
@@ -99,7 +107,7 @@ class ProductDescription extends React.Component {
       <div>
         <ErrorConsole msg={this.state.errorMessage}/>
         <input type='hidden' name='work_order[product_id]' value={productId} />
-        <input type='hidden' name='work_order[product_options]' value={this.serializedProductOptions()} />
+        <input type='hidden' id="product_options" name='work_order[product_options]' value={this.serializedProductOptions()} />
 
         <ProductLabel />
         <ProductSelectElement catalogueList={this.props.data} onChange={this.onProductSelectChange}/>
@@ -215,11 +223,14 @@ class ProductOptionSelectDropdowns extends React.Component {
         options = links.start;
       } else {
         options = links[path[index-1].name]
-        if (options.length==1 && options.includes('end')) {
+        if ((!options) || (options.length==1 && options.includes('end'))) {
           return;
         }
       }
       let selected = options.filter((o) => { return obj.id == o.id})[0]
+      if (!selected) {
+        selected = options[0];
+      }
       select_dropdowns.push(<ProductOptionSelectElement selected={selected} options={options} key={index} id={index} onChange={this.props.onChange} />)
     })
 
