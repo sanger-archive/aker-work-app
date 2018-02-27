@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 source 'https://rubygems.org'
 
 # Force git gems to use secure HTTPS
@@ -28,7 +30,8 @@ gem 'pg', '< 1.0' # https://bitbucket.org/ged/ruby-pg/issues/270/pg-100-x64-ming
 gem 'puma', '~> 3.0'
 # Bundle edge Rails instead: gem 'rails', github: 'rails/rails'
 gem 'rails', '~> 5.0.0', '>= 5.0.0.1'
-gem 'rswag'
+gem 'rswag-api'
+gem 'rswag-ui'
 # Use SCSS for stylesheets
 gem 'sass-rails', '~> 5.0'
 gem 'swagger-ui_rails'
@@ -81,6 +84,7 @@ group :test do
   gem 'pry'
   gem 'rspec-json_expectations'
   gem 'rubycritic'
+
   # Code coverage for Ruby 1.9+ with a powerful configuration library and automatic merging of
   # coverage across test suites - https://github.com/colszowka/simplecov
   gem 'simplecov', require: false
@@ -92,6 +96,7 @@ end
 
 # Development and test groups
 group :development, :test do
+  gem 'brakeman', require: false
   # Call 'byebug' anywhere in the code to stop execution and get a debugger console
   gem 'byebug', platform: :mri
   gem 'capybara'
@@ -101,10 +106,10 @@ group :development, :test do
   gem 'launchy'
   gem 'poltergeist'
   gem 'rspec-rails', '~> 3.4'
+  gem 'rswag-specs'
   # A Ruby static code analyzer, based on the community Ruby style guide. http://rubocop.readthedocs.io
   gem 'rubocop', '~> 0.51.0', require: false
   gem 'selenium-webdriver'
   gem 'sqlite3'
   gem 'webmock'
-  gem 'brakeman', require: false
 end
