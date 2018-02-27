@@ -19812,7 +19812,11 @@ var ProductDescription = function (_React$Component) {
       var newPath = this.state.selectedPath;
       var selectedName = event.target.selectedOptions[0].text;
       var selectedId = event.target.value;
-      newPath[event.target.id] = { id: selectedId, name: selectedName };
+      var pos = parseInt(event.target.id, 10);
+      newPath[pos] = { id: selectedId, name: selectedName };
+      if (this.state.availableLinks[selectedName][0].name == 'end') {
+        newPath[pos + 1] = { name: 'end', id: 'end' };
+      }
       this.setState({ selectedPath: newPath });
     }
   }, {
@@ -19848,15 +19852,20 @@ var ProductDescription = function (_React$Component) {
     key: 'serializedProductOptions',
     value: function serializedProductOptions() {
       if (this.state.selectedPath) {
-        var productOptionIds = this.state.selectedPath.map(function (product) {
+        var productOptionIds = this.state.selectedPath.filter(function (product) {
+          return product.name !== 'end';
+        }).map(function (product) {
           return product.id;
-        }).filter(function (productId) {
-          return productId !== 'end';
         });
         return JSON.stringify(productOptionIds);
       } else {
         return "";
       }
+    }
+  }, {
+    key: 'componentDidUpdate',
+    value: function componentDidUpdate() {
+      //this.setState({selectedPath: })
     }
   }, {
     key: 'render',
@@ -19887,7 +19896,7 @@ var ProductDescription = function (_React$Component) {
         null,
         _react2.default.createElement(ErrorConsole, { msg: this.state.errorMessage }),
         _react2.default.createElement('input', { type: 'hidden', name: 'work_order[product_id]', value: productId }),
-        _react2.default.createElement('input', { type: 'hidden', name: 'work_order[product_options]', value: this.serializedProductOptions() }),
+        _react2.default.createElement('input', { type: 'hidden', id: 'product_options', name: 'work_order[product_options]', value: this.serializedProductOptions() }),
         _react2.default.createElement(ProductLabel, null),
         _react2.default.createElement(ProductSelectElement, { catalogueList: this.props.data, onChange: this.onProductSelectChange }),
         productOptionComponents
@@ -20106,13 +20115,16 @@ var ProductOptionSelectDropdowns = function (_React$Component8) {
           options = links.start;
         } else {
           options = links[path[index - 1].name];
-          if (options.length == 1 && options.includes('end')) {
+          if (!options || options.length == 1 && options.includes('end')) {
             return;
           }
         }
         var selected = options.filter(function (o) {
           return obj.id == o.id;
         })[0];
+        if (!selected) {
+          selected = options[0];
+        }
         select_dropdowns.push(_react2.default.createElement(ProductOptionSelectElement, { selected: selected, options: options, key: index, id: index, onChange: _this9.props.onChange }));
       });
 
@@ -24358,4 +24370,4 @@ exports.default = ujs;
 
 /***/ })
 /******/ ]);
-//# sourceMappingURL=application-d168afa031ce58431542.js.map
+//# sourceMappingURL=application-0f1b3c1f50b003e03772.js.map
