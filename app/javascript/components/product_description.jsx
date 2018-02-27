@@ -40,7 +40,7 @@ class ProductDescription extends React.Component {
     const workOrderId = $("#work-order-id").val();
     const path = Routes.root_path()+'api/v1/work_orders/'+workOrderId+'/products/'+productId;
 
-    fetch(path)
+    fetch(path, {credentials: 'include'})
       .then(this.checkResponse)
       .then(this.processProductInfo)
       .catch(this.catchError)
