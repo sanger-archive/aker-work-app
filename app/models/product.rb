@@ -54,12 +54,8 @@ class Product < ApplicationRecord
       default_path_ids << next_module[0].to_step_id unless next_module[0].to_step_id == nil
     end
 
-    p default_path_ids
     default_path_ids.map {|id| Aker::ProcessModule.find(id).to_custom_hash }
-    #default_path_ids.map{ |id| Aker::ProcessModule.find(id).name }
   end
-
-  private
 
   def self.available
     Product.where(availability: true)

@@ -16,4 +16,5 @@ Note that if any changes are made in the `app/client`,`app/assets` or `app/javas
     rm -r public/assets
     rm -r public/packs
     rm -r public/packs-test
+    RAILS_ENV=test bundle exec rake assets:precompile
     RAILS_ENV=production bundle exec rake assets:precompile

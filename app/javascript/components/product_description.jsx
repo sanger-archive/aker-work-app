@@ -70,7 +70,7 @@ class ProductDescription extends React.Component {
 
   serializedProductOptions() {
     if (this.state.selectedPath) {
-      const productOptionIds = this.state.selectedPath.filter((product) => { return product.name !== 'end' }).map((product) => { 
+      const productOptionIds = this.state.selectedPath.filter((product) => { return product.name !== 'end' }).map((product) => {
         return product.id
       })
       return JSON.stringify(productOptionIds)
@@ -87,8 +87,6 @@ class ProductDescription extends React.Component {
     var productOptionComponents = [];
 
     if (this.state.showProductInfo && this.state.productInfo) {
-      //this.injectProductInfoIntoForm();
-
       productOptionComponents = (
         <React.Fragment>
           <ProductOptionLabel />
