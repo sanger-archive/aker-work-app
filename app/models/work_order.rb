@@ -48,6 +48,11 @@ class WorkOrder < ApplicationRecord
     'cancelled'
   end
 
+  def total_tat
+    # Calculate sum of work order processes TAT
+    product&.processes&.sum(:TAT) || nil
+  end  
+
   scope :for_user, -> (owner) { where(owner_email: owner.email) }
   scope :active, -> { where(status: WorkOrder.ACTIVE) }
   # status is either set, product, proposal
