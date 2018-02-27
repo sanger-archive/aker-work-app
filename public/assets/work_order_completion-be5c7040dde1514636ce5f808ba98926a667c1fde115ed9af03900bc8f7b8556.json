@@ -1,0 +1,35 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "title": "Work Order",
+    "description": "Work Order completion message",
+    "type": "object",
+    "properties": {
+      "work_order": {
+        "type": "object",
+        "properties": {
+          "work_order_id": { "type": "integer"},
+          "comment": { "type": ["string", "null"] },
+          "updated_materials": {
+            "type": "array",
+            "items": {
+              "$ref": "http://localhost:5000/materials/json_patch_schema"
+            }
+          },
+          "new_materials": {
+            "type": "array",
+            "items": {
+              "$ref": "http://localhost:5000/materials/schema"
+            }
+          },
+          "containers": {
+            "type": "array",
+            "items": {
+              "$ref": "http://localhost:5000/containers/json_schema"
+            }
+          }
+        }
+      }
+    },
+    "additionalProperties": false,
+    "required": ["work_order"]
+}
