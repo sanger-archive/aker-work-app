@@ -26,6 +26,7 @@ gem 'json-schema'
 # Pure Ruby LDAP library. Read more: https://github.com/ruby-ldap/ruby-net-ldap
 gem 'net-ldap'
 gem 'pg', '< 1.0' # https://bitbucket.org/ged/ruby-pg/issues/270/pg-100-x64-mingw32-rails-server-not-start
+gem 'pry'
 # Use Puma as the app server
 gem 'puma', '~> 3.0'
 # Bundle edge Rails instead: gem 'rails', github: 'rails/rails'
@@ -81,7 +82,6 @@ end
 
 # Test group
 group :test do
-  gem 'pry'
   gem 'rspec-json_expectations'
   gem 'rubycritic'
 
