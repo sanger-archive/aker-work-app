@@ -122,8 +122,8 @@ class EventMessage
       'uuid' => SecureRandom.uuid,
       'roles' => [],
       'user_identifier' => @catalogue[:lims_id],
+      'lims_id' => @catalogue[:lims_id],
       'metadata' => {
-        'lims_id' => @catalogue[:lims_id],
         'pipeline' => @catalogue[:pipeline]
       }
     }.to_json
@@ -137,6 +137,7 @@ class EventMessage
       'uuid' => SecureRandom.uuid,
       'roles' => [],
       'user_identifier' => @catalogue[:lims_id],
+      'lims_id' => @catalogue[:lims_id],
       'metadata' => {
         'error' => @catalogue_error
       }
