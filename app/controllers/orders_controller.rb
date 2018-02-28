@@ -34,7 +34,7 @@ class OrdersController < ApplicationController
     end
 
     def get_all_aker_sets
-      SetClient::Set.where(owner_id: current_user.email).order(created_at: :desc).all.select { |s| s.meta["size"] > 0 }
+      SetClient::Set.where(owner_id: current_user.email, empty: false).order(created_at: :desc).all
     end
 
     def proposal
