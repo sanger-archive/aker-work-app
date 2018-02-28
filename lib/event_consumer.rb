@@ -2,7 +2,6 @@
 class EventConsumer
 
   def initialize(config = {})
-    debugger
     @broker_host = config.fetch(:broker_host)
     @broker_port = config.fetch(:broker_port)
     @broker_vhost = config.fetch(:broker_vhost)
