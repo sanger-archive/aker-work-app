@@ -308,10 +308,6 @@ GEM
       rspec-mocks (~> 3.7.0)
       rspec-support (~> 3.7.0)
     rspec-support (3.7.1)
-    rswag (1.5.2)
-      rswag-api (= 1.5.2)
-      rswag-specs (= 1.5.2)
-      rswag-ui (= 1.5.2)
     rswag-api (1.5.2)
       railties (>= 3.1, < 6.0)
     rswag-specs (1.5.2)
@@ -465,7 +461,9 @@ DEPENDENCIES
   rails (~> 5.0.0, >= 5.0.0.1)
   rspec-json_expectations
   rspec-rails (~> 3.4)
-  rswag
+  rswag-api
+  rswag-specs
+  rswag-ui
   rubocop (~> 0.51.0)
   rubycritic
   sass-rails (~> 5.0)
