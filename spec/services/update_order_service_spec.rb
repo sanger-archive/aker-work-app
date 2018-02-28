@@ -196,11 +196,15 @@ RSpec.describe UpdateOrderService do
           messages = {}
           expect(UpdateOrderService.new(params, @wo, messages).perform(:proposal)).to eq(false)
           expect(messages[:error]).to include('Billing')
-        end        
+        end
       end
     end
 
     context "when work order is at product step" do
+      let(:aker_process) { Aker::Process.create(name: 'process', TAT: 1) }
+      let(:module1) { Aker::ProcessModule.create(name: 'module1', aker_process_id: aker_process.id) }
+      let(:module2) { Aker::ProcessModule.create(name: 'module2', aker_process_id: aker_process.id) }
+
       before do
         @wo = order_at_step(:product)
       end
@@ -213,7 +217,7 @@ RSpec.describe UpdateOrderService do
         allow(BillingFacadeClient).to receive(:get_unit_price)
           .with(@wo.proposal.cost_code, product.name).and_return(unit_cost)
 
-        params = { 'product_id' => product.id }
+        params = { product_id: product.id, product_options: [module1.id, module2.id].to_json}
         messages = {}
         expect(UpdateOrderService.new(params, @wo, messages).perform(:product)).to eq(true)
         expect(messages[:error]).to be_nil
@@ -221,6 +225,20 @@ RSpec.describe UpdateOrderService do
         expect(@wo.product).to eq(product)
         expect(@wo.total_cost).to eq(@clone_set.meta['size']*@wo.cost_per_sample)
         expect(@wo.status).to eq('summary')
+      end
+
+      it "should create work order module choice" do
+        product = make_product
+        messages = {}
+        unit_cost = BigDecimal.new(17)
+        allow(BillingFacadeClient).to receive(:get_unit_price)
+          .with(@wo.proposal.cost_code, product.name).and_return(unit_cost)
+
+        params = { product_id: product.id, product_options: [module1.id, module2.id].to_json}
+        expect(UpdateOrderService.new(params, @wo, messages).perform(:product)).to eq(true)
+        wo_module_choice = WorkOrderModuleChoice.where(work_order_id: @wo.id)
+        expect(wo_module_choice.length).to eq 2
+        expect(wo_module_choice.map(&:aker_process_modules_id)).to eq [module1.id, module2.id]
       end
 
       it "should refuse a later step" do
@@ -259,7 +277,8 @@ RSpec.describe UpdateOrderService do
               expect(BillingFacadeClient).to receive(:get_unit_price)
                 .with(cost_code, product.name)
 
-              params = { 'product_id' => product.id }
+              params = { product_id: product.id, product_options: [module1.id, module2.id].to_json}
+
               messages = {}
               expect(UpdateOrderService.new(params, @wo, messages).perform(:product)).to eq(true)
 
@@ -281,6 +300,10 @@ RSpec.describe UpdateOrderService do
     end
 
     context "when work order is at summary step" do
+      let(:aker_process) { Aker::Process.create(name: 'process', TAT: 1) }
+      let(:module1) { Aker::ProcessModule.create(name: 'module1', aker_process_id: aker_process.id) }
+      let(:module2) { Aker::ProcessModule.create(name: 'module2', aker_process_id: aker_process.id) }
+
       before do
         @wo = order_at_step(:summary)
         allow(@wo).to receive(:send_to_lims)
@@ -291,7 +314,7 @@ RSpec.describe UpdateOrderService do
       end
 
       it "should refuse if the product is suspended" do
-        @wo.product.update_attributes(availability: :suspended)
+        @wo.product.update_attributes(availability: false)
         params = {}
         messages = {}
         expect(UpdateOrderService.new(params, @wo, messages).perform(:summary)).to eq(false)
@@ -321,7 +344,8 @@ RSpec.describe UpdateOrderService do
         allow(BillingFacadeClient).to receive(:get_unit_price)
           .with(@wo.proposal.cost_code, product.name).and_return(unit_cost)
 
-        params = { 'product_id' => product.id }
+        params = { product_id: product.id, product_options: [module1.id, module2.id].to_json}
+
         messages = {}
         expect(UpdateOrderService.new(params, @wo, messages).perform(:product)).to eq(true)
         expect(messages[:error]).to be_nil

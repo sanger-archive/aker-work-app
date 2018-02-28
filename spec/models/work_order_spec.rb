@@ -266,7 +266,7 @@ RSpec.describe WorkOrder, type: :model do
     before do
       make_set_with_materials
       make_container(@materials)
-      product = build(:product, name: 'Soylent Green', product_version: 3, product_uuid: 'abc123')
+      product = build(:product, name: 'Soylent Green', product_version: 3)
       @wo = build(:work_order, product: product, proposal_id: proposal.id, set_uuid: @set.id,
                   id: 616, comment: 'hello', desired_date: '2020-01-01')
     end
@@ -286,7 +286,6 @@ RSpec.describe WorkOrder, type: :model do
         data = @wo.lims_data()[:work_order]
         expect(data[:product_name]).to eq(@wo.product.name)
         expect(data[:product_version]).to eq(@wo.product.product_version)
-        expect(data[:product_uuid]).to eq(@wo.product.product_uuid)
         expect(data[:work_order_id]).to eq(@wo.id)
         expect(data[:comment]).to eq(@wo.comment)
         expect(data[:project_uuid]).to eq(project.node_uuid)
@@ -374,7 +373,7 @@ RSpec.describe WorkOrder, type: :model do
       it 'generates an event using the EventService' do
         wo = build(:work_order)
         EventService ||= double('EventService')
-        expect(EventService).not_to receive(:publish).with(an_instance_of(EventMessage))
+        expect(EventService).not_to receive(:publish).with(an_instance_of(WorkOrderEventMessage))
         expect{wo.generate_completed_and_cancel_event}.to raise_exception('You cannot generate an event from a work order that has not been completed.')
       end
     end
@@ -385,7 +384,7 @@ RSpec.describe WorkOrder, type: :model do
         EventService ||= double('EventService')
         allow(EventService).to receive(:publish)
         allow(BillingFacadeClient).to receive(:send_event).with(wo, 'completed')
-        expect(EventService).to receive(:publish).with(an_instance_of(EventMessage))
+        expect(EventService).to receive(:publish).with(an_instance_of(WorkOrderEventMessage))
         wo.generate_completed_and_cancel_event
       end
     end
@@ -397,7 +396,7 @@ RSpec.describe WorkOrder, type: :model do
         wo = build(:work_order)
         EventService ||= double('EventService')
         allow(BillingFacadeClient).to receive(:send_event).with(wo, 'submitted')
-        expect(EventService).not_to receive(:publish).with(an_instance_of(EventMessage))
+        expect(EventService).not_to receive(:publish).with(an_instance_of(WorkOrderEventMessage))
         expect{wo.generate_submitted_event}.to raise_exception('You cannot generate an submitted event from a work order that is not active.')
       end
     end
@@ -408,7 +407,7 @@ RSpec.describe WorkOrder, type: :model do
         EventService ||= double('EventService')
         allow(EventService).to receive(:publish)
         allow(BillingFacadeClient).to receive(:send_event).with(wo, 'submitted')
-        expect(EventService).to receive(:publish).with(an_instance_of(EventMessage))
+        expect(EventService).to receive(:publish).with(an_instance_of(WorkOrderEventMessage))
         wo.generate_submitted_event
       end
     end
@@ -425,4 +424,20 @@ RSpec.describe WorkOrder, type: :model do
       expect(build(:work_order, owner_email: "    ALPHA@BETA   ")).to be_valid
     end
   end
+
+  describe "#total_tat" do
+    it "calculates the total TAT" do
+
+      catalogue = create(:catalogue)
+      product = create(:product, catalogue: catalogue)
+
+      process1 = Aker::Process.create!(name: 'process1', TAT: 4)
+      process2 = Aker::Process.create!(name: 'process2', TAT: 5)
+      pp1 = Aker::ProductProcess.create!(product_id: product.id, aker_process_id: process1.id, stage: 1)
+      pp2 = Aker::ProductProcess.create!(product_id: product.id, aker_process_id: process2.id, stage: 2)
+      work_order = create(:work_order, product_id: product.id)
+      expect(work_order.total_tat).to eq 9
+    end
+  end
+
 end

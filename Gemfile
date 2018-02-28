@@ -30,7 +30,7 @@ gem 'pry'
 # Use Puma as the app server
 gem 'puma', '~> 3.0'
 # Bundle edge Rails instead: gem 'rails', github: 'rails/rails'
-gem 'rails', '~> 5.0.0', '>= 5.0.0.1'
+gem 'rails', '~> 5.1'
 gem 'rswag-api'
 gem 'rswag-ui'
 # Use SCSS for stylesheets
@@ -47,6 +47,9 @@ gem 'tzinfo-data', platforms: %i[mingw mswin x64_mingw jruby]
 gem 'uglifier', '~> 3.2'
 gem 'wicked'
 gem 'zipkin-tracer'
+gem 'webpacker', '~> 3.2'
+gem 'webpacker-react', "~> 0.3.2"
+gem 'react-rails'
 
 ###
 # Sanger gems
