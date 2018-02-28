@@ -2,13 +2,14 @@
 class EventConsumer
 
   def initialize(config = {})
-    @broker_host = config[:broker_host]
-    @broker_port = config[:broker_port]
-    @broker_vhost = config[:broker_vhost]
-    @broker_username = config[:broker_username]
-    @broker_password = config[:broker_password]
-    @exchange_name = config[:exchange_name]
-    @catalogue_queue_name = config[:catalogue_queue_name]
+    debugger
+    @broker_host = config.fetch(:broker_host)
+    @broker_port = config.fetch(:broker_port)
+    @broker_vhost = config.fetch(:broker_vhost)
+    @broker_username = config.fetch(:broker_username)
+    @broker_password = config.fetch(:broker_password)
+    @exchange_name = config.fetch(:exchange_name)
+    @catalogue_queue_name = config.fetch(:catalogue_queue_name)
   end
 
   def create_connection
