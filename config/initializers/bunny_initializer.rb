@@ -2,6 +2,7 @@
 
 require 'bunny'
 require 'event_publisher'
+require 'event_consumer'
 require 'ostruct'
 
 if Rails.configuration.events[:enabled]
@@ -18,6 +19,16 @@ if Rails.configuration.events[:enabled]
   # The connection should be created in the initializer, so we'll keep the following line
   # here (http://rubybunny.info/articles/connecting.html for more info)
   EventService.create_connection
+
+  EventListener = EventConsumer.new(broker_host: Rails.configuration.events[:broker_host],
+    broker_port: Rails.configuration.events[:broker_port],
+    broker_vhost: Rails.configuration.events[:broker_vhost],
+    broker_username: Rails.configuration.events[:broker_username],
+    broker_password: Rails.configuration.events[:broker_password],
+    exchange_name: Rails.configuration.events[:exchange_name],
+    catalogue_queue_name: Rails.configuration.events[:catalogue_queue_name]
+  )
+  EventListener.create_connection
 else
   EventService = Class.new do
     def self.publish(obj); end

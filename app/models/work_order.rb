@@ -9,6 +9,7 @@ class WorkOrder < ApplicationRecord
   include AkerPermissionGem::Accessible
 
   belongs_to :product, optional: true
+  has_many :work_order_module_choices, dependent: :destroy
 
   before_validation :sanitise_owner
   before_save :sanitise_owner
@@ -46,6 +47,11 @@ class WorkOrder < ApplicationRecord
   def self.CANCELLED
     'cancelled'
   end
+
+  def total_tat
+    # Calculate sum of work order processes TAT
+    product&.processes&.sum(:TAT) || nil
+  end  
 
   scope :for_user, -> (owner) { where(owner_email: owner.email) }
   scope :active, -> { where(status: WorkOrder.ACTIVE) }
@@ -174,6 +180,9 @@ class WorkOrder < ApplicationRecord
   # This method returns a JSON description of the order that will be sent to a LIMS to order work.
   # It includes information that must be loaded from other services (study, set, etc.).
   def lims_data
+    # Raise exception if module names are not valid from BillingFacadeMock
+    validate_module_names(module_choices)
+
     material_ids = SetClient::Set.find_with_materials(set_uuid).first.materials.map{|m| m.id}
     materials = all_results(MatconClient::Material.where("_id" => {"$in" => material_ids}).result_set)
 
@@ -208,7 +217,6 @@ class WorkOrder < ApplicationRecord
       work_order: {
         product_name: product.name,
         product_version: product.product_version,
-        product_uuid: product.product_uuid,
         work_order_id: id,
         comment: comment,
         project_uuid: project.node_uuid,
@@ -217,6 +225,7 @@ class WorkOrder < ApplicationRecord
         cost_code: proposal.cost_code,
         desired_date: desired_date,
         materials: material_data,
+        modules: module_choices,
       }
     }
   end
@@ -244,7 +253,7 @@ class WorkOrder < ApplicationRecord
 
   def generate_completed_and_cancel_event
     if closed?
-      message = EventMessage.new(work_order: self, status: status)
+      message = WorkOrderEventMessage.new(work_order: self, status: status)
       EventService.publish(message)
       BillingFacadeClient.send_event(self, status)
     else
@@ -254,12 +263,32 @@ class WorkOrder < ApplicationRecord
 
   def generate_submitted_event
     if active?
-      message = EventMessage.new(work_order: self, status: 'submitted')
+      message = WorkOrderEventMessage.new(work_order: self, status: 'submitted')
       EventService.publish(message)
       BillingFacadeClient.send_event(self, 'submitted')
     else
       raise 'You cannot generate an submitted event from a work order that is not active.'
     end
+  end
+
+  def module_choices
+    module_choices = []
+    WorkOrderModuleChoice.where(work_order_id: id).order(:position).pluck(:aker_process_modules_id).each do |id|
+      module_choices.push(Aker::ProcessModule.find(id).name)
+    end
+    module_choices
+  end
+
+  def validate_module_names(module_names)
+    bad_modules = module_names.reject { |m| validate_module_name(m) }
+    unless bad_modules.empty?
+      raise "Process module could not be validated: #{bad_modules}"
+    end
+  end
+
+  def validate_module_name(module_name)
+    uri_module_name = module_name.gsub(' ', '_').downcase
+    BillingFacadeClient.validate_process_module_name(uri_module_name)
   end
 
 end

@@ -5,12 +5,105 @@ require 'event_publisher'
 # Encapsulate a message from the work orders application to be sent to the mesage broker.
 class EventMessage
   attr_reader :work_order
+  attr_reader :catalogue
 
   ROUTING_KEY = 'aker.events.work_order'
 
+  # wrapper method to create the JSON message
+  def generate_json
+    raise "This must be overridden!"
+  end
+end
+
+class CatalogueEventMessage < EventMessage
+  def initialize
+    # For Catalogue message
+    @catalogue = params.fetch(:catalogue, nil)
+    @catalogue_error = params.fetch(:error, nil)    
+  end
+
+  # wrapper method to create the JSON message
+  def generate_json
+    if @catalogue_error
+      generate_rejected_catalogue_json
+    else
+      generate_accepted_catalogue_json
+    end
+  end
+
+  # Generate the JSON for a catalogue accepted event
+  def generate_accepted_catalogue_json
+    {
+      'event_type' => 'aker.events.catalogue.accepted',
+      'timestamp' => Time.now.utc.iso8601,
+      'uuid' => SecureRandom.uuid,
+      'roles' => [],
+      'user_identifier' => @catalogue[:lims_id],
+      'lims_id' => @catalogue[:lims_id],
+      'metadata' => {
+        'pipeline' => @catalogue[:pipeline]
+      }
+    }.to_json
+  end
+
+  # Generate the JSON for a catalogue rejected event
+  def generate_rejected_catalogue_json
+    {
+      'event_type' => 'aker.events.catalogue.rejected',
+      'timestamp' => Time.now.utc.iso8601,
+      'uuid' => SecureRandom.uuid,
+      'roles' => [],
+      'user_identifier' => @catalogue[:lims_id],
+      'lims_id' => @catalogue[:lims_id],
+      'metadata' => {
+        'error' => @catalogue_error
+      }
+    }.to_json
+  end
+
+end
+
+
+class WorkOrderEventMessage < EventMessage
   def initialize(params)
-    @work_order = params.fetch(:work_order)
-    @status = params.fetch(:status)
+    # For Work Order message
+    @work_order = params.fetch(:work_order, nil)
+    @status = params.fetch(:status, nil)    
+  end
+  # Generate the JSON for a Work Order event
+  def generate_json
+    project = @work_order.proposal
+    product = @work_order.product
+    {
+      'event_type' => "aker.events.work_order.#{@status}",
+      'lims_id' => 'aker',
+      'uuid' => SecureRandom.uuid,
+      'timestamp' => Time.now.utc.iso8601,
+      'user_identifier' => @work_order.owner_email,
+      'roles' => [
+        {
+          'role_type' => 'work_order',
+          'subject_type' => 'work_order',
+          'subject_friendly_name' => @work_order.name,
+          'subject_uuid' => @work_order.work_order_uuid
+        },
+        {
+          'role_type' => 'project',
+          'subject_type' => 'project',
+          'subject_friendly_name' => project.name,
+          'subject_uuid' => project.node_uuid
+        },
+        {
+          'role_type' => 'product',
+          'subject_type' => 'product',
+          'subject_friendly_name' => product.name,
+          # subject_uuid now points to the product's ID within Aker, as the UUID
+          # no longer exists.
+          'subject_uuid' => product.id
+        }
+      ],
+      'metadata' => metadata
+    }.to_json
   end
 
   def trace_id
@@ -61,36 +154,4 @@ class EventMessage
     end
   end
 
-  def generate_json
-    project = @work_order.proposal
-    product = @work_order.product
-    {
-      'event_type' => "aker.events.work_order.#{@status}",
-      'lims_id' => 'aker',
-      'uuid' => SecureRandom.uuid,
-      'timestamp' => Time.now.utc.iso8601,
-      'user_identifier' => @work_order.owner_email,
-      'roles' => [
-        {
-          'role_type' => 'work_order',
-          'subject_type' => 'work_order',
-          'subject_friendly_name' => @work_order.name,
-          'subject_uuid' => @work_order.work_order_uuid
-        },
-        {
-          'role_type' => 'project',
-          'subject_type' => 'project',
-          'subject_friendly_name' => project.name,
-          'subject_uuid' => project.node_uuid
-        },
-        {
-          'role_type' => 'product',
-          'subject_type' => 'product',
-          'subject_friendly_name' => product.name,
-          'subject_uuid' => product.product_uuid
-        }
-      ],
-      'metadata' => metadata
-    }.to_json
-  end
 end

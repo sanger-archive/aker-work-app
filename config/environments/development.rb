@@ -1,4 +1,7 @@
 Rails.application.configure do
+  # Verifies that versions and hashed value of the package contents in the project's package.json
+  config.webpacker.check_yarn_integrity = false
+
   # Settings specified here will take precedence over those in config/application.rb.
 
   # config.relative_url_root = '/work-orders'
@@ -69,15 +72,16 @@ Rails.application.configure do
   config.jwt_secret_key = 'development'
 
   config.events = {
-    enabled: false,
+    enabled: true,
     broker_host: 'localhost',
     broker_port: '5672',
-    broker_vhost: '/',
-    broker_username: 'guest',
-    broker_password: 'guest',
+    broker_vhost: 'aker',
+    broker_username: 'work_orders',
+    broker_password: 'password',
     exchange_name: 'aker.events',
     warehouse_queue_name: 'aker.events.warehouse',
-    notification_queue_name: 'aker.events.notifications'
+    notification_queue_name: 'aker.events.notifications',
+    catalogue_queue_name: 'aker.events.catalogue'
   }
 
   config.work_order_completion_json = 'work_order_completion.json'

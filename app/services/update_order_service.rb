@@ -18,6 +18,12 @@ class UpdateOrderService
   def perform(step)
     @work_order_params[:status] = step.to_s
 
+    # In product step, product_options injected into work_order_params in OrdersContoller
+    if (step==:product && @work_order_params[:product_options])
+      product_options = JSON.parse(@work_order_params[:product_options])
+    end
+    @work_order_params.delete(:product_options)
+
     return false if block_any_update
     return false if block_set_change
 
@@ -27,7 +33,6 @@ class UpdateOrderService
       # force the cost to be recalculated if we're updating the product
       @work_order_params['total_cost'] = nil
     end
-
     if @work_order.update_attributes(@work_order_params)
       if @work_order.original_set_uuid && @work_order.set_uuid.nil?
         return false unless check_set_contents
@@ -40,6 +45,10 @@ class UpdateOrderService
 
       if @work_order.set_uuid && @work_order.product_id && @work_order.total_cost.nil?
         return false unless calculate_cost
+      end
+
+      if step==:product
+        create_work_order_module_choices(product_options)
       end
 
       if step==:summary
@@ -167,8 +176,20 @@ private
     return true
   end
 
+  def create_work_order_module_choices(product_options)
+    work_order_id = @work_order.id
+
+    # Remove the previously selected options (if any)
+    WorkOrderModuleChoice.where(work_order_id: work_order_id).each(&:destroy)
+
+    # Update with the new options
+    product_options.each_with_index do |module_id, index|
+      WorkOrderModuleChoice.create!(work_order_id: work_order_id, aker_process_modules_id: module_id, position: index)
+    end
+  end
+
   def send_order
-    if @work_order.product.suspended?
+    if @work_order.product.availability==false
       add_notice("That product is suspended and cannot currently be ordered.")
       return false
     end
