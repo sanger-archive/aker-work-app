@@ -84,7 +84,7 @@ class EventConsumer
   end
 
   def publish_event(catalogue_params, error_msg = nil)
-    message = EventMessage.new(catalogue: catalogue_params, error: error_msg)
+    message = CatalogueEventMessage.new(catalogue: catalogue_params, error: error_msg)
     EventService.publish(message)
   end
 

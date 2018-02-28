@@ -253,7 +253,7 @@ class WorkOrder < ApplicationRecord
 
   def generate_completed_and_cancel_event
     if closed?
-      message = EventMessage.new(work_order: self, status: status)
+      message = WorkOrderEventMessage.new(work_order: self, status: status)
       EventService.publish(message)
       BillingFacadeClient.send_event(self, status)
     else
@@ -263,7 +263,7 @@ class WorkOrder < ApplicationRecord
 
   def generate_submitted_event
     if active?
-      message = EventMessage.new(work_order: self, status: 'submitted')
+      message = WorkOrderEventMessage.new(work_order: self, status: 'submitted')
       EventService.publish(message)
       BillingFacadeClient.send_event(self, 'submitted')
     else

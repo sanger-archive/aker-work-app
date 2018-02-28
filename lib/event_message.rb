@@ -69,17 +69,59 @@ class EventMessage
 
   # wrapper method to create the JSON message
   def generate_json
-    if @work_order
-      generate_work_order_json
-    elsif @catalogue_error
+    raise "This must be overridden!"
+  end
+
+end
+
+
+class CatalogueEventMessage < EventMessage
+  # wrapper method to create the JSON message
+  def generate_json
+    if @catalogue_error
       generate_rejected_catalogue_json
-    elsif @catalogue
+    else
       generate_accepted_catalogue_json
     end
   end
 
+  # Generate the JSON for a catalogue accepted event
+  def generate_accepted_catalogue_json
+    {
+      'event_type' => 'aker.events.catalogue.accepted',
+      'timestamp' => Time.now.utc.iso8601,
+      'uuid' => SecureRandom.uuid,
+      'roles' => [],
+      'user_identifier' => @catalogue[:lims_id],
+      'lims_id' => @catalogue[:lims_id],
+      'metadata' => {
+        'pipeline' => @catalogue[:pipeline]
+      }
+    }.to_json
+  end
+
+  # Generate the JSON for a catalogue rejected event
+  def generate_rejected_catalogue_json
+    {
+      'event_type' => 'aker.events.catalogue.rejected',
+      'timestamp' => Time.now.utc.iso8601,
+      'uuid' => SecureRandom.uuid,
+      'roles' => [],
+      'user_identifier' => @catalogue[:lims_id],
+      'lims_id' => @catalogue[:lims_id],
+      'metadata' => {
+        'error' => @catalogue_error
+      }
+    }.to_json
+  end
+
+end
+
+
+class WorkOrderEventMessage < EventMessage
+
   # Generate the JSON for a Work Order event
-  def generate_work_order_json
+  def generate_json
     project = @work_order.proposal
     product = @work_order.product
     {
@@ -114,33 +156,4 @@ class EventMessage
     }.to_json
   end
 
-  # Generate the JSON for a catalogue accepted event
-  def generate_accepted_catalogue_json
-    {
-      'event_type' => 'aker.events.catalogue.accepted',
-      'timestamp' => Time.now.utc.iso8601,
-      'uuid' => SecureRandom.uuid,
-      'roles' => [],
-      'user_identifier' => @catalogue[:lims_id],
-      'lims_id' => @catalogue[:lims_id],
-      'metadata' => {
-        'pipeline' => @catalogue[:pipeline]
-      }
-    }.to_json
-  end
-
-  # Generate the JSON for a catalogue rejected event
-  def generate_rejected_catalogue_json
-    {
-      'event_type' => 'aker.events.catalogue.rejected',
-      'timestamp' => Time.now.utc.iso8601,
-      'uuid' => SecureRandom.uuid,
-      'roles' => [],
-      'user_identifier' => @catalogue[:lims_id],
-      'lims_id' => @catalogue[:lims_id],
-      'metadata' => {
-        'error' => @catalogue_error
-      }
-    }.to_json
-  end
 end

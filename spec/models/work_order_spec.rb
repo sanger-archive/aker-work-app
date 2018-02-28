@@ -373,7 +373,7 @@ RSpec.describe WorkOrder, type: :model do
       it 'generates an event using the EventService' do
         wo = build(:work_order)
         EventService ||= double('EventService')
-        expect(EventService).not_to receive(:publish).with(an_instance_of(EventMessage))
+        expect(EventService).not_to receive(:publish).with(an_instance_of(WorkOrderEventMessage))
         expect{wo.generate_completed_and_cancel_event}.to raise_exception('You cannot generate an event from a work order that has not been completed.')
       end
     end
@@ -384,7 +384,7 @@ RSpec.describe WorkOrder, type: :model do
         EventService ||= double('EventService')
         allow(EventService).to receive(:publish)
         allow(BillingFacadeClient).to receive(:send_event).with(wo, 'completed')
-        expect(EventService).to receive(:publish).with(an_instance_of(EventMessage))
+        expect(EventService).to receive(:publish).with(an_instance_of(WorkOrderEventMessage))
         wo.generate_completed_and_cancel_event
       end
     end
@@ -396,7 +396,7 @@ RSpec.describe WorkOrder, type: :model do
         wo = build(:work_order)
         EventService ||= double('EventService')
         allow(BillingFacadeClient).to receive(:send_event).with(wo, 'submitted')
-        expect(EventService).not_to receive(:publish).with(an_instance_of(EventMessage))
+        expect(EventService).not_to receive(:publish).with(an_instance_of(WorkOrderEventMessage))
         expect{wo.generate_submitted_event}.to raise_exception('You cannot generate an submitted event from a work order that is not active.')
       end
     end
@@ -407,7 +407,7 @@ RSpec.describe WorkOrder, type: :model do
         EventService ||= double('EventService')
         allow(EventService).to receive(:publish)
         allow(BillingFacadeClient).to receive(:send_event).with(wo, 'submitted')
-        expect(EventService).to receive(:publish).with(an_instance_of(EventMessage))
+        expect(EventService).to receive(:publish).with(an_instance_of(WorkOrderEventMessage))
         wo.generate_submitted_event
       end
     end
