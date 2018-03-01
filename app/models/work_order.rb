@@ -45,9 +45,8 @@ class WorkOrder < ApplicationRecord
   end
 
   def total_tat
-    # Calculate sum of work order processes TAT
-    product&.processes&.sum(:TAT) || nil
-  end  
+    process&.TAT
+  end
 
   scope :active, -> { where(status: WorkOrder.ACTIVE) }
   # status is either set, product, proposal
@@ -187,23 +186,23 @@ class WorkOrder < ApplicationRecord
     end
     describe_containers(material_ids, material_data)
 
-    if proposal.subproject?
-      project = StudyClient::Node.find(proposal.parent_id).first
-    else
-      project = proposal
+    project = work_plan.project
+    cost_code = project.cost_code
+    if project.subproject?
+      project = StudyClient::Node.find(project.parent_id).first
     end
 
     {
       work_order: {
-        product_name: product.name,
-        product_version: product.product_version,
+        process_name: process.name,
+        process_id: process.external_id,
         work_order_id: id,
-        comment: comment,
+        comment: work_plan.comment,
         project_uuid: project.node_uuid,
         project_name: project.name,
         data_release_uuid: project.data_release_uuid,
-        cost_code: proposal.cost_code,
-        desired_date: desired_date,
+        cost_code: cost_code,
+        desired_date: work_plan.desired_date,
         materials: material_data,
         modules: module_choices,
       }

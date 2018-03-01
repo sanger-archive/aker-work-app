@@ -116,6 +116,10 @@ RSpec.describe WorkPlan, type: :model do
         end
       end
 
+      it 'should have orders in state queued' do
+        orders.each { |o| expect(o.status).to eq(WorkOrder.QUEUED) }
+      end
+
       it 'should be possible to retrieve the orders from the plan later' do
         expect(WorkPlan.find(plan.id).work_orders).to eq(orders)
       end

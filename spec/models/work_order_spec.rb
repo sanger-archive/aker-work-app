@@ -1,6 +1,17 @@
 require 'rails_helper'
 
 RSpec.describe WorkOrder, type: :model do
+  let(:catalogue) { create(:catalogue) }
+  let(:product) { create(:product, name: 'Solylent Green', product_version: 3, catalogue: catalogue) }
+  let(:process) do
+    pro = create(:aker_process, name: 'Baking', external_id: 15)
+    create(:aker_product_process, product: product, aker_process: pro, stage: 0)
+    pro
+  end
+  let(:project) { make_node('Operation Wolf', 'S1001', 41, 40, false, true, SecureRandom.uuid) }
+  let(:subproject) { make_node('Operation Thunderbolt', 'S1001-0', 42, project.id, true, false, nil) }
+
+  let(:plan) { process; create(:work_plan, project_id: subproject.id, product: product, comment: 'hello', desired_date: '2020-01-01') }
 
   def make_uuid
     SecureRandom.uuid
@@ -8,7 +19,11 @@ RSpec.describe WorkOrder, type: :model do
 
   before do
     @barcode_index = 100
-    stub_const("BillingFacadeClient", double('BillingFacadeClient'))
+    bfc = double('BillingFacadeClient')
+    stub_const("BillingFacadeClient", bfc)
+    allow(bfc).to receive(:validate_process_module_name) do |name|
+      !name.starts_with? 'x'
+    end
   end
 
   def make_barcode
@@ -22,9 +37,6 @@ RSpec.describe WorkOrder, type: :model do
     allow(SetClient::Set).to receive(:find).with(s.uuid).and_return([s])
     return s
   end
-
-  let(:project) { make_node('Operation Wolf', 'S1001', 41, 40, false, true, SecureRandom.uuid) }
-  let(:proposal) { make_node('Operation Thunderbolt', 'S1001-0', 42, project.id, true, false, nil) }
 
   def make_node(name, cost_code, id, parent_id, is_sub, is_proj, data_release_uuid)
     n = double('node', name: name, cost_code: cost_code, id: id, parent_id: parent_id, subproject?: is_sub, project?: is_proj,
@@ -146,28 +158,6 @@ RSpec.describe WorkOrder, type: :model do
     end
   end
 
-  describe "#proposal" do
-    context "when the work order has a proposal id" do
-      before do
-        @wo = build(:work_order, proposal_id: proposal.id)
-      end
-
-      it "should find and return the proposal" do
-        expect(@wo.proposal).to eq(proposal)
-      end
-
-    end
-    context "when the work order has no proposal id" do
-      before do
-        @wo = build(:work_order, proposal_id: nil)
-      end
-
-      it "should return nil" do
-        expect(@wo.proposal).to be_nil
-      end
-    end
-  end
-
   describe "#original_set" do
     context "when work order has an original_set" do
       before do
@@ -238,12 +228,6 @@ RSpec.describe WorkOrder, type: :model do
     end
   end
 
-  describe '#owner_email' do
-    it 'should be sanitised' do
-      expect(create(:work_order, owner_email: '    ALPHA@BETA   ').owner_email).to eq('alpha@beta')
-    end
-  end
-
   describe "#lims_data" do
 
     def make_container(materials)
@@ -263,12 +247,18 @@ RSpec.describe WorkOrder, type: :model do
       return @container
     end
 
+    let(:order) do
+      create(:work_order, process_id: process.id, work_plan: plan, set_uuid: @set.id, order_index: 0)
+    end
+
+    let(:modules) do
+      (1...3).map { |i| create(:aker_process_module, name: "Module#{i}", aker_process_id: process.id) }
+    end
+
     before do
       make_set_with_materials
       make_container(@materials)
-      product = build(:product, name: 'Soylent Green', product_version: 3)
-      @wo = build(:work_order, product: product, proposal_id: proposal.id, set_uuid: @set.id,
-                  id: 616, comment: 'hello', desired_date: '2020-01-01')
+      modules.each_with_index { |m,i| WorkOrderModuleChoice.create(work_order: order, process_module: m, position: i)}
     end
 
     context 'when some of the materials are unavailable' do
@@ -277,22 +267,23 @@ RSpec.describe WorkOrder, type: :model do
       end
 
       it "should raise an exception" do
-        expect { @wo.lims_data() }.to raise_error(/materials.*available/)
+        expect { order.lims_data }.to raise_error(/materials.*available/)
       end
     end
 
     context 'when data is calculated' do
       it "should return the lims_data" do
-        data = @wo.lims_data()[:work_order]
-        expect(data[:product_name]).to eq(@wo.product.name)
-        expect(data[:product_version]).to eq(@wo.product.product_version)
-        expect(data[:work_order_id]).to eq(@wo.id)
-        expect(data[:comment]).to eq(@wo.comment)
+        data = order.lims_data[:work_order]
+        expect(data[:process_name]).to eq(process.name)
+        expect(data[:process_id]).to eq(process.external_id)
+        expect(data[:work_order_id]).to eq(order.id)
+        expect(data[:comment]).to eq(plan.comment)
         expect(data[:project_uuid]).to eq(project.node_uuid)
         expect(data[:project_name]).to eq(project.name)
         expect(data[:data_release_uuid]).to eq(project.data_release_uuid)
-        expect(data[:cost_code]).to eq(proposal.cost_code)
-        expect(data[:desired_date]).to eq(@wo.desired_date)
+        expect(data[:cost_code]).to eq(subproject.cost_code)
+        expect(data[:desired_date]).to eq(plan.desired_date)
+        expect(data[:modules]).to eq(["Module1", "Module2"])
         material_data = data[:materials]
         expect(material_data.length).to eq(@materials.length)
         @materials.zip(material_data).each do |mat, dat|
@@ -304,6 +295,48 @@ RSpec.describe WorkOrder, type: :model do
           expect(dat[:phenotype]).to eq(mat.attributes['phenotype'])
           expect(dat[:scientific_name]).to eq(mat.attributes['scientific_name'])
         end
+      end
+    end
+
+    context 'when module name is not valid' do
+      before do
+        m = create(:aker_process_module, name: "xModule", aker_process_id: process.id)
+        WorkOrderModuleChoice.create(work_order: order, process_module: m, position: 2)
+      end
+      it 'should raise an exception' do
+        expect { order.lims_data }.to raise_exception('Process module could not be validated: ["xModule"]')
+      end
+    end
+
+  end
+
+  describe '#module_choices' do
+    let(:order) { create(:work_order, process: process, work_plan: plan) }
+    let(:modules) do
+      (1...3).map { |i| create(:aker_process_module, name: "Module#{i}", aker_process_id: process.id) }
+    end
+
+    before do
+      modules.each_with_index { |m,i| WorkOrderModuleChoice.create(work_order: order, process_module: m, position: i)}
+    end
+
+    it 'returns the module names' do
+      expect(order.module_choices).to eq(["Module1", "Module2"])
+    end
+  end
+
+  describe '#validate_module_names' do
+    let(:order) { create(:work_order, process: process, work_plan: plan) }
+
+    context 'when modules are all valid' do
+      it 'should not raise an exception' do
+        expect { order.validate_module_names(['alpha', 'beta']) }.not_to raise_exception
+      end
+    end
+    context 'when any modules are invalid' do
+      it 'should raise an exception' do
+        expect { order.validate_module_names(['alpha', 'xbeta', 'xgamma', 'delta']) }
+          .to raise_exception('Process module could not be validated: ["xbeta", "xgamma"]')
       end
     end
   end
@@ -359,7 +392,7 @@ RSpec.describe WorkOrder, type: :model do
       @original_set = make_set
       @new_set = make_set
       allow(@original_set).to receive(:create_locked_clone).and_return(@new_set)
-      @wo = create(:work_order, id: 42, set_uuid: nil, set: nil, original_set_uuid: @original_set.uuid, owner_email: "user@sanger.ac.uk")
+      @wo = create(:work_order, id: 42, work_plan: plan, set_uuid: nil, set: nil, original_set_uuid: @original_set.uuid)
     end
 
     it "should call create_locked_clone on the original set" do
@@ -413,30 +446,11 @@ RSpec.describe WorkOrder, type: :model do
     end
   end
 
-  describe '#validation' do
-    it 'should be invalid with no owner_email' do
-      expect(build(:work_order, owner_email: nil)).to be_invalid
-    end
-    it 'should be invalid with an empty owner_email after sanitisation' do
-      expect(build(:work_order, owner_email: "   \n   \t   ")).to be_invalid
-    end
-    it 'should be valid with a non-empty owner_email after sanitisation' do
-      expect(build(:work_order, owner_email: "    ALPHA@BETA   ")).to be_valid
-    end
-  end
-
   describe "#total_tat" do
     it "calculates the total TAT" do
-
-      catalogue = create(:catalogue)
-      product = create(:product, catalogue: catalogue)
-
-      process1 = Aker::Process.create!(name: 'process1', TAT: 4)
-      process2 = Aker::Process.create!(name: 'process2', TAT: 5)
-      pp1 = Aker::ProductProcess.create!(product_id: product.id, aker_process_id: process1.id, stage: 1)
-      pp2 = Aker::ProductProcess.create!(product_id: product.id, aker_process_id: process2.id, stage: 2)
-      work_order = create(:work_order, product_id: product.id)
-      expect(work_order.total_tat).to eq 9
+      process = build(:process, TAT: 4)
+      order = build(:work_order, process: process)
+      expect(order.total_tat).to eq(4)
     end
   end
 
