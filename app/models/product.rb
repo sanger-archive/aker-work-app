@@ -2,7 +2,7 @@ class Product < ApplicationRecord
   validates :catalogue_id, presence: true
 
   belongs_to :catalogue
-  has_many :product_processes, foreign_key: :product_id, dependent: :destroy, class_name: "Aker::ProductProcess"
+  has_many :product_processes, -> { order(:stage) }, foreign_key: :product_id, dependent: :destroy, class_name: "Aker::ProductProcess"
   has_many :processes, through: :product_processes, source: :aker_process
 
   enum product_class: { dna_sequencing: 0, genotyping: 1, transcriptomics: 2, cell_line_creation: 3 }

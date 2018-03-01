@@ -8,23 +8,15 @@ require 'securerandom'
 class WorkOrder < ApplicationRecord
   include AkerPermissionGem::Accessible
 
-  belongs_to :product, optional: true
+  belongs_to :work_plan
+
+  belongs_to :process, class_name: "Aker::Process", optional: false
   has_many :work_order_module_choices, dependent: :destroy
 
-  before_validation :sanitise_owner
-  before_save :sanitise_owner
-
   after_initialize :create_uuid
-  after_create :set_default_permission_email
-
-  validates :owner_email, presence: true
-
+ 
   def create_uuid
     self.work_order_uuid ||= SecureRandom.uuid
-  end
-
-  def set_default_permission_email
-    set_default_permission(owner_email)
   end
 
   # The work order is in the 'active' state when it has been ordered
@@ -48,12 +40,15 @@ class WorkOrder < ApplicationRecord
     'cancelled'
   end
 
+  def self.QUEUED
+    'queued'
+  end
+
   def total_tat
     # Calculate sum of work order processes TAT
     product&.processes&.sum(:TAT) || nil
   end  
 
-  scope :for_user, -> (owner) { where(owner_email: owner.email) }
   scope :active, -> { where(status: WorkOrder.ACTIVE) }
   # status is either set, product, proposal
   scope :pending, -> { where('status NOT IN (?)', not_pending_status_list)}
@@ -92,21 +87,6 @@ class WorkOrder < ApplicationRecord
 
   def broken!
     update_attributes(status: WorkOrder.BROKEN)
-  end
-
-  def sanitise_owner
-    if owner_email
-      sanitised = owner_email.strip.downcase
-      if sanitised != owner_email
-        self.owner_email = sanitised
-      end
-    end
-  end
-
-  def proposal
-  	return nil unless proposal_id
-    return @proposal if @proposal&.id==proposal_id
-	  @proposal = StudyClient::Node.find(proposal_id).first
   end
 
   def original_set
