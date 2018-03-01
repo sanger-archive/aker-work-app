@@ -4,7 +4,7 @@ RSpec.describe WorkOrder, type: :model do
   let(:catalogue) { create(:catalogue) }
   let(:product) { create(:product, name: 'Solylent Green', product_version: 3, catalogue: catalogue) }
   let(:process) do
-    pro = create(:aker_process, name: 'Baking', external_id: 15)
+    pro = create(:aker_process, name: 'Baking')
     create(:aker_product_process, product: product, aker_process: pro, stage: 0)
     pro
   end
@@ -275,7 +275,7 @@ RSpec.describe WorkOrder, type: :model do
       it "should return the lims_data" do
         data = order.lims_data[:work_order]
         expect(data[:process_name]).to eq(process.name)
-        expect(data[:process_id]).to eq(process.external_id)
+        expect(data[:process_uuid]).to eq(process.uuid)
         expect(data[:work_order_id]).to eq(order.id)
         expect(data[:comment]).to eq(plan.comment)
         expect(data[:project_uuid]).to eq(project.node_uuid)

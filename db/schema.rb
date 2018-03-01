@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180301103636) do
+ActiveRecord::Schema.define(version: 20180301150923) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -35,9 +35,9 @@ ActiveRecord::Schema.define(version: 20180301103636) do
   end
 
   create_table "aker_processes", id: :serial, force: :cascade do |t|
-    t.integer "external_id"
     t.string "name", null: false
     t.integer "TAT"
+    t.string "uuid", null: false
   end
 
   create_table "aker_product_processes", id: :serial, force: :cascade do |t|
@@ -79,8 +79,8 @@ ActiveRecord::Schema.define(version: 20180301103636) do
     t.integer "product_version"
     t.string "description"
     t.integer "product_class"
-    t.integer "external_id"
     t.boolean "availability", default: true, null: false
+    t.string "uuid", null: false
     t.index ["catalogue_id"], name: "index_products_on_catalogue_id"
   end
 

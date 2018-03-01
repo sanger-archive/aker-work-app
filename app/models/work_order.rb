@@ -195,7 +195,7 @@ class WorkOrder < ApplicationRecord
     {
       work_order: {
         process_name: process.name,
-        process_id: process.external_id,
+        process_uuid: process.uuid,
         work_order_id: id,
         comment: work_plan.comment,
         project_uuid: project.node_uuid,

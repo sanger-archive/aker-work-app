@@ -39,4 +39,8 @@ class WorkPlan < ApplicationRecord
     end
     work_orders.reload
   end
+
+  def name
+    "Work plan #{id}"
+  end
 end
