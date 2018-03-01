@@ -26,7 +26,7 @@ RSpec.describe UpdateOrderService do
   end
 
   def order_at_step(step)
-    attrs = { status: step.to_s, owner_email: "user@sanger.ac.uk" }
+    attrs = { status: step.to_s }
 
     return create(:work_order, attrs) if step==:set
     @original_set = make_set
