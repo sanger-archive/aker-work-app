@@ -18,7 +18,7 @@ RSpec.describe ProductsController, type: :controller do
         params = { id: work_order.id, product_id: 'nonsense'}
         expect(WorkOrder).to receive(:find).with(work_order.id.to_s)
         expect{ get :show_product_inside_work_order, params: params}
-        .to raise_exception(ActiveRecord::RecordNotFound)
+          .to raise_exception(ActiveRecord::RecordNotFound)
       end
     end
     context "when the product exists, but work order does not" do
@@ -27,20 +27,7 @@ RSpec.describe ProductsController, type: :controller do
         product = create(:product, catalogue: catalogue)
         params = { id: 'nonsense', product_id: product.id}
         expect{ get :show_product_inside_work_order, params: params}
-        .to raise_exception(ActiveRecord::RecordNotFound)
-      end
-    end
-    context "when both the work order and the product exists" do
-      it "no exception is thrown" do
-        work_order = create(:work_order)
-        catalogue = create(:catalogue)
-        product = create(:product, catalogue: catalogue)
-        params = { id: work_order.id, product_id: product.id}
-        expect(Product).to receive(:find).with(product.id.to_s)
-        expect(WorkOrder).to receive(:find).with(work_order.id.to_s)
-
-        expect{ get :show_product_inside_work_order, params: params}
-        .not_to raise_exception(ActiveRecord::RecordNotFound)
+          .to raise_exception(ActiveRecord::RecordNotFound)
       end
     end
   end
@@ -79,7 +66,7 @@ RSpec.describe ProductsController, type: :controller do
 
       unit_cost = BigDecimal.new(17)
       allow(BillingFacadeClient).to receive(:get_unit_price)
-      .with(work_order.proposal.cost_code, product.name).and_return(unit_cost)
+        .with(work_order.proposal.cost_code, product.name).and_return(unit_cost)
 
       params = { id: work_order.id, product_id: product.id}
 
