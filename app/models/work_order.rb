@@ -88,6 +88,10 @@ class WorkOrder < ApplicationRecord
     update_attributes(status: WorkOrder.BROKEN)
   end
 
+  def broken?
+    status == WorkOrder.BROKEN
+  end
+
   def original_set
     return nil unless original_set_uuid
     return @original_set if @original_set&.uuid==original_set_uuid

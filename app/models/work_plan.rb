@@ -43,4 +43,48 @@ class WorkPlan < ApplicationRecord
   def name
     "Work plan #{id}"
   end
+
+  def set_selected?
+    !(work_orders.empty? || work_orders.first.set_uuid.nil?)
+  end
+
+  # Returns the step we have reached in the wizard.
+  # After the wizard has been completed, revisiting it should bring you back to the dispatch step.
+  # The assumption of this is that we can pick the product FIRST, because we can't make the work orders
+  #  until we have the product, and we don't have anywhere to put the set until we have orders.
+  def wizard_step
+    return 'product' unless product
+    return 'set' unless set_selected?
+    return 'project' unless project
+    'dispatch'
+  end
+
+  def broken?
+    status=='broken'
+  end
+
+  def closed?
+    status=='closed'
+  end
+
+  def active?
+    status=='active'
+  end
+
+  def in_construction?
+    status=='construction'
+  end
+
+  # broken - one of the orders is broken
+  # closed - all of the orders are complete or cancelled (in some combination)
+  # active - the orders are underway
+  # construction - the plan is not yet underway
+  def status
+    if project && !work_orders.empty?
+      return 'broken' if work_orders.any?(&:broken?)
+      return 'closed' if work_orders.all?(&:closed?)
+      return 'active' if work_orders.any?(&:active?)
+    end
+    'construction'
+  end
 end
