@@ -18,7 +18,6 @@ RSpec.describe WorkOrder, type: :model do
   end
 
   before do
-    @barcode_index = 100
     bfc = double('BillingFacadeClient')
     stub_const("BillingFacadeClient", bfc)
     allow(bfc).to receive(:validate_process_module_name) do |name|
@@ -27,6 +26,7 @@ RSpec.describe WorkOrder, type: :model do
   end
 
   def make_barcode
+    @barcode_index ||= 0
     @barcode_index += 1
     "AKER-#{@barcode_index}"
   end
@@ -57,8 +57,8 @@ RSpec.describe WorkOrder, type: :model do
     @materials = (1..3).map do |i|
       attributes = {
         'gender' => (i%2==0) ? 'male' : 'female',
-        'donor_id' => 'donor #{i}',
-        'phenotype' => 'phenotype #{i}',
+        'donor_id' => "donor #{i}",
+        'phenotype' => "phenotype #{i}",
         'scientific_name' => 'Mouse',
         'available' => true,
       }
@@ -101,129 +101,110 @@ RSpec.describe WorkOrder, type: :model do
   end
 
   describe "#set" do
+    let(:set) { make_set(6) }
+
     context "when work order has a set" do
-      before do
-        @set = make_set(6)
-        @wo = build(:work_order, set: @set)
-      end
+      let(:order) { build(:work_order, set: set) }
+
       it "should return the set" do
-        expect(@wo.set).to be @set
+        expect(order.set).to be set
       end
     end
     context "when work order has a set uuid" do
-      before do
-        @set = make_set(6)
-        @wo = build(:work_order, set_uuid: @set.uuid)
-      end
+      let(:order) { build(:work_order, set_uuid: set.uuid) }
+
       it "should look up the set and return it" do
-        expect(@wo.set).to eq @set
+        expect(order.set).to eq set
       end
     end
     context "when work order has no set" do
-      before do
-        @wo = build(:work_order, set_uuid: nil, set: nil)
-      end
+      let(:order) { build(:work_order, set_uuid: nil, set: nil) }
+
       it "should return nil" do
-        expect(@wo.set).to be_nil
+        expect(order.set).to be_nil
       end
     end
 
     context "when set is assigned in the work order" do
-      before do
-        @wo = build(:work_order)
-        @set = make_set
-      end
+      let(:order) { build(:work_order) }
 
       it "should update the set_uuid" do
-        expect(@wo.set).to be_nil
-        expect(@wo.set_uuid).to be_nil
-        @wo.set=@set
-        expect(@wo.set).to be(@set)
-        expect(@wo.set_uuid).to eq(@set.uuid)
+        expect(order.set).to be_nil
+        expect(order.set_uuid).to be_nil
+        order.set = set
+        expect(order.set).to be(set)
+        expect(order.set_uuid).to eq(set.uuid)
       end
     end
     context "when set_uuid is assigned in the work order" do
-      before do
-        @wo = build(:work_order)
-        @set = make_set
-      end
+      let(:order) { build(:work_order) }
 
       it "should update the set" do
-        expect(@wo.set).to be_nil
-        expect(@wo.set_uuid).to be_nil
-        @wo.set_uuid=@set.uuid
-        expect(@wo.set).to be(@set)
-        expect(@wo.set_uuid).to eq(@set.uuid)
+        expect(order.set).to be_nil
+        expect(order.set_uuid).to be_nil
+        order.set_uuid = set.uuid
+        expect(order.set).to eq(set)
+        expect(order.set_uuid).to eq(set.uuid)
       end
     end
   end
 
   describe "#original_set" do
+    let(:set) { make_set(6) }
     context "when work order has an original_set" do
-      before do
-        @set = make_set(6)
-        @wo = build(:work_order, original_set: @set)
-      end
+      let(:order) { build(:work_order, original_set: set) }
+
       it "should return the set" do
-        expect(@wo.original_set).to be @set
+        expect(order.original_set).to be(set)
       end
     end
     context "when work order has an original_set_uuid" do
-      before do
-        @set = make_set(6)
-        @wo = build(:work_order, original_set_uuid: @set.uuid)
-      end
+      let(:order) { build(:work_order, original_set_uuid: set.uuid) }
+
       it "should look up the set and return it" do
-        expect(@wo.original_set).to be @set
+        expect(order.original_set).to eq(set)
       end
     end
     context "when work order has no original set" do
-      before do
-        @wo = build(:work_order, original_set_uuid: nil, original_set: nil)
-      end
+      let(:order) { build(:work_order, original_set_uuid: nil, original_set: nil) }
       it "should return nil" do
-        expect(@wo.original_set).to be_nil
+        expect(order.original_set).to be_nil
       end
     end
 
-    context "when the Set Client can not find the original set" do
+    context "when the Set Client cannot find the original set" do
+      let(:set_uuid) { SecureRandom.uuid }
+      let(:order) { build(:work_order, original_set_uuid: @uuid) }
+
       before do
-        @uuid = SecureRandom.uuid
-        allow(SetClient::Set).to receive(:find).with(@uuid).and_raise(JsonApiClient::Errors::NotFound, "a message")
-        @wo = build(:work_order, original_set_uuid: @uuid)
+        allow(SetClient::Set).to receive(:find).with(set_uuid).and_raise(JsonApiClient::Errors::NotFound, "a message")
       end
 
       it "should return nil" do
-        expect(@wo.original_set).to be_nil
+        expect(order.original_set).to be_nil
       end
     end
 
     context "when original_set is assigned in the work order" do
-      before do
-        @wo = build(:work_order, original_set: nil, original_set_uuid: nil)
-        @set = make_set
-      end
+      let(:order) { build(:work_order, original_set: nil, original_set_uuid: nil) }
 
       it "should update the original_set_uuid" do
-        expect(@wo.original_set).to be_nil
-        expect(@wo.original_set_uuid).to be_nil
-        @wo.original_set=@set
-        expect(@wo.original_set).to be(@set)
-        expect(@wo.original_set_uuid).to eq(@set.uuid)
+        expect(order.original_set).to be_nil
+        expect(order.original_set_uuid).to be_nil
+        order.original_set = set
+        expect(order.original_set).to be(set)
+        expect(order.original_set_uuid).to eq(set.uuid)
       end
     end
     context "when original_set_uuid is assigned in the work order" do
-      before do
-        @wo = build(:work_order, original_set: nil, original_set_uuid: nil)
-        @set = make_set
-      end
+      let(:order) { build(:work_order, original_set: nil, original_set_uuid: nil) }
 
-      it "should update the original_set" do
-        expect(@wo.original_set).to be_nil
-        expect(@wo.original_set_uuid).to be_nil
-        @wo.original_set_uuid=@set.uuid
-        expect(@wo.original_set).to be(@set)
-        expect(@wo.original_set_uuid).to eq(@set.uuid)
+      it "should update the original_set_uuid" do
+        expect(order.original_set).to be_nil
+        expect(order.original_set_uuid).to be_nil
+        order.original_set_uuid = set.uuid
+        expect(order.original_set).to eq(set)
+        expect(order.original_set_uuid).to eq(set.uuid)
       end
     end
   end
@@ -388,16 +369,20 @@ RSpec.describe WorkOrder, type: :model do
   end
 
   describe "#create_locked_set" do
+    let(:original_set) { make_set }
+    let(:new_set) { make_set }
+    let(:order) { create(:work_order, id: 42, work_plan: plan, set_uuid: nil, set: nil, original_set_uuid: original_set.uuid) }
     before do
-      @original_set = make_set
-      @new_set = make_set
-      allow(@original_set).to receive(:create_locked_clone).and_return(@new_set)
-      @wo = create(:work_order, id: 42, work_plan: plan, set_uuid: nil, set: nil, original_set_uuid: @original_set.uuid)
+      allow(original_set).to receive(:create_locked_clone).and_return(new_set)
+
+      order.create_locked_set
     end
 
-    it "should call create_locked_clone on the original set" do
-      @wo.create_locked_set
-      expect(@original_set).to have_received(:create_locked_clone)
+    it "should have call create_locked_clone on the original set" do
+      expect(original_set).to have_received(:create_locked_clone)
+    end
+    it "should now have a reference to the new set" do
+      expect(order.set).to eq(new_set)
     end
   end
 
@@ -407,7 +392,7 @@ RSpec.describe WorkOrder, type: :model do
         wo = build(:work_order)
         EventService ||= double('EventService')
         expect(EventService).not_to receive(:publish).with(an_instance_of(WorkOrderEventMessage))
-        expect{wo.generate_completed_and_cancel_event}.to raise_exception('You cannot generate an event from a work order that has not been completed.')
+        expect { wo.generate_completed_and_cancel_event }.to raise_exception('You cannot generate an event from a work order that has not been completed.')
       end
     end
 
@@ -430,7 +415,7 @@ RSpec.describe WorkOrder, type: :model do
         EventService ||= double('EventService')
         allow(BillingFacadeClient).to receive(:send_event).with(wo, 'submitted')
         expect(EventService).not_to receive(:publish).with(an_instance_of(WorkOrderEventMessage))
-        expect{wo.generate_submitted_event}.to raise_exception('You cannot generate an submitted event from a work order that is not active.')
+        expect { wo.generate_submitted_event }.to raise_exception('You cannot generate an submitted event from a work order that is not active.')
       end
     end
 
