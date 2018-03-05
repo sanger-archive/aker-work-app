@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'event_publisher'
-
 # Encapsulate a message from the work orders application to be sent to the mesage broker.
 class EventMessage
   attr_reader :work_order
@@ -11,15 +9,16 @@ class EventMessage
 
   # wrapper method to create the JSON message
   def generate_json
-    raise "This must be overridden!"
+    raise 'This must be overridden!'
   end
 end
 
+# A message specific to a catalogue that has been received
 class CatalogueEventMessage < EventMessage
-  def initialize
+  def initialize(catalogue, error)
     # For Catalogue message
-    @catalogue = params.fetch(:catalogue, nil)
-    @catalogue_error = params.fetch(:error, nil)    
+    @catalogue = catalogue
+    @catalogue_error = error
   end
 
   # wrapper method to create the JSON message
@@ -60,16 +59,16 @@ class CatalogueEventMessage < EventMessage
       }
     }.to_json
   end
-
 end
 
-
+# A message specific to a work order
 class WorkOrderEventMessage < EventMessage
-  def initialize(params)
+  def initialize(work_order, status)
     # For Work Order message
-    @work_order = params.fetch(:work_order, nil)
-    @status = params.fetch(:status, nil)    
+    @work_order = work_order
+    @status = status
   end
+
   # Generate the JSON for a Work Order event
   def generate_json
     project = @work_order.proposal
@@ -97,8 +96,7 @@ class WorkOrderEventMessage < EventMessage
           'role_type' => 'product',
           'subject_type' => 'product',
           'subject_friendly_name' => product.name,
-          # subject_uuid now points to the product's ID within Aker, as the UUID
-          # no longer exists.
+          # subject_uuid now points to the product's ID within Aker, as the UUID no longer exists.
           'subject_uuid' => product.id
         }
       ],
@@ -153,5 +151,4 @@ class WorkOrderEventMessage < EventMessage
       0
     end
   end
-
 end
