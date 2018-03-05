@@ -1,0 +1,25 @@
+<tr>
+  <td><%= work_plan.id %></td>
+  <td><%= work_plan.product&.name || "None selected" %></td>
+
+  <% if work_plan.active? %>
+    <td><%= work_plan.active_status %></td>
+  <% elsif work_plan.in_construction? %>
+    <td><%= work_plan.wizard_step.capitalize %></td>
+  <% end %>
+
+  <td><%= localize(work_plan.created_at, format: :terse) %></td>
+  <td><%= localize(work_plan.updated_at, format: :terse) %></td>
+  <td align="right">
+    <% if work_plan.in_construction? %>
+      <%= link_to 'Continue', work_plan_build_path(id: work_plan.wizard_step, work_plan_id: work_plan.id),
+            class: 'btn btn-primary', style: "margin-right: 10px" %>
+      <%= link_to 'Delete', work_plan,
+            method: :delete,
+            class: 'btn btn-danger',
+            data: { confirm: 'Are you sure you wish to delete this work plan?' } %>
+    <% else %>
+       <%= link_to 'View', work_plan_path(work_plan), class: 'btn btn-default' %>
+    <% end %>
+  </td>
+</tr>

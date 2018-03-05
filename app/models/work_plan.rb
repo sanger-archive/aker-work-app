@@ -40,6 +40,8 @@ class WorkPlan < ApplicationRecord
     end
   end
 
+  scope :for_user, -> (owner) { where(owner_email: owner.email) }
+
   # Creates one work order per process in the product.
   # process_module_ids needs to be an array of arrays of module ids.
   # The locked set uuid is passed for the first order, in case such a locked
@@ -70,6 +72,14 @@ class WorkPlan < ApplicationRecord
 
   def name
     "Work plan #{id}"
+  end
+
+  def active_status
+    active_order = work_orders.find(&:active?)
+    return active_order.process.name+' in progress' if active_order
+    last_closed = work_orders.reverse_each.find(&:closed?)
+    return "#{last_closed.process.name} #{last_closed.status}" if last_closed
+    '' # shouldn't happen, but don't explode
   end
 
 

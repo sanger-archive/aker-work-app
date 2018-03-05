@@ -12,4 +12,11 @@ class WorkPlansController < ApplicationController
       work_plan_id: work_plan.id
     )
   end
+
+  def index
+    users_work_plans = WorkPlan.for_user(current_user).order(updated_at: :desc)
+    @in_construction_plans = users_work_plans.select(&:in_construction?)
+    @active_plans = users_work_plans.select(&:active?)
+    @closed_plans = users_work_plans.select(&:closed?)
+  end
 end
