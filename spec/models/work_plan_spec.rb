@@ -8,17 +8,37 @@ RSpec.describe WorkPlan, type: :model do
     allow(StudyClient::Node).to receive(:find).with(proj.id).and_return([proj])
     proj
   end
+  let(:process_options) do
+    product.processes.map do |pro|
+      pro.process_modules.map(&:id)
+    end
+  end
 
   let(:set) do
-    uuid = SecureRandom.uuid
-    s = double(:set, uuid: uuid, id: uuid, meta: { 'size' => 0 })
-    allow(SetClient::Set).to receive(:find).with(s.uuid).and_return([s])
+    s = make_set
+    allow(s).to receive(:create_locked_clone).and_return(locked_set)
     s
+  end
+
+  let(:locked_set) { make_set }
+
+  def make_set(size=3)
+    uuid = SecureRandom.uuid
+    s = double(:set, uuid: uuid, id: uuid, meta: { 'size' => size })
+    allow(SetClient::Set).to receive(:find).with(s.uuid).and_return([s])
+    return s
   end
 
   def make_processes(n)
     pros = (0...n).map { |i| create(:aker_process, name: "process #{i}") }
     pros.each_with_index { |pro, i| create(:aker_product_process, product: product, aker_process: pro, stage: i) }
+    i = 0
+    pros.each do |pro|
+      (0...3).each do
+        Aker::ProcessModule.create!(name: "module-#{i}", aker_process_id: pro.id)
+        i += 1
+      end
+    end
     pros
   end
 
@@ -87,28 +107,28 @@ RSpec.describe WorkPlan, type: :model do
   describe '#create_orders' do
 
     context 'when no product is selected' do
-      let(:plan) { create(:work_plan) }
+      let(:plan) { create(:work_plan, original_set_uuid: set.uuid) }
 
-      it { expect { plan.create_orders }.to raise_error("No product is selected") }
+      it { expect { plan.create_orders(process_options, nil) }.to raise_error("No product is selected") }
     end
 
     context 'when work orders already exist' do
       let(:existing_orders) { ['existing orders'] }
       let(:plan) do
-        pl = create(:work_plan, product: product)
+        pl = create(:work_plan, product: product, original_set_uuid: set.uuid)
         allow(pl).to receive(:work_orders).and_return existing_orders
         pl
       end
 
       it 'should return the existing orders' do
-        expect(plan.create_orders).to eq(existing_orders)
+        expect(plan.create_orders(process_options, nil)).to eq(existing_orders)
       end
     end
 
     context 'when work orders need to be created' do
       let!(:processes) { make_processes(3) }
-      let(:plan) { create(:work_plan, product: product) }
-      let(:orders) { plan.create_orders }
+      let(:plan) { create(:work_plan, product: product, original_set_uuid: set.uuid) }
+      let(:orders) { plan.create_orders(process_options, nil) }
 
       it 'should create an order for each process' do
         expect(orders.length).to eq(processes.length)
@@ -132,6 +152,32 @@ RSpec.describe WorkPlan, type: :model do
       it 'should be possible to retrieve the orders from the plan later' do
         expect(WorkPlan.find(plan.id).work_orders).to eq(orders)
       end
+
+      it 'should set the sets correctly' do
+        expect(orders.first.original_set_uuid).to eq(plan.original_set_uuid)
+        expect(orders.first.set_uuid).to eq(locked_set.uuid)
+        orders[1..-1].each do |o|
+          expect(o.original_set_uuid).to be_nil
+          expect(o.set_uuid).to be_nil
+        end
+      end
+    end
+
+    context 'when a locked set uuid is supplied' do
+      let(:locked_set_uuid) { SecureRandom.uuid }
+      let!(:processes) { make_processes(3) }
+      let(:plan) { create(:work_plan, product: product, original_set_uuid: set.uuid) }
+      let(:orders) { plan.create_orders(process_options, locked_set_uuid) }
+
+      it 'should set the sets correctly' do
+        expect(orders.first.original_set_uuid).to eq(plan.original_set_uuid)
+        expect(orders.first.set_uuid).to eq(locked_set_uuid)
+        orders[1..-1].each do |o|
+          expect(o.original_set_uuid).to be_nil
+          expect(o.set_uuid).to be_nil
+        end
+      end
+
     end
 
   end
@@ -142,7 +188,7 @@ RSpec.describe WorkPlan, type: :model do
 
     # Check that the order is definitely controlled by the order_index field
     it 'should be kept in order according to order_index' do
-      expect(plan.create_orders.map(&:order_index)).to eq([0,1,2])
+      expect(plan.create_orders(process_options, nil).map(&:order_index)).to eq([0,1,2])
       plan.work_orders[1].update_attributes(order_index: 5)
       expect(plan.work_orders.reload.map(&:order_index)).to eq([0,2,5])
       plan.work_orders[0].update_attributes(order_index: 4)
@@ -175,7 +221,7 @@ RSpec.describe WorkPlan, type: :model do
     context 'when the product has also been selected' do
       before do
         plan.update_attributes!(product: product, project_id: project.id, original_set_uuid: set.uuid)
-        plan.create_orders.first.update_attributes!(set_uuid: set.uuid)
+        plan.create_orders(process_options, nil).first.update_attributes!(set_uuid: set.uuid)
       end
       it { expect(plan.wizard_step).to eq('dispatch') }
     end
@@ -185,7 +231,7 @@ RSpec.describe WorkPlan, type: :model do
     let!(:processes) { make_processes(3) }
     let(:plan) do
       pl = create(:work_plan, product: product, project_id: project.id, original_set_uuid: set.uuid)
-      pl.create_orders.first.update_attributes!(set_uuid: set.uuid)
+      pl.create_orders(process_options, nil).first.update_attributes!(set_uuid: set.uuid)
       pl
     end
 
@@ -215,6 +261,79 @@ RSpec.describe WorkPlan, type: :model do
         plan.reload
       end
       it { expect(plan.status).to eq('active') }
+    end
+  end
+
+  describe '#original_set' do
+    context 'when the plan has no set uuid' do
+      let(:plan) { build(:work_plan, original_set_uuid: nil) }
+
+      it { expect(plan.original_set).to be_nil }
+    end
+
+    context 'when the plan has a set uuid' do
+      let(:plan) { build(:work_plan, original_set_uuid: set.uuid) }
+
+      it 'should return the set' do
+        expect(plan.original_set).to eq(set)
+      end
+    end
+
+    context 'when the plan has a new set uuid' do
+      let(:plan) { build(:work_plan, original_set_uuid: set.uuid) }
+      let(:another_set) { make_set }
+
+      it 'should reload when changed' do
+        expect(plan.original_set).to eq(set)
+        plan.original_set_uuid = another_set.uuid
+        expect(plan.original_set).to eq(another_set)
+      end
+    end
+  end
+
+  describe '#num_original_samples' do
+    context 'when the plan has no set' do
+      let(:plan) { build(:work_plan) }
+      it { expect(plan.num_original_samples).to be_nil }
+    end
+
+    context 'when the plan has a set' do
+      let(:plan) { build(:work_plan, original_set_uuid: set.id) }
+      it 'should return the size of the set' do
+        expect(plan.num_original_samples).to eq(set.meta['size'])
+      end
+    end
+
+  end
+
+  describe '#permitted?' do
+    let(:owner) { 'user@here' }
+    let(:plan) { build(:work_plan, owner_email: owner) }
+    context 'when the access is :read' do
+      it 'always returns true' do
+        expect(plan.permitted?('anything', :read)).to be_truthy
+        expect(plan.permitted?(['anything'], :read)).to be_truthy
+      end
+    end
+    context 'when the access is :create' do
+      it 'always returns true' do
+        expect(plan.permitted?('anything', :create)).to be_truthy
+        expect(plan.permitted?(['anything'], :create)).to be_truthy
+      end
+    end
+    context 'when the access is :write' do
+      context 'when the parameter is the owner email' do
+        it { expect(plan.permitted?(owner, :write)).to be_truthy }
+      end
+      context 'when the parameter is another string' do
+        it { expect(plan.permitted?('somethingelse', :write)).to be_falsey }
+      end
+      context 'when the parameter is an array including the owner email' do
+        it { expect(plan.permitted?(['alpha', owner, 'beta'], :write)).to be_truthy }
+      end
+      context 'when the parameter is an array not including the owner email' do
+        it { expect(plan.permitted?(['alpha', 'beta'], :write)).to be_falsey }
+      end
     end
   end
 

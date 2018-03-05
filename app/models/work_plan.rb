@@ -17,7 +17,6 @@ class WorkPlan < ApplicationRecord
     @project = StudyClient::Node.find(project_id).first
   end
 
-
   def original_set
     return nil unless original_set_uuid
     return @original_set if @original_set&.uuid==original_set_uuid
@@ -29,7 +28,7 @@ class WorkPlan < ApplicationRecord
   end
 
   def num_original_samples
-    self.original_set&.meta['size']
+    original_set && original_set.meta['size']
   end
 
   def sanitise_owner
