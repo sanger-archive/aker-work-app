@@ -28,6 +28,11 @@ class PlanWizardController < ApplicationController
     @work_plan ||= WorkPlan.find(params[:work_plan_id])
   end
 
+  # redirect path to workorders#index
+  def finish_wizard_path
+    work_plans_path
+  end
+
   def get_my_sets
     SetClient::Set.where(owner_id: current_user.email, empty: false).order(created_at: :desc).all
   end

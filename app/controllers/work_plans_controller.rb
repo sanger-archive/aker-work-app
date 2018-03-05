@@ -1,7 +1,6 @@
 class WorkPlansController < ApplicationController
   skip_authorization_check only: [:index, :complete, :cancel, :get, :set_search]
 
-
   def create
     authorize! :create, WorkPlan
 
@@ -18,5 +17,21 @@ class WorkPlansController < ApplicationController
     @in_construction_plans = users_work_plans.select(&:in_construction?)
     @active_plans = users_work_plans.select(&:active?)
     @closed_plans = users_work_plans.select(&:closed?)
+  end
+
+  def destroy
+    authorize! :write, work_plan
+
+    unless work_plan.in_construction?
+      flash[:error] = "This work plan has already been issued, and cannot be deleted."
+    else
+      work_plan.destroy
+      flash[:notice] = "Work plan deleted"
+    end
+    redirect_to work_plans_path
+  end
+
+  def work_plan
+    @work_plan ||= WorkPlan.find(params[:id])
   end
 end
