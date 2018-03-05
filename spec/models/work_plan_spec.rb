@@ -8,6 +8,7 @@ RSpec.describe WorkPlan, type: :model do
     allow(StudyClient::Node).to receive(:find).with(proj.id).and_return([proj])
     proj
   end
+  
   let(:set) do
     uuid = SecureRandom.uuid
     s = double(:set, uuid: uuid, id: uuid, meta: { 'size' => 0 })
@@ -153,21 +154,20 @@ RSpec.describe WorkPlan, type: :model do
     let!(:processes) { make_processes(3) }
     let(:plan) { create(:work_plan) }
 
-    context 'when the product has not been selected' do
-      it { expect(plan.wizard_step).to eq('product') }
+    context 'when the original set has not been selected' do
+      it { expect(plan.wizard_step).to eq('set') }
     end
 
-    context 'when the product has been selected and the set has not been selected' do
+    context 'when the original set has been selected and the product has not been selected' do
       before do
-        plan.update_attributes!(product: product)
-        plan.create_orders
+        plan.update_attributes(original_set_uuid: set.uuid)
       end
-      it { expect(plan.wizard_step).to eq('set') }
+      it { expect(plan.wizard_step).to eq('product') }
     end
 
     context 'when the set has also been selected and the project has not been selected' do
       before do
-        plan.update_attributes!(product: product)
+        plan.update_attributes!(product: product, original_set_uuid: set.uuid)
         plan.create_orders.first.update_attributes!(set_uuid: set.uuid)
       end
       it { expect(plan.wizard_step).to eq('project') }
@@ -175,7 +175,7 @@ RSpec.describe WorkPlan, type: :model do
 
     context 'when the project has also been selected' do
       before do
-        plan.update_attributes!(product: product, project_id: project.id)
+        plan.update_attributes!(product: product, project_id: project.id, original_set_uuid: set.uuid)
         plan.create_orders.first.update_attributes!(set_uuid: set.uuid)
       end
       it { expect(plan.wizard_step).to eq('dispatch') }
@@ -185,7 +185,7 @@ RSpec.describe WorkPlan, type: :model do
   describe '#status' do
     let!(:processes) { make_processes(3) }
     let(:plan) do
-      pl = create(:work_plan, product: product, project_id: project.id)
+      pl = create(:work_plan, product: product, project_id: project.id, original_set_uuid: set.uuid)
       pl.create_orders.first.update_attributes!(set_uuid: set.uuid)
       pl
     end

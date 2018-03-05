@@ -114,6 +114,7 @@ ActiveRecord::Schema.define(version: 20180301150923) do
   create_table "work_plans", id: :serial, force: :cascade do |t|
     t.integer "project_id"
     t.bigint "product_id"
+    t.string "original_set_uuid"
     t.citext "owner_email", null: false
     t.string "comment"
     t.date "desired_date"

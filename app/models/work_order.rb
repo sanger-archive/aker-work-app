@@ -84,6 +84,10 @@ class WorkOrder < ApplicationRecord
     status == WorkOrder.COMPLETED || status == WorkOrder.CANCELLED
   end
 
+  def queued?
+    status == WorkOrder.QUEUED
+  end
+
   def broken!
     update_attributes(status: WorkOrder.BROKEN)
   end
