@@ -15,7 +15,7 @@ end
 
 # A message specific to a catalogue that has been received
 class CatalogueEventMessage < EventMessage
-  def initialize(catalogue, error)
+  def initialize(catalogue:, error: nil)
     # For Catalogue message
     @catalogue = catalogue
     @catalogue_error = error
@@ -63,7 +63,7 @@ end
 
 # A message specific to a work order
 class WorkOrderEventMessage < EventMessage
-  def initialize(work_order, status)
+  def initialize(work_order:, status:)
     # For Work Order message
     @work_order = work_order
     @status = status
