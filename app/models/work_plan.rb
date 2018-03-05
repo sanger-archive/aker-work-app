@@ -17,6 +17,8 @@ class WorkPlan < ApplicationRecord
     @project = StudyClient::Node.find(project_id).first
   end
 
+  # This is the set chosen by the user that will be the "original set" for the first
+  #  work order (when that is created)
   def original_set
     return nil unless original_set_uuid
     return @original_set if @original_set&.uuid==original_set_uuid
@@ -31,6 +33,7 @@ class WorkPlan < ApplicationRecord
     original_set && original_set.meta['size']
   end
 
+  # Convert owner email to lower case with no surrounding whitespace
   def sanitise_owner
     if owner_email
       sanitised = owner_email.strip.downcase
@@ -40,10 +43,11 @@ class WorkPlan < ApplicationRecord
     end
   end
 
+  # Find orders owned by the given user (an object with a .email attribute)
   scope :for_user, -> (owner) { where(owner_email: owner.email) }
 
   # Creates one work order per process in the product.
-  # process_module_ids needs to be an array of arrays of module ids.
+  # The process_module_ids needs to be an array of arrays of module ids to link to the respective orders.
   # The locked set uuid is passed for the first order, in case such a locked
   # set already exists
   def create_orders(process_module_ids, locked_set_uuid)
@@ -74,6 +78,9 @@ class WorkPlan < ApplicationRecord
     "Work plan #{id}"
   end
 
+  # The status to show in the table for work plans in progress.
+  # Shows "#{process} in progress" if an order is in progress,
+  #  and "#{process} complete/cancelled" if the next order is waiting to be dispatched.
   def active_status
     active_order = work_orders.find(&:active?)
     return active_order.process.name+' in progress' if active_order
@@ -82,8 +89,7 @@ class WorkPlan < ApplicationRecord
     '' # shouldn't happen, but don't explode
   end
 
-
-  # Returns the step we have reached in the wizard.
+  # For plans in construction, returns the step we have reached in the wizard.
   # After the wizard has been completed, revisiting it should bring you back to the dispatch step.
   def wizard_step
     return 'set' unless original_set_uuid
@@ -121,6 +127,8 @@ class WorkPlan < ApplicationRecord
     'construction'
   end
 
+  # Everyone has :read and :create permission.
+  # Only the plan owner has :write (or any other) permission.
   def permitted?(email_or_group, access)
     access = access.to_sym
     return true if access==:read || access==:create
