@@ -1,11 +1,11 @@
 class ProductsController < ApplicationController
-  before_action :set_work_order
+  before_action :set_work_plan
   before_action :set_product
 
-  def show_product_inside_work_order
-    authorize! :read, @work_order
+  def show_product_inside_work_plan
+    authorize! :read, @work_plan
 
-    cost_code = @work_order.proposal.cost_code
+    cost_code = @work_plan.project.cost_code
     price = BillingFacadeClient.get_unit_price(cost_code, @product.name)
 
     # Currently assuming there is only one process to one product
@@ -23,8 +23,8 @@ class ProductsController < ApplicationController
 
   private
 
-  def set_work_order
-    @work_order = WorkOrder.find(params[:id])
+  def set_work_plan
+    @work_plan = WorkPlan.find(params[:id])
   end
 
   def set_product

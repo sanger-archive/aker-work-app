@@ -8,7 +8,7 @@ RSpec.describe WorkPlan, type: :model do
     allow(StudyClient::Node).to receive(:find).with(proj.id).and_return([proj])
     proj
   end
-  
+
   let(:set) do
     uuid = SecureRandom.uuid
     s = double(:set, uuid: uuid, id: uuid, meta: { 'size' => 0 })
@@ -158,22 +158,21 @@ RSpec.describe WorkPlan, type: :model do
       it { expect(plan.wizard_step).to eq('set') }
     end
 
-    context 'when the original set has been selected and the product has not been selected' do
+    context 'when the original set has been selected and the project has not been selected' do
       before do
         plan.update_attributes(original_set_uuid: set.uuid)
-      end
-      it { expect(plan.wizard_step).to eq('product') }
-    end
-
-    context 'when the set has also been selected and the project has not been selected' do
-      before do
-        plan.update_attributes!(product: product, original_set_uuid: set.uuid)
-        plan.create_orders.first.update_attributes!(set_uuid: set.uuid)
       end
       it { expect(plan.wizard_step).to eq('project') }
     end
 
-    context 'when the project has also been selected' do
+    context 'when the project has also been selected and the product has not been selected' do
+      before do
+        plan.update_attributes!(project_id: project.id, original_set_uuid: set.uuid)
+      end
+      it { expect(plan.wizard_step).to eq('product') }
+    end
+
+    context 'when the product has also been selected' do
       before do
         plan.update_attributes!(product: product, project_id: project.id, original_set_uuid: set.uuid)
         plan.create_orders.first.update_attributes!(set_uuid: set.uuid)

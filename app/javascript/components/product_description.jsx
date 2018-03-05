@@ -41,8 +41,8 @@ class ProductDescription extends React.Component {
   }
 
   getProductInfo(productId) {
-    const workOrderId = this.props.workOrderId;
-    const path = Routes.root_path()+'api/v1/work_orders/'+workOrderId+'/products/'+productId;
+    const workPlanId = this.props.workPlanId;
+    const path = Routes.root_path()+'api/v1/work_plans/'+workPlanId+'/products/'+productId;
 
     fetch(path, {credentials: 'include'})
       .then(this.checkResponse)
@@ -73,7 +73,7 @@ class ProductDescription extends React.Component {
       const productOptionIds = this.state.selectedPath.filter((product) => { return product.name !== 'end' }).map((product) => {
         return product.id
       })
-      return JSON.stringify(productOptionIds)
+      return JSON.stringify([productOptionIds])
     } else {
       return ""
     }
@@ -104,8 +104,8 @@ class ProductDescription extends React.Component {
     return (
       <div>
         <ErrorConsole msg={this.state.errorMessage}/>
-        <input type='hidden' name='work_order[product_id]' value={productId} />
-        <input type='hidden' id="product_options" name='work_order[product_options]' value={this.serializedProductOptions()} />
+        <input type='hidden' name='work_plan[product_id]' value={productId} />
+        <input type='hidden' id="product_options" name='work_plan[product_options]' value={this.serializedProductOptions()} />
 
         <ProductLabel />
         <ProductSelectElement catalogueList={this.props.data} onChange={this.onProductSelectChange}/>

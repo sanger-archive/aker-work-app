@@ -1,19 +1,19 @@
 class PlanWizardController < ApplicationController
   include Wicked::Wizard
 
-  steps :product, :set, :project, :dispatch
+  steps :set, :project, :product, :dispatch
 
-  helper_method :work_order, :get_all_aker_sets, :project, :get_spendable_projects, :get_current_catalogues,
+  helper_method :work_plan, :get_my_sets, :project, :get_spendable_projects, :get_current_catalogues,
                 :get_current_catalogues_with_products, :last_step?, :first_step?
 
   def show
-    # TODO - work-plan write authorisation
+    authorize! :write, work_plan
 
     render_wizard
   end
 
   def update
-    # TODO - work-plan write authorisation
+    authorize! :write, work_plan
 
     begin
       check_update_authorization!
@@ -24,8 +24,8 @@ class PlanWizardController < ApplicationController
     end
   end
 
-  def plan
-    @plan ||= WorkPlan.find(params[:work_plan_id])
+  def work_plan
+    @work_plan ||= WorkPlan.find(params[:work_plan_id])
   end
 
   def get_my_sets
@@ -33,7 +33,7 @@ class PlanWizardController < ApplicationController
   end
 
   def project
-    plan&.project
+    work_plan&.project
   end
 
   def get_spendable_projects
@@ -50,7 +50,7 @@ class PlanWizardController < ApplicationController
   def get_current_catalogues_with_products
     # format for grouped_options_for_select form helper method in product.html.erb
     # include whether the product is not available i.e needs to be disabled, and initial blank option
-    get_current_catalogues.map { |c| [c.pipeline, c.products.map { |p| [p.name, p.id, {'disabled'=>p.availability != 'available'}] } ] }.insert(0, ['', ['']])
+    get_current_catalogues.map { |c| [c.pipeline, c.products.map { |p| [p.name, p.id, {'disabled'=> p.suspended? }] } ] }.insert(0, ['', ['']])
   end
 
   def last_step?
@@ -90,11 +90,15 @@ class PlanWizardController < ApplicationController
   end
 
   def check_update_authorization!
-    if step==:product
-      # TODO
-    elsif step==:set
-      # TODO
+    if step==:set
+      if params[:work_plan] && work_plan_params[:original_set_uuid]
+        original_set = SetClient::Set.find_with_materials(work_plan_params[:original_set_uuid]).first
+        check_materials = original_set.materials
+        stamp_client_authorize!(:consume, check_materials.map(&:id), user_and_groups_list)
+      end
     elsif step==:project
+      # TODO
+    elsif step==:product
       # TODO
     elsif step==:dispatch
       # TODO
@@ -106,27 +110,23 @@ class PlanWizardController < ApplicationController
       flash[:error] = "Please select an option to proceed"
       render_wizard
     elsif perform_step
-      render_wizard plan
+      render_wizard work_plan
     else
       render_wizard
     end
   end
 
   def nothing_to_update
-    return true unless params[:work_plan]
-    if step==:product
-      return params[:work_plan][:product_id].blank?
-    end
-    false
+    !params[:work_plan]
   end
 
   def perform_step
-    # TODO perform the update
+    return UpdatePlanService.new(work_plan_params, work_plan, flash).perform
   end
 
-  def plan_params
+  def work_plan_params
     params.require(:work_plan).permit(
-      :original_set_uuid, :project_id, :product_id, :product_options, :comment, :desired_data
+      :original_set_uuid, :project_id, :product_id, :product_options, :comment, :desired_date
     )
   end
 end

@@ -17,6 +17,21 @@ class WorkPlan < ApplicationRecord
     @project = StudyClient::Node.find(project_id).first
   end
 
+
+  def original_set
+    return nil unless original_set_uuid
+    return @original_set if @original_set&.uuid==original_set_uuid
+    begin
+      @original_set = SetClient::Set.find(original_set_uuid).first
+    rescue JsonApiClient::Errors::NotFound => e
+      return nil
+    end
+  end
+
+  def num_original_samples
+    self.original_set&.meta['size']
+  end
+
   def sanitise_owner
     if owner_email
       sanitised = owner_email.strip.downcase
@@ -27,15 +42,29 @@ class WorkPlan < ApplicationRecord
   end
 
   # Creates one work order per process in the product.
-  def create_orders
+  # process_module_ids needs to be an array of arrays of module ids.
+  # The locked set uuid is passed for the first order, in case such a locked
+  # set already exists
+  def create_orders(process_module_ids, locked_set_uuid)
     unless product
       raise "No product is selected"
+    end
+    unless product.processes.length==process_module_ids.length
+      raise "Bad process options passed"
     end
     unless work_orders.empty?
       return work_orders
     end
     product.processes.each_with_index do |pro, i|
-      WorkOrder.create!(process: pro, order_index: i, work_plan: self, status: WorkOrder.QUEUED)
+      wo = WorkOrder.create!(process: pro, order_index: i, work_plan: self, status: WorkOrder.QUEUED,
+              original_set_uuid: i==0 ? original_set_uuid : nil, set_uuid: i==0 ? locked_set_uuid : nil)
+      if wo.original_set_uuid && !wo.set_uuid
+        wo.create_locked_set
+      end
+      module_ids = process_module_ids[i]
+      module_ids.each_with_index do |mid, j|
+        WorkOrderModuleChoice.create!(work_order_id: wo.id, aker_process_modules_id: mid, position: j)
+      end
     end
     work_orders.reload
   end
@@ -49,8 +78,8 @@ class WorkPlan < ApplicationRecord
   # After the wizard has been completed, revisiting it should bring you back to the dispatch step.
   def wizard_step
     return 'set' unless original_set_uuid
-    return 'product' unless product
     return 'project' unless project
+    return 'product' unless product
     'dispatch'
   end
 
@@ -81,5 +110,16 @@ class WorkPlan < ApplicationRecord
       return 'active' if (work_orders.any?(&:active?) || work_orders.any?(&:closed?) && work_orders.any?(&:queued?))
     end
     'construction'
+  end
+
+  def permitted?(email_or_group, access)
+    access = access.to_sym
+    return true if access==:read || access==:create
+    if email_or_group.instance_of? String
+      email_or_group==owner_email
+    else
+      email_or_group.include?(owner_email)
+    end
+    # TODO - worry about deputies
   end
 end

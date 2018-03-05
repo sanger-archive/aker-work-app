@@ -65,4 +65,12 @@ class Product < ApplicationRecord
     Product.where(availability: false)
   end
 
+  def available?
+    self.availability
+  end
+
+  def suspended?
+    !self.availability
+  end
+
 end

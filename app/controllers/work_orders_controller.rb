@@ -14,10 +14,15 @@ class WorkOrdersController < ApplicationController
   skip_credentials only: [:complete, :cancel, :get]
 
   def index
-    @active_work_orders = WorkOrder.active.for_user(current_user).order(created_at: :desc)
-    @pending_work_orders = WorkOrder.pending.for_user(current_user).order(created_at: :desc)
-    @completed_work_orders = WorkOrder.completed.for_user(current_user).order(created_at: :desc)
-    @cancelled_work_orders = WorkOrder.cancelled.for_user(current_user).order(created_at: :desc)
+    #@active_work_orders = WorkOrder.active.for_user(current_user).order(created_at: :desc)
+    #@pending_work_orders = WorkOrder.pending.for_user(current_user).order(created_at: :desc)
+    #@completed_work_orders = WorkOrder.completed.for_user(current_user).order(created_at: :desc)
+    #@cancelled_work_orders = WorkOrder.cancelled.for_user(current_user).order(created_at: :desc)
+    @active_work_orders = []
+    @pending_work_orders = []
+    @complete_work_order = []
+    @cancelled_work_orders = []
+    # TODO
   end
 
   def create
