@@ -1,4 +1,5 @@
 require 'rails_helper'
+require 'ostruct'
 
 RSpec.describe WorkPlan, type: :model do
   let(:catalogue) { create(:catalogue) }
@@ -333,6 +334,61 @@ RSpec.describe WorkPlan, type: :model do
       end
       context 'when the parameter is an array not including the owner email' do
         it { expect(plan.permitted?(['alpha', 'beta'], :write)).to be_falsey }
+      end
+    end
+  end
+
+  describe '#for_user' do
+    let(:user1) { OpenStruct.new(email: 'alaska@usa') }
+    let(:user2) { OpenStruct.new(email: 'alabama@usa') }
+    let(:user3) { OpenStruct.new(email: 'arizona@usa') }
+    let!(:plans) do
+      [ user1, user1, user2 ].map { |user| create(:work_plan, owner_email: user.email) }
+    end
+
+    it 'should return plans belonging to the given user' do
+      expect(WorkPlan.for_user(user1)).to eq(plans[0..1])
+      expect(WorkPlan.for_user(user2)).to eq(plans[2..2])
+      expect(WorkPlan.for_user(user3)).to eq([])
+    end
+  end
+
+  describe '#active_status' do
+    let(:plan) do
+      pl = create(:work_plan, product: product, project_id: project.id, original_set_uuid: set.id)
+      pl.create_orders(process_options, nil)
+      pl.work_orders.reload
+      pl
+    end
+
+    before do
+      make_processes(3)
+    end
+
+    context 'when an order is in progress' do
+      it 'should say the process is in progress' do
+        plan.work_orders.first.update_attributes!(status: WorkOrder.COMPLETED)
+        order = plan.work_orders[1]
+        order.update_attributes!(status: WorkOrder.ACTIVE)
+        expect(plan.active_status).to eq("#{order.process.name} in progress")
+      end
+    end
+
+    context 'when order cancelled' do
+      it 'should say that the process was cancelled' do
+        plan.work_orders.first.update_attributes!(status: WorkOrder.COMPLETED)
+        order = plan.work_orders[1]
+        order.update_attributes!(status: WorkOrder.CANCELLED)
+        expect(plan.active_status).to eq("#{order.process.name} cancelled")
+      end
+    end
+
+    context 'when order completed' do
+      it 'should say that the process was completed' do
+        plan.work_orders.first.update_attributes!(status: WorkOrder.CANCELLED)
+        order = plan.work_orders[1]
+        order.update_attributes!(status: WorkOrder.COMPLETED)
+        expect(plan.active_status).to eq("#{order.process.name} completed")
       end
     end
   end
