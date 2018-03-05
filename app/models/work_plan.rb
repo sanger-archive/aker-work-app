@@ -47,8 +47,6 @@ class WorkPlan < ApplicationRecord
 
   # Returns the step we have reached in the wizard.
   # After the wizard has been completed, revisiting it should bring you back to the dispatch step.
-  # The assumption of this is that we can pick the product FIRST, because we can't make the work orders
-  #  until we have the product, and we don't have anywhere to put the set until we have orders.
   def wizard_step
     return 'set' unless original_set_uuid
     return 'product' unless product
