@@ -8,15 +8,25 @@ class ProductsController < ApplicationController
     cost_code = @work_plan.project.cost_code
     price = BillingFacadeClient.get_unit_price(cost_code, @product.name)
 
-    # Currently assuming there is only one process to one product
-    process = @product.processes[0]
-    process_module_pairings = Aker::ProcessModulePairings.where(aker_process_id: process.id)
+    processes = []
 
-    available_links = @product.build_available_links(process_module_pairings)
-    default_path = @product.build_default_path(process_module_pairings)
+    @product.processes.each do |process|
+      process_info = {}
+      process_module_pairings = Aker::ProcessModulePairings.where(aker_process_id: process.id)
+
+      available_links = process.build_available_links(process_module_pairings)
+      default_path = process.build_default_path(process_module_pairings)
+
+      process_info[:name] = process.name
+      process_info[:id] = process.id
+      process_info[:available_links] = available_links
+      process_info[:default_path] = default_path
+
+      processes.push(process_info)
+    end
 
     render json: @product.as_json.merge(
-      unit_price: price, cost_code: cost_code, available_links: available_links, default_path: default_path
+      unit_price: price, cost_code: cost_code, product_processes: processes
     ).to_json
 
   end

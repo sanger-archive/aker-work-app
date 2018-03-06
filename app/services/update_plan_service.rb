@@ -16,7 +16,6 @@ class UpdatePlanService
   # Check messages for an error or notice message.
   def perform
     product_options = nil
-
     if @work_plan_params[:product_options]
       product_options = JSON.parse(@work_plan_params[:product_options])
       @work_plan_params.delete(:product_options)
