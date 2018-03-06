@@ -56,7 +56,7 @@ class Broker
     #   using specific routing keys
     @exchange = @channel.topic(@events_config.exchange, passive: true)
 
-    @catalogue_queue = @channel.queue(@events_config.catalogue_queue, passive: true)
+    @catalogue_queue = @channel.queue(@events_config.catalogues_queue, passive: true)
 
     # To be able to wait_for_confirms in publish()
     @channel.confirm_select
