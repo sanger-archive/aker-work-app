@@ -3,8 +3,11 @@
 This application allows users to create and manage work orders.
 
 # Setup
-## Dev environment
+## Database
 To create the databases for the dev environment: `rake db:setup`
+
+## Broker
+To create the exchanges, queues and usernames etc. use the GitLab repo: [aker-environments](https://gitlab.internal.sanger.ac.uk/aker/aker-environments)
 
 # Testing
 To run ALL the tests for this project: `bundle exec rake`
