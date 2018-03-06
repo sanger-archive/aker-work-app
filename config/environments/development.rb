@@ -12,9 +12,9 @@ Rails.application.configure do
 
   # config.relative_url_root = '/work-orders'
 
-  # In the development environment your application's code is reloaded on
-  # every request. This slows down response time but is perfect for development
-  # since you don't have to restart the web server when you make code changes.
+  # In the development environment your application's code is reloaded on every request. This slows
+  # down response time but is perfect for development since you don't have to restart the web
+  # server when you make code changes.
   config.cache_classes = false
 
   # Do not eager load code on boot.
@@ -81,8 +81,8 @@ Rails.application.configure do
     broker_username: 'work_orders',
     broker_password: 'password',
     vhost: 'aker',
-    exchange: 'aker.events',
-    catalogue_queue: 'aker.events.catalogue'
+    exchange: 'aker.events.tx',
+    catalogues_queue: 'aker_catalogues_q'
   }
 
   config.work_order_completion_json = 'work_order_completion.json'
