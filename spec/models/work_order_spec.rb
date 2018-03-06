@@ -20,9 +20,9 @@ RSpec.describe WorkOrder, type: :model do
 
   def make_set(size = 6)
     uuid = make_uuid
-    s = double(:set, uuid: uuid, id: uuid, meta: { 'size' => size })
-    allow(SetClient::Set).to receive(:find).with(s.uuid).and_return([s])
-    s
+    a_set = double(:set, uuid: uuid, id: uuid, meta: { 'size' => size })
+    allow(SetClient::Set).to receive(:find).with(a_set.uuid).and_return([a_set])
+    a_set
   end
 
   let(:project) { make_node('Operation Wolf', 'S1001', 41, 40, false, true, SecureRandom.uuid) }
@@ -31,17 +31,17 @@ RSpec.describe WorkOrder, type: :model do
   end
 
   def make_node(name, cost_code, id, parent_id, is_sub, is_proj, data_release_uuid)
-    n = double('node',
-               name: name,
-               cost_code: cost_code,
-               id: id,
-               parent_id: parent_id,
-               subproject?: is_sub,
-               project?: is_proj,
-               node_uuid: make_uuid,
-               data_release_uuid: data_release_uuid)
-    allow(StudyClient::Node).to receive(:find).with(n.id).and_return([n])
-    n
+    node = double('node',
+                  name: name,
+                  cost_code: cost_code,
+                  id: id,
+                  parent_id: parent_id,
+                  subproject?: is_sub,
+                  project?: is_proj,
+                  node_uuid: make_uuid,
+                  data_release_uuid: data_release_uuid)
+    allow(StudyClient::Node).to receive(:find).with(node.id).and_return([node])
+    node
   end
 
   def make_result_set(items)

@@ -132,7 +132,7 @@ RSpec.describe 'Broker' do
         @unconfirmed_sets = Set.new([1])
       end
 
-      it 'raises excbrokertion if unconfirmed set is not empty' do
+      it 'raises exception if unconfirmed set is not empty' do
         allow(@channel).to receive(:unconfirmed_set).and_return(@unconfirmed_sets)
 
         broker = Broker.new
