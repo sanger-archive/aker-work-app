@@ -1,0 +1,17 @@
+<%= render partial: 'plan_header' %>
+
+<%= bootstrap_form_for work_plan, url: wizard_path, method: :put  do |f| %>
+
+  <%= f.hidden_field :id %>
+
+  <h4>Work Plan <%= work_plan.id %></h2>
+
+  <!-- render 'work_orders' -->
+  <!-- render 'sets'  -->
+  <!-- render 'products' -->
+  <!-- render 'proposals' -->
+  <!-- render 'total_cost' -->
+
+  <%= render 'buttons', work_plan: work_plan, f: f %>
+
+<% end %>

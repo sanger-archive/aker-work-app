@@ -28,10 +28,8 @@ class Catalogue < ApplicationRecord
 
   def self.create_products(products, catalogue_id)
     products.each do |pp|
-      # Store ID from message as the external ID for the product
-      pp[:external_id] = pp.delete :id
 
-      accepted_product_keys = %i[name description product_version availability requested_biomaterial_type product_class external_id]
+      accepted_product_keys = %i[name description product_version availability requested_biomaterial_type product_class uuid]
       product = Product.create!(pp.select { |k, _v| accepted_product_keys.include?(k) }.merge({ catalogue_id: catalogue_id }))
 
       create_processes(pp[:processes], product.id)
@@ -40,8 +38,7 @@ class Catalogue < ApplicationRecord
 
   def self.create_processes(processes, product_id)
     processes.each_with_index do |p, i|
-      p[:external_id] = p.delete :id
-      accepted_process_keys = %i[name TAT external_id]
+      accepted_process_keys = %i[name TAT uuid]
       process = Aker::Process.create!(p.select { |k, _v| accepted_process_keys.include?(k) })
       # Stage is determined by the order each process appears in the array.
       # First stage is 1. I'm sorry.

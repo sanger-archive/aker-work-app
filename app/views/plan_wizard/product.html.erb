@@ -1,0 +1,16 @@
+<%= render partial: 'plan_header' %>
+
+<%= bootstrap_form_for work_plan, url: wizard_path, method: :put  do |f| %>
+
+
+  <input type='hidden' disabled='disabled' id="work-plan-id" value="<%= work_plan.id %>" />
+  <input type='hidden' disabled='disabled' id="num-of-samples" value="<%= work_plan.num_original_samples %>" />
+
+  <%= react_component('ProductDescription', { data: get_current_catalogues_with_products, workPlanId: work_plan.id }) %>
+
+  <%= f.text_field :comment, label: 'Please add any advisory notes for the operations team' %>
+  <%= f.text_field :desired_date, data: { behavior: "datepicker" } %>
+
+  <%= render 'buttons', work_plan: work_plan, f: f %>
+
+<% end %>

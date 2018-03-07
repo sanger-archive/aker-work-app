@@ -4,6 +4,8 @@ RSpec.describe Catalogue, type: :model do
   describe "#create_with_products" do
     let (:lims_id) { "FOO" }
     let (:other_lims_id) { "BAR" }
+    let(:product_uuid) { SecureRandom.uuid }
+    let(:process_uuid) { SecureRandom.uuid }
 
     context "when creating" do
       before do
@@ -11,9 +13,9 @@ RSpec.describe Catalogue, type: :model do
         @cat1 = Catalogue.create!(lims_id: lims_id, url: "somewhere", pipeline: "cells", current: true)
         @cat2 = Catalogue.create!(lims_id: other_lims_id, url: "somewhere else", pipeline: "cells", current: true)
         @cat3 = Catalogue.create_with_products(lims_id: lims_id, url: "france", pipeline: "cells",
-          products: [{ id: 2, name: "QC", description: "Lorem Ipsum", product_version: 1, availability: 1,
+          products: [{ uuid: product_uuid, name: "QC", description: "Lorem Ipsum", product_version: 1, availability: 1,
           requested_biomaterial_type: "blood", product_class: "genotyping", processes: [
-            { id: 2, name: "QC", TAT: 5, process_module_pairings: [
+            { uuid: process_uuid, name: "QC", TAT: 5, process_module_pairings: [
               { from_step: nil, to_step: "Quantification", default_path: true},
               { from_step: "Genotyping HumGen SNP", to_step: nil, default_path: true},
               { from_step: "Quantification", to_step: "Genotyping CGP SNP", default_path: true}
@@ -32,13 +34,14 @@ RSpec.describe Catalogue, type: :model do
         expect(product.name).to eq 'QC'
         expect(product.description).to eq 'Lorem Ipsum'
         expect(product.product_class).to eq 'genotyping'
+        expect(product.uuid).to eq product_uuid
       end
 
       it "creates new products with processes" do
         product = Product.where(catalogue_id: @cat3.id)[0]
         expect(product.processes.length).to eq 1
         process = product.processes[0]
-        expect(process.external_id).to eq 2
+        expect(process.uuid).to eq process_uuid
         expect(process.name).to eq 'QC'
         expect(process.TAT).to eq 5
       end

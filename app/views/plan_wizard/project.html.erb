@@ -1,0 +1,11 @@
+<%= render partial: 'plan_header' %>
+
+<%= bootstrap_form_for work_plan, url: wizard_path, method: :put  do |f| %>
+
+    <%= f.collection_radio_buttons(:project_id, get_spendable_projects, :id,
+      lambda { |node| node.name+', Cost code: '+node.cost_code },
+      label: "These are all the projects you can spend on. Please select a project:") %>
+
+  <%= render 'buttons', work_plan: work_plan, f: f %>
+
+<% end %>

@@ -8,23 +8,15 @@ require 'securerandom'
 class WorkOrder < ApplicationRecord
   include AkerPermissionGem::Accessible
 
-  belongs_to :product, optional: true
+  belongs_to :work_plan
+
+  belongs_to :process, class_name: "Aker::Process", optional: false
   has_many :work_order_module_choices, dependent: :destroy
 
-  before_validation :sanitise_owner
-  before_save :sanitise_owner
-
   after_initialize :create_uuid
-  after_create :set_default_permission_email
-
-  validates :owner_email, presence: true
-
+ 
   def create_uuid
     self.work_order_uuid ||= SecureRandom.uuid
-  end
-
-  def set_default_permission_email
-    set_default_permission(owner_email)
   end
 
   # The work order is in the 'active' state when it has been ordered
@@ -48,12 +40,14 @@ class WorkOrder < ApplicationRecord
     'cancelled'
   end
 
-  def total_tat
-    # Calculate sum of work order processes TAT
-    product&.processes&.sum(:TAT) || nil
-  end  
+  def self.QUEUED
+    'queued'
+  end
 
-  scope :for_user, -> (owner) { where(owner_email: owner.email) }
+  def total_tat
+    process&.TAT
+  end
+
   scope :active, -> { where(status: WorkOrder.ACTIVE) }
   # status is either set, product, proposal
   scope :pending, -> { where('status NOT IN (?)', not_pending_status_list)}
@@ -90,23 +84,16 @@ class WorkOrder < ApplicationRecord
     status == WorkOrder.COMPLETED || status == WorkOrder.CANCELLED
   end
 
+  def queued?
+    status == WorkOrder.QUEUED
+  end
+
   def broken!
     update_attributes(status: WorkOrder.BROKEN)
   end
 
-  def sanitise_owner
-    if owner_email
-      sanitised = owner_email.strip.downcase
-      if sanitised != owner_email
-        self.owner_email = sanitised
-      end
-    end
-  end
-
-  def proposal
-  	return nil unless proposal_id
-    return @proposal if @proposal&.id==proposal_id
-	  @proposal = StudyClient::Node.find(proposal_id).first
+  def broken?
+    status == WorkOrder.BROKEN
   end
 
   def original_set
@@ -207,23 +194,23 @@ class WorkOrder < ApplicationRecord
     end
     describe_containers(material_ids, material_data)
 
-    if proposal.subproject?
-      project = StudyClient::Node.find(proposal.parent_id).first
-    else
-      project = proposal
+    project = work_plan.project
+    cost_code = project.cost_code
+    if project.subproject?
+      project = StudyClient::Node.find(project.parent_id).first
     end
 
     {
       work_order: {
-        product_name: product.name,
-        product_version: product.product_version,
+        process_name: process.name,
+        process_uuid: process.uuid,
         work_order_id: id,
-        comment: comment,
+        comment: work_plan.comment,
         project_uuid: project.node_uuid,
         project_name: project.name,
         data_release_uuid: project.data_release_uuid,
-        cost_code: proposal.cost_code,
-        desired_date: desired_date,
+        cost_code: cost_code,
+        desired_date: work_plan.desired_date,
         materials: material_data,
         modules: module_choices,
       }

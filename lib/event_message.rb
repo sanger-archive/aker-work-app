@@ -72,14 +72,16 @@ class WorkOrderEventMessage < EventMessage
   end
   # Generate the JSON for a Work Order event
   def generate_json
-    project = @work_order.proposal
-    product = @work_order.product
+    plan = @work_order.work_plan
+    project = plan.project
+    product = plan.product
+    process = @work_order.process
     {
       'event_type' => "aker.events.work_order.#{@status}",
       'lims_id' => 'aker',
       'uuid' => SecureRandom.uuid,
       'timestamp' => Time.now.utc.iso8601,
-      'user_identifier' => @work_order.owner_email,
+      'user_identifier' => plan.owner_email,
       'roles' => [
         {
           'role_type' => 'work_order',
@@ -97,9 +99,19 @@ class WorkOrderEventMessage < EventMessage
           'role_type' => 'product',
           'subject_type' => 'product',
           'subject_friendly_name' => product.name,
-          # subject_uuid now points to the product's ID within Aker, as the UUID
-          # no longer exists.
-          'subject_uuid' => product.id
+          'subject_uuid' => product.uuid
+        },
+        {
+          'role_type' => 'process',
+          'subject_type' => 'process',
+          'subject_friendly_name' => process.name,
+          'subject_uuid' => process.uuid,
+        },
+        {
+          'role_type' => 'work_plan',
+          'subject_type' => 'work_plan',
+          'subject_friendly_name' => plan.name,
+          'subject_uuid' => plan.uuid,
         }
       ],
       'metadata' => metadata
@@ -119,11 +131,12 @@ class WorkOrderEventMessage < EventMessage
   end
 
   def metadata_for_submitted
+    plan = @work_order.work_plan
     {
       'work_order_id' => @work_order.id,
-      'comment' => @work_order.comment,
+      'comment' => plan.comment,
       'quoted_price' => @work_order.total_cost,
-      'desired_completion_date' => @work_order.desired_date,
+      'desired_completion_date' => plan.desired_date,
       'zipkin_trace_id' => trace_id,
       'num_materials' => num_materials
     }

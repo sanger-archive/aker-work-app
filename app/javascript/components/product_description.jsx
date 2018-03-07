@@ -5,7 +5,7 @@ class ProductDescription extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      selectedPath: this.props.defaultPath,
+      selectedProductProcesses: this.props.productProcesses,
       showProductInfo: false
     }
     this.onProductOptionsSelectChange = this.onProductOptionsSelectChange.bind(this);
@@ -29,20 +29,29 @@ class ProductDescription extends React.Component {
 
   onProductOptionsSelectChange(event) {
     event.preventDefault();
-    let newPath = this.state.selectedPath;
-    const selectedName = event.target.selectedOptions[0].text
-    const selectedId = event.target.value
-    const pos = parseInt(event.target.id, 10)
-    newPath[pos] = {id: selectedId, name: selectedName}
-    if (this.state.availableLinks[selectedName][0].name=='end') {
-      newPath[pos+1] = {name: 'end', id: 'end'};
+
+// processStage is the stage of the process for a product
+    const processStage = event.target.parentElement.id
+    const selectElementId = parseInt(event.target.id, 10)
+
+    const processModuleName = event.target.selectedOptions[0].text
+    const processModuleId = event.target.value
+
+    let updatedProductProcesses = this.state.selectedProductProcesses;
+    let updatedProcessDefaultPath = updatedProductProcesses[processStage].default_path
+
+    updatedProcessDefaultPath[selectElementId] = {id: processModuleId, name: processModuleName}
+    if (updatedProductProcesses[processStage].available_links[processModuleName][0].name=='end') {
+      updatedProcessDefaultPath[selectElementId+1] = {name: 'end', id: 'end'};
     }
-    this.setState({selectedPath: newPath})
+    updatedProductProcesses[processStage].default_path = updatedProcessDefaultPath
+
+    this.setState({selectedProductProcesses: updatedProductProcesses})
   }
 
   getProductInfo(productId) {
-    const workOrderId = this.props.workOrderId;
-    const path = Routes.root_path()+'api/v1/work_orders/'+workOrderId+'/products/'+productId;
+    const workPlanId = this.props.workPlanId;
+    const path = Routes.root_path()+'api/v1/work_plans/'+workPlanId+'/products/'+productId;
 
     fetch(path, {credentials: 'include'})
       .then(this.checkResponse)
@@ -63,17 +72,25 @@ class ProductDescription extends React.Component {
   }
 
   processProductInfo(responseJSON) {
-    const links = responseJSON.available_links;
-    const path = responseJSON.default_path;
-    this.setState({selectedPath: path, availableLinks: links, productInfo: responseJSON})
+    const productInfo = responseJSON
+    const productProcesses = responseJSON.product_processes;
+
+    this.setState({selectedProductProcesses: productProcesses, productInfo: productInfo})
   }
 
   serializedProductOptions() {
-    if (this.state.selectedPath) {
-      const productOptionIds = this.state.selectedPath.filter((product) => { return product.name !== 'end' }).map((product) => {
-        return product.id
+    if (this.state.selectedProductProcesses) {
+      let productOptionsIds = [];
+      this.state.selectedProductProcesses.forEach(function(prod, i){
+        let processModuleIds = []
+        prod.default_path.forEach(function(mod, j){
+          if (mod.id != 'end') {
+            processModuleIds[j] = mod.id
+          }
+        })
+        productOptionsIds[i] = processModuleIds
       })
-      return JSON.stringify(productOptionIds)
+      return JSON.stringify(productOptionsIds)
     } else {
       return ""
     }
@@ -89,10 +106,8 @@ class ProductDescription extends React.Component {
     if (this.state.showProductInfo && this.state.productInfo) {
       productOptionComponents = (
         <Fragment>
-          <ProductOptionLabel />
-          <div className="col-md-12">
-            <ProductOptionSelectDropdowns links={this.state.availableLinks} path={this.state.selectedPath} onChange={this.onProductOptionsSelectChange}/>
-          </div>
+          <Processes productProcesses={this.state.selectedProductProcesses} onChange={this.onProductOptionsSelectChange}/>
+
           <ProductInformation data={this.state.productInfo} />
           <CostInformation data={this.state.productInfo} />
         </Fragment>
@@ -104,8 +119,8 @@ class ProductDescription extends React.Component {
     return (
       <div>
         <ErrorConsole msg={this.state.errorMessage}/>
-        <input type='hidden' name='work_order[product_id]' value={productId} />
-        <input type='hidden' id="product_options" name='work_order[product_options]' value={this.serializedProductOptions()} />
+        <input type='hidden' name='work_plan[product_id]' value={productId} />
+        <input type='hidden' id="product_options" name='work_plan[product_options]' value={this.serializedProductOptions()} />
 
         <ProductLabel />
         <ProductSelectElement catalogueList={this.props.data} onChange={this.onProductSelectChange}/>
@@ -196,19 +211,48 @@ class ProductSelectOptGroupOption extends React.Component {
   }
 }
 
-class ProductOptionLabel extends React.Component {
+class Processes extends React.Component {
+  render() {
+    const onChange = this.props.onChange;
+    var processCommponents = [];
+
+    this.props.productProcesses.forEach(function(pro, index){
+      let processName = pro.name;
+      let processId = pro.id;
+      let processAvailableLinks = pro.available_links;
+      let processDefaultPath = pro.default_path;
+
+      processCommponents.push(
+        <Fragment>
+          <ProcessNameLabel name={processName}/>
+          <div id={index} className="col-md-12">
+            <ProcessModulesSelectDropdowns key={index} links={processAvailableLinks} path={processDefaultPath} onChange={onChange} />
+          </div>
+        </Fragment>
+      );
+    });
+
+    return (
+      <Fragment>
+        { processCommponents }
+      </Fragment>
+    );
+  }
+}
+
+class ProcessNameLabel extends React.Component {
   render() {
     return (
       <Fragment>
         <br />
-        <label>Choose options:</label>
+        <label>{this.props.name} process:</label>
         <br />
       </Fragment>
     );
   }
 }
 
-class ProductOptionSelectDropdowns extends React.Component {
+class ProcessModulesSelectDropdowns extends React.Component {
   render() {
     const select_dropdowns = [];
     let options= [];
@@ -228,7 +272,7 @@ class ProductOptionSelectDropdowns extends React.Component {
       if (!selected) {
         selected = options[0];
       }
-      select_dropdowns.push(<ProductOptionSelectElement selected={selected} options={options} key={index} id={index} onChange={this.props.onChange} />)
+      select_dropdowns.push(<ProcessModuleSelectElement selected={selected} options={options} key={index} id={index} onChange={this.props.onChange} />)
     })
 
     return (
@@ -239,11 +283,11 @@ class ProductOptionSelectDropdowns extends React.Component {
   }
 }
 
-class ProductOptionSelectElement extends React.Component {
+class ProcessModuleSelectElement extends React.Component {
   render() {
     const select_options = [];
     this.props.options.forEach((option, index) => {
-      select_options.push(<ProductOptionSelectOption obj={option} key={index} />)
+      select_options.push(<ProcessModuleSelectOption obj={option} key={index} />)
     })
     const selection = this.props.selected ? this.props.selected.id : ""
     return (
@@ -254,7 +298,7 @@ class ProductOptionSelectElement extends React.Component {
   }
 }
 
-class ProductOptionSelectOption extends React.Component {
+class ProcessModuleSelectOption extends React.Component {
   render() {
    const productObject = this.props.obj;
     return (
