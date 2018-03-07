@@ -7,6 +7,7 @@ Rails.application.config.after_initialize do
     ENV['https_proxy'] = nil
     connection.faraday.proxy ''
     connection.use JWTSerializer
+    connection.use RequestIdMiddleware
     if Rails.env.production? || Rails.env.staging?
       connection.use ZipkinTracer::FaradayHandler, 'Materials service'
     end
