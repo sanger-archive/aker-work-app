@@ -112,8 +112,9 @@ RSpec.describe 'Broker' do
       allow(@event_message).to receive(:generate_json).and_return('message')
     end
 
-    context 'unconfirmed set is empty' do
+    context 'unconfirmed set (of published message indexes) is empty' do
       before(:each) do
+        # unconfirmed set of published message indexes
         @unconfirmed_sets = Set.new([])
       end
 
@@ -127,8 +128,9 @@ RSpec.describe 'Broker' do
       end
     end
 
-    context 'unconfirmed set is not empty' do
+    context 'unconfirmed set (of published message indexes) is not empty' do
       before(:each) do
+        # unconfirmed set of published message indexes
         @unconfirmed_sets = Set.new([1])
       end
 
