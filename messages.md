@@ -7,12 +7,11 @@ unique so adjust the message as required.
 ```json
 {
   "catalogue": {
-    "id": 1,
     "pipeline": "WGS",
     "url": "dev.psd.sanger.ac.uk",
     "lims_id": "SQSC",
     "products": [{
-        "id": 2,
+        "uuid":"085910e9-166b-42d8-b853-158a9d4277ef",
         "name": "QC",
         "description": "Quality Control",
         "product_version": 1,
@@ -20,9 +19,8 @@ unique so adjust the message as required.
         "requested_biomaterial_type": "blood",
         "product_class": "genotyping",
         "processes": [{
-          "id": 2,
+          "uuid": "8c338822-53dc-4e51-923a-4073caefe07d",
           "name": "QC",
-          "stage": 1,
           "TAT": 5,
           "process_module_pairings": [{
             "from_step": null,
@@ -72,7 +70,7 @@ unique so adjust the message as required.
         }]
       },
       {
-        "id": 3,
+        "uuid": "db382195-7d95-483a-863e-87c8b757cf42",
         "name": "Library 30x Human Whole Genome",
         "description": "Library Creation",
         "product_version": 1,
@@ -80,9 +78,8 @@ unique so adjust the message as required.
         "requested_biomaterial_type": "dna",
         "product_class": "genotyping",
         "processes": [{
-          "id": 2,
+          "uuid": "142ca620-aef9-4a90-9fbd-a5faaef29b48",
           "name": "Library 30x Human Whole Genome",
-          "stage": 1,
           "TAT": 8,
           "process_module_pairings": [{
             "from_step": null,
@@ -112,7 +109,7 @@ unique so adjust the message as required.
         }]
       },
       {
-        "id": 4,
+        "uuid": "ae38a2fd-e548-481c-a2bd-c48498f8b20e",
         "name": "30x Human Whole Genome Sequencing",
         "description": "Genome Sequencing",
         "product_version": 1,
@@ -120,9 +117,8 @@ unique so adjust the message as required.
         "requested_biomaterial_type": "dna",
         "product_class": "genotyping",
         "processes": [{
-          "id": 2,
+          "uuid": "c9b03658-78e8-4dad-b720-7c15ea02e518",
           "name": "30x Human Whole Genome Sequencing",
-          "stage": 1,
           "TAT": 8,
           "process_module_pairings": [{
             "from_step": null,
