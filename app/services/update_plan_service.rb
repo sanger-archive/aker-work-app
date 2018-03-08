@@ -5,9 +5,10 @@ class UpdatePlanService
 
   attr_reader :messages
 
-  def initialize(work_plan_params, work_plan, messages)
+  def initialize(work_plan_params, work_plan, dispatch, messages)
     @work_plan_params = work_plan_params
     @work_plan = work_plan
+    @dispatch = dispatch
     @messages = messages
   end
 
@@ -15,18 +16,49 @@ class UpdatePlanService
   # Returns true if successful; false if fails.
   # Check messages for an error or notice message.
   def perform
+    return false unless check_any_update
+    return false unless ready_for_step
+    return false if block_set_change
+
+    dispatch_order_id = nil
+
+    if @dispatch
+      dispatch_order_id = @work_plan_params[:work_order_id]
+      return false unless check_dispatch(dispatch_order_id)
+    end
+
     product_options = nil
     if @work_plan_params[:product_options]
       product_options = JSON.parse(@work_plan_params[:product_options])
       @work_plan_params.delete(:product_options)
     end
 
-    return false if block_any_update
-    return false unless ready_for_step
-    return false if block_set_change
-
     if @work_plan_params[:project_id]
       return false unless validate_cost_code(@work_plan_params[:project_id])
+    end
+
+    update_order = nil
+
+    if @work_plan_params[:work_order_id] && @work_plan_params[:work_order_modules]
+      update_order = {
+        order_id: @work_plan_params[:work_order_id],
+        modules: JSON.parse(@work_plan_params[:work_order_modules]),
+      }
+      order = WorkOrder.find(update_order[:order_id])
+      unless order.work_plan == @work_plan
+        add_error("The work order specified is not part of this work plan.")
+        return false
+      end
+      unless order.queued?
+        add_error("The work order specified cannot be updated.")
+        return false
+      end
+      @work_plan_params.delete(:work_order_id)
+      @work_plan_params.delete(:work_order_modules)
+
+    elsif @work_plan_params[:work_order_id] || @work_plan_params[:work_order_modules]
+      add_error("Invalid parameters")
+      return false
     end
 
     if @work_plan.update_attributes(@work_plan_params)
@@ -38,6 +70,13 @@ class UpdatePlanService
         work_order_ids = @work_plan.work_orders.map(&:id)
         WorkOrderModuleChoice.where(work_order_id: work_order_ids).each(&:destroy)
         @work_plan.work_orders.destroy_all
+      end
+
+      if update_order
+        WorkOrderModuleChoice.where(work_order_id: update_order[:order_id]).each(&:destroy)
+        update_order[:modules].each_with_index do |mid, i|
+          WorkOrderModuleChoice.create!(work_order_id: update_order[:order_id], aker_process_modules_id: mid, position: i)
+        end
       end
 
       if product_options && @work_plan.work_orders.empty?
@@ -54,7 +93,9 @@ class UpdatePlanService
 
       # TODO calculate cost at some point
 
-      # TODO - handle dispatch
+      if dispatch_order_id
+        return false unless send_order(dispatch_order_id)
+      end
     end
 
     return true
@@ -64,18 +105,23 @@ private
 
   def ready_for_step
     unless @work_plan.original_set_uuid
-      if [:project_id, :product_id, :product_options, :comment, :desired_date].any? { |field| @work_plan_params[field] }
+      if [:project_id, :product_id, :product_options, :comment, :desired_date, :order_id, :work_order_modules].any? { |field| @work_plan_params[field] }
         add_error("Please select a set in an earlier step.")
         return false
       end
     end
     unless @work_plan.project_id
-      if [:product_id, :product_options, :comment, :desired_date].any? { |field| @work_plan_params[field] }
+      if [:product_id, :product_options, :comment, :desired_date, :order_id, :work_order_modules].any? { |field| @work_plan_params[field] }
         add_error("Please select a project in an earlier step.")
         return false
       end
     end
-    # TODO - check when they press "dispatch!" button that everything is filled in
+    if @work_plan.work_orders.empty?
+      if [:order_id, :work_order_modules].any? { |field| @work_plan_params[field] }
+        add_error("Please specify the product fully in an earlier step.")
+        return false
+      end
+    end
     return true
   end
 
@@ -100,18 +146,62 @@ private
     end
   end
 
-  def block_any_update
-    # TODO - allow some changes for subsequent work orders
-    unless @work_plan.in_construction?
-      add_error("This work plan has already been issued. Changes are not possible.")
-      return true
+  # Don't let the user change plan-level details about a plan that has already been partially dispatched
+  def check_any_update
+    return true if @work_plan.in_construction?
+    unless @work_plan.active?
+      add_error("This work plan cannot be updated.")
+      return false
     end
-    return false
+    if [:original_set_uuid, :project_id, :product_id, :product_options, :comment, :desired_date].any? { |field| @work_plan_params[field] }
+      add_error("That change cannot be made because this work plan is in progress.")
+      return false
+    end
+    return true
   end
 
-  def check_set_contents
+  def check_dispatch(order_id)
+    if @work_plan.work_orders.empty?
+      add_error("The orders are not ready for dispatch.")
+      return false
+    end
+    order = WorkOrder.find(order_id)
+    if !order || order.work_plan != @work_plan
+      add_error("That order is not part of this work plan.")
+      return false
+    end
+    unless order.queued?
+      add_error("That order cannot be dispatched.")
+      return false
+    end
+    orders = @work_plan.work_orders
+    first_unclosed = orders.find { |o| !o.closed? }
+    unless first_unclosed==order
+      add_error("That order is not ready to be dispatched.")
+      return false
+    end
+    unless order.original_set_uuid
+      previous_order = orders.reverse.find(&:closed?)
+      order.update_attributes!(original_set_uuid: previous_order.finished_set_uuid)
+    end
+
+    return false unless check_set_contents(order.original_set_uuid)
+
+    if order.original_set.locked
+      order.update_attributes!(set_uuid: order.original_set_uuid)
+    else
+      order.create_locked_set
+      return false unless check_set_contents(order.set_uuid)
+    end
+  end
+
+  def check_set_contents(set_uuid)
     begin
-      mids = SetClient::Set.find_with_materials(@work_plan.original_set_uuid).first.materials.map{|m| m.id}
+      mids = SetClient::Set.find_with_materials(set_uuid).first.materials.map{|m| m.id}
+      if mids.empty?
+        add_error("The selected set is empty.")
+        return false
+      end
       materials = all_results(MatconClient::Material.where("_id" => {"$in" => mids}).result_set)
       return true if materials.all? { |mat| mat.attributes['available'] }
       add_error("Some of the materials in the selected set are not available.")
@@ -121,22 +211,6 @@ private
       add_error("The materials could not be retrieved.")
     end
     return false
-  end
-
-  def calculate_cost
-    unit_cost = BillingFacadeClient.get_unit_price(@work_plan.proposal.cost_code, @work_plan.product.name)
-    if unit_cost.nil?
-      add_error("The cost could not be calculated because of missing product cost information.")
-      return false
-    end
-    n = @work_plan.num_samples
-    if n.nil?
-      add_error("The cost could not be calculated because of missing sample information.")
-      return false
-    end
-    @work_plan.update_attributes(cost_per_sample: unit_cost)
-    @work_plan.update_attributes(total_cost: unit_cost*n)
-    return true
   end
 
   def validate_cost_code(project_id)
@@ -165,13 +239,14 @@ private
     end
   end
 
-  def send_order
-    if @work_plan.product.availability==false
+  def send_order(order_id)
+    unless @work_plan.product.available?
       add_notice("That product is suspended and cannot currently be ordered.")
       return false
     end
+    order = WorkOrder.find(order_id)
     begin
-      @work_plan.send_to_lims
+      order.send_to_lims
     rescue => e
       Rails.logger.error "Failed to send work order"
       Rails.logger.error e
@@ -179,8 +254,7 @@ private
       add_error("The request to the LIMS failed.")
       return false
     end
-
-    @work_plan.update_attributes(status: 'active')
+    order.update_attributes!(status: 'active', dispatch_date: Date.today)
     return true
   end
 

@@ -12,7 +12,8 @@ class UpdateWorkOrderStep
 		@old_close_comment = @work_order.close_comment
 		@work_order.update_attributes!(
 			status: @finish_status.to_s == 'complete' ? WorkOrder.COMPLETED : WorkOrder.CANCELLED,
-			close_comment: @msg[:work_order][:comment]
+			close_comment: @msg[:work_order][:comment],
+			completion_date: Date.today,
 		)
 	end
 

@@ -12,10 +12,9 @@ class ProductsController < ApplicationController
 
     @product.processes.each do |process|
       process_info = {}
-      process_module_pairings = Aker::ProcessModulePairings.where(aker_process_id: process.id)
 
-      available_links = process.build_available_links(process_module_pairings)
-      default_path = process.build_default_path(process_module_pairings)
+      available_links = process.build_available_links
+      default_path = process.build_default_path
 
       process_info[:name] = process.name
       process_info[:id] = process.id

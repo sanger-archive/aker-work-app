@@ -1,7 +1,7 @@
 import React, { Fragment } from 'react';
 import ReactDOM from 'react-dom'
 
-class ProductDescription extends React.Component {
+export class ProductDescription extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -27,7 +27,7 @@ class ProductDescription extends React.Component {
     }
   }
 
-  onProductOptionsSelectChange(event) {
+  onProductOptionsSelectChange(event/*, pro*/) {
     event.preventDefault();
 
 // processStage is the stage of the process for a product
@@ -50,7 +50,7 @@ class ProductDescription extends React.Component {
   }
 
   getProductInfo(productId) {
-    const workPlanId = this.props.workPlanId;
+    const workPlanId = this.props.work_plan_id;
     const path = Routes.root_path()+'api/v1/work_plans/'+workPlanId+'/products/'+productId;
 
     fetch(path, {credentials: 'include'})
@@ -85,7 +85,7 @@ class ProductDescription extends React.Component {
         let processModuleIds = []
         prod.default_path.forEach(function(mod, j){
           if (mod.id != 'end') {
-            processModuleIds[j] = mod.id
+            processModuleIds[j] = parseInt(mod.id)
           }
         })
         productOptionsIds[i] = processModuleIds
@@ -96,12 +96,17 @@ class ProductDescription extends React.Component {
     }
   }
 
-  componentDidUpdate() {
-    //this.setState({selectedPath: })
+  componentWillMount() {
+    // debugger
   }
 
   render() {
     var productOptionComponents = [];
+    // debugger
+    // if (this.props.product_id){
+    //   this.getProductInfo(this.props.product_id);
+    //   this.setState({ showProductInfo: true })
+    // }
 
     if (this.state.showProductInfo && this.state.productInfo) {
       productOptionComponents = (
@@ -123,7 +128,7 @@ class ProductDescription extends React.Component {
         <input type='hidden' id="product_options" name='work_plan[product_options]' value={this.serializedProductOptions()} />
 
         <ProductLabel />
-        <ProductSelectElement catalogueList={this.props.data} onChange={this.onProductSelectChange}/>
+        <ProductSelectElement catalogueList={this.props.data} onChange={this.onProductSelectChange} selectedProductId={productId} />
         { productOptionComponents }
       </div>
     );
@@ -155,9 +160,10 @@ class ProductLabel extends React.Component {
 
 class ProductSelectElement extends React.Component {
   render() {
+    const productId = this.props.selectedProductId;
     let optionGroups = (
       <Fragment>
-        <ProductSelectOptionGroup catalogueList={this.props.catalogueList}/>
+        <ProductSelectOptionGroup catalogueList={this.props.catalogueList} selectedProductId={productId}/>
       </Fragment>
     );
 
@@ -172,13 +178,13 @@ class ProductSelectElement extends React.Component {
 class ProductSelectOptionGroup extends React.Component {
   render() {
     var optionGroups = [];
-
+    const productId = this.props.selectedProductId;
     this.props.catalogueList.forEach(function(catalogue, index) {
       let name = catalogue[0];
       let productList = catalogue[1];
       optionGroups.push(
         <optgroup key={index} label={name}>
-          <ProductSelectOptGroupOption productList={productList}/>
+          <ProductSelectOptGroupOption productList={productList} selectedProductId={productId} />
         </optgroup>
       );
     });
@@ -194,13 +200,21 @@ class ProductSelectOptionGroup extends React.Component {
 class ProductSelectOptGroupOption extends React.Component {
   render() {
     var options = [];
+    const selectedProductId = this.props.selectedProductId;
 
     this.props.productList.forEach(function(product, index){
       let productName = product[0]
       let productId = product[1]
-      options.push(
-        <option key={index} id={productId}>{productName}</option>
-      );
+
+      if (productId==selectedProductId){
+        options.push(
+          <option selected key={index} id={productId}>{productName} </option>
+        );
+      } else {
+        options.push(
+          <option key={index} id={productId}>{productName} </option>
+        );
+      }
     });
 
     return (
@@ -214,28 +228,86 @@ class ProductSelectOptGroupOption extends React.Component {
 class Processes extends React.Component {
   render() {
     const onChange = this.props.onChange;
-    var processCommponents = [];
-
-    this.props.productProcesses.forEach(function(pro, index){
-      let processName = pro.name;
-      let processId = pro.id;
-      let processAvailableLinks = pro.available_links;
-      let processDefaultPath = pro.default_path;
-
-      processCommponents.push(
-        <Fragment>
-          <ProcessNameLabel name={processName}/>
-          <div id={index} className="col-md-12">
-            <ProcessModulesSelectDropdowns key={index} links={processAvailableLinks} path={processDefaultPath} onChange={onChange} />
-          </div>
-        </Fragment>
-      );
-    });
+    const processComponents = this.props.productProcesses.map((pro, index) => <Process pro={pro} onChange={onChange} key={index} index={index} />);
 
     return (
       <Fragment>
-        { processCommponents }
+        { processComponents }
       </Fragment>
+    );
+  }
+}
+
+class Process extends React.Component {
+
+  render() {
+    const {pro, index, onChange} = this.props;
+
+    return (
+      <Fragment>
+        <ProcessNameLabel name={pro.name}/>
+        <div id={index} className="col-md-12">
+          <ProcessModulesSelectDropdowns links={pro.available_links} path={pro.default_path} onChange={onChange} enabled={pro.enabled}/>
+        </div>
+      </Fragment>
+    )
+  }
+}
+
+export class WorkOrderProcess extends React.Component {
+  constructor(props) {
+    super(props)
+    this.state = {
+      productProcess: this.props.pro,
+    }
+    this.handleChange = this.handleChange.bind(this)
+  }
+
+  handleChange(e, pro) {
+    e.preventDefault()
+
+    const processModuleSelectId = parseInt(e.target.id, 10)
+    const processModuleName = e.target.selectedOptions[0].text
+    const processModuleId = e.target.value
+
+    let updatedProductProcess = this.state.productProcess;
+    let updatedProcessDefaultPath = updatedProductProcess.default_path
+
+    updatedProcessDefaultPath[processModuleSelectId] = {id: processModuleId, name: processModuleName}
+    if (updatedProductProcess.available_links[processModuleName][0].name=='end') {
+      updatedProcessDefaultPath[processModuleSelectId+1] = {name: 'end', id: 'end'};
+    }
+    updatedProductProcess.default_path = updatedProcessDefaultPath
+
+    this.setState({productProcess: updatedProductProcess})
+  }
+
+  serializedProcessModules(){
+    const processStage = this.props.index;
+    let processModuleIds = []
+    if (this.state.productProcess){
+      this.state.productProcess.default_path.forEach(function(mod,i){
+        if (mod.id != 'end') {
+          processModuleIds[i] = parseInt(mod.id);
+        }
+      })
+      return JSON.stringify(processModuleIds)
+    } else {
+      return ""
+    }
+  }
+
+  render() {
+    const index = this.props.index;
+    const pro = this.state.productProcess;
+    return (
+      <div>
+        <input type='hidden' id='order_id' name='work_plan[work_order_id]' value={pro.work_order_id} />
+        <input type='hidden' id="process_modules" name='work_plan[work_order_modules]' value={this.serializedProcessModules()} />
+
+        <Process name={pro.name} pro={pro} index={index} onChange={ (e) => this.handleChange(e, pro) } />
+      </div>
+
     );
   }
 }
@@ -272,7 +344,7 @@ class ProcessModulesSelectDropdowns extends React.Component {
       if (!selected) {
         selected = options[0];
       }
-      select_dropdowns.push(<ProcessModuleSelectElement selected={selected} options={options} key={index} id={index} onChange={this.props.onChange} />)
+      select_dropdowns.push(<ProcessModuleSelectElement selected={selected} options={options} key={index} id={index} onChange={this.props.onChange} enabled={this.props.enabled} />)
     })
 
     return (
@@ -290,11 +362,20 @@ class ProcessModuleSelectElement extends React.Component {
       select_options.push(<ProcessModuleSelectOption obj={option} key={index} />)
     })
     const selection = this.props.selected ? this.props.selected.id : ""
-    return (
-      <select className="form-control" value={selection} onChange={this.props.onChange} id={this.props.id}>
-        { select_options }
-      </select>
-    )
+
+    if (this.props.enabled) {
+      return (
+        <select className="form-control" value={selection} onChange={this.props.onChange} id={this.props.id}>
+          { select_options }
+        </select>
+      )
+    } else {
+      return (
+        <select className="form-control" value={selection} onChange={this.props.onChange} id={this.props.id} disabled>
+          { select_options }
+        </select>
+      )
+    }
   }
 }
 
@@ -356,5 +437,3 @@ function convertToCurrency(input) {
   }
   return '£' + input.toFixed(2);
 }
-
-export default ProductDescription;

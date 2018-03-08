@@ -6,9 +6,10 @@ class Aker::Process < ApplicationRecord
   has_many :process_modules, foreign_key: :aker_process_id, dependent: :destroy
   has_many :products, through: :product_processes
 
-  def build_available_links(pairings)
+  def build_available_links
     # create a hash, where the value is a list
     available_links = Hash.new{|h,k| h[k] = [] }
+    pairings = Aker::ProcessModulePairings.where(aker_process_id: id)
 
     pairings.each do |pmp|
       from_step = pmp.from_step_id ? Aker::ProcessModule.find(pmp.from_step_id) : nil
@@ -26,7 +27,8 @@ class Aker::Process < ApplicationRecord
     available_links
   end
 
-  def build_default_path(pairings)
+  def build_default_path
+    pairings = Aker::ProcessModulePairings.where(aker_process_id: id)
     default_path_ids = []
 
     start = pairings.where(from_step_id: nil, default_path: true)

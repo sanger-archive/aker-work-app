@@ -14,9 +14,13 @@ class WorkOrder < ApplicationRecord
   has_many :work_order_module_choices, dependent: :destroy
 
   after_initialize :create_uuid
- 
+
   def create_uuid
     self.work_order_uuid ||= SecureRandom.uuid
+  end
+
+  def owner_email
+    work_plan.owner_email
   end
 
   # The work order is in the 'active' state when it has been ordered
@@ -96,6 +100,11 @@ class WorkOrder < ApplicationRecord
     status == WorkOrder.BROKEN
   end
 
+# checks work order is queued, and the first order in the work plan not to be closed
+  def can_be_dispatched?
+    (queued? && work_plan.work_orders.find {|o| !o.closed? }==self)
+  end
+
   def original_set
     return nil unless original_set_uuid
     return @original_set if @original_set&.uuid==original_set_uuid
@@ -143,7 +152,7 @@ class WorkOrder < ApplicationRecord
   end
 
   def send_to_lims
-    lims_url = product.catalogue.url
+    lims_url = work_plan.product.catalogue.url
     LimsClient::post(lims_url, lims_data)
   end
 
@@ -162,6 +171,21 @@ class WorkOrder < ApplicationRecord
       data[:work_order][:status] = status
     end
     data
+  end
+
+  def selected_path
+    path = []
+    module_choices = WorkOrderModuleChoice.where(work_order_id: id)
+    module_choices.each do |c|
+      mod = Aker::ProcessModule.find(c.aker_process_modules_id)
+      path.push({name: mod.name, id: mod.id})
+    end
+    path
+  end
+
+  def estimated_completion_date
+    return nil unless dispatch_date && process
+    dispatch_date + process.TAT
   end
 
   # This method returns a JSON description of the order that will be sent to a LIMS to order work.

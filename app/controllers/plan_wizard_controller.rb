@@ -8,7 +8,9 @@ class PlanWizardController < ApplicationController
 
   def show
     authorize! :write, work_plan
-
+    if step==Wicked::FINISH_STEP
+      jump_to(:dispatch)
+    end
     render_wizard
   end
 
@@ -26,11 +28,6 @@ class PlanWizardController < ApplicationController
 
   def work_plan
     @work_plan ||= WorkPlan.find(params[:work_plan_id])
-  end
-
-  # redirect path to workorders#index
-  def finish_wizard_path
-    work_plans_path
   end
 
   def get_my_sets
@@ -126,12 +123,13 @@ class PlanWizardController < ApplicationController
   end
 
   def perform_step
-    return UpdatePlanService.new(work_plan_params, work_plan, flash).perform
+    return UpdatePlanService.new(work_plan_params, work_plan, params[:commit]=='dispatch', flash).perform
   end
 
   def work_plan_params
     params.require(:work_plan).permit(
-      :original_set_uuid, :project_id, :product_id, :product_options, :comment, :desired_date
+      :original_set_uuid, :project_id, :product_id, :product_options, :comment, :desired_date, :work_order_id, :work_order_modules
     )
   end
+
 end

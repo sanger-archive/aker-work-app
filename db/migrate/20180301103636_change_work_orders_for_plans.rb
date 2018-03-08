@@ -10,6 +10,8 @@ class ChangeWorkOrdersForPlans < ActiveRecord::Migration[5.1]
     remove_column :work_orders, :product_id, :integer
 
     add_column :work_orders, :order_index, :integer, null: false
+    add_column :work_orders, :dispatch_date, :date
+    add_column :work_orders, :completion_date, :date
 
     add_reference :work_orders, :work_plan, foreign_key: true, null: false
     add_reference :work_orders, :process, index: true, foreign_key: { to_table: :aker_processes }, null: false

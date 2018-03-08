@@ -105,6 +105,8 @@ ActiveRecord::Schema.define(version: 20180301150923) do
     t.decimal "cost_per_sample", precision: 8, scale: 2
     t.boolean "material_updated", default: false, null: false
     t.integer "order_index", null: false
+    t.date "dispatch_date"
+    t.date "completion_date"
     t.bigint "work_plan_id", null: false
     t.bigint "process_id", null: false
     t.index ["process_id"], name: "index_work_orders_on_process_id"
