@@ -16,6 +16,14 @@ class ProductsController < ApplicationController
       available_links = process.build_available_links
       path = process.build_default_path
 
+      # Replace the default path by the plan's currently selected module path, if such a thing exists
+      if @work_plan.product_id==@product.id
+        order = @work_plan.work_orders.where(process_id: process.id).first
+        if order
+          path = order.selected_path
+        end
+      end
+
       process_info[:name] = process.name
       process_info[:id] = process.id
       process_info[:links] = available_links
