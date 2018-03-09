@@ -5,8 +5,8 @@ export class ProductDescription extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      selectedProductProcesses: this.props.productProcesses,
-      showProductInfo: false
+      showProductInfo: false,
+      enabled: this.props.enabled
     }
     this.onProductOptionsSelectChange = this.onProductOptionsSelectChange.bind(this);
     this.onProductSelectChange = this.onProductSelectChange.bind(this);
@@ -37,14 +37,15 @@ export class ProductDescription extends React.Component {
     const processModuleName = event.target.selectedOptions[0].text
     const processModuleId = event.target.value
 
-    let updatedProductProcesses = this.state.selectedProductProcesses;
-    let updatedProcessDefaultPath = updatedProductProcesses[processStage].default_path
+    let updatedProductProcesses = this.state.selectedProductProcesses.slice();
+    let updatedProcessPath = updatedProductProcesses[processStage].default_path.slice();
 
-    updatedProcessDefaultPath[selectElementId] = {id: processModuleId, name: processModuleName}
-    if (updatedProductProcesses[processStage].available_links[processModuleName][0].name=='end') {
-      updatedProcessDefaultPath[selectElementId+1] = {name: 'end', id: 'end'};
+    updatedProcessPath[selectElementId] = {id: processModuleId, name: processModuleName}
+
+    if (processModuleName!=='end' && updatedProductProcesses[processStage].available_links[processModuleName][0].name=='end') {
+      updatedProcessPath[selectElementId+1] = {name: 'end', id: 'end'};
     }
-    updatedProductProcesses[processStage].default_path = updatedProcessDefaultPath
+    updatedProductProcesses[processStage].default_path = updatedProcessPath
 
     this.setState({selectedProductProcesses: updatedProductProcesses})
   }
@@ -81,9 +82,9 @@ export class ProductDescription extends React.Component {
   serializedProductOptions() {
     if (this.state.selectedProductProcesses) {
       let productOptionsIds = [];
-      this.state.selectedProductProcesses.forEach(function(prod, i){
-        let processModuleIds = []
-        prod.default_path.forEach(function(mod, j){
+      this.state.selectedProductProcesses.forEach(function(proc, i){
+        let processModuleIds = [];
+        proc.default_path.forEach(function(mod, j){
           if (mod.id != 'end') {
             processModuleIds[j] = parseInt(mod.id)
           }
@@ -111,7 +112,7 @@ export class ProductDescription extends React.Component {
     if (this.state.showProductInfo && this.state.productInfo) {
       productOptionComponents = (
         <Fragment>
-          <Processes productProcesses={this.state.selectedProductProcesses} onChange={this.onProductOptionsSelectChange}/>
+          <Processes productProcesses={this.state.selectedProductProcesses} onChange={this.onProductOptionsSelectChange} enabled={this.state.enabled}/>
 
           <ProductInformation data={this.state.productInfo} />
           <CostInformation data={this.state.productInfo} />
@@ -226,9 +227,18 @@ class ProductSelectOptGroupOption extends React.Component {
 }
 
 class Processes extends React.Component {
+
   render() {
     const onChange = this.props.onChange;
-    const processComponents = this.props.productProcesses.map((pro, index) => <Process pro={pro} onChange={onChange} key={index} index={index} />);
+    const enabled = this.props.enabled;
+    // Here process is an actual process from the database
+    function makeProcess(process, index) {
+      const pro = { links: process.available_links, path: process.default_path, name: process.name, enabled: enabled };
+      return (
+        <Process pro={pro} onChange={onChange} index={index} key={index} />
+      );
+    }
+    const processComponents = this.props.productProcesses.map((process, index) => makeProcess(process, index));
 
     return (
       <Fragment>
@@ -247,37 +257,43 @@ class Process extends React.Component {
       <Fragment>
         <ProcessNameLabel name={pro.name}/>
         <div id={index} className="col-md-12">
-          <ProcessModulesSelectDropdowns links={pro.available_links} path={pro.default_path} onChange={onChange} enabled={pro.enabled}/>
+          <ProcessModulesSelectDropdowns links={pro.links} path={pro.path} onChange={onChange} enabled={pro.enabled}/>
         </div>
       </Fragment>
     )
   }
 }
 
+// This is part of the dispatch page
 export class WorkOrderProcess extends React.Component {
   constructor(props) {
     super(props)
     this.state = {
       productProcess: this.props.pro,
+      work_order_id: this.props.work_order_id,
+      index: this.props.index,
     }
     this.handleChange = this.handleChange.bind(this)
   }
 
-  handleChange(e, pro) {
-    e.preventDefault()
+  handleChange(e) {
+    e.preventDefault();
 
-    const processModuleSelectId = parseInt(e.target.id, 10)
-    const processModuleName = e.target.selectedOptions[0].text
-    const processModuleId = e.target.value
+    const processModuleSelectId = parseInt(e.target.id);
+    const processModuleName = e.target.selectedOptions[0].text;
+    const processModuleId = e.target.value;
 
-    let updatedProductProcess = this.state.productProcess;
-    let updatedProcessDefaultPath = updatedProductProcess.default_path
+    let updatedProductProcess = {...this.state.productProcess};
+    let updatedProcessPath = updatedProductProcess.path.slice();
 
-    updatedProcessDefaultPath[processModuleSelectId] = {id: processModuleId, name: processModuleName}
-    if (updatedProductProcess.available_links[processModuleName][0].name=='end') {
-      updatedProcessDefaultPath[processModuleSelectId+1] = {name: 'end', id: 'end'};
+    if (typeof processModuleSelectId !== "undefined") {
+      updatedProcessPath[processModuleSelectId] = {id: processModuleId, name: processModuleName};
     }
-    updatedProductProcess.default_path = updatedProcessDefaultPath
+
+    if (processModuleName!=='end' && updatedProductProcess.links[processModuleName][0].name=='end') {
+      updatedProcessPath[processModuleSelectId+1] = {name: 'end', id: 'end'};
+    }
+    updatedProductProcess.path = updatedProcessPath
 
     this.setState({productProcess: updatedProductProcess})
   }
@@ -286,7 +302,7 @@ export class WorkOrderProcess extends React.Component {
     const processStage = this.props.index;
     let processModuleIds = []
     if (this.state.productProcess){
-      this.state.productProcess.default_path.forEach(function(mod,i){
+      this.state.productProcess.path.forEach(function(mod,i){
         if (mod.id != 'end') {
           processModuleIds[i] = parseInt(mod.id);
         }
@@ -298,14 +314,15 @@ export class WorkOrderProcess extends React.Component {
   }
 
   render() {
-    const index = this.props.index;
+    const index = this.state.index;
     const pro = this.state.productProcess;
+    const order_id = this.state.work_order_id;
     return (
       <div>
-        <input type='hidden' id='order_id' name='work_plan[work_order_id]' value={pro.work_order_id} />
+        <input type='hidden' id='order_id' name='work_plan[work_order_id]' value={order_id} />
         <input type='hidden' id="process_modules" name='work_plan[work_order_modules]' value={this.serializedProcessModules()} />
 
-        <Process name={pro.name} pro={pro} index={index} onChange={ (e) => this.handleChange(e, pro) } />
+        <Process pro={pro} index={index} onChange={this.handleChange} />
       </div>
 
     );

@@ -6,7 +6,7 @@
   <input type='hidden' disabled='disabled' id="num-of-samples" value="<%= work_plan.num_original_samples %>" />
 
   <% product_id = work_plan.product_id ? work_plan.product_id : '' %>
-  <%= react_component('ProductDescription', { data: get_current_catalogues_with_products, work_plan_id: work_plan.id, product_id: product_id }) %>
+  <%= react_component('ProductDescription', { data: get_current_catalogues_with_products, work_plan_id: work_plan.id, product_id: product_id, enabled: work_plan.in_construction? }) %>
 
   <%= f.text_field :desired_date, data: { behavior: "datepicker" } %>
 

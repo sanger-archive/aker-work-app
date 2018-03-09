@@ -25,7 +25,7 @@
 
 <%= bootstrap_form_for work_plan, url: wizard_path, method: :put  do |f| %>
   <% enabled = work_order.queued? %>
-  <%= react_component('WorkOrderProcess', { index: index, pro: { work_order_id: work_order.id, name: work_order.process.name, available_links: work_order.process.build_available_links, default_path: work_order.selected_path, enabled: enabled } }) %>
+  <%= react_component('WorkOrderProcess', { index: index, work_order_id: work_order.id, pro: { name: work_order.process.name, links: work_order.process.build_available_links, path: work_order.selected_path, enabled: work_order.queued? } }) %>
 
   <% if enabled %>
     <%= f.submit "Save", class: "btn btn-success pull-right", value: "save" %>
