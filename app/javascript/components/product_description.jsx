@@ -5,7 +5,8 @@ export class ProductDescription extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      showProductInfo: false,
+      selectedProductProcesses: this.props.productProcesses,
+      showProductInfo: (this.props.productId!=null),
       enabled: this.props.enabled
     }
     this.onProductOptionsSelectChange = this.onProductOptionsSelectChange.bind(this);
@@ -14,6 +15,9 @@ export class ProductDescription extends React.Component {
     this.processProductInfo = this.processProductInfo.bind(this);
     this.checkResponse = this.checkResponse.bind(this);
     this.catchError = this.catchError.bind(this);
+    if (this.state.showProductInfo) {
+      this.getProductInfo(this.props.productId);
+    }
   }
 
   onProductSelectChange(event) {
@@ -38,14 +42,14 @@ export class ProductDescription extends React.Component {
     const processModuleId = event.target.value
 
     let updatedProductProcesses = this.state.selectedProductProcesses.slice();
-    let updatedProcessPath = updatedProductProcesses[processStage].default_path.slice();
+    let updatedProcessPath = updatedProductProcesses[processStage].path.slice();
 
     updatedProcessPath[selectElementId] = {id: processModuleId, name: processModuleName}
 
-    if (processModuleName!=='end' && updatedProductProcesses[processStage].available_links[processModuleName][0].name=='end') {
+    if (processModuleName!=='end' && updatedProductProcesses[processStage].links[processModuleName][0].name=='end') {
       updatedProcessPath[selectElementId+1] = {name: 'end', id: 'end'};
     }
-    updatedProductProcesses[processStage].default_path = updatedProcessPath
+    updatedProductProcesses[processStage].path = updatedProcessPath
 
     this.setState({selectedProductProcesses: updatedProductProcesses})
   }
@@ -84,7 +88,7 @@ export class ProductDescription extends React.Component {
       let productOptionsIds = [];
       this.state.selectedProductProcesses.forEach(function(proc, i){
         let processModuleIds = [];
-        proc.default_path.forEach(function(mod, j){
+        proc.path.forEach(function(mod, j){
           if (mod.id != 'end') {
             processModuleIds[j] = parseInt(mod.id)
           }
@@ -233,7 +237,7 @@ class Processes extends React.Component {
     const enabled = this.props.enabled;
     // Here process is an actual process from the database
     function makeProcess(process, index) {
-      const pro = { links: process.available_links, path: process.default_path, name: process.name, enabled: enabled };
+      const pro = { links: process.links, path: process.path, name: process.name, enabled: enabled };
       return (
         <Process pro={pro} onChange={onChange} index={index} key={index} />
       );

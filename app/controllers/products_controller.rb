@@ -14,12 +14,12 @@ class ProductsController < ApplicationController
       process_info = {}
 
       available_links = process.build_available_links
-      default_path = process.build_default_path
+      path = process.build_default_path
 
       process_info[:name] = process.name
       process_info[:id] = process.id
-      process_info[:available_links] = available_links
-      process_info[:default_path] = default_path
+      process_info[:links] = available_links
+      process_info[:path] = path
 
       processes.push(process_info)
     end
