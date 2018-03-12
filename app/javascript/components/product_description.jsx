@@ -101,7 +101,7 @@ export class ProductDescription extends React.Component {
   }
 
   processProductInfo(responseJSON) {
-    const productInfo = responseJSON
+    const productInfo = responseJSON;
     const productProcesses = responseJSON.product_processes;
 
     this.setState({selectedProductProcesses: productProcesses, productInfo: productInfo})
@@ -475,7 +475,7 @@ class ProductInformation extends React.Component {
         <br />
           <pre>{`Requested biomaterial type: ${data.requested_biomaterial_type}
 Product version: ${data.product_version}
-TAT: ${data.tat}
+TAT: ${data.total_tat}
 Description: ${data.description}
 Availability: ${data.availability ? 'available' : 'suspended'}
 Product class: ${data.product_class}`}</pre>

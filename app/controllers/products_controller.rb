@@ -12,8 +12,10 @@ class ProductsController < ApplicationController
       { name: process.name, id: process.id, links: process.build_available_links, path: selected_modules(process) }
     end
 
+    total_tat = @product.processes.map { |pro| pro.TAT }.inject(0, :+)
+
     render json: @product.as_json.merge(
-      unit_price: price, cost_code: cost_code, product_processes: processes
+      cost_code: cost_code, product_processes: processes, total_tat: total_tat
     ).to_json
   end
 
