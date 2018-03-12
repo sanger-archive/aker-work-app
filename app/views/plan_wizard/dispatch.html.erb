@@ -10,7 +10,7 @@
   <h6>Desired Date: <%= work_plan.desired_date %></h6>
   <h6>Project: <%= work_plan.project.name %>
   <p>
-  <%= f.text_field :comment, label: 'Comment' %>
+  <%= f.text_field :comment, label: 'Comment', disabled: !work_plan.in_construction? %>
 
   <%= render 'products_accordion' %>
 
