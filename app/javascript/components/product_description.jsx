@@ -9,6 +9,7 @@ export class ProductDescription extends React.Component {
       showProductInfo: (this.props.productId!=null),
       enabled: this.props.enabled,
       numSamples: this.props.num_samples,
+      pricing: { unitPrice: null, errors: null },
     }
     this.onProductOptionsSelectChange = this.onProductOptionsSelectChange.bind(this);
     this.onProductSelectChange = this.onProductSelectChange.bind(this);
@@ -16,6 +17,9 @@ export class ProductDescription extends React.Component {
     this.processProductInfo = this.processProductInfo.bind(this);
     this.checkResponse = this.checkResponse.bind(this);
     this.catchError = this.catchError.bind(this);
+    this.fetchUnitPrice = this.fetchUnitPrice.bind(this);
+    this.selectedModuleIds = this.selectedModuleIds.bind(this);
+    this.processUnitPrice = this.processUnitPrice.bind(this);
     if (this.state.showProductInfo) {
       this.getProductInfo(this.props.productId);
     }
@@ -52,7 +56,8 @@ export class ProductDescription extends React.Component {
     }
     updatedProductProcesses[processStage].path = updatedProcessPath
 
-    this.setState({selectedProductProcesses: updatedProductProcesses})
+    this.setState({selectedProductProcesses: updatedProductProcesses});
+    this.fetchUnitPrice();
   }
 
   getProductInfo(productId) {
@@ -63,6 +68,24 @@ export class ProductDescription extends React.Component {
       .then(this.checkResponse)
       .then(this.processProductInfo)
       .catch(this.catchError)
+  }
+
+  fetchUnitPrice() {
+    const moduleIds = this.selectedModuleIds();
+    const workPlanId = this.props.work_plan_id;
+
+    this.setState({pricing: {unit_price: null, errors: null}});
+
+    if (!moduleIds) {
+      return;
+    }
+
+    const path = Routes.root_path()+'api/v1/work_plans/'+workPlanId+'/products/unit_price/'+moduleIds.join('-');
+
+    fetch(path, {credentials: 'include'})
+      .then(this.checkResponse)
+      .then(this.processUnitPrice)
+      .catch(this.catchError);
   }
 
   checkResponse(response) {
@@ -82,6 +105,26 @@ export class ProductDescription extends React.Component {
     const productProcesses = responseJSON.product_processes;
 
     this.setState({selectedProductProcesses: productProcesses, productInfo: productInfo})
+    this.fetchUnitPrice();
+  }
+
+  processUnitPrice(responseJSON) {
+    this.setState({pricing: { unitPrice: responseJSON.unit_price, errors: responseJSON.errors} });
+  }
+
+  selectedModuleIds() {
+    if (!this.state.selectedProductProcesses) {
+      return null;
+    }
+    let names = [];
+    this.state.selectedProductProcesses.forEach(proc => {
+      proc.path.forEach(mod => {
+        if (mod.id!='end') {
+          names.push(mod.id);
+        }
+      });
+    });
+    return names;
   }
 
   serializedProductOptions() {
@@ -119,7 +162,7 @@ export class ProductDescription extends React.Component {
           <Processes productProcesses={this.state.selectedProductProcesses} onChange={this.onProductOptionsSelectChange} enabled={this.state.enabled}/>
 
           <ProductInformation data={this.state.productInfo} />
-          <CostInformation data={this.state.productInfo} numSamples={this.state.numSamples} />
+          <CostInformation numSamples={this.state.numSamples} unitPrice={this.state.pricing.unitPrice} errors={this.state.pricing.errors} />
         </Fragment>
       );
     }
@@ -427,19 +470,17 @@ class ProcessModuleSelectOption extends React.Component {
 class ProductInformation extends React.Component {
   render() {
     const data = this.props.data;
-    const cost = convertToCurrency(data.unit_price)
+    const cost = convertToCurrency(data.unit_price);
     return (
       <Fragment>
         <br />
-          <pre>{`
-            Cost per sample: ${cost}
-            Requested biomaterial type: ${data.requested_biomaterial_type}
-            Product version: ${data.product_version}
-            TAT: ${data.tat}
-            Description: ${data.description}
-            Availability: ${data.availability ? 'available' : 'suspended'}
-            Product class: ${data.product_class}
-          `}</pre>
+          <pre>{`Cost per sample: ${cost}
+Requested biomaterial type: ${data.requested_biomaterial_type}
+Product version: ${data.product_version}
+TAT: ${data.tat}
+Description: ${data.description}
+Availability: ${data.availability ? 'available' : 'suspended'}
+Product class: ${data.product_class}`}</pre>
       </Fragment>
     );
   }
@@ -447,19 +488,37 @@ class ProductInformation extends React.Component {
 
 class CostInformation extends React.Component {
   render() {
-    const data = this.props.data;
     const numSamples = this.props.numSamples;
-    const costPerSample = data.unit_price;
+
+    if (this.props.errors && this.props.errors.length) {
+      errorText = this.props.errors.join('\n');
+      return (
+        <Fragment>
+          <pre>{`Number of samples: ${numSamples}
+
+${errorText}`}</pre>
+        </Fragment>
+      );
+    }
+
+    const costPerSample = this.props.unitPrice;
+
+    if (costPerSample==null) {
+      return (
+        <Fragment>
+            <pre>{`Number of samples: ${numSamples}`}</pre>
+        </Fragment>
+      );
+    }
+
     const total = numSamples * costPerSample;
 
     return (
       <Fragment>
-          <pre>{`
-            Number of samples: ${numSamples}
-            Cost per sample: ${costPerSample}
+          <pre>{`Number of samples: ${numSamples}
+Estimated cost per sample: ${convertToCurrency(costPerSample)}
 
-            Total: ${total}
-          `}</pre>
+Total: ${convertToCurrency(total)}`}</pre>
       </Fragment>
     );
   }
