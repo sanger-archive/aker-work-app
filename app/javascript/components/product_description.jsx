@@ -7,7 +7,8 @@ export class ProductDescription extends React.Component {
     this.state = {
       selectedProductProcesses: this.props.productProcesses,
       showProductInfo: (this.props.productId!=null),
-      enabled: this.props.enabled
+      enabled: this.props.enabled,
+      numSamples: this.props.num_samples,
     }
     this.onProductOptionsSelectChange = this.onProductOptionsSelectChange.bind(this);
     this.onProductSelectChange = this.onProductSelectChange.bind(this);
@@ -112,14 +113,13 @@ export class ProductDescription extends React.Component {
     //   this.getProductInfo(this.props.product_id);
     //   this.setState({ showProductInfo: true })
     // }
-
     if (this.state.showProductInfo && this.state.productInfo) {
       productOptionComponents = (
         <Fragment>
           <Processes productProcesses={this.state.selectedProductProcesses} onChange={this.onProductOptionsSelectChange} enabled={this.state.enabled}/>
 
           <ProductInformation data={this.state.productInfo} />
-          <CostInformation data={this.state.productInfo} />
+          <CostInformation data={this.state.productInfo} numSamples={this.state.numSamples} />
         </Fragment>
       );
     }
@@ -437,7 +437,7 @@ class ProductInformation extends React.Component {
             Product version: ${data.product_version}
             TAT: ${data.tat}
             Description: ${data.description}
-            Availability: ${data.availability}
+            Availability: ${data.availability ? 'available' : 'suspended'}
             Product class: ${data.product_class}
           `}</pre>
       </Fragment>
@@ -448,14 +448,14 @@ class ProductInformation extends React.Component {
 class CostInformation extends React.Component {
   render() {
     const data = this.props.data;
-    const numOfSamples = $("#num-of-samples").val();
+    const numSamples = this.props.numSamples;
     const costPerSample = data.unit_price;
-    const total = numOfSamples * costPerSample;
+    const total = numSamples * costPerSample;
 
     return (
       <Fragment>
           <pre>{`
-            Number of samples: ${numOfSamples}
+            Number of samples: ${numSamples}
             Cost per sample: ${costPerSample}
 
             Total: ${total}
