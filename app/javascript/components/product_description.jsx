@@ -470,12 +470,10 @@ class ProcessModuleSelectOption extends React.Component {
 class ProductInformation extends React.Component {
   render() {
     const data = this.props.data;
-    const cost = convertToCurrency(data.unit_price);
     return (
       <Fragment>
         <br />
-          <pre>{`Cost per sample: ${cost}
-Requested biomaterial type: ${data.requested_biomaterial_type}
+          <pre>{`Requested biomaterial type: ${data.requested_biomaterial_type}
 Product version: ${data.product_version}
 TAT: ${data.tat}
 Description: ${data.description}
@@ -491,7 +489,7 @@ class CostInformation extends React.Component {
     const numSamples = this.props.numSamples;
 
     if (this.props.errors && this.props.errors.length) {
-      errorText = this.props.errors.join('\n');
+      let errorText = this.props.errors.join('\n');
       return (
         <Fragment>
           <pre>{`Number of samples: ${numSamples}

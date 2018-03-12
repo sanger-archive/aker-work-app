@@ -28,8 +28,11 @@ class UpdatePlanService
     end
 
     product_options = nil
+
+    # Requesting to set the modules for all orders in the plan
     if @work_plan_params[:product_options]
       product_options = JSON.parse(@work_plan_params[:product_options])
+      return false unless validate_modules(product_options.flatten)
       @work_plan_params.delete(:product_options)
     end
 
@@ -39,11 +42,13 @@ class UpdatePlanService
 
     update_order = nil
 
+    # Requesting to update the modules in one order
     if @work_plan_params[:work_order_id] && @work_plan_params[:work_order_modules]
       update_order = {
         order_id: @work_plan_params[:work_order_id],
         modules: JSON.parse(@work_plan_params[:work_order_modules]),
       }
+      return false unless validate_modules(update_order.modules)
       order = WorkOrder.find(update_order[:order_id])
       unless order.work_plan == @work_plan
         add_error("The work order specified is not part of this work plan.")
@@ -258,6 +263,17 @@ private
     return true
   end
 
+  def validate_modules(module_ids)
+    cost_code = @work_plan.project.cost_code
+    module_names = module_ids.map { |id| Aker::ProcessModule.find(id).name }
+    bad_modules = module_names.uniq.select { |name| BillingFacadeClient.get_cost_information_for_module(name, cost_code).nil? }
+    unless bad_modules.empty?
+      add_error "The following modules are not valid for cost code #{cost_code}: #{bad_modules}"
+      return false
+    end
+    true
+  end
+
   def add_error(message)
     @messages[:error] = message
   end
@@ -275,4 +291,5 @@ private
       WorkOrderMailer.message_queue_error(@work_plan, exception_string).deliver_later
     end
   end
+
 end
