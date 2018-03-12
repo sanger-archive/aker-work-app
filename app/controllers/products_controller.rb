@@ -6,7 +6,6 @@ class ProductsController < ApplicationController
     authorize! :read, @work_plan
 
     cost_code = @work_plan.project.cost_code
-    price = BillingFacadeClient.get_unit_price(cost_code, @product.name)
 
     processes = @product.processes.map do |process|
       { name: process.name, id: process.id, links: process.build_available_links, path: selected_modules(process) }

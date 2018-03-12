@@ -37,52 +37,90 @@ RSpec.describe ProductsController, type: :controller do
       @user = setup_user
     end
 
-    it "it return the work orders product info" do
-      work_plan = double(:work_plan, id: 1)
-      project = double(:project)
-      catalogue = double(:catalogue)
-      product = double(:product, id: 1, name: 'product1', catalogue: catalogue)
-      process1 = double(:aker_process, id: 1, name: 'process1')
-      process2 = double(:aker_process, id: 2, name: 'process2')
-      pairings = double(:aker_process_module_pairings)
+    let(:catalogue) { create(:catalogue) }
+    let(:project) do
+      proj = double(:project, id: 17, cost_code: 'S1234-0')
+      allow(StudyClient::Node).to receive(:find).with(proj.id).and_return([proj])
+      proj
+    end
+    let(:product) { create(:product, catalogue: catalogue, description: "Bake cakes") }
+    let(:processes) do
+      tats = [5,11]
+      (0..1).map do |i|
+        pro = create(:process, TAT: tats[i], name: "pro_#{i}")
+        create(:product_process, product: product, aker_process: pro, stage: i)
+        pro
+      end
+    end
+    let!(:modules) do
+      processes.each_with_index.map do |pro, i|
+        mod = create(:aker_process_module, name: "module_#{i}", aker_process_id: pro.id)
+        create(:aker_process_module_pairings, to_step_id: mod.id, default_path: true, aker_process: pro)
+        create(:aker_process_module_pairings, from_step_id: mod.id, default_path: true, aker_process: pro)
+        mod
+      end
+    end
 
-      allow(work_plan).to receive(:permitted?).and_return true
-      allow(WorkPlan).to receive(:find).with(work_plan.id.to_s).and_return work_plan
-      allow(Product).to receive(:find).with(product.id.to_s).and_return product
+    let!(:alt_modules) do
+      processes.each_with_index.map do |pro, i|
+        mod = create(:aker_process_module, name: "module_#{i}B", aker_process_id: pro.id)
+        create(:aker_process_module_pairings, to_step_id: mod.id, default_path: false, aker_process: pro)
+        create(:aker_process_module_pairings, from_step_id: mod.id, default_path: false, aker_process: pro)
+        mod
+      end
+    end
 
-      allow(work_plan).to receive(:project).and_return project
-      allow(project).to receive(:cost_code).and_return 'S1234'
-      allow(product).to receive(:processes).and_return [process1, process2]
+    let(:work_plan) { create(:work_plan, project_id: project.id) }
 
-      allow(Aker::ProcessModulePairings).to receive(:where).and_return(pairings)
+    context 'when the work plan has no product' do
+      it "should return the work orders product info with the default path" do
+        params = { id: work_plan.id, product_id: product.id}
 
-      available_links = {"start":[{"name": "A","id": "1"}]};
-      default_path = ['start', 'A']
+        get :show_product_inside_work_plan, params: params
 
-      product_processes1 = {name: process1.name, id: process1.id, available_links: available_links, default_path: default_path}.with_indifferent_access
-      product_processes2 = {name: process2.name, id: process2.id, available_links: available_links, default_path: default_path}.with_indifferent_access
+        r = JSON.parse(response.body, symbolize_names: true)
+        expect(r[:name]).to eq product.name
+        expect(r[:description]).to eq product.description
+        expect(r[:availability]).to eq product.availability
+        expect(r[:cost_code]).to eq project.cost_code
+        expect(r[:total_tat]).to eq (processes[0].TAT + processes[1].TAT)
 
-      allow(process1).to receive(:build_available_links).with(pairings).and_return available_links
-      allow(process1).to receive(:build_default_path).with(pairings).and_return default_path
-      allow(process2).to receive(:build_available_links).with(pairings).and_return available_links
-      allow(process2).to receive(:build_default_path).with(pairings).and_return default_path
+        product_processes = processes.map do |pro|
+          { name: pro.name, id: pro.id, links: pro.build_available_links, path: pro.build_default_path }
+        end
 
-      expect(product).to receive(:name).and_return(product.name)
-      expect(product).to receive(:processes).and_return([process1, process2])
+        expect(r[:product_processes].to_json).to eq(product_processes.to_json)
+      end
+    end
 
-      unit_cost = BigDecimal.new(17)
-      allow(BillingFacadeClient).to receive(:get_unit_price)
-        .with(work_plan.project.cost_code, product.name).and_return(unit_cost)
+    context 'when the work plan has the specified product selected' do
+      let!(:work_orders) do
+        processes.each_with_index.map do |pro, i|
+          wo = create(:work_order, work_plan: work_plan, process: pro, order_index: i)
+          WorkOrderModuleChoice.create!(work_order: wo, aker_process_modules_id: alt_modules[i].id, position: 0)
+          wo
+        end
+      end
 
-      params = { id: work_plan.id, product_id: product.id}
+      let(:work_plan) { create(:work_plan, project_id: project.id, product_id: product.id) }
 
-      get :show_product_inside_work_plan, params: params
+      it "should return the work orders product info with the selected path" do
+        params = { id: work_plan.id, product_id: product.id}
 
-      r = JSON.parse(response.body)
-      expect(r["name"]).to eq 'product'
-      expect(r["cost_code"]).to eq 'S1234'
-      expect(r["unit_price"].to_s).to eq(unit_cost.to_s)
-      expect(r["product_processes"]).to eq([product_processes1, product_processes2])
+        get :show_product_inside_work_plan, params: params
+
+        r = JSON.parse(response.body, symbolize_names: true)
+        expect(r[:name]).to eq product.name
+        expect(r[:description]).to eq product.description
+        expect(r[:availability]).to eq product.availability
+        expect(r[:cost_code]).to eq project.cost_code
+        expect(r[:total_tat]).to eq (processes[0].TAT + processes[1].TAT)
+
+        product_processes = processes.each_with_index.map do |pro, i|
+          { name: pro.name, id: pro.id, links: pro.build_available_links, path: [alt_modules[i].to_custom_hash] }
+        end
+        expect(r[:product_processes].to_json).to eq(product_processes.to_json)
+      end
     end
 
   end
