@@ -16,7 +16,6 @@ class PlanWizardController < ApplicationController
 
   def update
     authorize! :write, work_plan
-
     begin
       check_update_authorization!
       perform_update
@@ -112,6 +111,10 @@ class PlanWizardController < ApplicationController
       flash[:error] = "Please select an option to proceed"
       render_wizard
     elsif perform_step
+      # Any new update in the work plan will trigger an email warning about the changes
+      if (work_plan.ready_for_start? || work_plan.active?)
+        WorkPlanMailer.message_plan_updated(work_plan).deliver_now
+      end      
       render_wizard work_plan
     else
       render_wizard

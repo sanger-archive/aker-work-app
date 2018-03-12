@@ -54,6 +54,8 @@ Rails.application.configure do
 
   config.work_order_completion_json = 'work_order_completion.json'
 
+  config.action_mailer.default_url_options = { host: 'localhost', port: 3000 }
+
   config.events = {
     enabled: false,
     broker_host: 'localhost',

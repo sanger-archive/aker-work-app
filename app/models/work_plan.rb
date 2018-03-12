@@ -114,6 +114,10 @@ class WorkPlan < ApplicationRecord
     status=='construction'
   end
 
+  def ready_for_start?
+    (in_construction? && (work_orders.all?(&:queued?)))
+  end
+
   # broken - one of the orders is broken
   # closed - all of the orders are complete or cancelled (in some combination)
   # active - the orders are underway
