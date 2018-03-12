@@ -3,6 +3,7 @@
 <%= bootstrap_form_for work_plan, url: wizard_path, method: :put  do |f| %>
 
   <input type='hidden' disabled='disabled' id="work-plan-id" value="<%= work_plan.id %>" />
+  <input type='hidden' disabled='disabled' id="num-of-samples" value="<%= work_plan.num_original_samples %>" />
 
   <% enabled = work_plan.in_construction? %>
 
