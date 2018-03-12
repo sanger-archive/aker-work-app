@@ -133,7 +133,7 @@ export class ProductDescription extends React.Component {
         <input type='hidden' id="product_options" name='work_plan[product_options]' value={this.serializedProductOptions()} />
 
         <ProductLabel />
-        <ProductSelectElement catalogueList={this.props.data} onChange={this.onProductSelectChange} selectedProductId={productId} />
+        <ProductSelectElement catalogueList={this.props.data} onChange={this.onProductSelectChange} selectedProductId={productId} enabled={this.state.enabled}/>
         { productOptionComponents }
       </div>
     );
@@ -172,11 +172,19 @@ class ProductSelectElement extends React.Component {
       </Fragment>
     );
 
-    return (
-      <select className="form-control" onChange={this.props.onChange}>
-        {optionGroups}
-      </select>
-    );
+    if (this.props.enabled) {
+      return (
+        <select className="form-control" onChange={this.props.onChange}>
+          {optionGroups}
+        </select>
+      );
+    } else {
+      return (
+        <select className="form-control" onChange={this.props.onChange} disabled>
+          {optionGroups}
+        </select>
+      );
+    }
   }
 }
 
