@@ -18,9 +18,7 @@ Rails.application.routes.draw do
     end
   end
 
-  resources :work_orders do
-  	resources :build, controller: 'orders'
-  end
+  resources :work_orders
 
   resources :work_plans do
     resources :build, controller: 'plan_wizard'
