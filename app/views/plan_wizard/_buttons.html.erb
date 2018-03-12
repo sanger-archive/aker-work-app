@@ -8,7 +8,7 @@
       <% unless first_step? %>
         <%= link_to 'Previous', previous_wizard_path,
               class: 'btn btn-warning',
-              data: { confirm: 'Are you sure you wish to go back? You will lose unsaved progress on the curent step' },
+              data: { confirm: 'Are you sure you want to go back? You will lose unsaved changes on the curent step' },
               style: "margin-right: 10px;" %>
       <% end %>
 
@@ -16,7 +16,7 @@
         <%= link_to 'Cancel work plan', work_plan,
               method: :delete,
               class: 'btn btn-danger',
-              data: { confirm: 'Are you sure you wish to cancel this work plan?' }
+              data: { confirm: 'Are you sure you want to cancel this work plan?' }
         %>
       <% end %>
     </div>

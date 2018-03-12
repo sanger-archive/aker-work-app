@@ -119,7 +119,7 @@ class PlanWizardController < ApplicationController
   end
 
   def nothing_to_update
-    !params[:work_plan]
+    @work_plan.in_construction? && !params[:work_plan]
   end
 
   def perform_step
@@ -127,6 +127,7 @@ class PlanWizardController < ApplicationController
   end
 
   def work_plan_params
+    return {} unless params[:work_plan]
     params.require(:work_plan).permit(
       :original_set_uuid, :project_id, :product_id, :product_options, :comment, :desired_date, :work_order_id, :work_order_modules
     )

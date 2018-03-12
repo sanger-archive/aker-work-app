@@ -125,12 +125,17 @@ export class ProductDescription extends React.Component {
     }
 
     const productId = this.state.productInfo ? this.state.productInfo.id : ""
+    const enabled = this.state.enabled
 
     return (
       <div>
         <ErrorConsole msg={this.state.errorMessage}/>
-        <input type='hidden' name='work_plan[product_id]' value={productId} />
-        <input type='hidden' id="product_options" name='work_plan[product_options]' value={this.serializedProductOptions()} />
+        { enabled && 
+          <input type='hidden' name='work_plan[product_id]' value={productId} />
+        }
+        { enabled &&
+          <input type='hidden' id="product_options" name='work_plan[product_options]' value={this.serializedProductOptions()} />
+        }
 
         <ProductLabel />
         <ProductSelectElement catalogueList={this.props.data} onChange={this.onProductSelectChange} selectedProductId={productId} enabled={this.state.enabled}/>
