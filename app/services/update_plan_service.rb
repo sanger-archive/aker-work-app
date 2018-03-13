@@ -3,8 +3,6 @@ require 'billing_facade_client'
 
 class UpdatePlanService
 
-  attr_reader :messages
-
   def initialize(work_plan_params, work_plan, dispatch, messages)
     @work_plan_params = work_plan_params
     @work_plan = work_plan
@@ -48,7 +46,7 @@ class UpdatePlanService
         order_id: @work_plan_params[:work_order_id],
         modules: JSON.parse(@work_plan_params[:work_order_modules]),
       }
-      return false unless validate_modules(update_order.modules)
+      return false unless validate_modules(update_order[:modules])
       order = WorkOrder.find(update_order[:order_id])
       unless order.work_plan == @work_plan
         add_error("The work order specified is not part of this work plan.")
@@ -95,8 +93,6 @@ class UpdatePlanService
           return false
         end
       end
-
-      # TODO calculate cost at some point
 
       if dispatch_order_id
         return false unless send_order(dispatch_order_id)
