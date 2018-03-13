@@ -15,6 +15,7 @@ Rails.application.routes.draw do
 
     scope 'work_plans/:id' do
       get 'products/:product_id', to: 'products#show_product_inside_work_plan'
+      get 'products/unit_price/:module_ids', to: 'products#modules_unit_price'
     end
   end
 

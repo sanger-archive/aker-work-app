@@ -12,14 +12,24 @@ RSpec.describe Catalogue, type: :model do
         allow(BillingFacadeClient).to receive(:validate_process_module_name).and_return(true)
         @cat1 = Catalogue.create!(lims_id: lims_id, url: "somewhere", pipeline: "cells", current: true)
         @cat2 = Catalogue.create!(lims_id: other_lims_id, url: "somewhere else", pipeline: "cells", current: true)
-        @cat3 = Catalogue.create_with_products(lims_id: lims_id, url: "france", pipeline: "cells",
-          products: [{ uuid: product_uuid, name: "QC", description: "Lorem Ipsum", product_version: 1, availability: 1,
-          requested_biomaterial_type: "blood", product_class: "genotyping", processes: [
-            { uuid: process_uuid, name: "QC", TAT: 5, process_module_pairings: [
-              { from_step: nil, to_step: "Quantification", default_path: true},
-              { from_step: "Genotyping HumGen SNP", to_step: nil, default_path: true},
-              { from_step: "Quantification", to_step: "Genotyping CGP SNP", default_path: true}
-        ]}]}])
+        @cat3 = Catalogue.create_with_products(
+          lims_id: lims_id, url: "france", pipeline: "cells",
+          processes: [
+            { uuid: process_uuid, name: "QC", TAT: 5,
+              process_module_pairings: [
+                { from_step: nil, to_step: "Quantification", default_path: true},
+                { from_step: "Genotyping HumGen SNP", to_step: nil, default_path: true},
+                { from_step: "Quantification", to_step: "Genotyping CGP SNP", default_path: true},
+              ]
+            },
+          ],
+          products: [
+            { uuid: product_uuid, name: "QC", description: "Lorem Ipsum", product_version: 1, availability: 1,
+              requested_biomaterial_type: "blood", product_class: "genotyping",
+              process_uuids: [process_uuid],
+            }
+          ]
+        )
       end
 
       it "marks other catalogues as not current" do
@@ -52,7 +62,7 @@ RSpec.describe Catalogue, type: :model do
         product_processes = Aker::ProductProcess.where(product_id: product.id)
         expect(product_processes.length).to eq 1
         expect(product_processes[0].aker_process_id).to eq process.id
-        expect(product_processes[0].stage).to eq 1
+        expect(product_processes[0].stage).to eq 0
       end
 
       it "creates new process modules" do
