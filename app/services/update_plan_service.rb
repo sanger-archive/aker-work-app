@@ -98,6 +98,7 @@ class UpdatePlanService
 
       if dispatch_order_id
         return false unless send_order(dispatch_order_id)
+        generate_submitted_event(dispatch_order_id)
       end
     end
 
@@ -266,6 +267,17 @@ private
     end
     order.update_attributes!(status: 'active', dispatch_date: Date.today)
     return true
+  end
+
+   def generate_submitted_event(order_id)
+    begin
+      order = WorkOrder.find(order_id)
+      order.generate_submitted_event
+    rescue => e
+      # Currently have to restart the server if there is an exception here
+      exception_string = e.backtrace.join("\n")
+      WorkOrderMailer.message_queue_error(@work_order, exception_string).deliver_later
+    end
   end
 
   def validate_modules(module_ids)

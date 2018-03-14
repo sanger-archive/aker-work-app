@@ -642,7 +642,9 @@ RSpec.describe UpdatePlanService do
 
     def extra_stubbing
       @sent_to_lims = false
+      @sent_event = false
       allow_any_instance_of(WorkOrder).to receive(:send_to_lims) { @sent_to_lims = true }
+      allow_any_instance_of(WorkOrder).to receive(:generate_submitted_event) { @sent_event = true }
     end
 
     context 'when the order is queued' do
@@ -666,6 +668,9 @@ RSpec.describe UpdatePlanService do
       end
       it 'should have sent the order' do
         expect(@sent_to_lims).to eq(true)
+      end
+      it 'should have generated an event' do
+        expect(@sent_event).to eq(true)
       end
       it 'should have made the order active' do
         expect(orders[0].reload).to be_active
@@ -704,6 +709,9 @@ RSpec.describe UpdatePlanService do
       it 'should not have sent the order' do
         expect(@sent_to_lims).to eq(false)
       end
+      it 'should not have generated an event' do
+        expect(@sent_event).to eq(false)
+      end
       it 'should not have changed the order status' do
         expect(orders[0].reload).to be_active
       end
@@ -735,6 +743,9 @@ RSpec.describe UpdatePlanService do
       end
       it 'should not have sent the order' do
         expect(@sent_to_lims).to eq(false)
+      end
+      it 'should not have generated an event' do
+        expect(@sent_event).to eq(false)
       end
       it 'should not have changed the order status' do
         expect(orders[0].reload).to be_queued
@@ -768,6 +779,9 @@ RSpec.describe UpdatePlanService do
       it 'should not have sent the order' do
         expect(@sent_to_lims).to eq(false)
       end
+      it 'should not have generated an event' do
+        expect(@sent_event).to eq(false)
+      end
       it 'should not have changed the order status' do
         expect(orders[0].reload).to be_queued
       end
@@ -795,7 +809,9 @@ RSpec.describe UpdatePlanService do
 
     def extra_stubbing
       @sent_to_lims = false
+      @sent_event = false
       allow_any_instance_of(WorkOrder).to receive(:send_to_lims) { @sent_to_lims = true }
+      allow_any_instance_of(WorkOrder).to receive(:generate_submitted_event) { @sent_event = true }
     end
 
     context 'when the first order is queued' do
@@ -820,6 +836,9 @@ RSpec.describe UpdatePlanService do
       end
       it 'should not have sent the order' do
         expect(@sent_to_lims).to eq(false)
+      end
+      it 'should not have generated an event' do
+        expect(@sent_event).to eq(false)
       end
       it 'should not have changed the order status' do
         expect(orders[1].reload).to be_queued
@@ -855,6 +874,9 @@ RSpec.describe UpdatePlanService do
       end
       it 'should not have sent the order' do
         expect(@sent_to_lims).to eq(false)
+      end
+      it 'should not have generated an event' do
+        expect(@sent_event).to eq(false)
       end
       it 'should not have changed the order status' do
         expect(orders[1].reload).to be_queued
@@ -892,6 +914,9 @@ RSpec.describe UpdatePlanService do
       it 'should not have sent the order' do
         expect(@sent_to_lims).to eq(false)
       end
+      it 'should not have generated an event' do
+        expect(@sent_event).to eq(false)
+      end
       it 'should not have changed the order status' do
         expect(orders[1].reload).to be_active
       end
@@ -926,6 +951,9 @@ RSpec.describe UpdatePlanService do
       end
       it 'should have sent the order' do
         expect(@sent_to_lims).to eq(true)
+      end
+      it 'should have generated an event' do
+        expect(@sent_event).to eq(true)
       end
       it 'should have changed the order status' do
         expect(orders[1].reload).to be_active
