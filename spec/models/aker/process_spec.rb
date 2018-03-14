@@ -166,20 +166,6 @@ RSpec.describe Aker::Process, type: :model do
           expect(@process.build_default_path).to eq(@list_of_modules.map(&:to_custom_hash))
         end
       end
-      context 'with a loop process' do
-        before do
-          @process = create :process
-          @list_of_modules = build_linear_process_for(@process, 5)
-          create(:aker_process_module_pairings, 
-            from_step: @list_of_modules.last, 
-            to_step: @list_of_modules.first, 
-            aker_process: @process, 
-            default_path: false)
-        end
-        it 'creates an object describing the loop' do
-          expect{@process.build_default_path}.to raise_error
-        end
-      end
 
       context 'with some parallel linear modules interconnected' do
         before do
