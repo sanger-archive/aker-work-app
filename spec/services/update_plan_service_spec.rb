@@ -252,6 +252,13 @@ RSpec.describe UpdatePlanService do
       }
     end
 
+    let(:module_cost) { 15 }
+
+    def stub_billing_facade
+      super
+      allow(BillingFacadeClient).to receive(:get_cost_information_for_module).and_return(module_cost)
+    end
+
     context 'when the plan does not have a project yet' do
       let(:plan) { create(:work_plan, original_set_uuid: set.uuid) }
 
@@ -278,11 +285,6 @@ RSpec.describe UpdatePlanService do
 
     context 'when the plan has a project' do
       let(:plan) { create(:work_plan, original_set_uuid: set.uuid, project_id: project.id) }
-
-      def stub_billing_facade
-        super
-        allow(BillingFacadeClient).to receive(:get_cost_information_for_module).and_return(15)
-      end
 
       it { expect(@result).to be_truthy }
       it 'should not produce an error message' do
@@ -323,13 +325,63 @@ RSpec.describe UpdatePlanService do
       end
     end
 
+    context 'when there are not modules given for each process' do
+      let(:plan) { create(:work_plan, original_set_uuid: set.uuid, project_id: project.id) }
+      let(:product_options) { [[processes[0].process_modules.first.id]] }
+
+      it { expect(@result).to be_falsey }
+      it 'should produce an error message' do
+        expect(messages[:error]).to match /modules/
+      end
+      it 'should not set the product in the plan' do
+        expect(plan.product_id).to be_nil
+      end
+      it 'should not set the comment' do
+        expect(plan.comment).to be_nil
+      end
+      it 'should not set the date' do
+        expect(plan.desired_date).to be_nil
+      end
+      it 'should still be in construction' do
+        expect(plan).to be_in_construction
+      end
+      it 'should not have created orders' do
+        expect(plan.work_orders).to be_empty
+      end
+    end
+
+    context 'when the module ids are not a valid path for a process' do
+      let(:plan) { create(:work_plan, original_set_uuid: set.uuid, project_id: project.id) }
+      let(:product_options) do
+        pops = processes.map { |pro| [pro.process_modules.first.id] }
+        pops[1] += pops[1]
+        pops
+      end
+
+      it { expect(@result).to be_falsey }
+      it 'should produce an error message' do
+        expect(messages[:error]).to match Regexp.new('modules.*valid.*'+Regexp.escape(processes[1].name))
+      end
+      it 'should not set the product in the plan' do
+        expect(plan.product_id).to be_nil
+      end
+      it 'should not set the comment' do
+        expect(plan.comment).to be_nil
+      end
+      it 'should not set the date' do
+        expect(plan.desired_date).to be_nil
+      end
+      it 'should still be in construction' do
+        expect(plan).to be_in_construction
+      end
+      it 'should not have created orders' do
+        expect(plan.work_orders).to be_empty
+      end
+    end
+
     context 'when the modules and cost code are invalid' do
       let(:plan) { create(:work_plan, original_set_uuid: set.uuid, project_id: project.id) }
-
-      def stub_billing_facade
-        super
-        allow(BillingFacadeClient).to receive(:get_cost_information_for_module).and_return(nil)
-      end
+      let(:module_cost) { nil }
 
       it { expect(@result).to be_falsey }
       it 'should produce an error message' do
@@ -365,11 +417,6 @@ RSpec.describe UpdatePlanService do
       # product options different from the defaults
       let(:product_options) do
         processes.map { |pro| [pro.process_modules[1].id] }
-      end
-
-      def stub_billing_facade
-        super
-        allow(BillingFacadeClient).to receive(:get_cost_information_for_module).and_return(15)
       end
 
       it { expect(@result).to be_truthy }
@@ -427,11 +474,6 @@ RSpec.describe UpdatePlanService do
         processes.map { |pro| [pro.process_modules[1].id] }
       end
 
-      def stub_billing_facade
-        super
-        allow(BillingFacadeClient).to receive(:get_cost_information_for_module).and_return(15)
-      end
-
       it { expect(@result).to be_falsey }
       it 'should produce an error message' do
         expect(messages[:error]).to match /in progress/
@@ -461,11 +503,6 @@ RSpec.describe UpdatePlanService do
           comment: 'commentary',
           desired_date: Date.today,
         }
-      end
-
-      def stub_billing_facade
-        super
-        allow(BillingFacadeClient).to receive(:get_cost_information_for_module).and_return(15)
       end
 
       it { expect(@result).to be_falsey }
@@ -498,11 +535,6 @@ RSpec.describe UpdatePlanService do
           desired_date: Date.today,
           product_options: product_options.to_json,
         }
-      end
-
-      def stub_billing_facade
-        super
-        allow(BillingFacadeClient).to receive(:get_cost_information_for_module).and_return(15)
       end
 
       it { expect(@result).to be_falsey }
@@ -541,9 +573,11 @@ RSpec.describe UpdatePlanService do
     let(:params) do
       {
         work_order_id: old_orders[1].id,
-        work_order_modules: [processes[1].process_modules[1].id].to_json,
+        work_order_modules: module_ids.to_json,
       }
     end
+
+    let(:module_ids) { [processes[1].process_modules[1].id] }
 
     let(:module_cost) { 15 }
 
@@ -583,6 +617,29 @@ RSpec.describe UpdatePlanService do
       it { expect(@result).to be_falsey }
       it 'should produce an error message' do
         expect(messages[:error]).to match /order.*cannot.*update/i
+      end
+      it 'should still be active' do
+        expect(plan).to be_active
+      end
+      it 'should have the same work orders' do
+        expect(plan.work_orders.reload).to eq(old_orders)
+      end
+      it 'should still have the original modules' do
+        orders = plan.work_orders.reload
+        modules = orders.map do |order|
+          WorkOrderModuleChoice.where(work_order_id: order.id).map(&:aker_process_modules_id)
+        end
+        expect(modules[0]).to eq([processes[0].process_modules[0].id])
+        expect(modules[1]).to eq([processes[1].process_modules[0].id])
+      end
+    end
+
+    context 'when the modules are not valid for the process' do
+      let(:module_ids) { [processes[1].process_modules[0].id]*2 }
+
+      it { expect(@result).to be_falsey }
+      it 'should produce an error message' do
+        expect(messages[:error]).to match Regexp.new('modules.*valid.*'+Regexp.escape(processes[1].name))
       end
       it 'should still be active' do
         expect(plan).to be_active

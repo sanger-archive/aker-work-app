@@ -1,5 +1,6 @@
 # Class to handle updating a work order during the work order wizard.
 require 'billing_facade_client'
+require 'set'
 
 class UpdatePlanService
 
@@ -30,7 +31,9 @@ class UpdatePlanService
     # Requesting to set the modules for all orders in the plan
     if @work_plan_params[:product_options] && @work_plan_params[:product_id]
       product_options = JSON.parse(@work_plan_params[:product_options])
+      product = Product.find(@work_plan_params[:product_id])
       return false unless validate_modules(product_options.flatten)
+      return false unless check_product_module_ids(product_options, product)
       @work_plan_params = @work_plan_params.except(:product_options)
     elsif @work_plan_params[:product_options] || @work_plan_params[:product_id]
       add_error("Invalid parameters")
@@ -45,11 +48,12 @@ class UpdatePlanService
 
     # Requesting to update the modules in one order
     if @work_plan_params[:work_order_id] && @work_plan_params[:work_order_modules]
+      module_ids = JSON.parse(@work_plan_params[:work_order_modules])
       update_order = {
         order_id: @work_plan_params[:work_order_id],
-        modules: JSON.parse(@work_plan_params[:work_order_modules]),
+        modules: module_ids,
       }
-      return false unless validate_modules(update_order[:modules])
+      return false unless validate_modules(module_ids)
       order = WorkOrder.find(update_order[:order_id])
       unless order.work_plan == @work_plan
         add_error("The work order specified is not part of this work plan.")
@@ -59,6 +63,7 @@ class UpdatePlanService
         add_error("The work order specified cannot be updated.")
         return false
       end
+      return false unless check_process_module_ids(module_ids, order.process)
       @work_plan_params = @work_plan_params.except(:work_order_id, :work_order_modules)
 
     elsif @work_plan_params[:work_order_id] || @work_plan_params[:work_order_modules]
@@ -216,6 +221,32 @@ private
       add_error("The materials could not be retrieved.")
     end
     return false
+  end
+
+  def modules_ok_for_process(module_ids, process)
+    pairs = Set.new(Aker::ProcessModulePairings.where(aker_process: process).map { |p| [p.from_step_id, p.to_step_id] })
+    last = nil
+    module_ids.each do |mid|
+      unless pairs.include? [last, mid]
+        return false
+      end
+      last = mid
+    end
+    return pairs.include? [last, nil]
+  end
+
+  def check_process_module_ids(module_ids, process)
+    return true if modules_ok_for_process(module_ids, process)
+    add_error("The given modules are not a valid sequence for #{process.name}")
+    return false
+  end
+
+  def check_product_module_ids(module_id_arrays, product)
+    if module_id_arrays.length != product.processes.length
+      add_error("The modules specified do not match the selected product.")
+      return false
+    end
+    return module_id_arrays.zip(product.processes).all? { |mids, pro| check_process_module_ids(mids, pro) }
   end
 
   def validate_cost_code(project_id)
