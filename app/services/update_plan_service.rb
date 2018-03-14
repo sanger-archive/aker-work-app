@@ -28,10 +28,13 @@ class UpdatePlanService
     product_options = nil
 
     # Requesting to set the modules for all orders in the plan
-    if @work_plan_params[:product_options]
+    if @work_plan_params[:product_options] && @work_plan_params[:product_id]
       product_options = JSON.parse(@work_plan_params[:product_options])
       return false unless validate_modules(product_options.flatten)
-      @work_plan_params.delete(:product_options)
+      @work_plan_params = @work_plan_params.except(:product_options)
+    elsif @work_plan_params[:product_options] || @work_plan_params[:product_id]
+      add_error("Invalid parameters")
+      return false
     end
 
     if @work_plan_params[:project_id]
@@ -56,8 +59,7 @@ class UpdatePlanService
         add_error("The work order specified cannot be updated.")
         return false
       end
-      @work_plan_params.delete(:work_order_id)
-      @work_plan_params.delete(:work_order_modules)
+      @work_plan_params = @work_plan_params.except(:work_order_id, :work_order_modules)
 
     elsif @work_plan_params[:work_order_id] || @work_plan_params[:work_order_modules]
       add_error("Invalid parameters")
@@ -96,6 +98,7 @@ class UpdatePlanService
 
       if dispatch_order_id
         return false unless send_order(dispatch_order_id)
+        generate_submitted_event(dispatch_order_id)
       end
     end
 
@@ -194,6 +197,7 @@ private
       order.create_locked_set
       return false unless check_set_contents(order.set_uuid)
     end
+    return true
   end
 
   def check_set_contents(set_uuid)
@@ -215,7 +219,13 @@ private
   end
 
   def validate_cost_code(project_id)
-    cost_code = StudyClient::Node.find(project_id)&.first&.cost_code
+    node = StudyClient::Node.find(project_id).first
+    unless node
+      add_error("No project could be found with id #{project_id}")
+      return false
+    end
+    
+    cost_code = node.cost_code
     unless cost_code
       add_error("The selected project does not have a cost code.")
       return false
@@ -259,6 +269,17 @@ private
     return true
   end
 
+   def generate_submitted_event(order_id)
+    begin
+      order = WorkOrder.find(order_id)
+      order.generate_submitted_event
+    rescue => e
+      # Currently have to restart the server if there is an exception here
+      exception_string = e.backtrace.join("\n")
+      WorkOrderMailer.message_queue_error(@work_order, exception_string).deliver_later
+    end
+  end
+
   def validate_modules(module_ids)
     cost_code = @work_plan.project.cost_code
     module_names = module_ids.map { |id| Aker::ProcessModule.find(id).name }
@@ -276,16 +297,6 @@ private
 
   def add_notice(message)
     @messages[:notice] = message
-  end
-
-  def generate_submitted_event
-    begin
-      @work_plan.generate_submitted_event
-    rescue StandardError => e
-      # Current have to restart the server if there is an exception here
-      exception_string = e.backtrace.join("\n")
-      WorkOrderMailer.message_queue_error(@work_plan, exception_string).deliver_later
-    end
   end
 
 end
