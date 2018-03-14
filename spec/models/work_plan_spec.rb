@@ -393,4 +393,11 @@ RSpec.describe WorkPlan, type: :model do
     end
   end
 
+  describe '#name' do
+    it 'should say work plan and the id' do
+      plan = create(:work_plan)
+      expect(plan.name).to eq("Work plan #{plan.id}")
+    end
+  end
+
 end

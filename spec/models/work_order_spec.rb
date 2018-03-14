@@ -8,6 +8,11 @@ RSpec.describe WorkOrder, type: :model do
     create(:aker_product_process, product: product, aker_process: pro, stage: 0)
     pro
   end
+  let(:process_options) do
+    product.processes.map do |pro|
+      pro.process_modules.map(&:id)
+    end
+  end
   let(:project) { make_node('Operation Wolf', 'S1001', 41, 40, false, true, SecureRandom.uuid) }
   let(:subproject) { make_node('Operation Thunderbolt', 'S1001-0', 42, project.id, true, false, nil) }
 
@@ -82,6 +87,19 @@ RSpec.describe WorkOrder, type: :model do
     allow(SetClient::Set).to receive(:find_with_materials).
       with(@set.uuid).and_return([@set])
     return @set
+  end
+
+  def make_processes(n)
+    pros = (0...n).map { |i| create(:aker_process, name: "process #{i}") }
+    pros.each_with_index { |pro, i| create(:aker_product_process, product: product, aker_process: pro, stage: i) }
+    i = 0
+    pros.each do |pro|
+      (0...3).each do
+        Aker::ProcessModule.create!(name: "module-#{i}", aker_process_id: pro.id)
+        i += 1
+      end
+    end
+    pros
   end
 
   describe '#finished_set' do
@@ -436,6 +454,103 @@ RSpec.describe WorkOrder, type: :model do
       process = build(:process, TAT: 4)
       order = build(:work_order, process: process)
       expect(order.total_tat).to eq(4)
+    end
+  end
+
+  describe "#owner_email" do
+    it "returns the work plans owner email" do
+      process = build(:process, TAT: 4)
+      plan = create(:work_plan)
+      order = build(:work_order, process: process, work_plan: plan)
+      expect(order.owner_email).to eq(plan.owner_email)
+    end
+  end
+
+  describe '#can_be_dispatched?' do
+    context 'when the work order is queued' do
+      let!(:processes) { make_processes(3) }
+      let(:plan) { create(:work_plan, product: product) }
+
+      context 'when the last order in the plan, not closed, is the work order' do
+        it 'should return true' do
+          plan.create_orders(process_options, nil)
+          plan.work_orders[0].update_attributes(status: WorkOrder.COMPLETED)
+          plan.work_orders[1].update_attributes(status: WorkOrder.CANCELLED)
+          plan.work_orders.reload
+
+          expect(plan.work_orders[0].can_be_dispatched?).to eq(false)
+          expect(plan.work_orders[1].can_be_dispatched?).to eq(false)
+          expect(plan.work_orders[2].can_be_dispatched?).to eq(true)
+        end
+      end
+      context 'when the last order in the plan, not closed, is not the work order' do
+        it 'should return false' do
+          plan.create_orders(process_options, nil)
+          plan.work_orders[0].update_attributes(status: WorkOrder.QUEUED)
+          plan.work_orders.reload
+
+          expect(plan.work_orders[0].can_be_dispatched?).to eq(true)
+          expect(plan.work_orders[1].can_be_dispatched?).to eq(false)
+        end
+      end
+    end
+    context 'when the work order not queued' do
+      it 'should return false' do
+        process = build(:process, TAT: 4)
+        plan = create(:work_plan)
+        order = build(:work_order, process: process, work_plan: plan, status: 'active')
+        expect(order.can_be_dispatched?).to eq(false)
+      end
+    end
+  end
+
+  describe '#selected_path' do
+    let!(:plan) { create (:work_plan) }
+    let!(:order) { build(:work_order, process: process, work_plan: plan)}
+    let(:modules) do
+      (1..2).map { |i| create(:aker_process_module, name: "Module#{i}", aker_process_id: process.id) }
+    end
+    context 'when there are work order module choices for a work order' do
+      it 'returns a list of module choices' do
+        modules.each_with_index { |m,i| WorkOrderModuleChoice.create(work_order: order, process_module: m, position: i)}
+        expect(order.selected_path).to eq([{name: modules[0].name, id: modules[0].id},{name: modules[1].name, id: modules[1].id}])
+      end
+    end
+    context 'when there are no work order module choices for a work order' do
+      it 'returns a empty list' do
+        expect(order.selected_path).to eq([])
+      end
+    end
+  end
+
+  describe '#estimated_completion_date' do
+    let!(:plan) { create (:work_plan) }
+    let!(:process) { build(:process, TAT: 4) }
+
+    context 'when the dispatch date doesnt exist' do
+      let!(:order) { build(:work_order, process: process, work_plan: plan)}
+      it 'should return nil' do
+        expect(order.estimated_completion_date).to be nil
+      end
+    end
+    context 'when the process doesnt exist' do
+      let!(:process) { nil }
+      let!(:order) { build(:work_order, work_plan: plan, dispatch_date: Date.today, process: nil )}
+      it 'should return nil' do
+        expect(order.estimated_completion_date).to be nil
+      end
+    end
+    context 'when both the dispatch date and process doesnt exist' do
+      let!(:order) { build(:work_order, work_plan: plan )}
+      it 'should return nil' do
+        expect(order.estimated_completion_date).to be nil
+      end
+    end
+    context 'when both the dispatch date and process exist' do
+      let!(:order) { build(:work_order, work_plan: plan, process: process, dispatch_date: Date.today )}
+      it 'should the dispatch date + the process TAT' do
+        expect(order.estimated_completion_date).to eq(order.dispatch_date+process.TAT)
+      end
     end
   end
 
