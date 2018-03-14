@@ -7,14 +7,20 @@ RSpec.describe Product, type: :model do
     it "can be available" do
       product = build(:product, availability: true)
       expect(product.availability).to eq true
+      expect(product.available?).to eq true
+      expect(product.suspended?).to eq false
     end
     it "can be suspended" do
       product = build(:product, availability: false)
       expect(product.availability).to eq false
+      expect(product.available?).to eq false
+      expect(product.suspended?).to eq true
     end
     it "default is true" do
       product = build(:product)
       expect(product.availability).to eq true
+      expect(product.available?).to eq true
+      expect(product.suspended?).to eq false
     end
   end
 

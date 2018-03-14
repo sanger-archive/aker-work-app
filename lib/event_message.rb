@@ -19,7 +19,7 @@ class CatalogueEventMessage < EventMessage
   def initialize
     # For Catalogue message
     @catalogue = params.fetch(:catalogue, nil)
-    @catalogue_error = params.fetch(:error, nil)    
+    @catalogue_error = params.fetch(:error, nil)
   end
 
   # wrapper method to create the JSON message
@@ -68,7 +68,7 @@ class WorkOrderEventMessage < EventMessage
   def initialize(params)
     # For Work Order message
     @work_order = params.fetch(:work_order, nil)
-    @status = params.fetch(:status, nil)    
+    @status = params.fetch(:status, nil)
   end
   # Generate the JSON for a Work Order event
   def generate_json
@@ -136,7 +136,6 @@ class WorkOrderEventMessage < EventMessage
       'work_order_id' => @work_order.id,
       'comment' => plan.comment,
       'quoted_price' => @work_order.total_cost,
-      'desired_completion_date' => plan.desired_date,
       'zipkin_trace_id' => trace_id,
       'num_materials' => num_materials
     }
