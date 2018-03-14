@@ -135,6 +135,9 @@ class Catalogue < ApplicationRecord
       raise "Processes missing from catalogue data"
     end
     process_uuids = process_params.map { |pro| pro[:uuid] }
+    if process_uuids.any?(&:nil?)
+      raise "Processes are missing uuids"
+    end
     if process_uuids.uniq.size != process_uuids.size
       duplicates = process_uuids.select { |uuid| process_uuids.count(uuid) > 1 }.uniq
       raise "Duplicate process uuids specified: #{duplicates.uniq}"
@@ -146,11 +149,9 @@ class Catalogue < ApplicationRecord
       pu = prod[:process_uuids]
       if pu.nil? || pu.empty?
         products_without_processes.push(prod[:name])
-      end
-      unless (pu - process_uuids).empty?
+      elsif !(pu - process_uuids).empty?
         products_with_nonexistent_processes.push(prod[:name])
-      end
-      if pu.uniq.size != pu.size
+      elsif pu.uniq.size != pu.size
         products_with_duplicate_processes.push(prod[:name])
       end
     end
