@@ -114,10 +114,6 @@ class WorkPlan < ApplicationRecord
     status=='construction'
   end
 
-  def ready_for_start?
-    (in_construction? && (work_orders.count > 0) && (work_orders.all?(&:queued?)))
-  end
-
   # broken - one of the orders is broken
   # closed - all of the orders are complete or cancelled (in some combination)
   # active - the orders are underway
@@ -142,14 +138,5 @@ class WorkPlan < ApplicationRecord
       email_or_group.include?(owner_email)
     end
     # TODO - worry about deputies
-  end
-
-  def generate_updated_event
-    if (ready_for_start? || active?)
-      message = WorkPlanEventMessage.new(work_plan: self, status: status)
-      EventService.publish(message)
-    else
-      raise 'You cannot generate an event from a work plan that is not ready to work with.'
-    end
   end
 end
