@@ -167,7 +167,7 @@ RSpec.describe 'EventMessage' do
 
         # Metadata
         it 'should have the correct amount of metadata' do
-          expect(metadata.length).to eq(6)
+          expect(metadata.length).to eq(5)
         end
         it 'should have the correct work order id' do
           expect(metadata['work_order_id']).to eq(work_order.id)
@@ -178,9 +178,6 @@ RSpec.describe 'EventMessage' do
         end
         it 'should have the correct quoted price' do
           expect(metadata['quoted_price']).to eq(work_order.total_cost)
-        end
-        it 'should have the correct desired data' do
-          expect(metadata['desired_completion_date']).to eq(plan.desired_date.to_s)
         end
         it 'should have the correct trace id' do
           expect(metadata['zipkin_trace_id']).to eq(fake_trace)
