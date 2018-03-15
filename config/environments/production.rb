@@ -84,6 +84,36 @@ Rails.application.configure do
     config.logger = ActiveSupport::TaggedLogging.new(logger)
   end
 
+  config.study_url = 'http://localhost:3300/api/v1'
+  config.study_url_default_proxy = 'http://localhost:3300'
+
+  config.set_url = 'http://localhost:3000/api/v1'
+  config.set_url_default_proxy = 'http://localhost:3000'
+
+  config.material_url = 'http://localhost:5000'
+
+  config.stamp_url = 'http://localhost:7000/api/v1'
+
+  config.jwt_secret_key = 'development'
+
+  config.events = {
+    enabled: false,
+    broker_host: 'localhost',
+    broker_port: '5672',
+    broker_vhost: 'aker',
+    broker_username: 'work_orders',
+    broker_password: 'password',
+    exchange_name: 'aker.events',
+    warehouse_queue_name: 'aker.events.warehouse',
+    notification_queue_name: 'aker.events.notifications',
+    catalogue_queue_name: 'aker.events.catalogue'
+  }
+
+  config.work_order_completion_json = 'work_order_completion.json'
+
+  config.billing_facade_url = 'http://localhost:3601'
+
+
   # Do not dump schema after migrations.
   config.active_record.dump_schema_after_migration = false
 end

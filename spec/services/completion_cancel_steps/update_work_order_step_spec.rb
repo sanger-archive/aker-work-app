@@ -18,7 +18,7 @@ RSpec.describe 'UpdateWorkOrderStep' do
   let(:msg) { { work_order: { comment: new_comment } } }
 
   def updated_attributes(new_status)
-    { status: new_status, close_comment: new_comment }
+    { status: new_status, close_comment: new_comment, completion_date: Date.today }
   end
 
   setup do

@@ -1,0 +1,23 @@
+<table class="table table-striped">
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Product</th>
+
+      <% if group=='active' %>
+        <th>Status</th>
+      <% elsif group=='construction' %>
+        <th>Step</th>
+      <% end %>
+
+      <th>Created</th>
+      <th>Updated</th>
+      <th></th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <%= render work_plans %>
+  </tbody>
+
+</table>

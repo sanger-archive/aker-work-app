@@ -30,8 +30,9 @@ RSpec.describe 'EventMessage' do
           meta: { 'size' => '2' }
         )
       end
-      let(:project) { double(:project, name: 'test project', node_uuid: '12345a') }
+      let(:project) { double(:project, id: 123, name: 'test project', node_uuid: '12345a') }
       let(:product) { build(:product, name: 'test product') }
+      let(:process) { build(:process, name: 'test process') }
       let(:fake_uuid) { 'my_fake_uuid' }
       let(:fake_trace) { 'my_trace_id' }
       let(:first_comment) { 'first comment' }
@@ -57,23 +58,39 @@ RSpec.describe 'EventMessage' do
           'role_type' => 'product',
           'subject_type' => 'product',
           'subject_friendly_name' => product.name,
-          # subject_uuid now points to the product's ID within Aker, as the UUID
-          # no longer exists.
-          'subject_uuid' => product.id
+          'subject_uuid' => product.uuid,
+        }
+      end
+      let(:expected_process_role) do
+        {
+          'role_type' => 'process',
+          'subject_type' => 'process',
+          'subject_friendly_name' => process.name,
+          'subject_uuid' => process.uuid,
+        }
+      end
+      let(:expected_work_plan_role) do
+        {
+          'role_type' => 'work_plan',
+          'subject_type' => 'work_plan',
+          'subject_friendly_name' => plan.name,
+          'subject_uuid' => plan.uuid,
         }
       end
 
+      let(:plan) do
+        pl = build(:work_plan, product: product, project_id: project.id, comment: first_comment, desired_date: Time.zone.today + 5)
+        allow(pl).to receive(:project).and_return(project)
+        pl
+      end
+
       let(:work_order) do
-        wo = build(:work_order, owner_email: 'user@sanger.ac.uk', status: WorkOrder.ACTIVE)
+        wo = build(:work_order, status: WorkOrder.ACTIVE, work_plan: plan, process: process)
         allow(wo).to receive(:id).and_return 123
-        allow(wo).to receive(:comment).and_return first_comment
         allow(wo).to receive(:close_comment).and_return second_comment
         allow(wo).to receive(:total_cost).and_return 50
-        allow(wo).to receive(:desired_date).and_return(Time.zone.today + 5)
         allow(wo).to receive(:set).and_return set
         allow(wo).to receive(:finished_set).and_return finished_set
-        allow(wo).to receive(:proposal).and_return project
-        allow(wo).to receive(:product).and_return product
         wo
       end
 
@@ -108,7 +125,7 @@ RSpec.describe 'EventMessage' do
         end
 
         it 'should have the correct user identifier' do
-          expect(json['user_identifier']).to eq(work_order.owner_email)
+          expect(json['user_identifier']).to eq(plan.owner_email)
         end
 
         it 'should have the correct timestamp' do
@@ -117,7 +134,7 @@ RSpec.describe 'EventMessage' do
 
         # Roles
         it 'should have the correct number of roles' do
-          expect(roles.length).to eq(3)
+          expect(roles.length).to eq(5)
         end
         it 'should include the product role' do
           expect(roles).to include(expected_product_role)
@@ -127,6 +144,12 @@ RSpec.describe 'EventMessage' do
         end
         it 'should include the work order role' do
           expect(roles).to include(expected_work_order_role)
+        end
+        it 'should include the process role' do
+          expect(roles).to include(expected_process_role)
+        end
+        it 'should include the work plan role' do
+          expect(roles).to include(expected_work_plan_role)
         end
       end
 
@@ -144,7 +167,7 @@ RSpec.describe 'EventMessage' do
 
         # Metadata
         it 'should have the correct amount of metadata' do
-          expect(metadata.length).to eq(6)
+          expect(metadata.length).to eq(5)
         end
         it 'should have the correct work order id' do
           expect(metadata['work_order_id']).to eq(work_order.id)
@@ -155,9 +178,6 @@ RSpec.describe 'EventMessage' do
         end
         it 'should have the correct quoted price' do
           expect(metadata['quoted_price']).to eq(work_order.total_cost)
-        end
-        it 'should have the correct desired data' do
-          expect(metadata['desired_completion_date']).to eq(work_order.desired_date.to_s)
         end
         it 'should have the correct trace id' do
           expect(metadata['zipkin_trace_id']).to eq(fake_trace)

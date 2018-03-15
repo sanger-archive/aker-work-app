@@ -10,8 +10,9 @@
 import React from 'react';
 import ReactDOM from 'react-dom'
 import { render } from 'react-dom';
-import ProductDescription from '../components/product_description';
+import { ProductDescription, WorkOrderProcess }from '../components/product_description';
 import WebpackerReact from 'webpacker-react'
 
-WebpackerReact.setup({ProductDescription}) // ES6 shorthand for {Hello: Hello}
+WebpackerReact.setup({ProductDescription})
+WebpackerReact.setup({WorkOrderProcess})
 

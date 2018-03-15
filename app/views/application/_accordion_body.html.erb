@@ -1,0 +1,31 @@
+<% input_set = work_order.set&.name || work_order.original_set&.name || 'none' %>
+
+<% output_set = work_order.finished_set&.name || 'none' %>
+
+<div>
+  <div class="row">
+    <div class="col-md-6">Input Set: <%= input_set %></div>
+    <div class="col-md-6">Dispatch Date: <%= work_order.dispatch_date %></div>
+  </div>
+  <div class="row">
+    <div class="col-md-6">Output Set: <%= output_set %></div>
+    <% if work_order.completion_date %>
+      <div class="col-md-6">Completion Date: <%= work_order.completion_date %></div>
+    <% else %>
+      <div class="col-md-6">Estimated Completion Date: <%= work_order.estimated_completion_date %></div>
+    <% end %>
+  </div>
+</div>
+
+<%= bootstrap_form_for work_plan, url: wizard_path, method: :put  do |f| %>
+  <% enabled = work_order.queued? %>
+  <%= react_component('WorkOrderProcess', { index: index, work_order_id: work_order.id, pro: { name: work_order.process.name, links: work_order.process.build_available_links, path: work_order.selected_path, enabled: work_order.queued? } }) %>
+
+  <% if enabled %>
+    <%= f.submit "Save", class: "btn btn-success pull-right", value: "save" %>
+  <% end %>
+  <% if work_order.can_be_dispatched? %>
+    <%= f.submit "Dispatch", class: "btn btn-primary pull-right", value: "dispatch" %>
+  <% end %>
+
+<% end %>
