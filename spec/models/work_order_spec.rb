@@ -42,7 +42,7 @@ RSpec.describe WorkOrder, type: :model do
 
   def make_set(size = 6)
     uuid = make_uuid
-    a_set = double(:set, uuid: uuid, id: uuid, meta: { 'size' => size })
+    a_set = double(:set, uuid: uuid, id: uuid, meta: { 'size' => size }, locked: false)
     allow(SetClient::Set).to receive(:find).with(a_set.uuid).and_return([a_set])
     a_set
   end
@@ -437,7 +437,6 @@ RSpec.describe WorkOrder, type: :model do
     context 'when the order has an unlocked input set' do
       let(:input_set_uuid) { another_unlocked_set.uuid }
       it 'should lock the input set and return true' do
-        allow(another_unlocked_set).to receive(:locked).and_return(false)
         expect(another_unlocked_set).to receive(:update_attributes).with(locked: true) do
           allow(another_unlocked_set).to receive(:locked).and_return true
         end
@@ -447,8 +446,7 @@ RSpec.describe WorkOrder, type: :model do
     context 'when the input set fails to be locked' do
       let(:input_set_uuid) { another_unlocked_set.uuid }
       it 'should raise an exception' do
-        allow(another_unlocked_set).to receive(:locked).and_return(true)
-        allow(another_unlocked_set).to receive(:name).and_return('a name')
+        allow(another_unlocked_set).to receive(:name).and_return('myset')
         expect(another_unlocked_set).to receive(:update_attributes).with(locked: true) 
         expect { order.finalise_set }.to raise_exception "Failed to lock set #{another_unlocked_set.name}"
       end
