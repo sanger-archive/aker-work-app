@@ -75,7 +75,7 @@ Rails.application.configure do
   config.jwt_secret_key = 'development'
 
   config.events = {
-    enabled: false,
+    enabled: true,
     broker_host: 'localhost',
     broker_port: '5672',
     broker_username: 'work_orders',
