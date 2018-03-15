@@ -8,44 +8,11 @@ require 'completion_cancel_steps/fail_step'
 
 class WorkOrdersController < ApplicationController
 
-  before_action :work_order, only: [:show, :complete, :cancel]
+  before_action :work_order, only: [:complete, :cancel]
 
-  skip_authorization_check only: [:index, :complete, :cancel, :get, :set_search]
+  skip_authorization_check only: [:complete, :cancel, :get, :set_search]
   skip_credentials only: [:complete, :cancel, :get]
 
-  def index
-    @active_work_orders = WorkOrder.active.for_user(current_user).order(created_at: :desc)
-    @pending_work_orders = WorkOrder.pending.for_user(current_user).order(created_at: :desc)
-    @completed_work_orders = WorkOrder.completed.for_user(current_user).order(created_at: :desc)
-    @cancelled_work_orders = WorkOrder.cancelled.for_user(current_user).order(created_at: :desc)
-  end
-
-  def create
-    authorize! :create, WorkOrder
-
-    work_order = WorkOrder.create!(owner_email: current_user.email, original_set_uuid: params[:set_id])
-
-    redirect_to work_order_build_path(
-      id: Wicked::FIRST_STEP,
-      work_order_id: work_order.id
-    )
-  end
-
-  def destroy
-    authorize! :write, work_order
-
-    if work_order.active?
-      flash[:error] = "This work order has already been issued, and cannot be cancelled."
-    else
-      work_order.destroy
-      flash[:notice] = "Work order cancelled"
-    end
-    redirect_to work_orders_path
-  end
-
-  def show
-    authorize! :read, work_order
-  end
 
   # Returns JSON containing the set service query result for about the set being
   # searched

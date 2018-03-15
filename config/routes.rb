@@ -2,7 +2,7 @@ Rails.application.routes.draw do
 
   mount Rswag::Ui::Engine => '/api-docs'
   mount Rswag::Api::Engine => '/api-docs'
-  root 'work_orders#index'
+  root 'work_plans#index'
 
   get '/sets/:set_name', to: 'work_orders#set_search'
 
@@ -11,13 +11,18 @@ Rails.application.routes.draw do
       post 'complete', to: 'work_orders#complete'
       post 'cancel', to: 'work_orders#cancel'
       get '', to: 'work_orders#get'
+    end
 
-      get 'products/:product_id', to: 'products#show_product_inside_work_order'
+    scope 'work_plans/:id' do
+      get 'products/:product_id', to: 'products#show_product_inside_work_plan'
+      get 'products/unit_price/:module_ids', to: 'products#modules_unit_price'
     end
   end
 
-  resources :work_orders do
-  	resources :build, controller: 'orders'
+  resources :work_orders
+
+  resources :work_plans do
+    resources :build, controller: 'plan_wizard'
   end
 
 end
