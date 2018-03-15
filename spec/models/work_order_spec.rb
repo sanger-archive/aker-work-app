@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'rails_helper'
 
 RSpec.describe WorkOrder, type: :model do
@@ -23,8 +25,10 @@ RSpec.describe WorkOrder, type: :model do
   end
 
   before do
+    @barcode_index = 100
     bfc = double('BillingFacadeClient')
     stub_const("BillingFacadeClient", bfc)
+    stub_const('BrokerHandle', class_double('BrokerHandle'))
     allow(bfc).to receive(:validate_process_module_name) do |name|
       !name.starts_with? 'x'
     end
@@ -36,18 +40,25 @@ RSpec.describe WorkOrder, type: :model do
     "AKER-#{@barcode_index}"
   end
 
-  def make_set(size=6)
+  def make_set(size = 6)
     uuid = make_uuid
-    s = double(:set, uuid: uuid, id: uuid, meta: { 'size' => size })
-    allow(SetClient::Set).to receive(:find).with(s.uuid).and_return([s])
-    return s
+    a_set = double(:set, uuid: uuid, id: uuid, meta: { 'size' => size })
+    allow(SetClient::Set).to receive(:find).with(a_set.uuid).and_return([a_set])
+    a_set
   end
 
   def make_node(name, cost_code, id, parent_id, is_sub, is_proj, data_release_uuid)
-    n = double('node', name: name, cost_code: cost_code, id: id, parent_id: parent_id, subproject?: is_sub, project?: is_proj,
-               node_uuid: make_uuid, data_release_uuid: data_release_uuid)
-    allow(StudyClient::Node).to receive(:find).with(n.id).and_return([n])
-    return n
+    node = double('node',
+                  name: name,
+                  cost_code: cost_code,
+                  id: id,
+                  parent_id: parent_id,
+                  subproject?: is_sub,
+                  project?: is_proj,
+                  node_uuid: make_uuid,
+                  data_release_uuid: data_release_uuid)
+    allow(StudyClient::Node).to receive(:find).with(node.id).and_return([node])
+    node
   end
 
   def make_result_set(items)
@@ -55,28 +66,28 @@ RSpec.describe WorkOrder, type: :model do
     allow(rs).to receive(:map) { |&block| items.map(&block) }
     allow(rs).to receive(:each) { |&block| items.each(&block) }
     allow(rs).to receive(:all?) { |&block| items.all?(&block) }
-    return double('result_set_wrapper', result_set: rs)
+    double('result_set_wrapper', result_set: rs)
   end
 
-  def make_materials(num=3)
+  def make_materials
     @materials = (1..3).map do |i|
       attributes = {
-        'gender' => (i%2==0) ? 'male' : 'female',
+        'gender' => i.even? ? 'male' : 'female',
         'donor_id' => "donor #{i}",
         'phenotype' => "phenotype #{i}",
         'scientific_name' => 'Mouse',
-        'available' => true,
+        'available' => true
       }
       double(:material, id: make_uuid, attributes: attributes)
     end
     allow(MatconClient::Material).to receive(:where) do |args|
       ids = args['_id']['$in']
       found = ids.map do |id|
-        @materials.find { |m| m.id==id }
+        @materials.find { |m| m.id == id }
       end
       make_result_set(found)
     end
-    return @materials
+    @materials
   end
 
   def make_set_with_materials
@@ -84,9 +95,8 @@ RSpec.describe WorkOrder, type: :model do
 
     make_materials
     allow(@set).to receive(:materials).and_return(@materials)
-    allow(SetClient::Set).to receive(:find_with_materials).
-      with(@set.uuid).and_return([@set])
-    return @set
+    allow(SetClient::Set).to receive(:find_with_materials).with(@set.uuid).and_return([@set])
+    @set
   end
 
   def make_processes(n)
@@ -106,13 +116,13 @@ RSpec.describe WorkOrder, type: :model do
     context 'when the work order has a finished set uuid' do
       let(:finished_set) { make_set(6) }
       let(:wo) { build(:work_order, finished_set_uuid: finished_set.uuid) }
-      it "should return the finished set" do
+      it 'should return the finished set' do
         expect(wo.finished_set).to eq finished_set
       end
     end
     context 'when the work order has no finished set uuid' do
       let(:wo) { build(:work_order) }
-      it "should return nil" do
+      it 'should return nil' do
         expect(wo.finished_set).to be_nil
       end
     end
@@ -231,9 +241,13 @@ RSpec.describe WorkOrder, type: :model do
 
     def make_container(materials)
       slots = materials.each_with_index.map do |material,i|
-        double('slot', material_id: material&.id, address: (i+1).to_s)
+        double('slot', material_id: material&.id, address: (i + 1).to_s)
       end
-      @container = double('container', barcode: make_barcode, num_of_rows: 1, num_of_cols: materials.length, slots: slots)
+      @container = double('container',
+                          barcode: make_barcode,
+                          num_of_rows: 1,
+                          num_of_cols: materials.length,
+                          slots: slots)
 
       allow(MatconClient::Container).to receive(:where) do |args|
         material_ids = args['slots.material']['$in']
@@ -243,7 +257,7 @@ RSpec.describe WorkOrder, type: :model do
         end
         make_result_set(containers)
       end
-      return @container
+      @container
     end
 
     let(:order) do
@@ -286,9 +300,12 @@ RSpec.describe WorkOrder, type: :model do
         material_data = data[:materials]
         expect(material_data.length).to eq(@materials.length)
         @materials.zip(material_data).each do |mat, dat|
-          slot = @container.slots.find { |slot| slot.material_id==mat.id }
+          slot = @container.slots.find { |the_slot| the_slot.material_id == mat.id }
           expect(dat[:_id]).to eq(mat.id)
-          expect(dat[:container]).to eq({ barcode: @container.barcode, address: slot.address, num_of_rows: @container.num_of_rows, num_of_cols: @container.num_of_cols })
+          expect(dat[:container]).to eq(barcode: @container.barcode,
+                                        address: slot.address,
+                                        num_of_rows: @container.num_of_rows,
+                                        num_of_cols: @container.num_of_cols)
           expect(dat[:gender]).to eq(mat.attributes['gender'])
           expect(dat[:donor_id]).to eq(mat.attributes['donor_id'])
           expect(dat[:phenotype]).to eq(mat.attributes['phenotype'])
@@ -340,12 +357,15 @@ RSpec.describe WorkOrder, type: :model do
     end
   end
 
-  describe "#describe_containers" do
+  describe '#describe_containers' do
     def make_container(materials)
-      slots = materials.each_with_index.map do | mat, i |
-        double('slot', material_id: mat&.id, address: "A:#{i+1}")
+      slots = materials.each_with_index.map do |mat, i|
+        double('slot', material_id: mat&.id, address: "A:#{i + 1}")
       end
-      return double('container', barcode: make_barcode, num_of_rows: 1, num_of_cols: materials.length, slots: slots)
+      double('container', barcode: make_barcode,
+                          num_of_rows: 1,
+                          num_of_cols: materials.length,
+                          slots: slots)
     end
 
     before do
@@ -353,14 +373,14 @@ RSpec.describe WorkOrder, type: :model do
 
       @plate = make_container([nil, nil] + @materials[0..1]) # plate with some empty slots
       @tube = make_container(@materials[2..2]) # tube with one material
-      @material_ids = @materials.map { |m| m.id }
-      allow(MatconClient::Container).to receive(:where).
-        with({"slots.material" => { "$in" => @material_ids }}).
-        and_return(make_result_set([@plate, @tube]))
+      @material_ids = @materials.map(&:id)
+      allow(MatconClient::Container).to receive(:where)
+        .with('slots.material' => { '$in' => @material_ids })
+        .and_return(make_result_set([@plate, @tube]))
       @wo = build(:work_order)
     end
 
-    it "should load the descriptions into the data" do
+    it 'should load the descriptions into the data' do
       material_data = @materials.map do |m|
         {
           _id: m.id,
@@ -375,12 +395,21 @@ RSpec.describe WorkOrder, type: :model do
       @wo.describe_containers(@material_ids, material_data)
 
       expected = [
-        { barcode: @plate.barcode, address: 'A:3', num_of_cols: @plate.num_of_cols, num_of_rows: @plate.num_of_rows },
-        { barcode: @plate.barcode, address: 'A:4', num_of_cols: @plate.num_of_cols, num_of_rows: @plate.num_of_rows },
-        { barcode: @tube.barcode, address: 'A:1', num_of_cols: 1, num_of_rows: 1 },
+        { barcode: @plate.barcode,
+          address: 'A:3',
+          num_of_cols: @plate.num_of_cols,
+          num_of_rows: @plate.num_of_rows },
+        { barcode: @plate.barcode,
+          address: 'A:4',
+          num_of_cols: @plate.num_of_cols,
+          num_of_rows: @plate.num_of_rows },
+        { barcode: @tube.barcode,
+          address: 'A:1',
+          num_of_cols: 1,
+          num_of_rows: 1 }
       ]
       expect(material_data.length).to eq(expected.length)
-      expected.zip(material_data).each do | exp, data |
+      expected.zip(material_data).each do |exp, data|
         expect(data[:container]).to eq(exp)
       end
     end
@@ -404,46 +433,46 @@ RSpec.describe WorkOrder, type: :model do
     end
   end
 
-  describe "#generate_completed_and_cancel_event" do
+  describe '#generate_completed_and_cancel_event' do
     context 'if work order does not have status completed or cancelled' do
-      it 'generates an event using the EventService' do
+      it 'generates an event using the BrokerHandle' do
         wo = build(:work_order)
-        EventService ||= double('EventService')
-        expect(EventService).not_to receive(:publish).with(an_instance_of(WorkOrderEventMessage))
-        expect { wo.generate_completed_and_cancel_event }.to raise_exception('You cannot generate an event from a work order that has not been completed.')
+        expect(BrokerHandle).not_to receive(:publish).with(an_instance_of(WorkOrderEventMessage))
+        expect { wo.generate_completed_and_cancel_event }
+          .to raise_exception(
+            'You cannot generate an event from a work order that has not been completed.'
+          )
       end
     end
 
     context 'if work order does have status completed or cancelled' do
-      it 'generates an event using the EventService' do
+      it 'generates an event using the BrokerHandle' do
         wo = build(:work_order, status: 'completed')
-        EventService ||= double('EventService')
-        allow(EventService).to receive(:publish)
         allow(BillingFacadeClient).to receive(:send_event).with(wo, 'completed')
-        expect(EventService).to receive(:publish).with(an_instance_of(WorkOrderEventMessage))
+        expect(BrokerHandle).to receive(:publish).with(an_instance_of(WorkOrderEventMessage))
         wo.generate_completed_and_cancel_event
       end
     end
   end
 
-   describe "#generate_submitted_event" do
+  describe '#generate_submitted_event' do
     context 'if work order does not have status active' do
-      it 'generates an event using the EventService' do
+      it 'generates an event using the BrokerHandle' do
         wo = build(:work_order)
-        EventService ||= double('EventService')
         allow(BillingFacadeClient).to receive(:send_event).with(wo, 'submitted')
-        expect(EventService).not_to receive(:publish).with(an_instance_of(WorkOrderEventMessage))
-        expect { wo.generate_submitted_event }.to raise_exception('You cannot generate an submitted event from a work order that is not active.')
+        expect(BrokerHandle).not_to receive(:publish).with(an_instance_of(WorkOrderEventMessage))
+        expect { wo.generate_submitted_event }
+          .to raise_exception(
+            'You cannot generate an submitted event from a work order that is not active.'
+          )
       end
     end
 
     context 'if work order does have status active' do
-      it 'generates an event using the EventService' do
+      it 'generates an event using the BrokerHandle' do
         wo = build(:work_order, status: 'active')
-        EventService ||= double('EventService')
-        allow(EventService).to receive(:publish)
         allow(BillingFacadeClient).to receive(:send_event).with(wo, 'submitted')
-        expect(EventService).to receive(:publish).with(an_instance_of(WorkOrderEventMessage))
+        expect(BrokerHandle).to receive(:publish).with(an_instance_of(WorkOrderEventMessage))
         wo.generate_submitted_event
       end
     end
@@ -553,5 +582,4 @@ RSpec.describe WorkOrder, type: :model do
       end
     end
   end
-
 end

@@ -265,7 +265,7 @@ class WorkOrder < ApplicationRecord
   def generate_completed_and_cancel_event
     if closed?
       message = WorkOrderEventMessage.new(work_order: self, status: status)
-      EventService.publish(message)
+      BrokerHandle.publish(message)
       BillingFacadeClient.send_event(self, status)
     else
       raise 'You cannot generate an event from a work order that has not been completed.'
@@ -275,7 +275,7 @@ class WorkOrder < ApplicationRecord
   def generate_submitted_event
     if active?
       message = WorkOrderEventMessage.new(work_order: self, status: 'submitted')
-      EventService.publish(message)
+      BrokerHandle.publish(message)
       BillingFacadeClient.send_event(self, 'submitted')
     else
       raise 'You cannot generate an submitted event from a work order that is not active.'

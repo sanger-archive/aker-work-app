@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'event_publisher'
-
 # Encapsulate a message from the work orders application to be sent to the mesage broker.
 class EventMessage
   attr_reader :work_order
@@ -11,12 +9,13 @@ class EventMessage
 
   # wrapper method to create the JSON message
   def generate_json
-    raise "This must be overridden!"
+    raise 'This must be overridden!'
   end
 end
 
+# A message specific to a catalogue that has been received
 class CatalogueEventMessage < EventMessage
-  def initialize
+  def initialize(catalogue:, error: nil)
     # For Catalogue message
     @catalogue = params.fetch(:catalogue, nil)
     @catalogue_error = params.fetch(:error, nil)
@@ -60,16 +59,16 @@ class CatalogueEventMessage < EventMessage
       }
     }.to_json
   end
-
 end
 
-
+# A message specific to a work order
 class WorkOrderEventMessage < EventMessage
-  def initialize(params)
+  def initialize(work_order:, status:)
     # For Work Order message
     @work_order = params.fetch(:work_order, nil)
     @status = params.fetch(:status, nil)
   end
+
   # Generate the JSON for a Work Order event
   def generate_json
     plan = @work_order.work_plan
@@ -165,5 +164,4 @@ class WorkOrderEventMessage < EventMessage
       0
     end
   end
-
 end
