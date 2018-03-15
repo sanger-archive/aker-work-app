@@ -15,6 +15,7 @@ ActiveRecord::Schema.define(version: 20180301150923) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
   enable_extension "citext"
+  enable_extension "uuid-ossp"
 
   create_table "aker_process_module_pairings", id: :serial, force: :cascade do |t|
     t.integer "from_step_id"
@@ -37,7 +38,7 @@ ActiveRecord::Schema.define(version: 20180301150923) do
   create_table "aker_processes", id: :serial, force: :cascade do |t|
     t.string "name", null: false
     t.integer "TAT"
-    t.string "uuid", null: false
+    t.uuid "uuid", null: false
   end
 
   create_table "aker_product_processes", id: :serial, force: :cascade do |t|
@@ -80,7 +81,7 @@ ActiveRecord::Schema.define(version: 20180301150923) do
     t.string "description"
     t.integer "product_class"
     t.boolean "availability", default: true, null: false
-    t.string "uuid", null: false
+    t.uuid "uuid", null: false
     t.index ["catalogue_id"], name: "index_products_on_catalogue_id"
   end
 
@@ -96,17 +97,17 @@ ActiveRecord::Schema.define(version: 20180301150923) do
     t.string "status"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.string "original_set_uuid"
-    t.string "set_uuid"
     t.decimal "total_cost", precision: 8, scale: 2
-    t.string "finished_set_uuid"
-    t.string "work_order_uuid"
     t.string "close_comment"
     t.decimal "cost_per_sample", precision: 8, scale: 2
     t.boolean "material_updated", default: false, null: false
     t.integer "order_index", null: false
     t.date "dispatch_date"
     t.date "completion_date"
+    t.uuid "original_set_uuid"
+    t.uuid "set_uuid"
+    t.uuid "finished_set_uuid"
+    t.uuid "work_order_uuid", null: false
     t.bigint "work_plan_id", null: false
     t.bigint "process_id", null: false
     t.index ["process_id"], name: "index_work_orders_on_process_id"
@@ -116,11 +117,11 @@ ActiveRecord::Schema.define(version: 20180301150923) do
   create_table "work_plans", id: :serial, force: :cascade do |t|
     t.integer "project_id"
     t.bigint "product_id"
-    t.string "original_set_uuid"
+    t.uuid "original_set_uuid"
     t.citext "owner_email", null: false
     t.string "comment"
     t.date "desired_date"
-    t.string "uuid", null: false
+    t.uuid "uuid", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["owner_email"], name: "index_work_plans_on_owner_email"
