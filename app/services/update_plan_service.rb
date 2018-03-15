@@ -4,10 +4,11 @@ require 'set'
 
 class UpdatePlanService
 
-  def initialize(work_plan_params, work_plan, dispatch, messages)
+  def initialize(work_plan_params, work_plan, dispatch, user_and_groups, messages)
     @work_plan_params = work_plan_params
     @work_plan = work_plan
     @dispatch = dispatch
+    @user_and_groups = user_and_groups.flatten
     @messages = messages
   end
 
@@ -41,7 +42,7 @@ class UpdatePlanService
     end
 
     if @work_plan_params[:project_id]
-      return false unless validate_cost_code(@work_plan_params[:project_id])
+      return false unless validate_project_selection(@work_plan_params[:project_id])
     end
 
     update_order = nil
@@ -189,6 +190,9 @@ private
       add_error("That order is not ready to be dispatched.")
       return false
     end
+
+    return false unless authorize_project(@work_plan.project_id)
+
     unless order.original_set_uuid
       previous_order = orders.reverse.find(&:closed?)
       order.update_attributes!(original_set_uuid: previous_order.finished_set_uuid)
@@ -210,13 +214,33 @@ private
         return false
       end
       materials = all_results(MatconClient::Material.where("_id" => {"$in" => mids}).result_set)
-      return true if materials.all? { |mat| mat.attributes['available'] }
-      add_error("Some of the materials in the selected set are not available.")
+      if !materials.all? { |mat| mat.attributes['available'] }
+        add_error("Some of the materials in the selected set are not available.")
+        return false
+      end
+      return check_material_permissions(materials.map(&:id))
     rescue => e
       Rails.logger.error e
       Rails.logger.error e.backtrace
       add_error("The materials could not be retrieved.")
+      return false
     end
+  end
+
+  def check_material_permissions(material_uuids)
+    return true if StampClient::Permission.check_catch({
+      permission_type: :consume,
+      names: @user_and_groups,
+      material_uuids: material_uuids,
+    })
+
+    bad_uuids = StampClient::Permission.unpermitted_uuids
+    if bad_uuids.length > 10
+      joined = bad_uuids[0,10].to_s +' (too many to list)'
+    else
+      joined = bad_uuids.to_s
+    end
+    add_error("Not authorised to consume materials #{joined}.")
     return false
   end
 
@@ -246,7 +270,7 @@ private
     return module_id_arrays.zip(product.processes).all? { |mids, pro| check_process_module_ids(mids, pro) }
   end
 
-  def validate_cost_code(project_id)
+  def validate_project_selection(project_id)
     node = StudyClient::Node.find(project_id).first
     unless node
       add_error("No project could be found with id #{project_id}")
@@ -259,11 +283,23 @@ private
       return false
     end
 
+    return false unless authorize_project(project_id)
+
     unless BillingFacadeClient.validate_cost_code?(cost_code)
       add_error("The Billing service does not validate the cost code for the selected project.")
       return false
     end
     return true
+  end
+
+  def authorize_project(project_id)
+    begin
+      StudyClient::Node.authorize! :spend, project_id, @user_and_groups
+      return true
+    rescue AkerPermissionGem::NotAuthorized => e
+      add_error(e.message)
+      return false
+    end
   end
 
   def create_work_order_module_choices(product_options)

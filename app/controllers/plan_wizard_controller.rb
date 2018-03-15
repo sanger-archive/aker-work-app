@@ -18,7 +18,6 @@ class PlanWizardController < ApplicationController
     authorize! :write, work_plan
 
     begin
-      check_update_authorization!
       perform_update
     rescue CanCan::AccessDenied => e
       flash[:error] = e.message
@@ -67,46 +66,6 @@ class PlanWizardController < ApplicationController
     [current_user.email] + current_user.groups
   end
 
-  def stamp_client_authorize!(role, element_ids, user_and_groups)
-    element_ids = [element_ids].flatten
-    user_and_groups = user_and_groups.flatten
-
-    value = StampClient::Permission.check_catch({
-      permission_type: role,
-      names: user_and_groups,
-      material_uuids: element_ids
-    })
-    unless value
-      raise CanCan::AccessDenied.new(stamp_permission_error(role, StampClient::Permission.unpermitted_uuids))
-    end
-  end
-
-  def stamp_permission_error(role, uuids)
-    uuids = StampClient::Permission.unpermitted_uuids
-    if uuids.length > 10
-      joined = uuids[0,10].to_s +' (too many to list)'
-    else
-      joined = uuids.to_s
-    end
-    "Not authorised to perform '#{role}' with materials #{joined}."
-  end
-
-  def check_update_authorization!
-    if step==:set
-      if params[:work_plan] && work_plan_params[:original_set_uuid]
-        original_set = SetClient::Set.find_with_materials(work_plan_params[:original_set_uuid]).first
-        check_materials = original_set.materials
-        stamp_client_authorize!(:consume, check_materials.map(&:id), user_and_groups_list)
-      end
-    elsif step==:project
-      # TODO
-    elsif step==:product
-      # TODO
-    elsif step==:dispatch
-      # TODO
-    end
-  end
-
   def perform_update
     if nothing_to_update
       flash[:error] = "Please select an option to proceed"
@@ -123,7 +82,7 @@ class PlanWizardController < ApplicationController
   end
 
   def perform_step
-    return UpdatePlanService.new(work_plan_params, work_plan, params[:commit]=='dispatch', flash).perform
+    return UpdatePlanService.new(work_plan_params, work_plan, params[:commit]=='dispatch', user_and_groups_list, flash).perform
   end
 
   def work_plan_params
