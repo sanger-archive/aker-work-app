@@ -134,6 +134,5 @@ class WorkPlan < ApplicationRecord
     else
       email_or_group.include?(owner_email)
     end
-    # TODO - worry about deputies
   end
 end
