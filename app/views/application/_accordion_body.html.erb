@@ -1,12 +1,6 @@
-<% input_set = 'none' %>
-<% if work_order.set %>
-  <% input_set = work_order.set.name %>
-<% end %>
+<% input_set = work_order.set&.name || work_order.original_set&.name || 'none' %>
 
-<% output_set = 'none' %>
-<% if work_order.finished_set_uuid %>
-  <% output_set = work_order.finished_set.name %>
-<% end %>
+<% output_set = work_order.finished_set&.name || 'none' %>
 
 <div>
   <div class="row">
