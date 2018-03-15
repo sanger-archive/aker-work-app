@@ -314,13 +314,8 @@ RSpec.describe UpdatePlanService do
       end
       it 'orders should have correct sets' do
         plan.work_orders.each_with_index do |order, i|
-          if i==0
-            expect(order.original_set_uuid).to eq(plan.original_set_uuid)
-            expect(order.set_uuid).to eq(locked_set.uuid)
-          else
-            expect(order.original_set_uuid).to be_nil
-            expect(order.set_uuid).to be_nil
-          end
+          expect(order.original_set_uuid).to eq(i==0 ? plan.original_set_uuid : nil)
+          expect(order.set_uuid).to be_nil
         end
       end
     end
@@ -700,8 +695,10 @@ RSpec.describe UpdatePlanService do
     def extra_stubbing
       @sent_to_lims = false
       @sent_event = false
+      @finalised_set = false
       allow_any_instance_of(WorkOrder).to receive(:send_to_lims) { @sent_to_lims = true }
       allow_any_instance_of(WorkOrder).to receive(:generate_submitted_event) { @sent_event = true }
+      allow_any_instance_of(WorkOrder).to receive(:finalise_set) { @finalised_set = true }
     end
 
     context 'when the order is queued' do
@@ -722,6 +719,9 @@ RSpec.describe UpdatePlanService do
       end
       it 'should be active' do
         expect(plan.reload).to be_active
+      end
+      it 'should have finalised the set' do
+        expect(@finalised_set).to eq(true)
       end
       it 'should have sent the order' do
         expect(@sent_to_lims).to eq(true)
@@ -763,6 +763,9 @@ RSpec.describe UpdatePlanService do
       it 'should still be active' do
         expect(plan.reload).to be_active
       end
+      it 'should not have finalised the set' do
+        expect(@finalised_set).to eq(false)
+      end
       it 'should not have sent the order' do
         expect(@sent_to_lims).to eq(false)
       end
@@ -798,6 +801,9 @@ RSpec.describe UpdatePlanService do
       it 'should still be in construction' do
         expect(plan.reload).to be_in_construction
       end
+      it 'should not have finalised the set' do
+        expect(@finalised_set).to eq(false)
+      end
       it 'should not have sent the order' do
         expect(@sent_to_lims).to eq(false)
       end
@@ -832,6 +838,9 @@ RSpec.describe UpdatePlanService do
       end
       it 'should still be in construction' do
         expect(plan.reload).to be_in_construction
+      end
+      it 'should not have finalised the set' do
+        expect(@finalised_set).to eq(false)
       end
       it 'should not have sent the order' do
         expect(@sent_to_lims).to eq(false)

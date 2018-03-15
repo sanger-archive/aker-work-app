@@ -141,10 +141,32 @@ class WorkOrder < ApplicationRecord
     self.set && self.set.meta['size']
   end
 
-  # Create a locked set from this work order's original set.
-  def create_locked_set
-    self.set = original_set.create_locked_clone("Work Order #{id}")
+  # Make sure we have a locked set in our set field.
+  # Returns true if a set has been locked during this method.
+  def finalise_set
+    # If we already have an input set, and it is already locked, there is nothing to do
+    return false if set&.locked
+
+    if !set && !original_set
+      # No set is linked to this order
+      raise "No set selected for work order"
+    end
+
+    anylocked = false
+
+    if set # We already have an input set, but it needs to be locked
+      set.update_attributes(locked: true)
+      @set = SetClient::Set.find(set_uuid).first # make sure the set is reloaded
+      raise "Failed to lock set #{set.name}" unless set.locked
+      anylocked = true
+    elsif original_set.locked # Our original set is already locked, so we don't need to copy it
+      self.set = original_set
+    else # create a locked clone of the original set as our final input set
+      self.set = original_set.create_locked_clone(name)
+      anylocked = true
+    end
     save!
+    return anylocked
   end
 
   def name

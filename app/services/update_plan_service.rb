@@ -194,12 +194,9 @@ private
       order.update_attributes!(original_set_uuid: previous_order.finished_set_uuid)
     end
 
-    return false unless check_set_contents(order.original_set_uuid)
+    return false unless check_set_contents(order.set_uuid || order.original_set_uuid)
 
-    if order.original_set.locked
-      order.update_attributes!(set_uuid: order.original_set_uuid)
-    else
-      order.create_locked_set
+    if order.finalise_set
       return false unless check_set_contents(order.set_uuid)
     end
     return true
