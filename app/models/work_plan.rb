@@ -63,9 +63,6 @@ class WorkPlan < ApplicationRecord
     product.processes.each_with_index do |pro, i|
       wo = WorkOrder.create!(process: pro, order_index: i, work_plan: self, status: WorkOrder.QUEUED,
               original_set_uuid: i==0 ? original_set_uuid : nil, set_uuid: i==0 ? locked_set_uuid : nil)
-      if wo.original_set_uuid && !wo.set_uuid
-        wo.create_locked_set
-      end
       module_ids = process_module_ids[i]
       module_ids.each_with_index do |mid, j|
         WorkOrderModuleChoice.create!(work_order_id: wo.id, aker_process_modules_id: mid, position: j)

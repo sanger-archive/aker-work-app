@@ -156,7 +156,7 @@ RSpec.describe WorkPlan, type: :model do
 
       it 'should set the sets correctly' do
         expect(orders.first.original_set_uuid).to eq(plan.original_set_uuid)
-        expect(orders.first.set_uuid).to eq(locked_set.uuid)
+        expect(orders.first.set_uuid).to be_nil
         orders[1..-1].each do |o|
           expect(o.original_set_uuid).to be_nil
           expect(o.set_uuid).to be_nil

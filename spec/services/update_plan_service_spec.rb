@@ -5,7 +5,8 @@ RSpec.describe UpdatePlanService do
   let(:messages) { {} }
   let(:dispatch) { false }
   let(:params) { }
-  let(:service) { UpdatePlanService.new(params, plan, dispatch, messages) }
+  let(:user_and_groups) { ['user@here', 'all'] }
+  let(:service) { UpdatePlanService.new(params, plan, dispatch, user_and_groups, messages) }
   let(:catalogue) { create(:catalogue) }
   let(:product) { create(:product, catalogue: catalogue) }
   let(:project) { make_project(18, 'S1234-0') }
@@ -27,6 +28,14 @@ RSpec.describe UpdatePlanService do
     allow(BillingFacadeClient).to receive(:validate_cost_code?).and_return(true)
   end
 
+  def stub_project
+    allow(StudyClient::Node).to receive(:authorize!)
+  end
+
+  def stub_stamps
+    allow(StampClient::Permission).to receive(:check_catch).and_return true
+  end
+
   def make_rs_response(items)
     result_set = double(:result_set, to_a: items.to_a, has_next?: false)
     return double(:response, result_set: result_set)
@@ -43,9 +52,11 @@ RSpec.describe UpdatePlanService do
     set = double(:set, id: uuid, uuid: uuid, name: "Set #{uuid}", locked: clone_set.nil?)
 
     if empty
+      matids = []
       set_materials = double(:set_materials, materials: [])
     else
       matid = SecureRandom.uuid
+      matids = [matid]
       set_content_material = double(:material, id: matid)
       set_materials = double(:set_materials, materials: [set_content_material])
       material = double(:material, id: matid, attributes: { 'available' => available})
@@ -57,6 +68,7 @@ RSpec.describe UpdatePlanService do
       allow(set).to receive(:create_locked_clone).and_return(clone_set)
     end
     allow(SetClient::Set).to receive(:find).with(uuid).and_return([set])
+    allow(set).to receive(:_material_uuids).and_return(matids)
     set
   end
 
@@ -83,6 +95,10 @@ RSpec.describe UpdatePlanService do
   end
 
   describe 'selecting a project' do
+
+    def extra_stubbing
+      stub_project
+    end
 
     let(:new_project) { make_project(21, 'S1234-2') }
 
@@ -138,6 +154,28 @@ RSpec.describe UpdatePlanService do
       it { expect(@result).to be_falsey }
       it 'should produce an error message' do
         expect(messages[:error]).to match /cost code/
+      end
+      it 'should not set the project in the plan' do
+        expect(plan.project_id).to be_nil
+      end
+      it 'should still be in construction' do
+        expect(plan).to be_in_construction
+      end
+    end
+
+    context 'when the project cannot be authorised' do
+      let(:plan) { create(:work_plan, original_set_uuid: set.uuid) }
+      def stub_project
+        ex = AkerPermissionGem::NotAuthorized.new("Not authorised")
+        allow(StudyClient::Node).to receive(:authorize!).with(:spend, new_project.id, user_and_groups).and_raise ex
+      end
+
+      it { expect(@result).to be_falsey }
+      it 'should produce an error message' do
+        expect(messages[:error]).to match /not authori[zs]ed/i
+      end
+      it 'should have tried to authorise the project' do
+        expect(StudyClient::Node).to have_received(:authorize!).with(:spend, new_project.id, user_and_groups)
       end
       it 'should not set the project in the plan' do
         expect(plan.project_id).to be_nil
@@ -314,13 +352,8 @@ RSpec.describe UpdatePlanService do
       end
       it 'orders should have correct sets' do
         plan.work_orders.each_with_index do |order, i|
-          if i==0
-            expect(order.original_set_uuid).to eq(plan.original_set_uuid)
-            expect(order.set_uuid).to eq(locked_set.uuid)
-          else
-            expect(order.original_set_uuid).to be_nil
-            expect(order.set_uuid).to be_nil
-          end
+          expect(order.original_set_uuid).to eq(i==0 ? plan.original_set_uuid : nil)
+          expect(order.set_uuid).to be_nil
         end
       end
     end
@@ -700,8 +733,12 @@ RSpec.describe UpdatePlanService do
     def extra_stubbing
       @sent_to_lims = false
       @sent_event = false
+      @finalised_set = false
       allow_any_instance_of(WorkOrder).to receive(:send_to_lims) { @sent_to_lims = true }
       allow_any_instance_of(WorkOrder).to receive(:generate_submitted_event) { @sent_event = true }
+      allow_any_instance_of(WorkOrder).to receive(:finalise_set) { @finalised_set = true }
+      stub_project
+      stub_stamps
     end
 
     context 'when the order is queued' do
@@ -722,6 +759,9 @@ RSpec.describe UpdatePlanService do
       end
       it 'should be active' do
         expect(plan.reload).to be_active
+      end
+      it 'should have finalised the set' do
+        expect(@finalised_set).to eq(true)
       end
       it 'should have sent the order' do
         expect(@sent_to_lims).to eq(true)
@@ -763,6 +803,9 @@ RSpec.describe UpdatePlanService do
       it 'should still be active' do
         expect(plan.reload).to be_active
       end
+      it 'should not have finalised the set' do
+        expect(@finalised_set).to eq(false)
+      end
       it 'should not have sent the order' do
         expect(@sent_to_lims).to eq(false)
       end
@@ -798,6 +841,9 @@ RSpec.describe UpdatePlanService do
       it 'should still be in construction' do
         expect(plan.reload).to be_in_construction
       end
+      it 'should not have finalised the set' do
+        expect(@finalised_set).to eq(false)
+      end
       it 'should not have sent the order' do
         expect(@sent_to_lims).to eq(false)
       end
@@ -832,6 +878,103 @@ RSpec.describe UpdatePlanService do
       end
       it 'should still be in construction' do
         expect(plan.reload).to be_in_construction
+      end
+      it 'should not have finalised the set' do
+        expect(@finalised_set).to eq(false)
+      end
+      it 'should not have sent the order' do
+        expect(@sent_to_lims).to eq(false)
+      end
+      it 'should not have generated an event' do
+        expect(@sent_event).to eq(false)
+      end
+      it 'should not have changed the order status' do
+        expect(orders[0].reload).to be_queued
+      end
+      it 'should not have changed the dispatch date' do
+        expect(orders[0].reload.dispatch_date).to be_nil
+      end
+    end
+
+    context 'when the materials are not authorised' do
+      def stub_stamps
+       allow(StampClient::Permission).to receive(:check_catch).with({
+         permission_type: :consume,
+         names: user_and_groups,
+         material_uuids: set._material_uuids,
+       }).and_return false
+       allow(StampClient::Permission).to receive(:unpermitted_uuids).and_return([set._material_uuids.first])
+      end
+      it { expect(@result).to be_falsey }
+      it 'should produce an error message' do
+        expect(messages[:error]).to match /not authori[sz]ed.*materials/i
+      end
+      it 'should have tried to authorise the materials' do
+        expect(StampClient::Permission).to have_received(:check_catch).with({
+         permission_type: :consume,
+         names: user_and_groups,
+         material_uuids: set._material_uuids,
+       })
+      end
+      it 'should have the same work orders' do
+        expect(plan.work_orders.reload).to eq(orders)
+      end
+      it 'should not have changed the order modules' do
+        orders = plan.work_orders.reload
+        modules = orders.map do |order|
+          WorkOrderModuleChoice.where(work_order_id: order.id).map(&:aker_process_modules_id)
+        end
+        expect(modules[0]).to eq([processes[0].process_modules[0].id])
+        expect(modules[1]).to eq([processes[1].process_modules[0].id])
+      end
+      it 'should still be in construction' do
+        expect(plan.reload).to be_in_construction
+      end
+      it 'should not have finalised the set' do
+        expect(@finalised_set).to eq(false)
+      end
+      it 'should not have sent the order' do
+        expect(@sent_to_lims).to eq(false)
+      end
+      it 'should not have generated an event' do
+        expect(@sent_event).to eq(false)
+      end
+      it 'should not have changed the order status' do
+        expect(orders[0].reload).to be_queued
+      end
+      it 'should not have changed the dispatch date' do
+        expect(orders[0].reload.dispatch_date).to be_nil
+      end
+    end
+
+    context 'when the project is not authorised' do
+      def stub_project
+        ex = AkerPermissionGem::NotAuthorized.new("Not authorised")
+        allow(StudyClient::Node).to receive(:authorize!).with(:spend, project.id, user_and_groups).and_raise ex
+      end
+      it { expect(@result).to be_falsey }
+      it 'should produce an error message' do
+        expect(messages[:error]).to match /not authori[sz]ed/i
+      end
+      it 'should have tried to authorise the project' do
+        expect(StudyClient::Node).to have_received(:authorize!).with(:spend, project.id, user_and_groups)
+      end
+      it 'should have the same work orders' do
+        expect(plan.work_orders.reload).to eq(orders)
+      end
+      it 'should not have changed the order modules' do
+        orders = plan.work_orders.reload
+        modules = orders.map do |order|
+          WorkOrderModuleChoice.where(work_order_id: order.id).map(&:aker_process_modules_id)
+        end
+        expect(modules[0]).to eq([processes[0].process_modules[0].id])
+        expect(modules[1]).to eq([processes[1].process_modules[0].id])
+      end
+      it 'should still be in construction' do
+        expect(plan.reload).to be_in_construction
+      end
+      it 'should not have finalised the set' do
+        expect(@finalised_set).to eq(false)
       end
       it 'should not have sent the order' do
         expect(@sent_to_lims).to eq(false)
@@ -869,6 +1012,8 @@ RSpec.describe UpdatePlanService do
       @sent_event = false
       allow_any_instance_of(WorkOrder).to receive(:send_to_lims) { @sent_to_lims = true }
       allow_any_instance_of(WorkOrder).to receive(:generate_submitted_event) { @sent_event = true }
+      stub_project
+      stub_stamps
     end
 
     context 'when the first order is queued' do
@@ -914,6 +1059,111 @@ RSpec.describe UpdatePlanService do
       it { expect(@result).to be_falsey }
       it 'should produce an error message' do
         expect(messages[:error]).to be_present
+      end
+      it 'should have the same work orders' do
+        expect(plan.work_orders.reload).to eq(orders)
+      end
+      it 'should not have changed the order modules' do
+        orders = plan.work_orders.reload
+        modules = orders.map do |order|
+          WorkOrderModuleChoice.where(work_order_id: order.id).map(&:aker_process_modules_id)
+        end
+        expect(modules[0]).to eq([processes[0].process_modules[0].id])
+        expect(modules[1]).to eq([processes[1].process_modules[0].id])
+      end
+      it 'should still be active' do
+        expect(plan.reload).to be_active
+      end
+      it 'should not have sent the order' do
+        expect(@sent_to_lims).to eq(false)
+      end
+      it 'should not have generated an event' do
+        expect(@sent_event).to eq(false)
+      end
+      it 'should not have changed the order status' do
+        expect(orders[1].reload).to be_queued
+      end
+      it 'should not have changed the dispatch date' do
+        expect(orders[1].reload.dispatch_date).to be_nil
+      end
+    end
+
+    context 'when the project is not authorised' do
+      let(:plan) do
+        plan = make_plan_with_orders
+        plan.work_orders.first.update_attributes!(status: 'completed', finished_set_uuid: locked_set.uuid)
+        plan
+      end
+
+      def stub_project
+        ex = AkerPermissionGem::NotAuthorized.new("Not authorised")
+        allow(StudyClient::Node).to receive(:authorize!).with(:spend, project.id, user_and_groups).and_raise ex
+      end
+
+      it { expect(@result).to be_falsey }
+      it 'should have tried to authorise the project' do
+        expect(StudyClient::Node).to have_received(:authorize!).with(:spend, project.id, user_and_groups)
+      end
+      it 'should produce an error message' do
+        expect(messages[:error]).to match /not.*authori[sz]ed/i
+      end
+      it 'should have the same work orders' do
+        expect(plan.work_orders.reload).to eq(orders)
+      end
+      it 'should not have changed the order modules' do
+        orders = plan.work_orders.reload
+        modules = orders.map do |order|
+          WorkOrderModuleChoice.where(work_order_id: order.id).map(&:aker_process_modules_id)
+        end
+        expect(modules[0]).to eq([processes[0].process_modules[0].id])
+        expect(modules[1]).to eq([processes[1].process_modules[0].id])
+      end
+      it 'should still be active' do
+        expect(plan.reload).to be_active
+      end
+      it 'should not have sent the order' do
+        expect(@sent_to_lims).to eq(false)
+      end
+      it 'should not have generated an event' do
+        expect(@sent_event).to eq(false)
+      end
+      it 'should not have changed the order status' do
+        expect(orders[1].reload).to be_queued
+      end
+      it 'should not have changed the dispatch date' do
+        expect(orders[1].reload.dispatch_date).to be_nil
+      end
+    end
+
+    context 'when the materials are not authorised' do
+      let(:plan) do
+        plan = make_plan_with_orders
+        plan.work_orders.first.update_attributes!(status: 'completed', finished_set_uuid: locked_set.uuid)
+        plan
+      end
+
+      def stub_stamps
+       allow(StampClient::Permission).to receive(:check_catch).with({
+         permission_type: :consume,
+         names: user_and_groups,
+         material_uuids: locked_set._material_uuids,
+       }).and_return false
+       allow(StampClient::Permission).to receive(:unpermitted_uuids).and_return([locked_set._material_uuids.first])
+      end
+
+      it { expect(@result).to be_falsey }
+      it 'should produce an error message' do
+        expect(messages[:error]).to match /not authori[sz]ed.*materials/i
+      end
+      it 'should have tried to authorise the materials' do
+        expect(StampClient::Permission).to have_received(:check_catch).with({
+         permission_type: :consume,
+         names: user_and_groups,
+         material_uuids: locked_set._material_uuids,
+       })
+      end
+      it 'should produce an error message' do
+        expect(messages[:error]).to match /not.*authori[sz]ed/i
       end
       it 'should have the same work orders' do
         expect(plan.work_orders.reload).to eq(orders)

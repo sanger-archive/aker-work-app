@@ -157,7 +157,7 @@ RSpec.describe PlanWizardController, type: :controller do
       end
 
       it "should have performed the step" do
-        expect(UpdatePlanService).to have_received(:new).with(anything, @wp, false, flash)
+        expect(UpdatePlanService).to have_received(:new).with(anything, @wp, false, anything, flash)
         expect(@ups).to have_received(:perform)
       end
 
@@ -197,7 +197,7 @@ RSpec.describe PlanWizardController, type: :controller do
       end
 
       it "should have tried to perform the step" do
-        expect(UpdatePlanService).to have_received(:new).with(anything, @wp, false, flash)
+        expect(UpdatePlanService).to have_received(:new).with(anything, @wp, false, anything, flash)
         expect(@ups).to have_received(:perform)
       end
 

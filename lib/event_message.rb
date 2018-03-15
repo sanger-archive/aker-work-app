@@ -15,7 +15,7 @@ end
 
 # A message specific to a catalogue that has been received
 class CatalogueEventMessage < EventMessage
-  def initialize(catalogue:, error: nil)
+  def initialize(params)
     # For Catalogue message
     @catalogue = params.fetch(:catalogue, nil)
     @catalogue_error = params.fetch(:error, nil)
@@ -63,7 +63,7 @@ end
 
 # A message specific to a work order
 class WorkOrderEventMessage < EventMessage
-  def initialize(work_order:, status:)
+  def initialize(params)
     # For Work Order message
     @work_order = params.fetch(:work_order, nil)
     @status = params.fetch(:status, nil)

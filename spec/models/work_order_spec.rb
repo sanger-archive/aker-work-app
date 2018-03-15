@@ -415,21 +415,63 @@ RSpec.describe WorkOrder, type: :model do
     end
   end
 
-  describe "#create_locked_set" do
-    let(:original_set) { make_set }
-    let(:new_set) { make_set }
-    let(:order) { create(:work_order, id: 42, work_plan: plan, set_uuid: nil, set: nil, original_set_uuid: original_set.uuid) }
-    before do
-      allow(original_set).to receive(:create_locked_clone).and_return(new_set)
-
-      order.create_locked_set
+  describe '#finalise_set' do
+    let(:unlocked_set) { make_set }
+    let(:another_unlocked_set) { make_set }
+    let(:locked_set) do
+      x = make_set
+      allow(x).to receive(:locked).and_return(true)
+      x
     end
+    let(:original_set_uuid) { unlocked_set.uuid }
+    let(:input_set_uuid) { nil }
 
-    it "should have call create_locked_clone on the original set" do
-      expect(original_set).to have_received(:create_locked_clone)
+    let(:order) { create(:work_order, id: 42, work_plan: plan, set_uuid: input_set_uuid, original_set_uuid: original_set_uuid) }
+
+    context 'when the order already has a locked input set' do
+      let(:input_set_uuid) { locked_set.uuid }
+      it 'should do nothing' do
+        expect(order.finalise_set).to be_falsey
+      end
     end
-    it "should now have a reference to the new set" do
-      expect(order.set).to eq(new_set)
+    context 'when the order has an unlocked input set' do
+      let(:input_set_uuid) { another_unlocked_set.uuid }
+      it 'should lock the input set and return true' do
+        allow(another_unlocked_set).to receive(:locked).and_return(false)
+        expect(another_unlocked_set).to receive(:update_attributes).with(locked: true) do
+          allow(another_unlocked_set).to receive(:locked).and_return true
+        end
+        expect(order.finalise_set).to be_truthy
+      end
+    end
+    context 'when the input set fails to be locked' do
+      let(:input_set_uuid) { another_unlocked_set.uuid }
+      it 'should raise an exception' do
+        allow(another_unlocked_set).to receive(:locked).and_return(true)
+        allow(another_unlocked_set).to receive(:name).and_return('a name')
+        expect(another_unlocked_set).to receive(:update_attributes).with(locked: true) 
+        expect { order.finalise_set }.to raise_exception "Failed to lock set #{another_unlocked_set.name}"
+      end
+    end
+    context 'when the order has a locked original set' do
+      let(:original_set_uuid) { locked_set.uuid }
+      it 'should set the input set to the original set' do
+        expect(order.finalise_set).to be_falsey
+        expect(order.set_uuid).to eq(original_set_uuid)
+      end
+    end
+    context 'when the order has an unlocked original set' do
+      it 'should create a locked clone of the original set' do
+        expect(unlocked_set).to receive(:create_locked_clone).and_return(locked_set)
+        expect(order.finalise_set).to be_truthy
+        expect(order.set_uuid).to eq(locked_set.uuid)
+      end
+    end
+    context 'when the order has no original set' do
+      let(:original_set_uuid) { nil }
+      it 'should raise an exception' do
+        expect { order.finalise_set }.to raise_exception "No set selected for work order"
+      end
     end
   end
 
