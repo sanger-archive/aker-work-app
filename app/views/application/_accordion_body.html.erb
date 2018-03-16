@@ -37,11 +37,11 @@
   <% enabled = work_order.queued? %>
   <%= react_component('WorkOrderProcess', { index: index, work_order_id: work_order.id, pro: { name: work_order.process.name, links: work_order.process.build_available_links, path: work_order.selected_path, enabled: work_order.queued? } }) %>
 
-  <% if enabled %>
-    <%= f.submit "Save", class: "btn btn-success pull-right", value: "save" %>
-  <% end %>
   <% if work_order.can_be_dispatched? %>
-    <%= f.submit "Dispatch", class: "btn btn-primary pull-right", value: "dispatch" %>
+    <%= f.submit "Dispatch", class: "btn btn-success pull-right", style: "margin-top: 10px;", value: "dispatch" %>
+  <% end %>
+  <% if enabled %>
+    <%= f.submit "Save", class: "btn btn-primary pull-right", style: "margin-right: 10px; margin-top: 10px;", value: "save" %>
   <% end %>
 
 <% end %>
