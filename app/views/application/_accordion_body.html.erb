@@ -2,18 +2,34 @@
 
 <% output_set = work_order.finished_set&.name || 'none' %>
 
+<% if [work_order.set_uuid, work_order.original_set_uuid].compact.uniq.length==2 %>
+  <% original_set = work_order.original_set.name %>
+<% else %>
+  <% original_set = nil %>
+<% end %>
+
 <div>
   <div class="row">
-    <div class="col-md-6">Input Set: <%= input_set %></div>
+    <div class="col-md-6"><b><%= work_order.name %></b></div>
     <div class="col-md-6">Dispatch Date: <%= work_order.dispatch_date %></div>
   </div>
   <div class="row">
-    <div class="col-md-6">Output Set: <%= output_set %></div>
-    <% if work_order.completion_date %>
-      <div class="col-md-6">Completion Date: <%= work_order.completion_date %></div>
-    <% else %>
-      <div class="col-md-6">Estimated Completion Date: <%= work_order.estimated_completion_date %></div>
-    <% end %>
+    <div class="col-md-6">Input Set: <%= input_set %></div>
+    <div class="col-md-6">Output Set: <%= output_set %></div>    
+  </div>
+  <div class="row">
+    <div class="col-md-6">
+      <% if original_set %>
+        Based on original set: <%= original_set %>
+      <% end %>
+    </div>
+    <div class="col-md-6">
+      <% if work_order.completion_date %>
+        Completion Date: <%= work_order.completion_date %>
+      <% else %>
+        Estimated Completion Date: <%= work_order.estimated_completion_date %>
+      <% end %>
+    </div>
   </div>
 </div>
 
