@@ -295,7 +295,7 @@ RSpec.describe WorkOrder, type: :model do
         expect(data[:project_name]).to eq(project.name)
         expect(data[:data_release_uuid]).to eq(project.data_release_uuid)
         expect(data[:cost_code]).to eq(subproject.cost_code)
-        expect(data[:desired_date]).to eq(plan.desired_date)
+        expect(data).not_to have_key(:desired_date)
         expect(data[:modules]).to eq(["Module1", "Module2"])
         material_data = data[:materials]
         expect(material_data.length).to eq(@materials.length)

@@ -256,7 +256,6 @@ class WorkOrder < ApplicationRecord
         project_name: project.name,
         data_release_uuid: project.data_release_uuid,
         cost_code: cost_code,
-        desired_date: work_plan.desired_date,
         materials: material_data,
         modules: module_choices,
       }
