@@ -622,4 +622,21 @@ RSpec.describe WorkOrder, type: :model do
       end
     end
   end
+
+  describe '#next_order' do
+    let(:plan) { create(:work_plan) }
+    let(:work_order) { create(:work_order, order_index: 0, work_plan: plan) }
+    context 'when there is a next order' do
+      let!(:next_order) { create(:work_order, order_index: 1, work_plan: plan) }
+      it 'should return the next order' do
+        expect(work_order.next_order).to eq(next_order)
+      end
+    end
+
+    context 'when there is no next order' do
+      it 'should return nil' do
+        expect(work_order.next_order).to be_nil
+      end
+    end
+  end
 end

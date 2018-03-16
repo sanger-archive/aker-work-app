@@ -323,4 +323,9 @@ class WorkOrder < ApplicationRecord
     BillingFacadeClient.validate_process_module_name(uri_module_name)
   end
 
+  # The next order in the work plan (or nil if there is none)
+  def next_order
+    WorkOrder.where(work_plan_id: work_plan_id, order_index: order_index+1).first
+  end
+
 end
