@@ -473,12 +473,12 @@ class ProductInformation extends React.Component {
     return (
       <Fragment>
         <br />
-          <pre>{`Requested biomaterial type: ${data.requested_biomaterial_type}
-Product version: ${data.product_version}
-TAT: ${data.total_tat}
-Description: ${data.description}
-Availability: ${data.availability ? 'available' : 'suspended'}
-Product class: ${data.product_class}`}</pre>
+          <pre>{`Product info:
+  Requested biomaterial type: ${data.requested_biomaterial_type}
+  Product version: ${data.product_version}
+  TAT: ${data.total_tat}
+  Description: ${data.description}
+  Availability: ${data.availability ? 'available' : 'suspended'}`}</pre>
       </Fragment>
     );
   }

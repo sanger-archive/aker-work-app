@@ -15,6 +15,7 @@ unique so adjust the message as required.
             "uuid":"5ff66b00-d5a5-4014-9049-801f73bfaff2",
             "name":"QC",
             "TAT":5,
+            "process_class":"genotyping",
             "process_module_pairings":[
                {
                   "from_step":null,
@@ -210,7 +211,6 @@ unique so adjust the message as required.
             "product_version":1,
             "availability":1,
             "requested_biomaterial_type":"blood",
-            "product_class":"genotyping",
             "process_uuids":[
                "5ff66b00-d5a5-4014-9049-801f73bfaff2",
                "d96f64c9-46d9-46b9-bb7f-939256839147"
@@ -223,7 +223,6 @@ unique so adjust the message as required.
             "product_version":1,
             "availability":1,
             "requested_biomaterial_type":"dna",
-            "product_class":"genotyping",
             "process_uuids":[
                "a1773c00-b88e-46e7-a083-b93427718e05"
             ]
@@ -235,7 +234,6 @@ unique so adjust the message as required.
             "product_version":1,
             "availability":1,
             "requested_biomaterial_type":"dna",
-            "product_class":"genotyping",
             "process_uuids":[
                "04ccadb6-121b-4a23-a789-6f310e7f3351"
             ]

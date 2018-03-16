@@ -34,3 +34,9 @@ en:
           genotyping: "Genotyping"
           transcriptomics: "Transcriptomics"
           cell_line_creation: "Cell Line Creation"
+      process:
+        process_class:
+          dna_sequencing: "DNA Sequencing"
+          genotyping: "Genotyping"
+          transcriptomics: "Transcriptomics"
+          cell_line_creation: "Cell Line Creation"
