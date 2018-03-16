@@ -1,0 +1,24 @@
+<div class="row">
+  <div class="col-md-12">
+    <div style="margin: 10px 0">
+      <% unless last_step? %>
+        <%= f.submit "Next", class: "btn btn-primary pull-right" %>
+      <% end %>
+
+      <% unless first_step? %>
+        <%= link_to 'Previous', previous_wizard_path,
+              class: 'btn btn-warning',
+              data: { confirm: 'Are you sure you want to go back? You will lose unsaved changes on the curent step' },
+              style: "margin-right: 10px;" %>
+      <% end %>
+
+      <% unless work_plan.active? %>
+        <%= link_to 'Cancel work plan', work_plan,
+              method: :delete,
+              class: 'btn btn-danger',
+              data: { confirm: 'Are you sure you want to cancel this work plan?' }
+        %>
+      <% end %>
+    </div>
+  </div>
+</div>

@@ -10,8 +10,6 @@ describe 'Work Orders API' do
   before do
     webmock_matcon_schema
     allow_set_service_lock_set
-
-    allow(BillingFacadeClient).to receive(:send_event)
   end
 
   let(:set_for_work_order) { made_up_set }
@@ -21,11 +19,13 @@ describe 'Work Orders API' do
   let(:project) { make_node('my project', 'S0001', 1, 0, false, true) }
   let(:proposal) { make_node('my proposal', 'S0001-0', 2, project.id, true, false) }
 
+  let(:work_plan) { create(:work_plan, product: product, project_id: proposal.id)}
+
   let(:instance_wo) do
     create(:work_order, status: WorkOrder.ACTIVE,
                         set_uuid: set_for_work_order.id,
-                        product: product,
-                        proposal_id: proposal.id)
+                        work_plan: work_plan
+                        )
   end
 
   let(:instance_wo2) { create(:work_order) }

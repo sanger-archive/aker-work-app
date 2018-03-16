@@ -1,44 +1,41 @@
 require 'rails_helper'
 
 RSpec.describe Product, type: :model do
+  let(:catalogue) { create(:catalogue) }
+
   describe "#availability" do
     it "can be available" do
-      product = build(:product, availability: :available)
+      product = build(:product, availability: true)
+      expect(product.availability).to eq true
       expect(product.available?).to eq true
       expect(product.suspended?).to eq false
-      expect(product.availability).to eq 'available'
     end
     it "can be suspended" do
-      product = build(:product, availability: :suspended)
+      product = build(:product, availability: false)
+      expect(product.availability).to eq false
       expect(product.available?).to eq false
       expect(product.suspended?).to eq true
-      expect(product.availability).to eq 'suspended'
     end
-    it "cannot be bananas" do
-      expect { build(:product, availability: :bananas) }.to raise_error(ArgumentError)
+    it "default is true" do
+      product = build(:product)
+      expect(product.availability).to eq true
+      expect(product.available?).to eq true
+      expect(product.suspended?).to eq false
     end
   end
 
   describe "#availability scopes" do
     context "when there are products" do
-      before do
-        @c1 = create(:catalogue)
-        @p1 = create(:product, availability: :available, catalogue_id: @c1.id)
-        @p2 = create(:product, availability: :suspended, catalogue_id: @c1.id)
-        @p3 = create(:product, availability: :available, catalogue_id: @c1.id)
+      let!(:products) do
+        [true, false, true].map { |av| create(:product, availability: av, catalogue: catalogue) }
       end
 
       it "can find available products" do
-        products = Product.available
-        expect(products.length).to eq 2
-        expect(products[0]).to eq @p1
-        expect(products[1]).to eq @p3
+        expect(Product.available).to eq([products[0], products[2]])
       end
 
       it "can find suspended products" do
-        products = Product.suspended
-        expect(products.length).to eq 1
-        expect(products.first).to eq @p2
+        expect(Product.suspended).to eq([products[1]])
       end
     end
   end
@@ -73,27 +70,34 @@ RSpec.describe Product, type: :model do
     end
   end
 
-  describe "#product_class scopes" do
+  describe '#product_class scopes' do
     context "when there are products" do
-      before do
-        @c1 = create(:catalogue)
-        @p1 = create(:product, product_class: :transcriptomics, catalogue_id: @c1.id)
-        @p2 = create(:product, product_class: :transcriptomics, catalogue_id: @c1.id)
-        @p3 = create(:product, product_class: :genotyping, catalogue_id: @c1.id)
+      let!(:products) do
+        [:transcriptomics, :transcriptomics, :genotyping].map { |pc| create(:product, product_class: pc, catalogue: catalogue) }
       end
 
       it "can find products of class Transcriptomics" do
-        products = Product.transcriptomics
-        expect(products.length).to eq 2
-        expect(products[0]).to eq @p1
-        expect(products[1]).to eq @p2
+        expect(Product.transcriptomics).to eq(products[0...2])
       end
 
       it "can find products of class Genotyping" do
-        products = Product.genotyping
-        expect(products.length).to eq 1
-        expect(products.first).to eq @p3
+        expect(Product.genotyping).to eq([products[2]])
       end
+    end
+  end
+
+  describe '#processes' do
+    let(:product) { create(:product, catalogue: catalogue) }
+
+    it 'should be in the order specified by the process stage' do
+      pros = (1...4).map { |i| create(:process, name: "process #{i}") }
+      links = pros.each_with_index.map { |pro, i| create(:product_process, product: product, aker_process: pro, stage: i) }
+      expect(product.processes.reload).to eq(pros)
+    end
+    it 'should be in the different order specified by the process stage' do
+      pros = (1...4).map { |i| create(:process, name: "process #{i}") }
+      links = pros.each_with_index.map { |pro, i| create(:product_process, product: product, aker_process: pro, stage: 4-i) }
+      expect(product.processes.reload).to eq(pros.reverse)
     end
   end
 end

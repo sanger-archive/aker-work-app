@@ -8,22 +8,19 @@ require 'securerandom'
 class WorkOrder < ApplicationRecord
   include AkerPermissionGem::Accessible
 
-  belongs_to :product, optional: true
+  belongs_to :work_plan
 
-  before_validation :sanitise_owner
-  before_save :sanitise_owner
+  belongs_to :process, class_name: "Aker::Process", optional: false
+  has_many :work_order_module_choices, dependent: :destroy
 
   after_initialize :create_uuid
-  after_create :set_default_permission_email
-
-  validates :owner_email, presence: true
 
   def create_uuid
     self.work_order_uuid ||= SecureRandom.uuid
   end
 
-  def set_default_permission_email
-    set_default_permission(owner_email)
+  def owner_email
+    work_plan.owner_email
   end
 
   # The work order is in the 'active' state when it has been ordered
@@ -47,7 +44,14 @@ class WorkOrder < ApplicationRecord
     'cancelled'
   end
 
-  scope :for_user, -> (owner) { where(owner_email: owner.email) }
+  def self.QUEUED
+    'queued'
+  end
+
+  def total_tat
+    process&.TAT
+  end
+
   scope :active, -> { where(status: WorkOrder.ACTIVE) }
   # status is either set, product, proposal
   scope :pending, -> { where('status NOT IN (?)', not_pending_status_list)}
@@ -84,29 +88,31 @@ class WorkOrder < ApplicationRecord
     status == WorkOrder.COMPLETED || status == WorkOrder.CANCELLED
   end
 
+  def queued?
+    status == WorkOrder.QUEUED
+  end
+
   def broken!
     update_attributes(status: WorkOrder.BROKEN)
   end
 
-  def sanitise_owner
-    if owner_email
-      sanitised = owner_email.strip.downcase
-      if sanitised != owner_email
-        self.owner_email = sanitised
-      end
-    end
+  def broken?
+    status == WorkOrder.BROKEN
   end
 
-  def proposal
-  	return nil unless proposal_id
-    return @proposal if @proposal&.id==proposal_id
-	  @proposal = StudyClient::Node.find(proposal_id).first
+# checks work order is queued, and the first order in the work plan not to be closed
+  def can_be_dispatched?
+    (queued? && work_plan.work_orders.find {|o| !o.closed? }==self)
   end
 
   def original_set
     return nil unless original_set_uuid
     return @original_set if @original_set&.uuid==original_set_uuid
-    @original_set = SetClient::Set.find(original_set_uuid).first
+    begin
+      @original_set = SetClient::Set.find(original_set_uuid).first
+    rescue JsonApiClient::Errors::NotFound => e
+      return nil
+    end
   end
 
   def original_set=(orig_set)
@@ -135,10 +141,32 @@ class WorkOrder < ApplicationRecord
     self.set && self.set.meta['size']
   end
 
-  # Create a locked set from this work order's original set.
-  def create_locked_set
-    self.set = original_set.create_locked_clone("Work Order #{id}")
+  # Make sure we have a locked set in our set field.
+  # Returns true if a set has been locked during this method.
+  def finalise_set
+    # If we already have an input set, and it is already locked, there is nothing to do
+    return false if set&.locked
+
+    if !set && !original_set
+      # No set is linked to this order
+      raise "No set selected for work order"
+    end
+
+    anylocked = false
+
+    if set # We already have an input set, but it needs to be locked
+      set.update_attributes(locked: true)
+      @set = SetClient::Set.find(set_uuid).first # make sure the set is reloaded
+      raise "Failed to lock set #{set.name}" unless set.locked
+      anylocked = true
+    elsif original_set.locked # Our original set is already locked, so we don't need to copy it
+      self.set = original_set
+    else # create a locked clone of the original set as our final input set
+      self.set = original_set.create_locked_clone(name)
+      anylocked = true
+    end
     save!
+    return anylocked
   end
 
   def name
@@ -146,7 +174,7 @@ class WorkOrder < ApplicationRecord
   end
 
   def send_to_lims
-    lims_url = product.catalogue.url
+    lims_url = work_plan.product.catalogue.url
     LimsClient::post(lims_url, lims_data)
   end
 
@@ -167,9 +195,27 @@ class WorkOrder < ApplicationRecord
     data
   end
 
+  def selected_path
+    path = []
+    module_choices = WorkOrderModuleChoice.where(work_order_id: id)
+    module_choices.each do |c|
+      mod = Aker::ProcessModule.find(c.aker_process_modules_id)
+      path.push({name: mod.name, id: mod.id})
+    end
+    path
+  end
+
+  def estimated_completion_date
+    return nil unless dispatch_date && process
+    dispatch_date + process.TAT
+  end
+
   # This method returns a JSON description of the order that will be sent to a LIMS to order work.
   # It includes information that must be loaded from other services (study, set, etc.).
   def lims_data
+    # Raise exception if module names are not valid from BillingFacadeMock
+    validate_module_names(module_choices)
+
     material_ids = SetClient::Set.find_with_materials(set_uuid).first.materials.map{|m| m.id}
     materials = all_results(MatconClient::Material.where("_id" => {"$in" => material_ids}).result_set)
 
@@ -194,25 +240,25 @@ class WorkOrder < ApplicationRecord
     end
     describe_containers(material_ids, material_data)
 
-    if proposal.subproject?
-      project = StudyClient::Node.find(proposal.parent_id).first
-    else
-      project = proposal
+    project = work_plan.project
+    cost_code = project.cost_code
+    if project.subproject?
+      project = StudyClient::Node.find(project.parent_id).first
     end
 
     {
       work_order: {
-        product_name: product.name,
-        product_version: product.product_version,
-        product_uuid: product.product_uuid,
+        process_name: process.name,
+        process_uuid: process.uuid,
         work_order_id: id,
-        comment: comment,
+        comment: work_plan.comment,
         project_uuid: project.node_uuid,
         project_name: project.name,
         data_release_uuid: project.data_release_uuid,
-        cost_code: proposal.cost_code,
-        desired_date: desired_date,
+        cost_code: cost_code,
+        desired_date: work_plan.desired_date,
         materials: material_data,
+        modules: module_choices,
       }
     }
   end
@@ -240,8 +286,8 @@ class WorkOrder < ApplicationRecord
 
   def generate_completed_and_cancel_event
     if closed?
-      message = EventMessage.new(work_order: self, status: status)
-      EventService.publish(message)
+      message = WorkOrderEventMessage.new(work_order: self, status: status)
+      BrokerHandle.publish(message)
       BillingFacadeClient.send_event(self, status)
     else
       raise 'You cannot generate an event from a work order that has not been completed.'
@@ -250,12 +296,32 @@ class WorkOrder < ApplicationRecord
 
   def generate_submitted_event
     if active?
-      message = EventMessage.new(work_order: self, status: 'submitted')
-      EventService.publish(message)
+      message = WorkOrderEventMessage.new(work_order: self, status: 'submitted')
+      BrokerHandle.publish(message)
       BillingFacadeClient.send_event(self, 'submitted')
     else
       raise 'You cannot generate an submitted event from a work order that is not active.'
     end
+  end
+
+  def module_choices
+    module_choices = []
+    WorkOrderModuleChoice.where(work_order_id: id).order(:position).pluck(:aker_process_modules_id).each do |id|
+      module_choices.push(Aker::ProcessModule.find(id).name)
+    end
+    module_choices
+  end
+
+  def validate_module_names(module_names)
+    bad_modules = module_names.reject { |m| validate_module_name(m) }
+    unless bad_modules.empty?
+      raise "Process module could not be validated: #{bad_modules}"
+    end
+  end
+
+  def validate_module_name(module_name)
+    uri_module_name = module_name.gsub(' ', '_').downcase
+    BillingFacadeClient.validate_process_module_name(uri_module_name)
   end
 
 end
