@@ -515,7 +515,6 @@ ${errorText}`}</pre>
       <Fragment>
           <pre>{`Number of samples: ${numSamples}
 Estimated cost per sample: ${convertToCurrency(costPerSample)}
-
 Total: ${convertToCurrency(total)}`}</pre>
       </Fragment>
     );

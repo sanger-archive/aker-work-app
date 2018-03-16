@@ -1,6 +1,6 @@
-<% input_set = work_order.set&.name || work_order.original_set&.name || 'none' %>
+<% input_set = work_order.set&.name || work_order.original_set&.name %>
 
-<% output_set = work_order.finished_set&.name || 'none' %>
+<% output_set = work_order.finished_set&.name %>
 
 <% if [work_order.set_uuid, work_order.original_set_uuid].compact.uniq.length==2 %>
   <% original_set = work_order.original_set.name %>
