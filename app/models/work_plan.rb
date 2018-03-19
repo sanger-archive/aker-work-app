@@ -107,6 +107,10 @@ class WorkPlan < ApplicationRecord
     status=='active'
   end
 
+  def cancelled?
+    status=='cancelled'
+  end
+
   def in_construction?
     status=='construction'
   end
@@ -114,13 +118,15 @@ class WorkPlan < ApplicationRecord
   # broken - one of the orders is broken
   # closed - all of the orders are complete or cancelled (in some combination)
   # active - the orders are underway
+  # cancelled - the plan has been cancelled
   # construction - the plan is not yet underway
   def status
-    if project && !work_orders.empty?
+    if project && !work_orders.empty? && !cancelled
       return 'broken' if work_orders.any?(&:broken?)
       return 'closed' if work_orders.all?(&:closed?)
       return 'active' if (work_orders.any?(&:active?) || work_orders.any?(&:closed?) && work_orders.any?(&:queued?))
     end
+    return 'cancelled' if cancelled.present?
     'construction'
   end
 
