@@ -2,12 +2,12 @@
 
 <%= bootstrap_form_for work_plan, url: wizard_path, method: :put  do |f| %>
 
-    <% enabled = work_plan.in_construction? %>
+  <% enabled = work_plan.in_construction? %>
 
-    <%= f.collection_radio_buttons(:project_id, get_spendable_projects, :id,
-      lambda { |node| node.name+', Cost code: '+node.cost_code },
-      disabled: !enabled,
-      label: "These are all the projects you can spend on. Please select a project:") %>
+  <%= f.collection_radio_buttons(:project_id, get_spendable_projects, :id,
+    lambda { |node| node.name+', Cost code: '+node.cost_code },
+    disabled: !enabled,
+    label: "These are all the projects you can spend on. Please select a project:") %>
 
   <%= render 'buttons', work_plan: work_plan, f: f %>
 

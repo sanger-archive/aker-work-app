@@ -100,9 +100,9 @@ class WorkOrder < ApplicationRecord
     status == WorkOrder.BROKEN
   end
 
-# checks work order is queued, and the first order in the work plan not to be closed
+# checks work_plan is not cancelled, work order is queued, and the first order in the work plan not to be closed
   def can_be_dispatched?
-    (queued? && work_plan.work_orders.find {|o| !o.closed? }==self)
+    (!work_plan.cancelled? && queued? && work_plan.work_orders.find {|o| !o.closed? }==self)
   end
 
   def original_set

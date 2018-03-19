@@ -447,7 +447,7 @@ RSpec.describe WorkOrder, type: :model do
       let(:input_set_uuid) { another_unlocked_set.uuid }
       it 'should raise an exception' do
         allow(another_unlocked_set).to receive(:name).and_return('myset')
-        expect(another_unlocked_set).to receive(:update_attributes).with(locked: true) 
+        expect(another_unlocked_set).to receive(:update_attributes).with(locked: true)
         expect { order.finalise_set }.to raise_exception "Failed to lock set #{another_unlocked_set.name}"
       end
     end
@@ -567,6 +567,14 @@ RSpec.describe WorkOrder, type: :model do
       it 'should return false' do
         process = build(:process, TAT: 4)
         plan = create(:work_plan)
+        order = build(:work_order, process: process, work_plan: plan, status: 'active')
+        expect(order.can_be_dispatched?).to eq(false)
+      end
+    end
+    context 'when the work plan is cancelled' do
+      it 'should return false' do
+        process = build(:process, TAT: 4)
+        plan = create(:work_plan, cancelled: Time.now)
         order = build(:work_order, process: process, work_plan: plan, status: 'active')
         expect(order.can_be_dispatched?).to eq(false)
       end
