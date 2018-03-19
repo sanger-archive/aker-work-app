@@ -295,7 +295,7 @@ RSpec.describe WorkOrder, type: :model do
         expect(data[:project_name]).to eq(project.name)
         expect(data[:data_release_uuid]).to eq(project.data_release_uuid)
         expect(data[:cost_code]).to eq(subproject.cost_code)
-        expect(data[:desired_date]).to eq(plan.desired_date)
+        expect(data).not_to have_key(:desired_date)
         expect(data[:modules]).to eq(["Module1", "Module2"])
         material_data = data[:materials]
         expect(material_data.length).to eq(@materials.length)
@@ -447,7 +447,7 @@ RSpec.describe WorkOrder, type: :model do
       let(:input_set_uuid) { another_unlocked_set.uuid }
       it 'should raise an exception' do
         allow(another_unlocked_set).to receive(:name).and_return('myset')
-        expect(another_unlocked_set).to receive(:update_attributes).with(locked: true) 
+        expect(another_unlocked_set).to receive(:update_attributes).with(locked: true)
         expect { order.finalise_set }.to raise_exception "Failed to lock set #{another_unlocked_set.name}"
       end
     end
@@ -571,6 +571,14 @@ RSpec.describe WorkOrder, type: :model do
         expect(order.can_be_dispatched?).to eq(false)
       end
     end
+    context 'when the work plan is cancelled' do
+      it 'should return false' do
+        process = build(:process, TAT: 4)
+        plan = create(:work_plan, cancelled: Time.now)
+        order = build(:work_order, process: process, work_plan: plan, status: 'active')
+        expect(order.can_be_dispatched?).to eq(false)
+      end
+    end
   end
 
   describe '#selected_path' do
@@ -619,6 +627,23 @@ RSpec.describe WorkOrder, type: :model do
       let!(:order) { build(:work_order, work_plan: plan, process: process, dispatch_date: Date.today )}
       it 'should the dispatch date + the process TAT' do
         expect(order.estimated_completion_date).to eq(order.dispatch_date+process.TAT)
+      end
+    end
+  end
+
+  describe '#next_order' do
+    let(:plan) { create(:work_plan) }
+    let(:work_order) { create(:work_order, order_index: 0, work_plan: plan) }
+    context 'when there is a next order' do
+      let!(:next_order) { create(:work_order, order_index: 1, work_plan: plan) }
+      it 'should return the next order' do
+        expect(work_order.next_order).to eq(next_order)
+      end
+    end
+
+    context 'when there is no next order' do
+      it 'should return nil' do
+        expect(work_order.next_order).to be_nil
       end
     end
   end

@@ -263,6 +263,14 @@ RSpec.describe WorkPlan, type: :model do
       end
       it { expect(plan.status).to eq('active') }
     end
+
+    context 'when the plan is cancelled' do
+      before do
+        plan.update_attributes(cancelled: Time.now)
+        plan.reload
+      end
+      it { expect(plan.status).to eq('cancelled') }
+    end
   end
 
   describe '#original_set' do
@@ -397,6 +405,26 @@ RSpec.describe WorkPlan, type: :model do
     it 'should say work plan and the id' do
       plan = create(:work_plan)
       expect(plan.name).to eq("Work plan #{plan.id}")
+    end
+  end
+
+  describe '#cancelled' do
+    context 'when a new work plan is created' do
+      it 'should have cancelled set to nil' do
+        plan = WorkPlan.new(owner_email: 'user')
+        expect(plan.cancelled).to be_nil
+      end
+    end
+
+    context 'when a work plan is cancelled' do
+      it 'should have cancelled set to the time of cancelling' do
+        plan = WorkPlan.new(owner_email: 'dave')
+        cancelled_time = Time.now
+        plan.update_attributes(cancelled: cancelled_time)
+        plan = WorkPlan.find(plan.id)
+        expect(plan.cancelled).not_to be_nil
+        expect(plan.cancelled).to be_within(1.second).of cancelled_time
+      end
     end
   end
 

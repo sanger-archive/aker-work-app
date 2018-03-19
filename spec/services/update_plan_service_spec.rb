@@ -243,8 +243,14 @@ RSpec.describe UpdatePlanService do
   end
 
   describe 'selecting a set' do
-    let(:new_set) { make_set(false, true) }
+    let(:available) { true }
+    let(:empty) { false }
+    let(:new_set) { make_set(empty, available) }
     let(:params) { { original_set_uuid: new_set.uuid } }
+
+    def extra_stubbing
+      stub_stamps
+    end
 
     context 'when the plan has no set selected' do
       it { expect(@result).to be_truthy }
@@ -268,13 +274,61 @@ RSpec.describe UpdatePlanService do
 
       it { expect(@result).to be_falsey }
       it 'should produce an error message' do
-        expect(messages[:error]).to match /in progress/
+        expect(messages[:error]).to match /in progress/i
       end
       it 'should not change the set in the plan' do
         expect(plan.original_set_uuid).to eq(set.uuid)
       end
       it 'should still be active' do
         expect(plan).to be_active
+      end
+    end
+
+    context 'when the materials are not available' do
+      let(:available) { false }
+
+      it { expect(@result).to be_falsey }
+      it 'should produce an error messages' do
+        expect(messages[:error]).to match /available/i
+      end
+      it 'should not change the set in the plan' do
+        expect(plan.original_set_uuid).to be_nil
+      end
+      it 'should still be in construction' do
+        expect(plan).to be_in_construction
+      end
+    end
+
+    context 'when the set is empty' do
+      let(:empty) { true }
+
+      it { expect(@result).to be_falsey }
+      it 'should produce an error messages' do
+        expect(messages[:error]).to match /empty/i
+      end
+      it 'should not change the set in the plan' do
+        expect(plan.original_set_uuid).to be_nil
+      end
+      it 'should still be in construction' do
+        expect(plan).to be_in_construction
+      end
+    end
+
+    context 'when user does not have consume permission' do
+      def stub_stamps
+        allow(StampClient::Permission).to receive(:check_catch).and_return false
+        allow(StampClient::Permission).to receive(:unpermitted_uuids).and_return([new_set._material_uuids.first])
+      end
+
+      it { expect(@result).to be_falsey }
+      it 'should produce an error messages' do
+        expect(messages[:error]).to match /not authori[sz]ed/i
+      end
+      it 'should not change the set in the plan' do
+        expect(plan.original_set_uuid).to be_nil
+      end
+      it 'should still be in construction' do
+        expect(plan).to be_in_construction
       end
     end
   end

@@ -17,16 +17,22 @@ class WorkPlansController < ApplicationController
     @in_construction_plans = users_work_plans.select(&:in_construction?)
     @active_plans = users_work_plans.select(&:active?)
     @closed_plans = users_work_plans.select(&:closed?)
+    @cancelled_plans = users_work_plans.select(&:cancelled?)
   end
 
   def destroy
     authorize! :write, work_plan
 
     unless work_plan.in_construction?
-      flash[:error] = "This work plan has already been issued, and cannot be deleted."
+      if work_plan.cancelled?
+        flash[:error] = "This work plan has already been cancelled."
+      else
+        work_plan.update_attributes(cancelled: Time.now)
+        flash[:notice] = "Work plan cancelled."
+      end
     else
       work_plan.destroy
-      flash[:notice] = "Work plan deleted"
+      flash[:notice] = "Work plan deleted."
     end
     redirect_to work_plans_path
   end

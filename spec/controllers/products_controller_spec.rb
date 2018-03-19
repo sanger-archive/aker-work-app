@@ -12,8 +12,9 @@ RSpec.describe ProductsController, type: :controller do
   let(:product) { create(:product, catalogue: catalogue, description: "Bake cakes") }
   let(:processes) do
     tats = [5,11]
+    process_classes = [:genotyping, nil]
     (0..1).map do |i|
-      pro = create(:process, TAT: tats[i], name: "pro_#{i}")
+      pro = create(:process, TAT: tats[i], name: "pro_#{i}", process_class: process_classes[i])
       create(:product_process, product: product, aker_process: pro, stage: i)
       pro
     end
@@ -70,10 +71,11 @@ RSpec.describe ProductsController, type: :controller do
         expect(r[:total_tat]).to eq (processes[0].TAT + processes[1].TAT)
 
         product_processes = processes.map do |pro|
-          { name: pro.name, id: pro.id, links: pro.build_available_links, path: pro.build_default_path }
+          { name: pro.name, id: pro.id, links: pro.build_available_links, path: pro.build_default_path,
+            tat: pro.TAT, process_class: pro.process_class_human }
         end
 
-        expect(r[:product_processes].to_json).to eq(product_processes.to_json)
+        expect(r[:product_processes]).to eq(JSON.parse(product_processes.to_json, symbolize_names: true))
       end
     end
 
@@ -110,9 +112,10 @@ RSpec.describe ProductsController, type: :controller do
         expect(r[:total_tat]).to eq (processes[0].TAT + processes[1].TAT)
 
         product_processes = processes.each_with_index.map do |pro, i|
-          { name: pro.name, id: pro.id, links: pro.build_available_links, path: [alt_modules[i].to_custom_hash] }
+          { name: pro.name, id: pro.id, links: pro.build_available_links, path: [alt_modules[i].to_custom_hash],
+            tat: pro.TAT, process_class: pro.process_class_human }
         end
-        expect(r[:product_processes].to_json).to eq(product_processes.to_json)
+        expect(r[:product_processes]).to eq(JSON.parse(product_processes.to_json, symbolize_names: true))
       end
     end
 
