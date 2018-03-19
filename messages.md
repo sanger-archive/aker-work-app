@@ -8,11 +8,11 @@ unique so adjust the message as required.
 {
    "catalogue":{
       "pipeline":"WGS",
-      "url":"localhost:3400",
-      "lims_id":"SQSC",
+      "url":"http://localhost:3400",
+      "lims_id":"mylims",
       "processes":[
          {
-            "uuid":"5ff66b00-d5a5-4014-9049-801f73bfaff2",
+            "uuid":"51c4c8c7-2e7a-41dd-a36a-3f44963a00b9",
             "name":"QC",
             "TAT":5,
             "process_class":"genotyping",
@@ -75,167 +75,99 @@ unique so adjust the message as required.
             ]
          },
          {
-            "uuid":"d96f64c9-46d9-46b9-bb7f-939256839147",
-            "name":"PROCESS 2",
-            "TAT":11,
+            "uuid":"81fa3b15-1598-45f9-8c89-45e4a651fe13",
+            "name":"Library 30x Human Whole Genome",
+            "TAT":8,
+            "process_class":"dna_sequencing",
             "process_module_pairings":[
                {
                   "from_step":null,
-                  "to_step":"Alpha",
+                  "to_step":"PCR FREE",
+                  "default_path":false
+               },
+               {
+                  "from_step":null,
+                  "to_step":"8 PCR Cycles",
+                  "default_path":false
+               },
+               {
+                  "from_step":null,
+                  "to_step":"6 PCR Cycles",
                   "default_path":true
                },
                {
-                  "from_step":null,
-                  "to_step":"Beta",
-                  "default_path":false
-               },
-               {
-                  "from_step":null,
-                  "to_step":"Gamma",
-                  "default_path":false
-               },
-               {
-                  "from_step":null,
-                  "to_step":"Delta",
-                  "default_path":false
-               },
-               {
-                  "from_step":"Alpha",
+                  "from_step":"PCR FREE",
                   "to_step":null,
                   "default_path":false
                },
                {
-                  "from_step":"Beta",
+                  "from_step":"8 PCR Cycles",
                   "to_step":null,
                   "default_path":false
                },
                {
-                  "from_step":"Gamma",
+                  "from_step":"6 PCR Cycles",
                   "to_step":null,
-                  "default_path":false
-               },
-               {
-                  "from_step":"Delta",
-                  "to_step":null,
-                  "default_path":true
-               },
-               {
-                  "from_step":"Alpha",
-                  "to_step":"Beta",
-                  "default_path":false
-               },
-               {
-                  "from_step":"Alpha",
-                  "to_step":"Gamma",
-                  "default_path":false
-               },
-               {
-                  "from_step":"Alpha",
-                  "to_step":"Delta",
                   "default_path":true
                }
             ]
          },
          {
-            "uuid":"a1773c00-b88e-46e7-a083-b93427718e05",
-            "name": "Library 30x Human Whole Genome",
-            "TAT": 8,
-            "process_module_pairings": [{
-                  "from_step": null,
-                  "to_step": "PCR FREE",
-                  "default_path": false
-               }, {
-                  "from_step": null,
-                  "to_step": "8 PCR Cycles",
-                  "default_path": false
-               }, {
-                  "from_step": null,
-                  "to_step": "6 PCR Cycles",
-                  "default_path": true
-               }, {
-                  "from_step": "PCR FREE",
-                  "to_step": null,
-                  "default_path": false
-               }, {
-                  "from_step": "8 PCR Cycles",
-                  "to_step": null,
-                  "default_path": false
-               }, {
-                  "from_step": "6 PCR Cycles",
-                  "to_step": null,
-                  "default_path": true
-               }
-            ]
-         },
-         {
-            "uuid": "04ccadb6-121b-4a23-a789-6f310e7f3351",
-            "name": "30x Human Whole Genome Sequencing",
-            "TAT": 8,
-            "process_module_pairings": [{
-                  "from_step": null,
-                  "to_step": "NovaSeq",
-                  "default_path": false
-               }, {
-                  "from_step": null,
-                  "to_step": "Single Plex Pooling (m=1)",
-                  "default_path": false
-               }, {
-                  "from_step": null,
-                  "to_step": "Multiplex Pooling (m=2..96)",
-                  "default_path": true
-               }, {
-                  "from_step": "NovaSeq",
-                  "to_step": null,
-                  "default_path": false
-               }, {
-                  "from_step": "HiSeq X",
-                  "to_step": null,
-                  "default_path": true
-               }, {
-                  "from_step": "Single Plex Pooling (m=1)",
-                  "to_step": "HiSeq X",
-                  "default_path": false
-               }, {
-                  "from_step": "Multiplex Pooling (m=2..96)",
-                  "to_step": "HiSeq X",
-                  "default_path": true
+            "uuid":"0bc48d2f-dcf6-448a-82d0-75665e9069d1",
+            "name":"30x Human Whole Genome Sequencing",
+            "TAT":8,
+            "process_class":"dna_sequencing",
+            "process_module_pairings":[
+               {
+                  "from_step":null,
+                  "to_step":"NovaSeq",
+                  "default_path":false
+               },
+               {
+                  "from_step":null,
+                  "to_step":"Single Plex Pooling (m=1)",
+                  "default_path":false
+               },
+               {
+                  "from_step":null,
+                  "to_step":"Multiplex Pooling (m=2..96)",
+                  "default_path":true
+               },
+               {
+                  "from_step":"NovaSeq",
+                  "to_step":null,
+                  "default_path":false
+               },
+               {
+                  "from_step":"HiSeq X",
+                  "to_step":null,
+                  "default_path":true
+               },
+               {
+                  "from_step":"Single Plex Pooling (m=1)",
+                  "to_step":"HiSeq X",
+                  "default_path":false
+               },
+               {
+                  "from_step":"Multiplex Pooling (m=2..96)",
+                  "to_step":"HiSeq X",
+                  "default_path":true
                }
             ]
          }
       ],
       "products":[
          {
-            "uuid":"eca9d7f9-7dd3-46e4-9e99-75031b8e5d43",
-            "name":"QC",
-            "description":"Lorem Ipsum",
+            "uuid":"fedd99f6-a028-471b-9790-90bf46f9b445",
+            "name":"30x Human Whole Genome Sequencing",
+            "description":"Quality Control",
             "product_version":1,
             "availability":1,
             "requested_biomaterial_type":"blood",
             "process_uuids":[
-               "5ff66b00-d5a5-4014-9049-801f73bfaff2",
-               "d96f64c9-46d9-46b9-bb7f-939256839147"
-            ]
-         },
-         {
-            "uuid":"13c5f330-b58d-4bb0-9f3d-f6e39b4f69c3",
-            "name":"Library 30x Human Whole Genome",
-            "description":"Library Creation",
-            "product_version":1,
-            "availability":1,
-            "requested_biomaterial_type":"dna",
-            "process_uuids":[
-               "a1773c00-b88e-46e7-a083-b93427718e05"
-            ]
-         },
-         {
-            "uuid":"a5c08d1e-367c-40e1-9cff-a18dc7dcfb05",
-            "name":"30x Human Whole Genome Sequencing",
-            "description":"Genome Sequencing",
-            "product_version":1,
-            "availability":1,
-            "requested_biomaterial_type":"dna",
-            "process_uuids":[
-               "04ccadb6-121b-4a23-a789-6f310e7f3351"
+               "51c4c8c7-2e7a-41dd-a36a-3f44963a00b9",
+               "81fa3b15-1598-45f9-8c89-45e4a651fe13",
+               "0bc48d2f-dcf6-448a-82d0-75665e9069d1"
             ]
          }
       ]
