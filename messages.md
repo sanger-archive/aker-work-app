@@ -8,7 +8,7 @@ unique so adjust the message as required.
 {
    "catalogue":{
       "pipeline":"WGS",
-      "url":"localhost:3400",
+      "url":"http://localhost:3400",
       "lims_id":"SQSC",
       "processes":[
          {
