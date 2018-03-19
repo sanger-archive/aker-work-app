@@ -423,7 +423,7 @@ RSpec.describe WorkPlan, type: :model do
         plan.update_attributes(cancelled: cancelled_time)
         plan = WorkPlan.find(plan.id)
         expect(plan.cancelled).not_to be_nil
-        expect(plan.cancelled).to eq cancelled_time
+        expect(plan.cancelled).to be_within(1.second).of cancelled_time
       end
     end
   end
