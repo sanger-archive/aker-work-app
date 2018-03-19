@@ -1,7 +1,7 @@
 require 'rails_helper'
 
 RSpec.describe Aker::Process, type: :model do
-  describe "#validation" do
+  describe '#validation' do
     it 'is not valid without a name' do
       expect(build(:aker_process, name: nil)).to_not be_valid
     end
@@ -57,12 +57,12 @@ RSpec.describe Aker::Process, type: :model do
         end
         it 'creates an object describing that linear process' do
           expect(@process.build_available_links).to eq(
-            "start" => [{:name => @list_of_modules[0].name, :id => @list_of_modules[0].id}],
+            'start' => [{:name => @list_of_modules[0].name, :id => @list_of_modules[0].id}],
             @list_of_modules[0].name => [@list_of_modules[1].to_custom_hash],
             @list_of_modules[1].name => [@list_of_modules[2].to_custom_hash],
             @list_of_modules[2].name => [@list_of_modules[3].to_custom_hash],
             @list_of_modules[3].name => [@list_of_modules[4].to_custom_hash],
-            @list_of_modules[4].name => [{:name => "end"}]
+            @list_of_modules[4].name => [{:name => 'end'}]
           )
         end
       end
@@ -80,12 +80,12 @@ RSpec.describe Aker::Process, type: :model do
           end
           it 'creates an object describing the loop' do
             expect(@process.build_available_links).to eq(
-              "start" => [{:name => @list_of_modules[0].name, :id => @list_of_modules[0].id}],
+              'start' => [{:name => @list_of_modules[0].name, :id => @list_of_modules[0].id}],
               @list_of_modules[0].name => [@list_of_modules[1].to_custom_hash],
               @list_of_modules[1].name => [@list_of_modules[2].to_custom_hash],
               @list_of_modules[2].name => [@list_of_modules[3].to_custom_hash],
               @list_of_modules[3].name => [@list_of_modules[4].to_custom_hash],
-              @list_of_modules[4].name => [{:name => "end"}, @list_of_modules[0].to_custom_hash]
+              @list_of_modules[4].name => [{:name => 'end'}, @list_of_modules[0].to_custom_hash]
             )
           end
         end
@@ -97,14 +97,14 @@ RSpec.describe Aker::Process, type: :model do
           end
           it 'creates an object describing these with 2 starting points and 2 ending' do
             expect(@process.build_available_links).to eq({
-              "start" => [
+              'start' => [
                   @list_of_modules[0].to_custom_hash, 
                   @list_of_modules2[0].to_custom_hash
                 ],
               @list_of_modules[0].name => [@list_of_modules[1].to_custom_hash],
               @list_of_modules2[0].name => [@list_of_modules2[1].to_custom_hash],
-              @list_of_modules[1].name => [{:name => "end"}],
-              @list_of_modules2[1].name => [{:name => "end"}]
+              @list_of_modules[1].name => [{:name => 'end'}],
+              @list_of_modules2[1].name => [{:name => 'end'}]
             })
           end
         end
@@ -129,7 +129,7 @@ RSpec.describe Aker::Process, type: :model do
           end
           it 'creates an object describing these with starting points and endings, and connections between' do
             expect(@process.build_available_links).to eq({
-              "start" => [
+              'start' => [
                   @list_of_modules[0].to_custom_hash, 
                   @list_of_modules2[0].to_custom_hash,
                   @list_of_modules3[0].to_custom_hash
@@ -145,9 +145,9 @@ RSpec.describe Aker::Process, type: :model do
               @list_of_modules3[0].name => [
                 @list_of_modules3[1].to_custom_hash],
 
-              @list_of_modules[1].name => [{:name => "end"}],
-              @list_of_modules2[1].name => [{:name => "end"}],
-              @list_of_modules3[1].name => [{:name => "end"}]
+              @list_of_modules[1].name => [{:name => 'end'}],
+              @list_of_modules2[1].name => [{:name => 'end'}],
+              @list_of_modules3[1].name => [{:name => 'end'}]
             })
           end
         end
@@ -193,6 +193,72 @@ RSpec.describe Aker::Process, type: :model do
           expect(@process.build_default_path).to eq([@list_of_modules[0].to_custom_hash, @list_of_modules2[1].to_custom_hash])
         end
       end
+    end
+  end
+
+  describe '#process_class' do
+    it 'can be DNA Sequencing' do
+      process = build(:process, process_class: :dna_sequencing)
+      expect(process).to be_dna_sequencing
+      expect(process).not_to be_genotyping
+      expect(process.process_class.to_sym).to eq :dna_sequencing
+    end
+    it 'can be Genotyping' do
+      process = build(:process, process_class: :genotyping)
+      expect(process).to be_genotyping
+      expect(process).not_to be_transcriptomics
+      expect(process.process_class.to_sym).to eq :genotyping
+    end
+    it 'can be Transcriptomics' do
+      process = build(:process, process_class: :transcriptomics)
+      expect(process).to be_transcriptomics
+      expect(process).not_to be_cell_line_creation
+      expect(process.process_class.to_sym).to eq :transcriptomics
+    end
+    it 'can be Cell Line Creation' do
+      process = build(:process, process_class: :cell_line_creation)
+      expect(process).to be_cell_line_creation
+      expect(process).not_to be_dna_sequencing
+      expect(process.process_class.to_sym).to eq :cell_line_creation
+    end
+    it 'cannot be nonsense' do
+      expect { build(:process, process_class: :nonsense) }.to raise_error(ArgumentError)
+    end
+  end
+
+  describe 'process_class scopes' do
+    let!(:processes) do
+      [:transcriptomics, :transcriptomics, :genotyping].map { |pc| create(:process, process_class: pc) }
+    end
+
+    it 'can find processes of class Transcriptomics' do
+      expect(Aker::Process.transcriptomics).to eq(processes[0...2])
+    end
+
+    it 'can find processes of class Genotyping' do
+      expect(Aker::Process.genotyping).to eq([processes[2]])
+    end
+  end
+
+  describe '#process_class_human' do
+    it 'should return a human version of the process class name' do
+      pro = build(:process, process_class: :dna_sequencing)
+      expect(pro.process_class_human).to eq('DNA Sequencing')
+    end
+    it 'should return something appropriate when there is no process class' do
+      pro = build(:process, process_class: nil)
+      expect(pro.process_class_human).to eq('No product class set')
+    end
+  end
+
+  describe '#human_to_process_class' do
+    it 'should translate human to process class symbol' do
+      expect(Aker::Process.human_to_process_class('DNA Sequencing')).to eq(:dna_sequencing)
+    end
+  end
+  describe '#process_class_to_human' do
+    it 'should translate process class symbol to human' do
+      expect(Aker::Process.process_class_to_human(:dna_sequencing)).to eq('DNA Sequencing')
     end
   end
 end

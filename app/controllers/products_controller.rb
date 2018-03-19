@@ -8,7 +8,12 @@ class ProductsController < ApplicationController
     cost_code = @work_plan.project.cost_code
 
     processes = @product.processes.map do |process|
-      { name: process.name, id: process.id, links: process.build_available_links, path: selected_modules(process) }
+      {
+        name: process.name, id: process.id, tat: process.TAT,
+        process_class: process.process_class_human,
+        links: process.build_available_links,
+        path: selected_modules(process)
+      }
     end
 
     total_tat = @product.processes.map { |pro| pro.TAT }.inject(0, :+)

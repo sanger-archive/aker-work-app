@@ -29,7 +29,8 @@ en:
         availability:
           suspended: "Suspended"
           available: "Available"
-        product_class:
+      process:
+        process_class:
           dna_sequencing: "DNA Sequencing"
           genotyping: "Genotyping"
           transcriptomics: "Transcriptomics"

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180319095707) do
+ActiveRecord::Schema.define(version: 20180316152215) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -37,7 +37,8 @@ ActiveRecord::Schema.define(version: 20180319095707) do
   create_table "aker_processes", id: :serial, force: :cascade do |t|
     t.string "name", null: false
     t.integer "TAT"
-    t.string "uuid", null: false
+    t.uuid "uuid", null: false
+    t.integer "process_class"
   end
 
   create_table "aker_product_processes", id: :serial, force: :cascade do |t|
@@ -78,7 +79,6 @@ ActiveRecord::Schema.define(version: 20180319095707) do
     t.string "requested_biomaterial_type"
     t.integer "product_version"
     t.string "description"
-    t.integer "product_class"
     t.boolean "availability", default: true, null: false
     t.string "uuid", null: false
     t.index ["catalogue_id"], name: "index_products_on_catalogue_id"
