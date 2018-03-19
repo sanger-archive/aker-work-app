@@ -72,6 +72,8 @@ Rails.application.configure do
 
   config.stamp_url = 'http://localhost:7000/api/v1'
 
+  config.set_shaper_url = 'http://localhost:3002'
+
   config.jwt_secret_key = 'development'
 
   config.events = {
