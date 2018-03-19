@@ -291,9 +291,10 @@ class Processes extends React.Component {
   render() {
     const onChange = this.props.onChange;
     const enabled = this.props.enabled;
-    // Here process is an actual process from the database
+    // Here process is an actual process
     function makeProcess(process, index) {
-      const pro = { links: process.links, path: process.path, name: process.name, enabled: enabled };
+      const pro = { links: process.links, path: process.path, name: process.name,
+        tat: process.tat, process_class: process.process_class, enabled: enabled };
       return (
         <Process pro={pro} onChange={onChange} index={index} key={index} />
       );
@@ -313,9 +314,26 @@ class Process extends React.Component {
   render() {
     const {pro, index, onChange} = this.props;
 
+    let fields = null;
+    if (pro.process_class != null) {
+      fields = (
+        <Fragment>
+          Process class: {pro.process_class}<br/>
+          TAT: {tatString(pro.tat)}
+        </Fragment>
+      );
+    } else if (pro.tat != null) {
+      fields = (
+        <Fragment>
+          TAT: {tatString(pro.tat)}
+        </Fragment>
+      );
+    };
+
     return (
       <Fragment>
         <ProcessNameLabel name={pro.name}/>
+        {fields}
         <div id={index} className="col-md-12">
           <ProcessModulesSelectDropdowns links={pro.links} path={pro.path} onChange={onChange} enabled={pro.enabled}/>
         </div>
@@ -391,10 +409,12 @@ export class WorkOrderProcess extends React.Component {
 
 class ProcessNameLabel extends React.Component {
   render() {
+    const text = (this.props.name ? <h5>{this.props.name}</h5> : <b>Modules:</b>);
+
     return (
       <Fragment>
         <br />
-        <label>{this.props.name} process:</label>
+        <label>{text}</label>
         <br />
       </Fragment>
     );
@@ -472,13 +492,13 @@ class ProductInformation extends React.Component {
     const data = this.props.data;
     return (
       <Fragment>
-        <br />
-          <pre>{`Requested biomaterial type: ${data.requested_biomaterial_type}
+        <br/>
+        <h5>Product info</h5>
+        <pre>{`Requested biomaterial type: ${data.requested_biomaterial_type}
 Product version: ${data.product_version}
-TAT: ${data.total_tat}
+TAT: ${tatString(data.total_tat)}
 Description: ${data.description}
-Availability: ${data.availability ? 'available' : 'suspended'}
-Product class: ${data.product_class}`}</pre>
+Availability: ${data.availability ? 'available' : 'suspended'}`}</pre>
       </Fragment>
     );
   }
@@ -519,6 +539,16 @@ Total: ${convertToCurrency(total)}`}</pre>
       </Fragment>
     );
   }
+}
+
+function tatString(tat) {
+  if (tat==null) {
+    return '';
+  }
+  if (tat==1) {
+    return '1 day';
+  }
+  return tat.toString() + ' days';
 }
 
 function convertToCurrency(input) {

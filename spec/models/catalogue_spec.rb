@@ -13,6 +13,7 @@ RSpec.describe Catalogue, type: :model do
           lims_id: lims_id, url: "france", pipeline: "cells",
           processes: [
             { uuid: process_uuid, name: "QC", TAT: 5,
+              process_class: "genotyping",
               process_module_pairings: [
                 { from_step: nil, to_step: "Quantification", default_path: true},
                 { from_step: "Genotyping HumGen SNP", to_step: nil, default_path: true},
@@ -22,7 +23,7 @@ RSpec.describe Catalogue, type: :model do
           ],
           products: [
             { uuid: product_uuid, name: "QC", description: "Lorem Ipsum", product_version: 1, availability: 1,
-              requested_biomaterial_type: "blood", product_class: "genotyping",
+              requested_biomaterial_type: "blood",
               process_uuids: [process_uuid],
             }
           ]
@@ -51,7 +52,6 @@ RSpec.describe Catalogue, type: :model do
         product = products.first
         expect(product.name).to eq 'QC'
         expect(product.description).to eq 'Lorem Ipsum'
-        expect(product.product_class).to eq 'genotyping'
         expect(product.uuid).to eq product_uuid
       end
 
@@ -62,6 +62,7 @@ RSpec.describe Catalogue, type: :model do
         expect(process.uuid).to eq process_uuid
         expect(process.name).to eq 'QC'
         expect(process.TAT).to eq 5
+        expect(process.process_class.to_sym).to eq(:genotyping)
       end
 
       it "create new product processes" do
@@ -142,7 +143,6 @@ RSpec.describe Catalogue, type: :model do
         product_version: 1,
         availability: 1,
         requested_biomaterial_type: "blood",
-        product_class: "genotyping",
         process_uuids: [SecureRandom.uuid],
       }
     end
@@ -214,7 +214,6 @@ RSpec.describe Catalogue, type: :model do
           product_version: 1,
           availability: 1,
           requested_biomaterial_type: "blood",
-          product_class: "genotyping",
           process_uuids: product_process_uuids,
         }
       ]

@@ -5,6 +5,25 @@ class Aker::Process < ApplicationRecord
   has_many :process_modules, foreign_key: :aker_process_id, dependent: :destroy
   has_many :products, through: :product_processes
 
+  enum process_class: { dna_sequencing: 0, genotyping: 1, transcriptomics: 2, cell_line_creation: 3 }
+
+  def process_class_human
+    return 'No product class set' if process_class.nil?
+    self.class.process_class_to_human(process_class)
+  end
+
+  def self.process_class_translation
+    I18n.t('.')[:activerecord][:attributes][:process][:process_class]
+  end
+
+  def self.human_to_process_class(text)
+    process_class_translation.invert[text]
+  end
+
+  def self.process_class_to_human(process_class)
+    process_class_translation[process_class.to_sym]
+  end
+
   def build_available_links
     # create a hash, where the value is a list
     available_links = Hash.new{|h,k| h[k] = [] }
@@ -19,7 +38,6 @@ class Aker::Process < ApplicationRecord
       elsif to_step.nil?
         available_links[from_step.name] << { name: 'end'}
       else
-
         available_links[from_step.name] << to_step.to_custom_hash
       end
     end
