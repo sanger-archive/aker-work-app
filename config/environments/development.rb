@@ -1,6 +1,9 @@
 Rails.application.configure do
   # NOTE: Settings specified here will take precedence over those in config/application.rb.
 
+  # Verifies that versions and hashed value of the package contents in the project's package.json
+  config.webpacker.check_yarn_integrity = true
+
   config.log_formatter = Logger::Formatter.new
   # Use the lowest log level to ensure availability of diagnostic information when problems arise.
   config.log_level = :debug
