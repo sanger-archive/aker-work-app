@@ -1,6 +1,7 @@
 {
   "scripts": {
     "test": "mocha-webpack --opts mocha-webpack.opts spec/javascript/**/*_spec.jsx"
+    "test": "NODE_ENV=test RAILS_ENV=test mocha-webpack --opts mocha-webpack.opts spec/javascript/**/*_spec.jsx"
   },
   "dependencies": {
     "@rails/webpacker": "^3.2.2",
