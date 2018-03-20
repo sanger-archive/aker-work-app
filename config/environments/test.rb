@@ -54,6 +54,8 @@ Rails.application.configure do
 
   config.work_order_completion_json = 'work_order_completion.json'
 
+  config.set_shaper_url = 'http://external-server:3002'
+
   config.events = {
     enabled: false
   }

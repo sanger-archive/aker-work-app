@@ -25,6 +25,31 @@ class WorkOrdersController < ApplicationController
     end
   end
 
+  def create_editable_set
+    plan = work_order.work_plan
+    authorize! :write, plan
+    data = {}
+    if !work_order.queued?
+      data[:error] = "This work order cannot be modified."
+    elsif work_order.set_uuid
+      data[:error] = "This work order already has an input set."
+    elsif !work_order.original_set_uuid
+      data[:error] = "This work order has no original set selected."
+    else
+      begin
+        new_set = work_order.create_editable_set
+        data[:view_set_url] = Rails.application.config.set_shaper_url+'/simple/sets/'+new_set.uuid
+        data[:new_set_name] = new_set.name
+      rescue => e
+        Rails.logger.error "create_editable_set failed for work order #{work_order.id}"
+        Rails.logger.error e
+        e.backtrace.each { |x| Rails.logger.error x}
+        data[:error] = "The new set could not be created."
+      end
+    end
+    render json: data.to_json
+  end
+
   # -------- API ---------
   def get
     render json: work_order.lims_data_for_get, status: 200
@@ -57,31 +82,6 @@ class WorkOrdersController < ApplicationController
       result = validator.errors
     end
     render json: { message: result[:msg] }, status: result[:status]
-  end
-
-  def create_editable_set
-    plan = work_order.work_plan
-    authorize! :write, plan
-    data = {}
-    if !work_order.queued?
-      data[:error] = "This work order cannot be modified"
-    elsif work_order.set_uuid
-      data[:error] = "This work order already has an input set"
-    elsif !work_order.original_set_uuid
-      data[:error] = "This work order has no original set selected"
-    else
-      begin
-        new_set = work_order.create_editable_set
-        data[:view_set_url] = Rails.application.config.set_shaper_url+'/simple/sets/'+new_set.uuid
-        data[:new_set_name] = new_set.name
-      rescue => e
-        Rails.logger.error "create_editable_set failed for work order #{work_order.id}"
-        Rails.logger.error e
-        e.backtrace.each { |x| Rails.logger.error x}
-        data[:error] = "The new set could not be created."
-      end
-    end
-    render json: data.to_json
   end
 
 private
