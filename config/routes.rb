@@ -10,6 +10,7 @@ Rails.application.routes.draw do
     scope 'work_orders/:id' do
       post 'complete', to: 'work_orders#complete'
       post 'cancel', to: 'work_orders#cancel'
+      post 'create_editable_set', to: 'work_orders#create_editable_set', as: :create_editable_set
       get '', to: 'work_orders#get'
     end
 
@@ -24,5 +25,4 @@ Rails.application.routes.draw do
   resources :work_plans do
     resources :build, controller: 'plan_wizard'
   end
-
 end

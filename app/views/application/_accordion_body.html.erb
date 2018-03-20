@@ -8,17 +8,26 @@
   <% original_set = nil %>
 <% end %>
 
+<% show_create_set_link = (work_order.original_set_uuid && !work_order.set_uuid && work_order.queued?) %>
+
 <div>
   <div class="row">
     <div class="col-md-6"><b><%= work_order.name %></b></div>
     <div class="col-md-6">Dispatch Date: <%= work_order.dispatch_date %></div>
   </div>
   <div class="row">
-    <div class="col-md-6">Input Set: <%= view_set_link(input_set) %></div>
+    <div id="set-for-<%=work_order.id%>" class="col-md-6">
+      Input Set: <%= view_set_link(input_set) %>
+      <% if show_create_set_link %>
+        <% url = create_editable_set_url(work_order.id) %>
+        <input type="button" value="Create editable set" class="btn create_editable_set_button"
+          onclick="postCreateEditableSet(<%= work_order.id %>, '<%= url %>')"" />
+      <% end %>
+    </div>
     <div class="col-md-6">Output Set: <%= view_set_link(output_set) %></div>
   </div>
   <div class="row">
-    <div class="col-md-6">
+    <div id="original-set-for-<%=work_order.id%>" class="col-md-6">
       <% if original_set %>
         Based on original set: <%= view_set_link(original_set) %>
       <% end %>
