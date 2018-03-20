@@ -67,7 +67,7 @@ Rails.application.configure do
 
   config.urls = { submission: '',
                   permissions: '',
-                  sets: '',
+                  sets: 'http://external-server:3002',
                   projects: '',
                   work_orders: '' }
 

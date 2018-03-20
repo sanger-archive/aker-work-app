@@ -647,4 +647,30 @@ RSpec.describe WorkOrder, type: :model do
       end
     end
   end
+
+  describe '#create_editable_set' do
+    let(:set) { make_set(1) }
+
+    context 'when the work order already has an input set' do
+      let(:work_order) { create(:work_order, original_set: set, set: set) }
+      it { expect { work_order.create_editable_set }.to raise_exception "Work order already has input set" }
+    end
+
+    context 'when the work order has no original set' do
+      let(:work_order) { create(:work_order, original_set: nil, set: nil) }
+      it { expect { work_order.create_editable_set }.to raise_exception "Work order has no original set" }
+    end
+
+    context 'when the new set is created' do
+      let(:new_set) { make_set(1) }
+      before do
+        allow(set).to receive(:create_unlocked_clone).and_return(new_set)
+      end
+      let(:work_order) { create(:work_order, original_set: set, set: nil) }
+      it 'should return the new set' do
+        expect(work_order.create_editable_set).to eq(new_set)
+        expect(set).to have_received(:create_unlocked_clone).with(work_order.name)
+      end
+    end
+  end
 end
