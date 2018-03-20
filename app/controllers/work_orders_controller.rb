@@ -38,7 +38,7 @@ class WorkOrdersController < ApplicationController
     else
       begin
         new_set = work_order.create_editable_set
-        data[:view_set_url] = Rails.application.config.set_shaper_url+'/simple/sets/'+new_set.uuid
+        data[:view_set_url] = Rails.configuration.urls[:sets] + '/simple/sets/' + new_set.uuid
         data[:new_set_name] = new_set.name
       rescue => e
         Rails.logger.error "create_editable_set failed for work order #{work_order.id}"
