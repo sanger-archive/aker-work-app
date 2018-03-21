@@ -100,9 +100,9 @@ class WorkOrder < ApplicationRecord
     status == WorkOrder.BROKEN
   end
 
-# checks work order is queued, and the first order in the work plan not to be closed
+# checks work_plan is not cancelled, work order is queued, and the first order in the work plan not to be closed
   def can_be_dispatched?
-    (queued? && work_plan.work_orders.find {|o| !o.closed? }==self)
+    (!work_plan.cancelled? && queued? && work_plan.work_orders.find {|o| !o.closed? }==self)
   end
 
   def original_set
@@ -167,6 +167,14 @@ class WorkOrder < ApplicationRecord
     end
     save!
     return anylocked
+  end
+
+  def create_editable_set
+    raise "Work order already has input set" if set_uuid
+    raise "Work order has no original set" unless original_set_uuid
+    self.set = original_set.create_unlocked_clone(name)
+    save!
+    self.set
   end
 
   def name
@@ -256,7 +264,6 @@ class WorkOrder < ApplicationRecord
         project_name: project.name,
         data_release_uuid: project.data_release_uuid,
         cost_code: cost_code,
-        desired_date: work_plan.desired_date,
         materials: material_data,
         modules: module_choices,
       }
@@ -322,6 +329,11 @@ class WorkOrder < ApplicationRecord
   def validate_module_name(module_name)
     uri_module_name = module_name.gsub(' ', '_').downcase
     BillingFacadeClient.validate_process_module_name(uri_module_name)
+  end
+
+  # The next order in the work plan (or nil if there is none)
+  def next_order
+    WorkOrder.where(work_plan_id: work_plan_id, order_index: order_index+1).first
   end
 
 end

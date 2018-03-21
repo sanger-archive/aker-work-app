@@ -18,7 +18,7 @@ class UpdatePlanService
   def perform
     return false unless check_any_update
     return false unless ready_for_step
-    return false if block_set_change
+    return false unless check_set_change
 
     dispatch_order_id = nil
 
@@ -144,16 +144,22 @@ private
     results
   end
 
-  # It is an error for the user to try to repick the set after the locked clone has been created
-  def block_set_change
-    if @work_plan_params[:original_set_uuid] && !@work_plan.work_orders.empty? &&
+  def check_set_change
+    set_uuid = @work_plan_params[:original_set_uuid]
+    return true if !set_uuid
+
+    # It is an error for the user to try to repick the set after the locked clone has been created
+    if !@work_plan.work_orders.empty? &&
           @work_plan.work_orders.first.set_uuid &&
-          @work_plan.work_orders.first.original_set_uuid!=@work_plan_params[:original_set_uuid]
+          @work_plan.work_orders.first.original_set_uuid!=set_uuid
         Rails.logger.error "User tried to re-select set after locked set had been created."
         add_error("The starting set for this work plan has already been locked. " +
               "To order work for different samples, please start a new work plan.")
-      return true
+      return false
     end
+
+    # Check the set is usable
+    return check_set_contents(set_uuid)
   end
 
   # Don't let the user change plan-level details about a plan that has already been partially dispatched

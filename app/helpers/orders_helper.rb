@@ -10,7 +10,7 @@ module OrdersHelper
   end
 
   def step_titles
-    ["Select Set", "Select Project", "Select Product", "Confirm"]
+    ["Select Set", "Select Project", "Select Product", "Dispatch"]
   end
 
 end

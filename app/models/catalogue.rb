@@ -32,7 +32,7 @@ class Catalogue < ApplicationRecord
 
   def self.create_processes(process_params)
     process_params.each_with_index.map do |p, i|
-      accepted_process_keys = %i[name TAT uuid]
+      accepted_process_keys = %i[name TAT uuid process_class]
       process = Aker::Process.create!(p.select { |k, _v| accepted_process_keys.include?(k) })
       create_process_modules(p[:process_module_pairings], process.id)
       process
@@ -42,7 +42,7 @@ class Catalogue < ApplicationRecord
   def self.create_products(product_params, processes, catalogue_id)
     product_params.each do |pp|
 
-      accepted_product_keys = %i[name description product_version availability requested_biomaterial_type product_class uuid]
+      accepted_product_keys = %i[name description product_version availability requested_biomaterial_type uuid]
       product = Product.create!(pp.select { |k, _v| accepted_product_keys.include?(k) }.merge({ catalogue_id: catalogue_id }))
 
       pp[:process_uuids].each_with_index do |uuid, i|
