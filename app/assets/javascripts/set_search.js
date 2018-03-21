@@ -43,7 +43,7 @@ function setSearch() {
         <td>
           <div class="radio">
             <label for="work_order_original_set_uuid_${setID}">
-              <input checked type="radio" value="${setID}" name="work_order[original_set_uuid]" id="work_order_original_set_uuid_${setID}"">
+              <input checked type="radio" value="${setID}" name="work_plan[original_set_uuid]" id="work_plan_original_set_uuid_${setID}"">
             </label>
           </div>
         </td>
