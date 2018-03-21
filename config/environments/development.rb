@@ -103,7 +103,7 @@ Rails.application.configure do
 
   config.urls = { submission: '',
                   permissions: '',
-                  sets: '',
+                  sets: 'http://localhost:3002',
                   projects: '',
                   work_orders: '' }
 end

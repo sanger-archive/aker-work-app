@@ -13,26 +13,24 @@ class WorkPlansController < ApplicationController
   end
 
   def index
-    users_work_plans = WorkPlan.for_user(current_user).order(updated_at: :desc)
-    @in_construction_plans = users_work_plans.select(&:in_construction?)
-    @active_plans = users_work_plans.select(&:active?)
-    @closed_plans = users_work_plans.select(&:closed?)
-    @cancelled_plans = users_work_plans.select(&:cancelled?)
+    plan_groups = WorkPlan.for_user(current_user).order(updated_at: :desc).group_by(&:status)
+    @in_construction_plans = plan_groups['construction'] || []
+    @active_plans = plan_groups['active'] || []
+    @closed_plans = plan_groups['closed'] || []
+    @cancelled_plans = plan_groups['cancelled'] || []
   end
 
   def destroy
     authorize! :write, work_plan
 
-    unless work_plan.in_construction?
-      if work_plan.cancelled?
-        flash[:error] = "This work plan has already been cancelled."
-      else
-        work_plan.update_attributes(cancelled: Time.now)
-        flash[:notice] = "Work plan cancelled."
-      end
-    else
-      work_plan.destroy
+    if work_plan.in_construction?
+      work_plan.destroy!
       flash[:notice] = "Work plan deleted."
+    elsif work_plan.cancelled?
+      flash[:error] = "This work plan has already been cancelled."
+    else
+      work_plan.update_attributes!(cancelled: Time.now)
+      flash[:notice] = "Work plan cancelled."
     end
     redirect_to work_plans_path
   end

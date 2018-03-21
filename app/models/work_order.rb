@@ -169,6 +169,14 @@ class WorkOrder < ApplicationRecord
     return anylocked
   end
 
+  def create_editable_set
+    raise "Work order already has input set" if set_uuid
+    raise "Work order has no original set" unless original_set_uuid
+    self.set = original_set.create_unlocked_clone(name)
+    save!
+    self.set
+  end
+
   def name
     "Work Order #{id}"
   end

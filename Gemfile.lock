@@ -35,9 +35,9 @@ GIT
 
 GIT
   remote: https://github.com/sanger/aker-set-client.git
-  revision: 20a3bd511d96d4232ccae770b536013ec609a8e6
+  revision: 764672ff8a5853142b1b791319895f62eb65acd2
   specs:
-    aker-set-client (0.2.0)
+    aker-set-client (0.2.1)
 
 GIT
   remote: https://github.com/sanger/aker-shared-navbar.git

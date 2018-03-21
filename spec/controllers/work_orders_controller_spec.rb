@@ -132,4 +132,75 @@ RSpec.describe WorkOrdersController, type: :controller do
 
   end
 
+  describe '#create_editable_set' do
+    let(:plan) { create(:work_plan, owner_email: user.email) }
+    let(:status) { :queued }
+    let(:set) do
+      uuid = SecureRandom.uuid
+      double(:set, name: 'My set', id: uuid, uuid: uuid)
+    end
+    let(:original_set_uuid) { set.uuid }
+    let(:set_uuid) { nil }
+    let(:work_order) { create(:work_order, work_plan: plan, status: status, original_set_uuid: original_set_uuid, set_uuid: set_uuid) }
+    let(:params) { { id: work_order.id } }
+    let(:data) { JSON.parse(response.body, symbolize_names: true) }
+
+    def setup
+    end
+
+    before do
+      setup
+      post :create_editable_set, params: params
+    end
+
+    context 'when the work order is not queued' do
+      let(:status) { :active }
+      it 'should produce an error' do
+        expect(data[:error]).to eq("This work order cannot be modified.")
+      end
+    end
+
+    context 'when the work order already has an input set' do
+      let(:set_uuid) { set.uuid }
+      it 'should produce an error' do
+        expect(data[:error]).to eq("This work order already has an input set.")
+      end
+    end
+
+    context 'when the work order has no original set' do
+      let(:original_set_uuid) { nil }
+      it 'should produce an error' do
+        expect(data[:error]).to eq("This work order has no original set selected.")
+      end
+    end
+
+    context 'when the new set cannot be created' do
+      def setup
+        allow_any_instance_of(WorkOrder).to receive(:create_editable_set).and_raise("Kaboom")
+      end
+      it 'should produce an error' do
+        expect(data[:error]).to eq("The new set could not be created.")
+      end
+    end
+
+    context 'when the new set is created' do
+      let(:new_set) do
+        uuid = SecureRandom.uuid
+        double(:set, name: 'New set', id: uuid, uuid: uuid)
+      end
+
+      def setup
+        allow_any_instance_of(WorkOrder).to receive(:create_editable_set).and_return(new_set)
+      end
+      it 'should not produce an error' do
+        expect(data[:error]).to be_nil
+      end
+      it 'should return the new set information' do
+        expect(data[:view_set_url]).to include(new_set.uuid)
+        expect(data[:new_set_name]).to eq(new_set.name)
+      end
+    end
+
+  end
+
 end
