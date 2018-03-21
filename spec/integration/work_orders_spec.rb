@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'rails_helper'
 require 'swagger_helper'
 require 'securerandom'
@@ -8,6 +10,7 @@ describe 'Work Orders API' do
   include TestServicesHelper
 
   before do
+    webmock_billing_facade_client
     webmock_matcon_schema
     allow_set_service_lock_set
   end
@@ -19,13 +22,12 @@ describe 'Work Orders API' do
   let(:project) { make_node('my project', 'S0001', 1, 0, false, true) }
   let(:proposal) { make_node('my proposal', 'S0001-0', 2, project.id, true, false) }
 
-  let(:work_plan) { create(:work_plan, product: product, project_id: proposal.id)}
+  let(:work_plan) { create(:work_plan, product: product, project_id: proposal.id) }
 
   let(:instance_wo) do
     create(:work_order, status: WorkOrder.ACTIVE,
                         set_uuid: set_for_work_order.id,
-                        work_plan: work_plan
-                        )
+                        work_plan: work_plan)
   end
 
   let(:instance_wo2) { create(:work_order) }
@@ -110,5 +112,4 @@ describe 'Work Orders API' do
       end
     end
   end
-
 end

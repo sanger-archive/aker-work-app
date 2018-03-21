@@ -104,16 +104,17 @@ class WorkOrderEventMessage < EventMessage
           'role_type' => 'process',
           'subject_type' => 'process',
           'subject_friendly_name' => process.name,
-          'subject_uuid' => process.uuid,
+          'subject_uuid' => process.uuid
         },
         {
           'role_type' => 'work_plan',
           'subject_type' => 'work_plan',
           'subject_friendly_name' => plan.name,
-          'subject_uuid' => plan.uuid,
+          'subject_uuid' => plan.uuid
         }
       ],
-      'metadata' => metadata
+      'metadata' => metadata,
+      'notifier_info' => notifier_info
     }.to_json
   end
 
@@ -163,5 +164,13 @@ class WorkOrderEventMessage < EventMessage
     else
       0
     end
+  end
+
+  # Information only required by the notifier can be added here which should be ignored by the
+  # events consumer and avoid being saved to the events warehouse
+  def notifier_info
+    {
+      'work_plan_id' => @work_order.work_plan.id
+    }
   end
 end
