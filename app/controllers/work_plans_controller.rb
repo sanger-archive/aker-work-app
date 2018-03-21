@@ -23,16 +23,14 @@ class WorkPlansController < ApplicationController
   def destroy
     authorize! :write, work_plan
 
-    unless work_plan.in_construction?
-      if work_plan.cancelled?
-        flash[:error] = "This work plan has already been cancelled."
-      else
-        work_plan.update_attributes(cancelled: Time.now)
-        flash[:notice] = "Work plan cancelled."
-      end
-    else
-      work_plan.destroy
+    if work_plan.in_construction?
+      work_plan.destroy!
       flash[:notice] = "Work plan deleted."
+    elsif work_plan.cancelled?
+      flash[:error] = "This work plan has already been cancelled."
+    else
+      work_plan.update_attributes!(cancelled: Time.now)
+      flash[:notice] = "Work plan cancelled."
     end
     redirect_to work_plans_path
   end
