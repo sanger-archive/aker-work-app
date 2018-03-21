@@ -53,7 +53,7 @@ RSpec.describe 'Broker' do
     allow(@catalogue_queue).to receive(:subscribe)
   end
 
-  describe '#creating connections' do
+  describe '#initialize_connection' do
     it 'initialize methods are called' do
       allow_any_instance_of(Broker)
         .to receive(:start_connection).and_return true
@@ -63,14 +63,16 @@ RSpec.describe 'Broker' do
         .to receive(:consume_catalogue_queue).and_return true
 
       broker = Broker.new
-      broker.create_connection
+      broker.initialize_connection
 
       expect(broker).to have_received(:start_connection)
       expect(broker).to have_received(:exchange_and_queue_handler)
       expect(broker).to have_received(:consume_catalogue_queue)
       expect(broker).to have_received(:add_close_connection_handler)
     end
+  end
 
+  describe '#create_connection' do
     it 'does not create a connection if a connection already exists' do
       mock_connection
       broker = Broker.new
@@ -86,6 +88,25 @@ RSpec.describe 'Broker' do
       expect(broker).not_to have_received(:exchange_and_queue_handler)
       expect(broker).not_to have_received(:consume_catalogue_queue)
       expect(broker).not_to have_received(:add_close_connection_handler)
+    end
+  end
+
+  describe '#connected?' do
+    it 'should return true when the broker is connected' do
+      mock_connection
+
+      broker = Broker.new
+      broker.create_connection
+      allow(@connection).to receive(:connected?).and_return(true)
+      expect(broker.connected?).to eq true
+    end
+
+    it 'should send an email when the broker is broken' do
+      broker = Broker.new
+      allow(broker).to receive(:handle_broker_not_connected)
+
+      expect(broker.connected?).to eq false
+      expect(broker).to have_received(:handle_broker_not_connected)
     end
   end
 
@@ -105,7 +126,7 @@ RSpec.describe 'Broker' do
     end
   end
 
-  describe '#publishing messages' do
+  describe '#publish' do
     setup do
       mock_connection
       @event_message = instance_double('EventMessage')
@@ -140,7 +161,9 @@ RSpec.describe 'Broker' do
         broker = Broker.new
         expect(@exchange).to receive(:publish).with('message',
                                                     routing_key: EventMessage::ROUTING_KEY)
-        expect { broker.publish(@event_message) }.to raise_error(/unconfirmed/)
+        expect(Rails.logger).to receive(:error).with('There is an unconfirmed set in the broker.')
+
+        broker.publish(@event_message)
       end
     end
   end

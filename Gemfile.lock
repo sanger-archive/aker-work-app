@@ -1,8 +1,8 @@
 GIT
   remote: https://github.com/sanger/aker-billing-facade-client.git
-  revision: f31713e5bfdf664561826b12bceca808ff8576a8
+  revision: f69649affda5676faf7098d6416fd75d9c365310
   specs:
-    aker-billing-facade-client (0.1.4)
+    aker-billing-facade-client (0.1.5)
       activemodel
       faraday
 

@@ -3,6 +3,7 @@
 require 'bunny'
 require 'event_message'
 require 'ostruct'
+require 'work_order_mailer'
 
 # This class should control connection, publishing and consuming from the broker
 class Broker
@@ -13,8 +14,18 @@ class Broker
     @events_config = OpenStruct.new(Rails.configuration.events)
   end
 
+  def initialize_connection
+    connect!
+  end
+
   def create_connection
     !connected? && connect!
+  end
+
+  def connected?
+    return true if !!@connection&.connected? # !! returns false if nil, true if true
+    handle_broker_not_connected
+    false
   end
 
   def publish(message)
@@ -22,7 +33,9 @@ class Broker
     Rails.logger.debug('Publishing message to broker')
     @exchange.publish(message.generate_json, routing_key: EventMessage::ROUTING_KEY)
     @channel.wait_for_confirms
-    raise 'There is an unconfirmed set.' if @channel.unconfirmed_set.count.positive?
+    if @channel.unconfirmed_set.count.positive?
+      Rails.logger.error('There is an unconfirmed set in the broker.')
+    end
   end
 
   private
@@ -32,10 +45,6 @@ class Broker
     exchange_and_queue_handler
     consume_catalogue_queue
     add_close_connection_handler
-  end
-
-  def connected?
-    !@connection.nil?
   end
 
   def start_connection
@@ -115,6 +124,10 @@ class Broker
     return unless data && data[:lims_id]
     # Something went wrong! Cancel the current catalogue for the offending LIMS
     Catalogue.where(lims_id: data[:lims_id]).update_all(current: false)
+  end
+
+  def handle_broker_not_connected
+    WorkOrderMailer.broker_not_connected.deliver_later
   end
 
   def add_close_connection_handler

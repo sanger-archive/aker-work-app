@@ -3,6 +3,10 @@ require 'rails_helper'
 RSpec.describe WorkOrdersController, type: :controller do
   let!(:user) { setup_user }
 
+  before do
+    stub_const('BrokerHandle', class_double('BrokerHandle'))
+  end
+
   def setup_user(name = "user")
     user = OpenStruct.new(email: "#{name}@sanger.ac.uk", groups: ['world'])
     allow(controller).to receive(:check_credentials)
@@ -53,59 +57,75 @@ RSpec.describe WorkOrdersController, type: :controller do
       }
     end
 
-    context 'when the work order is valid' do
+    context 'when the broker is not broken' do
       before do
-        allow_any_instance_of(WorkOrderValidatorService).to receive(:validate?).and_return(true)
-        allow_any_instance_of(DispatchService).to receive(:process).and_return(true)
-        post :complete, params: params
+        allow(BrokerHandle).to receive(:connected?).and_return(true)
       end
 
-      it 'should put the user in the request store' do
-        xauth = RequestStore.store[:x_authorisation]
-        expect(xauth).not_to be_nil
-        expect(xauth[:email]).to eq(work_plan.owner_email)
+      context 'when the work order is valid' do
+        before do
+          allow_any_instance_of(WorkOrderValidatorService).to receive(:validate?).and_return(true)
+          allow_any_instance_of(DispatchService).to receive(:process).and_return(true)
+          post :complete, params: params
+        end
+
+        it 'should put the user in the request store' do
+          xauth = RequestStore.store[:x_authorisation]
+          expect(xauth).not_to be_nil
+          expect(xauth[:email]).to eq(work_plan.owner_email)
+        end
+
+        it { expect(response).to have_http_status(:ok) }
+
+        it 'should have correct message in repsonse body' do
+          msg = "Your work order is completed"
+          expect(response.body).to eq({message: msg}.to_json)
+        end
+
+        it 'should add appropriate JWT to outgoing requests' do
+          serializer = JWTSerializer.new
+          app_double = double('app')
+          expect(app_double).to receive(:call)
+          serializer.instance_variable_set(:@app, app_double)
+          request_headers = {}
+          serializer.call(request_headers: request_headers)
+          coded_jwt = request_headers['X-Authorisation']
+          expect(coded_jwt).not_to be_nil
+          payload, _ = JWT.decode coded_jwt, Rails.application.config.jwt_secret_key, true, algorithm: 'HS256'
+          expect(payload).not_to be_nil
+          expect(payload["data"]["email"]).to eq(work_plan.owner_email)
+        end
       end
 
-      it { expect(response).to have_http_status(:ok) }
+      context 'when the work order is not valid' do
+        before do
+          allow_any_instance_of(WorkOrderValidatorService).to receive(:validate?).and_return(false)
+          allow_any_instance_of(WorkOrderValidatorService).to receive(:errors).and_return({msg: "Your work order is not completed"})
+          allow(BrokerHandle).to receive(:connected?).and_return(true)
+          post :complete, params: params
+        end
 
-      it 'should have correct message in repsonse body' do
-        msg = "Your work order is completed"
-        expect(response.body).to eq({message: msg}.to_json)
-      end
+        it 'should put the user in the request store' do
+          xauth = RequestStore.store[:x_authorisation]
+          expect(xauth).not_to be_nil
+          expect(xauth[:email]).to eq(work_plan.owner_email)
+        end
 
-      it 'should add appropriate JWT to outgoing requests' do
-        serializer = JWTSerializer.new
-        app_double = double('app')
-        expect(app_double).to receive(:call)
-        serializer.instance_variable_set(:@app, app_double)
-        request_headers = {}
-        serializer.call(request_headers: request_headers)
-        coded_jwt = request_headers['X-Authorisation']
-        expect(coded_jwt).not_to be_nil
-        payload, _ = JWT.decode coded_jwt, Rails.application.config.jwt_secret_key, true, algorithm: 'HS256'
-        expect(payload).not_to be_nil
-        expect(payload["data"]["email"]).to eq(work_plan.owner_email)
+        it { expect(response).to have_http_status(:ok) }
+
+        it 'should have correct message in repsonse body' do
+          msg = "Your work order is not completed"
+          expect(response.body).to eq({message: msg}.to_json)
+        end
       end
     end
-
-    context 'when the work order is not valid' do
+    context 'when the broker is broken' do
       before do
-        allow_any_instance_of(WorkOrderValidatorService).to receive(:validate?).and_return(false)
-        allow_any_instance_of(WorkOrderValidatorService).to receive(:errors).and_return({msg: "Your work order is not completed"})
-
+        allow(BrokerHandle).to receive(:connected?).and_return(false)
         post :complete, params: params
       end
-
-      it 'should put the user in the request store' do
-        xauth = RequestStore.store[:x_authorisation]
-        expect(xauth).not_to be_nil
-        expect(xauth[:email]).to eq(work_plan.owner_email)
-      end
-
-      it { expect(response).to have_http_status(:ok) }
-
       it 'should have correct message in repsonse body' do
-        msg = "Your work order is not completed"
+        msg = "RabbitMQ broker is broken"
         expect(response.body).to eq({message: msg}.to_json)
       end
     end

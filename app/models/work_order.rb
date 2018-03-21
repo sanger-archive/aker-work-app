@@ -284,22 +284,32 @@ class WorkOrder < ApplicationRecord
   end
 
   def generate_completed_and_cancel_event
-    if closed?
-      message = WorkOrderEventMessage.new(work_order: self, status: status)
-      BrokerHandle.publish(message)
-      BillingFacadeClient.send_event(self, status)
-    else
-      raise 'You cannot generate an event from a work order that has not been completed.'
+    begin
+      if closed?
+        message = WorkOrderEventMessage.new(work_order: self, status: status)
+        BrokerHandle.publish(message)
+        BillingFacadeClient.send_event(self, status)
+      else
+        Rails.logger.error('Complete/cancel event cannot be generated from a work order that has not been completed.')
+      end
+    rescue => e
+      Rails.logger.error e
+      Rails.logger.error e.backtrace
     end
   end
 
   def generate_submitted_event
-    if active?
-      message = WorkOrderEventMessage.new(work_order: self, status: 'submitted')
-      BrokerHandle.publish(message)
-      BillingFacadeClient.send_event(self, 'submitted')
-    else
-      raise 'You cannot generate an submitted event from a work order that is not active.'
+    begin
+      if active?
+        message = WorkOrderEventMessage.new(work_order: self, status: 'submitted')
+        BrokerHandle.publish(message)
+        BillingFacadeClient.send_event(self, 'submitted')
+      else
+        Rails.logger.error("Submitted event cannot be generated from a work order that is not active.")
+      end
+    rescue => e
+      Rails.logger.error e
+      Rails.logger.error e.backtrace
     end
   end
 

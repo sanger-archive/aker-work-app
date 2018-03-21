@@ -10,6 +10,7 @@ describe 'Work Orders API' do
   before do
     webmock_matcon_schema
     allow_set_service_lock_set
+    allow_broker_connection
   end
 
   let(:set_for_work_order) { made_up_set }

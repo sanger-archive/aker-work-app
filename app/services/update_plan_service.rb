@@ -1,6 +1,7 @@
 # Class to handle updating a work order during the work order wizard.
 require 'billing_facade_client'
 require 'set'
+require 'broker'
 
 class UpdatePlanService
 
@@ -23,6 +24,7 @@ class UpdatePlanService
     dispatch_order_id = nil
 
     if @dispatch
+      return false unless BrokerHandle.connected?
       dispatch_order_id = @work_plan_params[:work_order_id]
       return false unless check_dispatch(dispatch_order_id)
     end
@@ -282,7 +284,7 @@ private
       add_error("No project could be found with id #{project_id}")
       return false
     end
-    
+
     cost_code = node.cost_code
     unless cost_code
       add_error("The selected project does not have a cost code.")
@@ -340,14 +342,8 @@ private
   end
 
    def generate_submitted_event(order_id)
-    begin
-      order = WorkOrder.find(order_id)
-      order.generate_submitted_event
-    rescue => e
-      # Currently have to restart the server if there is an exception here
-      exception_string = e.backtrace.join("\n")
-      WorkOrderMailer.message_queue_error(@work_order, exception_string).deliver_later
-    end
+    order = WorkOrder.find(order_id)
+    order.generate_submitted_event
   end
 
   def validate_modules(module_ids)

@@ -46,18 +46,24 @@ class WorkOrdersController < ApplicationController
     #  specifying the work order owner as the responsible user.
     # The JWTSerializer middleware takes the user info from the
     #  request store.
-    RequestStore.store[:x_authorisation] = { email: work_order.owner_email, groups: ['world'] }
-    validator = WorkOrderValidatorService.new(work_order, params_for_completion)
-    valid = validator.validate?
-    if valid
-      result = complete_work_order(finish_status)
-      if params_for_completion[:work_order][:updated_materials].length >= 1
-         work_order.update(material_updated: true)
+
+    connected = BrokerHandle.connected?
+    if connected
+      RequestStore.store[:x_authorisation] = { email: work_order.owner_email, groups: ['world'] }
+      validator = WorkOrderValidatorService.new(work_order, params_for_completion)
+      valid = validator.validate?
+      if valid
+        result = complete_work_order(finish_status)
+        if params_for_completion[:work_order][:updated_materials].length >= 1
+           work_order.update(material_updated: true)
+        end
+      else
+        result = validator.errors
       end
+      render json: { message: result[:msg] }, status: result[:status]
     else
-      result = validator.errors
+      render json: { message: "RabbitMQ broker is broken" }, status: 500
     end
-    render json: { message: result[:msg] }, status: result[:status]
   end
 
 private
@@ -137,13 +143,7 @@ private
   end
 
   def generate_completed_and_cancel_event
-    begin
-      work_order.generate_completed_and_cancel_event
-    rescue StandardError => e
-      # Current have to restart the server if there is an exception here
-      exception_string = e.backtrace.join("\n")
-      WorkOrderMailer.message_queue_error(work_order, exception_string).deliver_later
-    end
+    work_order.generate_completed_and_cancel_event
   end
 
   helper_method :work_order
