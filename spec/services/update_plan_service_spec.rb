@@ -594,7 +594,7 @@ RSpec.describe UpdatePlanService do
 
       it { expect(@result).to be_falsey }
       it 'should produce an error message' do
-        expect(messages[:error]).to match /invalid/i
+        expect(messages[:error]).to eq "Please select an option to proceed"
       end
       it 'should not set the product in the plan' do
         expect(plan.product_id).to be_nil
@@ -626,7 +626,7 @@ RSpec.describe UpdatePlanService do
 
       it { expect(@result).to be_falsey }
       it 'should produce an error message' do
-        expect(messages[:error]).to match /invalid/i
+        expect(messages[:error]).to eq "Please select an option to proceed"
       end
       it 'should not set the product in the plan' do
         expect(plan.product_id).to be_nil
