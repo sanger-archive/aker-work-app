@@ -13,11 +13,11 @@ class WorkPlansController < ApplicationController
   end
 
   def index
-    users_work_plans = WorkPlan.for_user(current_user).order(updated_at: :desc)
-    @in_construction_plans = users_work_plans.select(&:in_construction?)
-    @active_plans = users_work_plans.select(&:active?)
-    @closed_plans = users_work_plans.select(&:closed?)
-    @cancelled_plans = users_work_plans.select(&:cancelled?)
+    plan_groups = WorkPlan.for_user(current_user).order(updated_at: :desc).group_by(&:status)
+    @in_construction_plans = plan_groups['construction'] || []
+    @active_plans = plan_groups['active'] || []
+    @closed_plans = plan_groups['closed'] || []
+    @cancelled_plans = plan_groups['cancelled'] || []
   end
 
   def destroy
