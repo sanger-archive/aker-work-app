@@ -424,7 +424,8 @@ RSpec.describe WorkPlan, type: :model do
         plan.update_attributes(cancelled: cancelled_time)
         plan = WorkPlan.find(plan.id)
         expect(plan.cancelled).not_to be_nil
-        expect(plan.cancelled).to eq(cancelled_time)
+        # timestamp loses some precision when it is stored in the database
+        expect(plan.cancelled).to be_within(1.second).of cancelled_time
         expect(plan).to be_cancelled
         expect(plan.status).to eq('cancelled')
       end
