@@ -106,4 +106,6 @@ Rails.application.configure do
                   sets: 'http://localhost:3002',
                   projects: '',
                   work_orders: '' }
+
+  config.akerdev_email = ENV.fetch('USER', 'user') + '@sanger.ac.uk'
 end

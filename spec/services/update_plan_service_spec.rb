@@ -95,8 +95,7 @@ RSpec.describe UpdatePlanService do
   end
 
   def stub_broker_connection
-    stub_const('BrokerHandle', class_double('BrokerHandle'))
-    allow(BrokerHandle).to receive(:connected?).and_return(true)
+    stub_const('BrokerHandle', class_double('BrokerHandle', working?: true))
   end
 
   describe 'selecting a project' do

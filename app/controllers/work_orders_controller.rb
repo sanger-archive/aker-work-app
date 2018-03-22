@@ -71,8 +71,7 @@ class WorkOrdersController < ApplicationController
     # The JWTSerializer middleware takes the user info from the
     #  request store.
 
-    connected = BrokerHandle.connected?
-    if connected
+    if BrokerHandle.working?
       RequestStore.store[:x_authorisation] = { email: work_order.owner_email, groups: ['world'] }
       validator = WorkOrderValidatorService.new(work_order, params_for_completion)
       valid = validator.validate?

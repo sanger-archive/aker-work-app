@@ -71,4 +71,6 @@ Rails.application.configure do
                   projects: '',
                   work_orders: '' }
 
+  config.akerdev_email = ENV.fetch('USER', 'user') + '@sanger.ac.uk'
+
 end

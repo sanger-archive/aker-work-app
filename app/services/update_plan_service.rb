@@ -24,7 +24,7 @@ class UpdatePlanService
     dispatch_order_id = nil
 
     if @dispatch
-      return false unless BrokerHandle.connected?
+      return false unless check_broker
       dispatch_order_id = @work_plan_params[:work_order_id]
       return false unless check_dispatch(dispatch_order_id)
     end
@@ -144,6 +144,12 @@ private
       results += result_set.to_a
     end
     results
+  end
+
+  def check_broker
+    return true if BrokerHandle.working?
+    add_error("Could not connect to message exchange.")
+    return false
   end
 
   def check_set_change

@@ -59,7 +59,7 @@ RSpec.describe WorkOrdersController, type: :controller do
 
     context 'when the broker is not broken' do
       before do
-        allow(BrokerHandle).to receive(:connected?).and_return(true)
+        allow(BrokerHandle).to receive(:working?).and_return(true)
       end
 
       context 'when the work order is valid' do
@@ -101,7 +101,7 @@ RSpec.describe WorkOrdersController, type: :controller do
         before do
           allow_any_instance_of(WorkOrderValidatorService).to receive(:validate?).and_return(false)
           allow_any_instance_of(WorkOrderValidatorService).to receive(:errors).and_return({msg: "Your work order is not completed"})
-          allow(BrokerHandle).to receive(:connected?).and_return(true)
+          allow(BrokerHandle).to receive(:working?).and_return(true)
           post :complete, params: params
         end
 
@@ -121,10 +121,10 @@ RSpec.describe WorkOrdersController, type: :controller do
     end
     context 'when the broker is broken' do
       before do
-        allow(BrokerHandle).to receive(:connected?).and_return(false)
+        allow(BrokerHandle).to receive(:working?).and_return(false)
         post :complete, params: params
       end
-      it 'should have correct message in repsonse body' do
+      it 'should have correct message in response body' do
         msg = "RabbitMQ broker is broken"
         expect(response.body).to eq({message: msg}.to_json)
       end

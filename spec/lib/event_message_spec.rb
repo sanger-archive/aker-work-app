@@ -6,7 +6,7 @@ require 'support/test_services_helper'
 RSpec.describe 'EventMessage' do
   include TestServicesHelper
 
-  context 'WorkOrderEventMessage' do
+  describe 'WorkOrderEventMessage' do
     describe '#initialize' do
       it 'is initalized with a param object' do
         w = double('work_order')
@@ -19,6 +19,7 @@ RSpec.describe 'EventMessage' do
     describe '#generate_json' do
       before do
         allow(SecureRandom).to receive(:uuid).and_return(fake_uuid)
+        allow(ZipkinTracer::TraceContainer).to receive(:current).and_return double('tracecontainer', next_id: double('trace', trace_id: fake_trace))
       end
 
       let(:set) { double(:set, uuid: 'set_uuid', id: 'set_uuid', meta: { 'size' => '4' }) }
@@ -95,18 +96,14 @@ RSpec.describe 'EventMessage' do
       end
 
       let(:message) do
-        m = WorkOrderEventMessage.new(work_order: work_order, status: status)
-        allow(m).to receive(:trace_id).and_return fake_trace
-        m
-      end
-
-      let(:json) do
         Timecop.freeze do
-          json_data = JSON.parse(message.generate_json)
+          m = WorkOrderEventMessage.new(work_order: work_order, status: status)
           @timestamp = Time.now.utc.iso8601
-          json_data
+          m
         end
       end
+
+      let(:json) { JSON.parse(message.generate_json) }
 
       let(:roles) { json['roles'] }
       let(:metadata) { json['metadata'] }
@@ -150,6 +147,10 @@ RSpec.describe 'EventMessage' do
         end
         it 'should include the work plan role' do
           expect(roles).to include(expected_work_plan_role)
+        end
+
+        it 'should produce the same JSON consistently' do
+          expect(message.generate_json).to eq(message.generate_json)
         end
       end
 
@@ -219,4 +220,5 @@ RSpec.describe 'EventMessage' do
       end
     end
   end
+
 end
