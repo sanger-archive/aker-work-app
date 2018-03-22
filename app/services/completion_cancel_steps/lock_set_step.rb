@@ -9,7 +9,7 @@ class LockSetStep
   def up
     # We only want to create a completion set if any new materials are returned
     return unless @material_step.materials.length.positive?
-    timestamp = Time.now.strftime('%H:%M:%S-%d/%m/%y')
+    timestamp = Time.now.strftime('%y-%m-%d %H:%M:%S')
     finished_set = SetClient::Set.create(
       name: "Work Order Completion #{@work_order.id} #{timestamp}"
     )
