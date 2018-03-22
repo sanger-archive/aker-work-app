@@ -4,27 +4,29 @@ This application allows users to create and manage work orders.
 
 # Setup
 ## Database
-To create the databases for the dev environment: `rake db:setup`
+To create the databases for your local environment: `bundle exec rails db:setup`
+
+## JavaScript
+Use Yarn to install the required Node modules: `bundle exec rails yarn:install`
 
 ## Broker
 To create the exchanges, queues and usernames etc. use the GitLab repo: [aker-environments](https://gitlab.internal.sanger.ac.uk/aker/aker-environments)
 
 # Testing
-To run ALL the tests for this project: `bundle exec rake`
+## Rspec
+To run the rspec tests: `bundle exec rspec`
 
-To run just the rspec tests: `bundle exec rspec`
+## JavaScript
+To run JavaScript tests: `npm test`
+
+## Messages
+The following messages are useful during testing:
+
+* [Product catalogue schema](https://ssg-confluence.internal.sanger.ac.uk/display/PSDPUB/Product+catalogue#Productcatalogue-Schema)
+* [Product catalogue messages](https://ssg-confluence.internal.sanger.ac.uk/display/PSDPUB/Messages#Messages-Productcataloguemessages)
+* [Work order messages](https://ssg-confluence.internal.sanger.ac.uk/display/PSDPUB/Messages#Messages-Workordermessages)
 
 # Misc.
 ## Assets
-Note that if any changes are made in the `app/client`,`app/assets` or `app/javascript` directories,
-any files in the `public/assets`,`public/packs` or `public/packs-test` directory must be removed,
-and webpack must be run with the `webpack.production.js` configuration file:
-
-    rm -r public/assets
-    rm -r public/packs
-    rm -r public/packs-test
-    RAILS_ENV=test bundle exec rake assets:precompile
-    RAILS_ENV=production bundle exec rake assets:precompile
-
-## Messages
-A list of available messages which can be used in Work Orders can be found [here](messages.md).
+Assets are now compiled on the environments and do not need to be committed with the project
+anymore.

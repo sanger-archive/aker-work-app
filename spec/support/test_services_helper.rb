@@ -1,7 +1,8 @@
+# frozen_string_literal: true
+
 require 'rails_helper'
 
 module TestServicesHelper
-
   def allow_set_service_lock_set
     double_set = double('Aker::Set', id: 1)
     allow(SetClient::Set).to receive(:create).and_return(double_set)
@@ -13,6 +14,10 @@ module TestServicesHelper
     allow(BillingFacadeClient).to receive(:filter_invalid_product_names).and_return([])
   end
 
+  def webmock_billing_facade_client
+    stub_request(:post, "#{Rails.configuration.billing_facade_url}/events")
+      .to_return(status: 200, body: '', headers: {})
+  end
 
   def webmock_containers_schema
     @container_schema = %Q{
@@ -27,14 +32,16 @@ module TestServicesHelper
     @material_schema = %Q{
       {"required": ["gender", "donor_id", "phenotype", "supplier_name", "scientific_name"], "type": "object", "properties": {"gender": {"required": true, "type": "string", "enum": ["male", "female", "unknown"]}, "date_of_receipt": {"type": "string", "format": "date"}, "material_type": {"enum": ["blood", "dna"], "type": "string"}, "donor_id": {"required": true, "type": "string"}, "phenotype": {"required": true, "type": "string"}, "supplier_name": {"required": true, "type": "string"}, "scientific_name": {"required": true, "type": "string", "enum": ["Homo Sapiens", "Mouse"]}, "parents": {"type": "list", "schema": {"type": "uuid", "data_relation": {"field": "_id", "resource": "materials", "embeddable": true}}}, "owner_id": {"type": "string"}}}
     }
-    stub_request(:get, "#{Rails.configuration.material_url}/materials/json_patch_schema").
-        to_return(status: 200, body: @material_schema, headers: {})
+    stub_request(:get, "#{Rails.configuration.material_url}/materials/json_patch_schema")
+      .to_return(status: 200, body: @material_schema, headers: {})
+    stub_request(:get, "#{Rails.configuration.material_url}/materials/json_patch_schema")
+      .to_return(status: 200, body: @material_schema, headers: {})
 
-    stub_request(:get, "#{Rails.configuration.material_url}/materials/json_schema").
-        to_return(status: 200, body: @material_schema, headers: {})
+    stub_request(:get, "#{Rails.configuration.material_url}/materials/json_schema")
+      .to_return(status: 200, body: @material_schema, headers: {})
 
-    stub_request(:get, "#{Rails.configuration.material_url}/materials/schema").
-        to_return(status: 200, body: @material_schema, headers: {})
+    stub_request(:get, "#{Rails.configuration.material_url}/materials/schema")
+      .to_return(status: 200, body: @material_schema, headers: {})
   end
 
   def webmock_matcon_schema
@@ -43,19 +50,24 @@ module TestServicesHelper
   end
 
   def make_work_order
-    @work_order = instance_double("work_order", owner_email: "person@sanger.ac.uk", id: made_up_id)
+    @work_order = instance_double('work_order', owner_email: 'person@sanger.ac.uk', id: made_up_id)
   end
 
   def make_active_work_order
-    instance_double("work_order", status: 'active',
-      comment: 'any comment old',
-      close_comment: nil,
-      owner_email: "person@sanger.ac.uk")
+    instance_double('work_order', status: 'active',
+                                  comment: 'any comment old',
+                                  close_comment: nil,
+                                  owner_email: 'person@sanger.ac.uk')
   end
 
   def made_up_set
     set_uuid = made_up_uuid
-    set = double(:set, id: set_uuid, type: 'sets', name: 'A set name', owner_id: nil, locked: true, meta: { size: 1 })
+    set = double(:set, id: set_uuid,
+                       type: 'sets',
+                       name: 'A set name',
+                       owner_id: nil,
+                       locked: true,
+                       meta: { size: 1 })
 
     materials = 5.times.map{make_material}
 
@@ -66,7 +78,8 @@ module TestServicesHelper
 
     allow(result).to receive(:result_set).and_return(result_set)
 
-    allow(MatconClient::Material).to receive(:where).with("_id" => {"$in" => materials.map(&:id)}).and_return(result)
+    allow(MatconClient::Material).to receive(:where)
+      .with('_id' => { '$in' => materials.map(&:id) }).and_return(result)
     allow(SetClient::Set).to receive(:find_with_materials).with(set_uuid).and_return([set])
 
     empty_response = double('result_set', result_set: nil)
@@ -88,27 +101,35 @@ module TestServicesHelper
     "AKER-#{@barcode_counter}"
   end
 
-
   def make_material
-    mat= double('material', id: made_up_uuid, available: true)
+    mat = double('material', id: made_up_uuid, available: true)
 
-    allow(mat).to receive(:attributes).and_return({'id'=> mat.id, 'available'=> mat.available})
+    allow(mat).to receive(:attributes).and_return('id' => mat.id, 'available' => mat.available)
     allow(mat).to receive(:first).and_return(mat)
     mat
   end
 
   def make_container
-    container = instance_double("container", slots: make_slots, barcode: made_up_barcode, id: made_up_uuid)
+    container = instance_double('container',
+                                slots: make_slots,
+                                barcode: made_up_barcode,
+                                id: made_up_uuid)
     allow(container).to receive(:material_id=)
     allow(container).to receive(:save)
     container
   end
 
   def make_node(name, cost_code, id, parent_id, is_sub, is_proj)
-    n = double('node', name: name, cost_code: cost_code, id: id, parent_id: parent_id, subproject?: is_sub, project?: is_proj,
-               node_uuid: SecureRandom.uuid, data_release_uuid: nil)
+    n = double('node', name: name,
+                       cost_code: cost_code,
+                       id: id,
+                       parent_id: parent_id,
+                       subproject?: is_sub,
+                       project?: is_proj,
+                       node_uuid: SecureRandom.uuid,
+                       data_release_uuid: nil)
     allow(StudyClient::Node).to receive(:find).with(n.id).and_return([n])
-    return n
+    n
   end
 
   def stub_matcon

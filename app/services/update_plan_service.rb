@@ -30,16 +30,15 @@ class UpdatePlanService
     end
 
     product_options = nil
-
     # Requesting to set the modules for all orders in the plan
-    if @work_plan_params[:product_options] && @work_plan_params[:product_id]
+    if @work_plan_params[:product_options].present? && @work_plan_params[:product_id].present?
       product_options = JSON.parse(@work_plan_params[:product_options])
       product = Product.find(@work_plan_params[:product_id])
       return false unless validate_modules(product_options.flatten)
       return false unless check_product_module_ids(product_options, product)
       @work_plan_params = @work_plan_params.except(:product_options)
     elsif @work_plan_params[:product_options] || @work_plan_params[:product_id]
-      add_error("Invalid parameters")
+      add_error("Please select an option to proceed")
       return false
     end
 
