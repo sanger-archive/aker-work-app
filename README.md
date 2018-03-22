@@ -17,7 +17,7 @@ To create the exchanges, queues and usernames etc. use the GitLab repo: [aker-en
 To run the rspec tests: `bundle exec rspec`
 
 ## JavaScript
-To run JavaScript tests: `npm test`
+To run JavaScript tests: `yarn test`
 
 ## Messages
 The following messages are useful during testing:
