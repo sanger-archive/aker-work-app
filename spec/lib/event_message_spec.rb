@@ -6,6 +6,13 @@ require 'support/test_services_helper'
 RSpec.describe 'EventMessage' do
   include TestServicesHelper
 
+  let(:fake_uuid) { 'my_fake_uuid' }
+  let(:fake_trace) { 'my_trace_id' }
+  before do
+    allow(SecureRandom).to receive(:uuid).and_return(fake_uuid)
+    allow(ZipkinTracer::TraceContainer).to receive(:current).and_return double('tracecontainer', next_id: double('trace', trace_id: fake_trace))
+  end
+
   describe 'WorkOrderEventMessage' do
     describe '#initialize' do
       it 'is initalized with a param object' do
@@ -17,10 +24,6 @@ RSpec.describe 'EventMessage' do
     end
 
     describe '#generate_json' do
-      before do
-        allow(SecureRandom).to receive(:uuid).and_return(fake_uuid)
-        allow(ZipkinTracer::TraceContainer).to receive(:current).and_return double('tracecontainer', next_id: double('trace', trace_id: fake_trace))
-      end
 
       let(:set) { double(:set, uuid: 'set_uuid', id: 'set_uuid', meta: { 'size' => '4' }) }
       let(:finished_set) do
@@ -34,8 +37,6 @@ RSpec.describe 'EventMessage' do
       let(:project) { double(:project, id: 123, name: 'test project', node_uuid: '12345a') }
       let(:product) { build(:product, name: 'test product') }
       let(:process) { build(:process, name: 'test process') }
-      let(:fake_uuid) { 'my_fake_uuid' }
-      let(:fake_trace) { 'my_trace_id' }
       let(:first_comment) { 'first comment' }
       let(:second_comment) { 'second comment' }
       let(:expected_work_order_role) do
@@ -108,7 +109,7 @@ RSpec.describe 'EventMessage' do
       let(:roles) { json['roles'] }
       let(:metadata) { json['metadata'] }
 
-      shared_examples_for 'event message json' do
+      shared_examples_for 'work order event message json' do
         it 'should have the correct event type' do
           expect(json['event_type']).to eq("aker.events.work_order.#{status}")
         end
@@ -157,7 +158,7 @@ RSpec.describe 'EventMessage' do
       context 'when work order is submitted' do
         let(:status) { 'submitted' }
 
-        it_behaves_like 'event message json'
+        it_behaves_like 'work order event message json'
 
         context 'when there is no set defined for the work order' do
           it 'generates the message without raising an exception' do
@@ -191,7 +192,7 @@ RSpec.describe 'EventMessage' do
       context 'when work order is completed' do
         let(:status) { 'completed' }
 
-        it_behaves_like 'event message json'
+        it_behaves_like 'work order event message json'
 
         context 'when there is no finished set as a result of the work order' do
           it 'generates the message without raising an exception' do
@@ -217,6 +218,76 @@ RSpec.describe 'EventMessage' do
         it 'should have the correct num new materials' do
           expect(metadata['num_new_materials']).to eq(finished_set.meta['size'])
         end
+      end
+    end
+  end
+
+  describe 'CatalogueEventMessage' do
+    let(:catalogue_data) do
+      {
+        lims_id: 'my_lims',
+        pipeline: 'my_pipeline',
+      }
+    end
+
+    let(:message) do
+      Timecop.freeze do
+        m = CatalogueEventMessage.new(catalogue: catalogue_data, error: error)
+        @timestamp = Time.now.utc.iso8601
+        m
+      end
+    end
+
+    describe '#generate_json' do
+      let(:json) { JSON.parse(message.generate_json) }
+
+      shared_examples_for 'catalogue event message json' do
+        it 'should generate the same json consistenly' do
+          expect(message.generate_json).to eq(message.generate_json)
+        end
+
+        it 'should contain the timestamp' do
+          expect(json['timestamp']).to eq(@timestamp)
+        end
+
+        it 'should contain the uuid' do
+          expect(json['uuid']).to eq(fake_uuid)
+        end
+
+        it 'should have an empty array of roles' do
+          expect(json['roles']).to be_empty
+        end
+
+        it 'should have the correct lims id' do
+          expect(json['lims_id']).to eq(catalogue_data[:lims_id])
+        end
+
+        it 'should have the correct user identifier' do
+          expect(json['user_identifier']).to eq(catalogue_data[:lims_id])
+        end
+
+        it 'should have the correct metadata' do
+          expect(json['metadata']).to eq expected_metadata
+        end
+        it 'should have the correct event type' do
+          expect(json['event_type']).to eq expected_event_type
+        end
+      end
+
+      context 'when there is an error' do
+        let(:error) { 'everything is broken' }
+        let(:expected_metadata) { { 'error' => error } }
+        let(:expected_event_type) { 'aker.events.catalogue.rejected' }
+
+        it_behaves_like 'catalogue event message json'
+      end
+
+      context 'when there is no error' do
+        let(:error) { nil }
+        let(:expected_metadata) { { 'pipeline' => catalogue_data[:pipeline] } }
+        let(:expected_event_type) { 'aker.events.catalogue.accepted' }
+
+        it_behaves_like 'catalogue event message json'
       end
     end
   end
