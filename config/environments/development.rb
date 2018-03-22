@@ -92,7 +92,7 @@ Rails.application.configure do
 
   config.fake_ldap = true
 
-  config.action_mailer.default_url_options = { host: 'localhost', port: 3000 }
+  config.action_mailer.default_url_options = { host: 'localhost', port: 3001 }
 
   # SSO
   config.default_jwt_user = { email: ENV.fetch('USER', 'user') + '@sanger.ac.uk',
@@ -107,4 +107,6 @@ Rails.application.configure do
                   sets: 'http://localhost:3002',
                   projects: '',
                   work_orders: '' }
+
+  config.akerdev_email = ENV.fetch('USER', 'user') + '@sanger.ac.uk'
 end

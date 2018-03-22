@@ -183,4 +183,11 @@ module TestServicesHelper
       slot
     end
   end
+
+  def allow_broker_connection
+    stub_const('BrokerHandle', class_double('BrokerHandle'))
+    allow(BrokerHandle).to receive(:working?).and_return(true)
+    allow_any_instance_of(WorkOrder).to receive(:generate_completed_and_cancel_event)
+  end
+
 end

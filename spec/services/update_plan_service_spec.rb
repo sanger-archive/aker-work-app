@@ -94,6 +94,10 @@ RSpec.describe UpdatePlanService do
     end
   end
 
+  def stub_broker_connection
+    stub_const('BrokerHandle', class_double('BrokerHandle', working?: true))
+  end
+
   describe 'selecting a project' do
 
     def extra_stubbing
@@ -793,6 +797,7 @@ RSpec.describe UpdatePlanService do
       allow_any_instance_of(WorkOrder).to receive(:finalise_set) { @finalised_set = true }
       stub_project
       stub_stamps
+      stub_broker_connection
     end
 
     context 'when the order is queued' do
@@ -1068,6 +1073,15 @@ RSpec.describe UpdatePlanService do
       allow_any_instance_of(WorkOrder).to receive(:generate_submitted_event) { @sent_event = true }
       stub_project
       stub_stamps
+      stub_broker_connection
+    end
+
+    context 'when the broker is broken' do
+      let(:plan) { make_plan_with_orders }
+      before do
+        allow(BrokerHandle).to receive(:connected?).and_return(false)
+      end
+      it { expect(@result).to be_falsey }
     end
 
     context 'when the first order is queued' do
@@ -1322,19 +1336,7 @@ RSpec.describe UpdatePlanService do
       it 'should have changed the dispatch date' do
         expect(orders[1].reload.dispatch_date).not_to be_nil
       end
-      
+
     end
   end
 end
-
-
-
-
-
-
-
-
-
-
-
-
