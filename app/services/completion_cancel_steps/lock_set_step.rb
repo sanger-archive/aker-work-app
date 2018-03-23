@@ -11,7 +11,7 @@ class LockSetStep
     return unless @material_step.materials.length.positive?
     timestamp = Time.now.strftime('%y-%m-%d %H:%M:%S')
     finished_set = SetClient::Set.create(
-      name: "Work Order Completion #{@work_order.id} #{timestamp}"
+      name: "Work Order #{@work_order.id} Completion #{timestamp}"
     )
     @work_order.update_attributes!(finished_set_uuid: finished_set.id)
     finished_set.set_materials(@material_step.materials.map(&:id))
