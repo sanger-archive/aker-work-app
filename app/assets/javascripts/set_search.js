@@ -25,7 +25,7 @@ function setSearch() {
       if (setNames.includes(setName.toLowerCase())) {
         $("#set-result").css("color", "orange");
         $("#set-result").text("Set already in list. It's been selected for you");
-        $("input[name=work_order\\[original_set_uuid\\]][value=" + setID + "]").prop('checked', true);
+        $("input[name=work_plan\\[original_set_uuid\\]][value=" + setID + "]").prop('checked', true);
         return;
       }
 
@@ -42,7 +42,7 @@ function setSearch() {
       $('#set-list-table tbody').prepend(`<tr>
         <td>
           <div class="radio">
-            <label for="work_order_original_set_uuid_${setID}">
+            <label for="work_plan_original_set_uuid_${setID}">
               <input checked type="radio" value="${setID}" name="work_plan[original_set_uuid]" id="work_plan_original_set_uuid_${setID}"">
             </label>
           </div>

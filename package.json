@@ -1,9 +1,10 @@
 {
+  "license": "UNLICENSED",
   "scripts": {
-    "test": "mocha-webpack --opts mocha-webpack.opts spec/javascript/**/*_spec.jsx"
+    "test": "NODE_ENV=test RAILS_ENV=test mocha-webpack --opts mocha-webpack.opts spec/javascript/**/*_spec.jsx"
   },
   "dependencies": {
-    "@rails/webpacker": "^3.2.2",
+    "@rails/webpacker": "^3.3.1",
     "babel": "^6.23.0",
     "babel-core": "^6.26.0",
     "babel-loader": "^7.1.3",
@@ -19,7 +20,7 @@
     "jsdom-global": "^3.0.2",
     "mocha": "^5.0.1",
     "mocha-webpack": "^1.0.1",
-    "prop-types": "^15.6.0",
+    "prop-types": "^15.6.1",
     "react": "^16.2.0",
     "react-dom": "^16.2.0",
     "react-select": "^1.2.1",
@@ -29,6 +30,7 @@
     "webpacker-react": "^0.3.2"
   },
   "devDependencies": {
-    "webpack-dev-server": "^2.11.1"
+    "@babel/preset-env": "^7.0.0-beta.42",
+    "webpack-dev-server": "^3.1.1"
   }
 }

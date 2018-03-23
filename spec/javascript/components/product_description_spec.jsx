@@ -3,7 +3,7 @@ import EnzymeHelper from '../enzyme_helper'
 import React, { Fragment } from 'react';
 import { expect } from 'chai'
 import { shallow, mount } from 'enzyme';
-import ProductDescription from "../../../app/javascript/components/product_description.jsx"
+import { ProductDescription } from "../../../app/javascript/components/product_description.jsx"
 
 describe('<ProductDescription />', () => {
   context('when rendering it', () => {
@@ -13,4 +13,3 @@ describe('<ProductDescription />', () => {
     })
   })
 })
-

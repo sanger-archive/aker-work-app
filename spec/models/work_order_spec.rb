@@ -478,10 +478,8 @@ RSpec.describe WorkOrder, type: :model do
       it 'generates an event using the BrokerHandle' do
         wo = build(:work_order)
         expect(BrokerHandle).not_to receive(:publish).with(an_instance_of(WorkOrderEventMessage))
-        expect { wo.generate_completed_and_cancel_event }
-          .to raise_exception(
-            'You cannot generate an event from a work order that has not been completed.'
-          )
+        expect(Rails.logger).to receive(:error).with('Complete/cancel event cannot be generated from a work order that has not been completed.')
+        wo.generate_completed_and_cancel_event
       end
     end
 
@@ -501,10 +499,8 @@ RSpec.describe WorkOrder, type: :model do
         wo = build(:work_order)
         allow(BillingFacadeClient).to receive(:send_event).with(wo, 'submitted')
         expect(BrokerHandle).not_to receive(:publish).with(an_instance_of(WorkOrderEventMessage))
-        expect { wo.generate_submitted_event }
-          .to raise_exception(
-            'You cannot generate an submitted event from a work order that is not active.'
-          )
+        expect(Rails.logger).to receive(:error).with('Submitted event cannot be generated from a work order that is not active.')
+        wo.generate_submitted_event
       end
     end
 
