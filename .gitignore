@@ -20,3 +20,14 @@ coverage
 
 work-orders_development
 work-orders_test
+/node_modules
+yarn-debug.log*
+.yarn-integrity
+
+# Assets to be compiled for each environment
+/public/assets
+/public/packs
+/public/packs-test
+
+# Mocha temp folder
+.tmp

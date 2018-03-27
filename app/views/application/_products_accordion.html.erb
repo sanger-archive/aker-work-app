@@ -1,0 +1,18 @@
+<div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
+  <% work_plan.work_orders.each_with_index do |work_order, i| %>
+    <div class="panel panel-default">
+      <div class="panel-heading" role="tab" id="heading<%=i%>">
+        <h4 class="panel-title">
+          <a class="collapsed" data-toggle="collapse" data-parent="#accordion" href="#collapse<%=i%>" aria-expanded="false" aria-controls="collapse<%=i%>">
+            <%= work_order.process.name %> (<%= work_order.status %>)
+          </a>
+        </h4>
+      </div>
+      <div id="collapse<%=i%>" class="collapse" role="tabpanel" aria-labelledby="heading<%=i%>">
+         <div class="panel-body">
+            <%= render 'accordion_body', work_order: work_order, index: i %>
+         </div>
+      </div>
+    </div>
+  <% end %>
+ </div>

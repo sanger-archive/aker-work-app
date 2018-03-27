@@ -1,6 +1,24 @@
+# frozen_string_literal: true
+
 require 'rails_helper'
 
 RSpec.describe WorkOrder, type: :model do
+  let(:catalogue) { create(:catalogue) }
+  let(:product) { create(:product, name: 'Solylent Green', product_version: 3, catalogue: catalogue) }
+  let(:process) do
+    pro = create(:aker_process, name: 'Baking')
+    create(:aker_product_process, product: product, aker_process: pro, stage: 0)
+    pro
+  end
+  let(:process_options) do
+    product.processes.map do |pro|
+      pro.process_modules.map(&:id)
+    end
+  end
+  let(:project) { make_node('Operation Wolf', 'S1001', 41, 40, false, true, SecureRandom.uuid) }
+  let(:subproject) { make_node('Operation Thunderbolt', 'S1001-0', 42, project.id, true, false, nil) }
+
+  let(:plan) { create(:work_plan, project_id: subproject.id, product: product, comment: 'hello', desired_date: '2020-01-01') }
 
   def make_uuid
     SecureRandom.uuid
@@ -8,29 +26,39 @@ RSpec.describe WorkOrder, type: :model do
 
   before do
     @barcode_index = 100
-    stub_const("BillingFacadeClient", double('BillingFacadeClient'))
+    bfc = double('BillingFacadeClient')
+    stub_const("BillingFacadeClient", bfc)
+    stub_const('BrokerHandle', class_double('BrokerHandle'))
+    allow(bfc).to receive(:validate_process_module_name) do |name|
+      !name.starts_with? 'x'
+    end
   end
 
   def make_barcode
+    @barcode_index ||= 0
     @barcode_index += 1
     "AKER-#{@barcode_index}"
   end
 
-  def make_set(size=6)
+  def make_set(size = 6)
     uuid = make_uuid
-    s = double(:set, uuid: uuid, id: uuid, meta: { 'size' => size })
-    allow(SetClient::Set).to receive(:find).with(s.uuid).and_return([s])
-    return s
+    a_set = double(:set, uuid: uuid, id: uuid, meta: { 'size' => size }, locked: false)
+    allow(SetClient::Set).to receive(:find).with(a_set.uuid).and_return([a_set])
+    a_set
   end
 
-  let(:project) { make_node('Operation Wolf', 'S1001', 41, 40, false, true, SecureRandom.uuid) }
-  let(:proposal) { make_node('Operation Thunderbolt', 'S1001-0', 42, project.id, true, false, nil) }
-
   def make_node(name, cost_code, id, parent_id, is_sub, is_proj, data_release_uuid)
-    n = double('node', name: name, cost_code: cost_code, id: id, parent_id: parent_id, subproject?: is_sub, project?: is_proj,
-               node_uuid: make_uuid, data_release_uuid: data_release_uuid)
-    allow(StudyClient::Node).to receive(:find).with(n.id).and_return([n])
-    return n
+    node = double('node',
+                  name: name,
+                  cost_code: cost_code,
+                  id: id,
+                  parent_id: parent_id,
+                  subproject?: is_sub,
+                  project?: is_proj,
+                  node_uuid: make_uuid,
+                  data_release_uuid: data_release_uuid)
+    allow(StudyClient::Node).to receive(:find).with(node.id).and_return([node])
+    node
   end
 
   def make_result_set(items)
@@ -38,28 +66,28 @@ RSpec.describe WorkOrder, type: :model do
     allow(rs).to receive(:map) { |&block| items.map(&block) }
     allow(rs).to receive(:each) { |&block| items.each(&block) }
     allow(rs).to receive(:all?) { |&block| items.all?(&block) }
-    return double('result_set_wrapper', result_set: rs)
+    double('result_set_wrapper', result_set: rs)
   end
 
-  def make_materials(num=3)
+  def make_materials
     @materials = (1..3).map do |i|
       attributes = {
-        'gender' => (i%2==0) ? 'male' : 'female',
-        'donor_id' => 'donor #{i}',
-        'phenotype' => 'phenotype #{i}',
+        'gender' => i.even? ? 'male' : 'female',
+        'donor_id' => "donor #{i}",
+        'phenotype' => "phenotype #{i}",
         'scientific_name' => 'Mouse',
-        'available' => true,
+        'available' => true
       }
       double(:material, id: make_uuid, attributes: attributes)
     end
     allow(MatconClient::Material).to receive(:where) do |args|
       ids = args['_id']['$in']
       found = ids.map do |id|
-        @materials.find { |m| m.id==id }
+        @materials.find { |m| m.id == id }
       end
       make_result_set(found)
     end
-    return @materials
+    @materials
   end
 
   def make_set_with_materials
@@ -67,180 +95,145 @@ RSpec.describe WorkOrder, type: :model do
 
     make_materials
     allow(@set).to receive(:materials).and_return(@materials)
-    allow(SetClient::Set).to receive(:find_with_materials).
-      with(@set.uuid).and_return([@set])
-    return @set
+    allow(SetClient::Set).to receive(:find_with_materials).with(@set.uuid).and_return([@set])
+    @set
+  end
+
+  def make_processes(n)
+    pros = (0...n).map { |i| create(:aker_process, name: "process #{i}") }
+    pros.each_with_index { |pro, i| create(:aker_product_process, product: product, aker_process: pro, stage: i) }
+    i = 0
+    pros.each do |pro|
+      (0...3).each do
+        Aker::ProcessModule.create!(name: "module-#{i}", aker_process_id: pro.id)
+        i += 1
+      end
+    end
+    pros
   end
 
   describe '#finished_set' do
     context 'when the work order has a finished set uuid' do
       let(:finished_set) { make_set(6) }
       let(:wo) { build(:work_order, finished_set_uuid: finished_set.uuid) }
-      it "should return the finished set" do
+      it 'should return the finished set' do
         expect(wo.finished_set).to eq finished_set
       end
     end
     context 'when the work order has no finished set uuid' do
       let(:wo) { build(:work_order) }
-      it "should return nil" do
+      it 'should return nil' do
         expect(wo.finished_set).to be_nil
       end
     end
   end
 
   describe "#set" do
+    let(:set) { make_set(6) }
+
     context "when work order has a set" do
-      before do
-        @set = make_set(6)
-        @wo = build(:work_order, set: @set)
-      end
+      let(:order) { build(:work_order, set: set) }
+
       it "should return the set" do
-        expect(@wo.set).to be @set
+        expect(order.set).to be set
       end
     end
     context "when work order has a set uuid" do
-      before do
-        @set = make_set(6)
-        @wo = build(:work_order, set_uuid: @set.uuid)
-      end
+      let(:order) { build(:work_order, set_uuid: set.uuid) }
+
       it "should look up the set and return it" do
-        expect(@wo.set).to eq @set
+        expect(order.set).to eq set
       end
     end
     context "when work order has no set" do
-      before do
-        @wo = build(:work_order, set_uuid: nil, set: nil)
-      end
+      let(:order) { build(:work_order, set_uuid: nil, set: nil) }
+
       it "should return nil" do
-        expect(@wo.set).to be_nil
+        expect(order.set).to be_nil
       end
     end
 
     context "when set is assigned in the work order" do
-      before do
-        @wo = build(:work_order)
-        @set = make_set
-      end
+      let(:order) { build(:work_order) }
 
       it "should update the set_uuid" do
-        expect(@wo.set).to be_nil
-        expect(@wo.set_uuid).to be_nil
-        @wo.set=@set
-        expect(@wo.set).to be(@set)
-        expect(@wo.set_uuid).to eq(@set.uuid)
+        expect(order.set).to be_nil
+        expect(order.set_uuid).to be_nil
+        order.set = set
+        expect(order.set).to be(set)
+        expect(order.set_uuid).to eq(set.uuid)
       end
     end
     context "when set_uuid is assigned in the work order" do
-      before do
-        @wo = build(:work_order)
-        @set = make_set
-      end
+      let(:order) { build(:work_order) }
 
       it "should update the set" do
-        expect(@wo.set).to be_nil
-        expect(@wo.set_uuid).to be_nil
-        @wo.set_uuid=@set.uuid
-        expect(@wo.set).to be(@set)
-        expect(@wo.set_uuid).to eq(@set.uuid)
-      end
-    end
-  end
-
-  describe "#proposal" do
-    context "when the work order has a proposal id" do
-      before do
-        @wo = build(:work_order, proposal_id: proposal.id)
-      end
-
-      it "should find and return the proposal" do
-        expect(@wo.proposal).to eq(proposal)
-      end
-
-    end
-    context "when the work order has no proposal id" do
-      before do
-        @wo = build(:work_order, proposal_id: nil)
-      end
-
-      it "should return nil" do
-        expect(@wo.proposal).to be_nil
+        expect(order.set).to be_nil
+        expect(order.set_uuid).to be_nil
+        order.set_uuid = set.uuid
+        expect(order.set).to eq(set)
+        expect(order.set_uuid).to eq(set.uuid)
       end
     end
   end
 
   describe "#original_set" do
+    let(:set) { make_set(6) }
     context "when work order has an original_set" do
-      before do
-        @set = make_set(6)
-        @wo = build(:work_order, original_set: @set)
-      end
+      let(:order) { build(:work_order, original_set: set) }
+
       it "should return the set" do
-        expect(@wo.original_set).to be @set
+        expect(order.original_set).to be(set)
       end
     end
     context "when work order has an original_set_uuid" do
-      before do
-        @set = make_set(6)
-        @wo = build(:work_order, original_set_uuid: @set.uuid)
-      end
+      let(:order) { build(:work_order, original_set_uuid: set.uuid) }
+
       it "should look up the set and return it" do
-        expect(@wo.original_set).to be @set
+        expect(order.original_set).to eq(set)
       end
     end
     context "when work order has no original set" do
-      before do
-        @wo = build(:work_order, original_set_uuid: nil, original_set: nil)
-      end
+      let(:order) { build(:work_order, original_set_uuid: nil, original_set: nil) }
       it "should return nil" do
-        expect(@wo.original_set).to be_nil
+        expect(order.original_set).to be_nil
       end
     end
 
-    context "when the Set Client can not find the original set" do
+    context "when the Set Client cannot find the original set" do
+      let(:set_uuid) { SecureRandom.uuid }
+      let(:order) { build(:work_order, original_set_uuid: @uuid) }
+
       before do
-        @uuid = SecureRandom.uuid
-        allow(SetClient::Set).to receive(:find).with(@uuid).and_raise(JsonApiClient::Errors::NotFound, "a message")
-        @wo = build(:work_order, original_set_uuid: @uuid)
+        allow(SetClient::Set).to receive(:find).with(set_uuid).and_raise(JsonApiClient::Errors::NotFound, "a message")
       end
 
       it "should return nil" do
-        expect(@wo.original_set).to be_nil
+        expect(order.original_set).to be_nil
       end
     end
 
     context "when original_set is assigned in the work order" do
-      before do
-        @wo = build(:work_order, original_set: nil, original_set_uuid: nil)
-        @set = make_set
-      end
+      let(:order) { build(:work_order, original_set: nil, original_set_uuid: nil) }
 
       it "should update the original_set_uuid" do
-        expect(@wo.original_set).to be_nil
-        expect(@wo.original_set_uuid).to be_nil
-        @wo.original_set=@set
-        expect(@wo.original_set).to be(@set)
-        expect(@wo.original_set_uuid).to eq(@set.uuid)
+        expect(order.original_set).to be_nil
+        expect(order.original_set_uuid).to be_nil
+        order.original_set = set
+        expect(order.original_set).to be(set)
+        expect(order.original_set_uuid).to eq(set.uuid)
       end
     end
     context "when original_set_uuid is assigned in the work order" do
-      before do
-        @wo = build(:work_order, original_set: nil, original_set_uuid: nil)
-        @set = make_set
-      end
+      let(:order) { build(:work_order, original_set: nil, original_set_uuid: nil) }
 
-      it "should update the original_set" do
-        expect(@wo.original_set).to be_nil
-        expect(@wo.original_set_uuid).to be_nil
-        @wo.original_set_uuid=@set.uuid
-        expect(@wo.original_set).to be(@set)
-        expect(@wo.original_set_uuid).to eq(@set.uuid)
+      it "should update the original_set_uuid" do
+        expect(order.original_set).to be_nil
+        expect(order.original_set_uuid).to be_nil
+        order.original_set_uuid = set.uuid
+        expect(order.original_set).to eq(set)
+        expect(order.original_set_uuid).to eq(set.uuid)
       end
-    end
-  end
-
-  describe '#owner_email' do
-    it 'should be sanitised' do
-      expect(create(:work_order, owner_email: '    ALPHA@BETA   ').owner_email).to eq('alpha@beta')
     end
   end
 
@@ -248,9 +241,13 @@ RSpec.describe WorkOrder, type: :model do
 
     def make_container(materials)
       slots = materials.each_with_index.map do |material,i|
-        double('slot', material_id: material&.id, address: (i+1).to_s)
+        double('slot', material_id: material&.id, address: (i + 1).to_s)
       end
-      @container = double('container', barcode: make_barcode, num_of_rows: 1, num_of_cols: materials.length, slots: slots)
+      @container = double('container',
+                          barcode: make_barcode,
+                          num_of_rows: 1,
+                          num_of_cols: materials.length,
+                          slots: slots)
 
       allow(MatconClient::Container).to receive(:where) do |args|
         material_ids = args['slots.material']['$in']
@@ -260,15 +257,21 @@ RSpec.describe WorkOrder, type: :model do
         end
         make_result_set(containers)
       end
-      return @container
+      @container
+    end
+
+    let(:order) do
+      create(:work_order, process_id: process.id, work_plan: plan, set_uuid: @set.id, order_index: 0)
+    end
+
+    let(:modules) do
+      (1...3).map { |i| create(:aker_process_module, name: "Module#{i}", aker_process_id: process.id) }
     end
 
     before do
       make_set_with_materials
       make_container(@materials)
-      product = build(:product, name: 'Soylent Green', product_version: 3, product_uuid: 'abc123')
-      @wo = build(:work_order, product: product, proposal_id: proposal.id, set_uuid: @set.id,
-                  id: 616, comment: 'hello', desired_date: '2020-01-01')
+      modules.each_with_index { |m,i| WorkOrderModuleChoice.create(work_order: order, process_module: m, position: i)}
     end
 
     context 'when some of the materials are unavailable' do
@@ -277,29 +280,32 @@ RSpec.describe WorkOrder, type: :model do
       end
 
       it "should raise an exception" do
-        expect { @wo.lims_data() }.to raise_error(/materials.*available/)
+        expect { order.lims_data }.to raise_error(/materials.*available/)
       end
     end
 
     context 'when data is calculated' do
       it "should return the lims_data" do
-        data = @wo.lims_data()[:work_order]
-        expect(data[:product_name]).to eq(@wo.product.name)
-        expect(data[:product_version]).to eq(@wo.product.product_version)
-        expect(data[:product_uuid]).to eq(@wo.product.product_uuid)
-        expect(data[:work_order_id]).to eq(@wo.id)
-        expect(data[:comment]).to eq(@wo.comment)
+        data = order.lims_data[:work_order]
+        expect(data[:process_name]).to eq(process.name)
+        expect(data[:process_uuid]).to eq(process.uuid)
+        expect(data[:work_order_id]).to eq(order.id)
+        expect(data[:comment]).to eq(plan.comment)
         expect(data[:project_uuid]).to eq(project.node_uuid)
         expect(data[:project_name]).to eq(project.name)
         expect(data[:data_release_uuid]).to eq(project.data_release_uuid)
-        expect(data[:cost_code]).to eq(proposal.cost_code)
-        expect(data[:desired_date]).to eq(@wo.desired_date)
+        expect(data[:cost_code]).to eq(subproject.cost_code)
+        expect(data).not_to have_key(:desired_date)
+        expect(data[:modules]).to eq(["Module1", "Module2"])
         material_data = data[:materials]
         expect(material_data.length).to eq(@materials.length)
         @materials.zip(material_data).each do |mat, dat|
-          slot = @container.slots.find { |slot| slot.material_id==mat.id }
+          slot = @container.slots.find { |the_slot| the_slot.material_id == mat.id }
           expect(dat[:_id]).to eq(mat.id)
-          expect(dat[:container]).to eq({ barcode: @container.barcode, address: slot.address, num_of_rows: @container.num_of_rows, num_of_cols: @container.num_of_cols })
+          expect(dat[:container]).to eq(barcode: @container.barcode,
+                                        address: slot.address,
+                                        num_of_rows: @container.num_of_rows,
+                                        num_of_cols: @container.num_of_cols)
           expect(dat[:gender]).to eq(mat.attributes['gender'])
           expect(dat[:donor_id]).to eq(mat.attributes['donor_id'])
           expect(dat[:phenotype]).to eq(mat.attributes['phenotype'])
@@ -307,14 +313,59 @@ RSpec.describe WorkOrder, type: :model do
         end
       end
     end
+
+    context 'when module name is not valid' do
+      before do
+        m = create(:aker_process_module, name: "xModule", aker_process_id: process.id)
+        WorkOrderModuleChoice.create(work_order: order, process_module: m, position: 2)
+      end
+      it 'should raise an exception' do
+        expect { order.lims_data }.to raise_exception('Process module could not be validated: ["xModule"]')
+      end
+    end
+
   end
 
-  describe "#describe_containers" do
-    def make_container(materials)
-      slots = materials.each_with_index.map do | mat, i |
-        double('slot', material_id: mat&.id, address: "A:#{i+1}")
+  describe '#module_choices' do
+    let(:order) { create(:work_order, process: process, work_plan: plan) }
+    let(:modules) do
+      (1...3).map { |i| create(:aker_process_module, name: "Module#{i}", aker_process_id: process.id) }
+    end
+
+    before do
+      modules.each_with_index { |m,i| WorkOrderModuleChoice.create(work_order: order, process_module: m, position: i)}
+    end
+
+    it 'returns the module names' do
+      expect(order.module_choices).to eq(["Module1", "Module2"])
+    end
+  end
+
+  describe '#validate_module_names' do
+    let(:order) { create(:work_order, process: process, work_plan: plan) }
+
+    context 'when modules are all valid' do
+      it 'should not raise an exception' do
+        expect { order.validate_module_names(['alpha', 'beta']) }.not_to raise_exception
       end
-      return double('container', barcode: make_barcode, num_of_rows: 1, num_of_cols: materials.length, slots: slots)
+    end
+    context 'when any modules are invalid' do
+      it 'should raise an exception' do
+        expect { order.validate_module_names(['alpha', 'xbeta', 'xgamma', 'delta']) }
+          .to raise_exception('Process module could not be validated: ["xbeta", "xgamma"]')
+      end
+    end
+  end
+
+  describe '#describe_containers' do
+    def make_container(materials)
+      slots = materials.each_with_index.map do |mat, i|
+        double('slot', material_id: mat&.id, address: "A:#{i + 1}")
+      end
+      double('container', barcode: make_barcode,
+                          num_of_rows: 1,
+                          num_of_cols: materials.length,
+                          slots: slots)
     end
 
     before do
@@ -322,14 +373,14 @@ RSpec.describe WorkOrder, type: :model do
 
       @plate = make_container([nil, nil] + @materials[0..1]) # plate with some empty slots
       @tube = make_container(@materials[2..2]) # tube with one material
-      @material_ids = @materials.map { |m| m.id }
-      allow(MatconClient::Container).to receive(:where).
-        with({"slots.material" => { "$in" => @material_ids }}).
-        and_return(make_result_set([@plate, @tube]))
+      @material_ids = @materials.map(&:id)
+      allow(MatconClient::Container).to receive(:where)
+        .with('slots.material' => { '$in' => @material_ids })
+        .and_return(make_result_set([@plate, @tube]))
       @wo = build(:work_order)
     end
 
-    it "should load the descriptions into the data" do
+    it 'should load the descriptions into the data' do
       material_data = @materials.map do |m|
         {
           _id: m.id,
@@ -344,85 +395,278 @@ RSpec.describe WorkOrder, type: :model do
       @wo.describe_containers(@material_ids, material_data)
 
       expected = [
-        { barcode: @plate.barcode, address: 'A:3', num_of_cols: @plate.num_of_cols, num_of_rows: @plate.num_of_rows },
-        { barcode: @plate.barcode, address: 'A:4', num_of_cols: @plate.num_of_cols, num_of_rows: @plate.num_of_rows },
-        { barcode: @tube.barcode, address: 'A:1', num_of_cols: 1, num_of_rows: 1 },
+        { barcode: @plate.barcode,
+          address: 'A:3',
+          num_of_cols: @plate.num_of_cols,
+          num_of_rows: @plate.num_of_rows },
+        { barcode: @plate.barcode,
+          address: 'A:4',
+          num_of_cols: @plate.num_of_cols,
+          num_of_rows: @plate.num_of_rows },
+        { barcode: @tube.barcode,
+          address: 'A:1',
+          num_of_cols: 1,
+          num_of_rows: 1 }
       ]
       expect(material_data.length).to eq(expected.length)
-      expected.zip(material_data).each do | exp, data |
+      expected.zip(material_data).each do |exp, data|
         expect(data[:container]).to eq(exp)
       end
     end
   end
 
-  describe "#create_locked_set" do
-    before do
-      @original_set = make_set
-      @new_set = make_set
-      allow(@original_set).to receive(:create_locked_clone).and_return(@new_set)
-      @wo = create(:work_order, id: 42, set_uuid: nil, set: nil, original_set_uuid: @original_set.uuid, owner_email: "user@sanger.ac.uk")
+  describe '#finalise_set' do
+    let(:unlocked_set) { make_set }
+    let(:another_unlocked_set) { make_set }
+    let(:locked_set) do
+      x = make_set
+      allow(x).to receive(:locked).and_return(true)
+      x
     end
+    let(:original_set_uuid) { unlocked_set.uuid }
+    let(:input_set_uuid) { nil }
 
-    it "should call create_locked_clone on the original set" do
-      @wo.create_locked_set
-      expect(@original_set).to have_received(:create_locked_clone)
+    let(:order) { create(:work_order, id: 42, work_plan: plan, set_uuid: input_set_uuid, original_set_uuid: original_set_uuid) }
+
+    context 'when the order already has a locked input set' do
+      let(:input_set_uuid) { locked_set.uuid }
+      it 'should do nothing' do
+        expect(order.finalise_set).to be_falsey
+      end
+    end
+    context 'when the order has an unlocked input set' do
+      let(:input_set_uuid) { another_unlocked_set.uuid }
+      it 'should lock the input set and return true' do
+        expect(another_unlocked_set).to receive(:update_attributes).with(locked: true) do
+          allow(another_unlocked_set).to receive(:locked).and_return true
+        end
+        expect(order.finalise_set).to be_truthy
+      end
+    end
+    context 'when the input set fails to be locked' do
+      let(:input_set_uuid) { another_unlocked_set.uuid }
+      it 'should raise an exception' do
+        allow(another_unlocked_set).to receive(:name).and_return('myset')
+        expect(another_unlocked_set).to receive(:update_attributes).with(locked: true)
+        expect { order.finalise_set }.to raise_exception "Failed to lock set #{another_unlocked_set.name}"
+      end
+    end
+    context 'when the order has a locked original set' do
+      let(:original_set_uuid) { locked_set.uuid }
+      it 'should set the input set to the original set' do
+        expect(order.finalise_set).to be_falsey
+        expect(order.set_uuid).to eq(original_set_uuid)
+      end
+    end
+    context 'when the order has an unlocked original set' do
+      it 'should create a locked clone of the original set' do
+        expect(unlocked_set).to receive(:create_locked_clone).and_return(locked_set)
+        expect(order.finalise_set).to be_truthy
+        expect(order.set_uuid).to eq(locked_set.uuid)
+      end
+    end
+    context 'when the order has no original set' do
+      let(:original_set_uuid) { nil }
+      it 'should raise an exception' do
+        expect { order.finalise_set }.to raise_exception "No set selected for work order"
+      end
     end
   end
 
-  describe "#generate_completed_and_cancel_event" do
+  describe '#generate_completed_and_cancel_event' do
     context 'if work order does not have status completed or cancelled' do
-      it 'generates an event using the EventService' do
+      it 'generates an event using the BrokerHandle' do
         wo = build(:work_order)
-        EventService ||= double('EventService')
-        expect(EventService).not_to receive(:publish).with(an_instance_of(EventMessage))
-        expect{wo.generate_completed_and_cancel_event}.to raise_exception('You cannot generate an event from a work order that has not been completed.')
+        expect(BrokerHandle).not_to receive(:publish).with(an_instance_of(WorkOrderEventMessage))
+        expect(Rails.logger).to receive(:error).with('Complete/cancel event cannot be generated from a work order that has not been completed.')
+        wo.generate_completed_and_cancel_event
       end
     end
 
     context 'if work order does have status completed or cancelled' do
-      it 'generates an event using the EventService' do
+      it 'generates an event using the BrokerHandle' do
         wo = build(:work_order, status: 'completed')
-        EventService ||= double('EventService')
-        allow(EventService).to receive(:publish)
         allow(BillingFacadeClient).to receive(:send_event).with(wo, 'completed')
-        expect(EventService).to receive(:publish).with(an_instance_of(EventMessage))
+        expect(BrokerHandle).to receive(:publish).with(an_instance_of(WorkOrderEventMessage))
         wo.generate_completed_and_cancel_event
       end
     end
   end
 
-   describe "#generate_submitted_event" do
+  describe '#generate_submitted_event' do
     context 'if work order does not have status active' do
-      it 'generates an event using the EventService' do
+      it 'generates an event using the BrokerHandle' do
         wo = build(:work_order)
-        EventService ||= double('EventService')
         allow(BillingFacadeClient).to receive(:send_event).with(wo, 'submitted')
-        expect(EventService).not_to receive(:publish).with(an_instance_of(EventMessage))
-        expect{wo.generate_submitted_event}.to raise_exception('You cannot generate an submitted event from a work order that is not active.')
+        expect(BrokerHandle).not_to receive(:publish).with(an_instance_of(WorkOrderEventMessage))
+        expect(Rails.logger).to receive(:error).with('Submitted event cannot be generated from a work order that is not active.')
+        wo.generate_submitted_event
       end
     end
 
     context 'if work order does have status active' do
-      it 'generates an event using the EventService' do
+      it 'generates an event using the BrokerHandle' do
         wo = build(:work_order, status: 'active')
-        EventService ||= double('EventService')
-        allow(EventService).to receive(:publish)
         allow(BillingFacadeClient).to receive(:send_event).with(wo, 'submitted')
-        expect(EventService).to receive(:publish).with(an_instance_of(EventMessage))
+        expect(BrokerHandle).to receive(:publish).with(an_instance_of(WorkOrderEventMessage))
         wo.generate_submitted_event
       end
     end
   end
 
-  describe '#validation' do
-    it 'should be invalid with no owner_email' do
-      expect(build(:work_order, owner_email: nil)).to be_invalid
+  describe "#total_tat" do
+    it "calculates the total TAT" do
+      process = build(:process, TAT: 4)
+      order = build(:work_order, process: process)
+      expect(order.total_tat).to eq(4)
     end
-    it 'should be invalid with an empty owner_email after sanitisation' do
-      expect(build(:work_order, owner_email: "   \n   \t   ")).to be_invalid
+  end
+
+  describe "#owner_email" do
+    it "returns the work plans owner email" do
+      process = build(:process, TAT: 4)
+      plan = create(:work_plan)
+      order = build(:work_order, process: process, work_plan: plan)
+      expect(order.owner_email).to eq(plan.owner_email)
     end
-    it 'should be valid with a non-empty owner_email after sanitisation' do
-      expect(build(:work_order, owner_email: "    ALPHA@BETA   ")).to be_valid
+  end
+
+  describe '#can_be_dispatched?' do
+    context 'when the work order is queued' do
+      let!(:processes) { make_processes(3) }
+      let(:plan) { create(:work_plan, product: product) }
+
+      context 'when the last order in the plan, not closed, is the work order' do
+        it 'should return true' do
+          plan.create_orders(process_options, nil)
+          plan.work_orders[0].update_attributes(status: WorkOrder.COMPLETED)
+          plan.work_orders[1].update_attributes(status: WorkOrder.CANCELLED)
+          plan.work_orders.reload
+
+          expect(plan.work_orders[0].can_be_dispatched?).to eq(false)
+          expect(plan.work_orders[1].can_be_dispatched?).to eq(false)
+          expect(plan.work_orders[2].can_be_dispatched?).to eq(true)
+        end
+      end
+      context 'when the last order in the plan, not closed, is not the work order' do
+        it 'should return false' do
+          plan.create_orders(process_options, nil)
+          plan.work_orders[0].update_attributes(status: WorkOrder.QUEUED)
+          plan.work_orders.reload
+
+          expect(plan.work_orders[0].can_be_dispatched?).to eq(true)
+          expect(plan.work_orders[1].can_be_dispatched?).to eq(false)
+        end
+      end
+    end
+    context 'when the work order not queued' do
+      it 'should return false' do
+        process = build(:process, TAT: 4)
+        plan = create(:work_plan)
+        order = build(:work_order, process: process, work_plan: plan, status: 'active')
+        expect(order.can_be_dispatched?).to eq(false)
+      end
+    end
+    context 'when the work plan is cancelled' do
+      it 'should return false' do
+        process = build(:process, TAT: 4)
+        plan = create(:work_plan, cancelled: Time.now)
+        order = build(:work_order, process: process, work_plan: plan, status: 'active')
+        expect(order.can_be_dispatched?).to eq(false)
+      end
+    end
+  end
+
+  describe '#selected_path' do
+    let!(:plan) { create (:work_plan) }
+    let!(:order) { build(:work_order, process: process, work_plan: plan)}
+    let(:modules) do
+      (1..2).map { |i| create(:aker_process_module, name: "Module#{i}", aker_process_id: process.id) }
+    end
+    context 'when there are work order module choices for a work order' do
+      it 'returns a list of module choices' do
+        modules.each_with_index { |m,i| WorkOrderModuleChoice.create(work_order: order, process_module: m, position: i)}
+        expect(order.selected_path).to eq([{name: modules[0].name, id: modules[0].id},{name: modules[1].name, id: modules[1].id}])
+      end
+    end
+    context 'when there are no work order module choices for a work order' do
+      it 'returns a empty list' do
+        expect(order.selected_path).to eq([])
+      end
+    end
+  end
+
+  describe '#estimated_completion_date' do
+    let!(:plan) { create (:work_plan) }
+    let!(:process) { build(:process, TAT: 4) }
+
+    context 'when the dispatch date doesnt exist' do
+      let!(:order) { build(:work_order, process: process, work_plan: plan)}
+      it 'should return nil' do
+        expect(order.estimated_completion_date).to be nil
+      end
+    end
+    context 'when the process doesnt exist' do
+      let!(:process) { nil }
+      let!(:order) { build(:work_order, work_plan: plan, dispatch_date: Date.today, process: nil )}
+      it 'should return nil' do
+        expect(order.estimated_completion_date).to be nil
+      end
+    end
+    context 'when both the dispatch date and process doesnt exist' do
+      let!(:order) { build(:work_order, work_plan: plan )}
+      it 'should return nil' do
+        expect(order.estimated_completion_date).to be nil
+      end
+    end
+    context 'when both the dispatch date and process exist' do
+      let!(:order) { build(:work_order, work_plan: plan, process: process, dispatch_date: Date.today )}
+      it 'should the dispatch date + the process TAT' do
+        expect(order.estimated_completion_date).to eq(order.dispatch_date+process.TAT)
+      end
+    end
+  end
+
+  describe '#next_order' do
+    let(:plan) { create(:work_plan) }
+    let(:work_order) { create(:work_order, order_index: 0, work_plan: plan) }
+    context 'when there is a next order' do
+      let!(:next_order) { create(:work_order, order_index: 1, work_plan: plan) }
+      it 'should return the next order' do
+        expect(work_order.next_order).to eq(next_order)
+      end
+    end
+
+    context 'when there is no next order' do
+      it 'should return nil' do
+        expect(work_order.next_order).to be_nil
+      end
+    end
+  end
+
+  describe '#create_editable_set' do
+    let(:set) { make_set(1) }
+
+    context 'when the work order already has an input set' do
+      let(:work_order) { create(:work_order, original_set: set, set: set) }
+      it { expect { work_order.create_editable_set }.to raise_exception "Work order already has input set" }
+    end
+
+    context 'when the work order has no original set' do
+      let(:work_order) { create(:work_order, original_set: nil, set: nil) }
+      it { expect { work_order.create_editable_set }.to raise_exception "Work order has no original set" }
+    end
+
+    context 'when the new set is created' do
+      let(:new_set) { make_set(1) }
+      before do
+        allow(set).to receive(:create_unlocked_clone).and_return(new_set)
+      end
+      let(:work_order) { create(:work_order, original_set: set, set: nil) }
+      it 'should return the new set' do
+        expect(work_order.create_editable_set).to eq(new_set)
+        expect(set).to have_received(:create_unlocked_clone).with(work_order.name)
+      end
     end
   end
 end

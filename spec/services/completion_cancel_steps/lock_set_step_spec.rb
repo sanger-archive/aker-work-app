@@ -5,42 +5,71 @@ require 'completion_cancel_steps/lock_set_step'
 RSpec.describe 'LockSetStep' do
   include TestServicesHelper
 
-  def make_step(msg, materials)
-    @work_order = make_work_order
+  let(:work_order) do
+    wo = make_work_order
+    allow(wo).to receive(:next_order).and_return(next_order)
+    wo
+  end
+
+  let(:finished_set) do
+    uuid = made_up_uuid
+    s = instance_double('set', locked: false, owner_id: work_order.owner_email, id: uuid, uuid: uuid)
+    allow(SetClient::Set).to receive(:create).and_return(s)
+    s
+  end
+
+  let(:materials) { [make_material] }
+
+  let(:step) do
     material_step = double('material_step', materials: materials)
-    @step = LockSetStep.new(@work_order, msg, material_step)
+    LockSetStep.new(work_order, {}, material_step)
   end
 
   setup do
     stub_matcon
-    @work_order = make_work_order
-    @finished_set = instance_double('set', locked: false, owner_id: @work_order.owner_email, id: made_up_uuid)
-
-
-    allow(SetClient::Set).to receive(:create).and_return(@finished_set)
-    allow(@finished_set).to receive(:set_materials)
-    allow(@finished_set).to receive(:update_attributes!)
-
-    stub_matcon
-
-    @materials = [make_material]
-    make_step({}, @materials)
   end
 
-  context '#up' do
-    it 'updates the set' do
-      expect(@work_order).to receive(:update_attributes!).with(finished_set_uuid: @finished_set.id)
-      expect(@finished_set).to receive(:set_materials).with(@materials.map(&:id))
-      expect(@finished_set).to receive(:update_attributes).with(owner_id: @work_order.owner_email, locked: true)
-      @step.up
+  describe '#up' do
+    context 'when there is a next order' do
+      let(:next_order) { make_work_order }
+      it 'updates the set and the next order' do
+        expect(work_order).to receive(:update_attributes!).with(finished_set_uuid: finished_set.id)
+        expect(next_order).to receive(:update_attributes!).with(original_set_uuid: finished_set.id)
+        expect(finished_set).to receive(:set_materials).with(materials.map(&:id))
+        expect(finished_set).to receive(:update_attributes).with(owner_id: work_order.owner_email, locked: true)
+        step.up
+      end
+    end
+    context 'when this is the last order' do
+      let(:next_order) { nil }
+      it 'updates the set' do
+        expect(work_order).to receive(:update_attributes!).with(finished_set_uuid: finished_set.id)
+        expect(finished_set).to receive(:set_materials).with(materials.map(&:id))
+        expect(finished_set).to receive(:update_attributes).with(owner_id: work_order.owner_email, locked: true)
+        step.up
+      end
     end
   end
 
-  context '#down' do
-    it 'sets the finished set uuid to nil' do
-      allow(@work_order).to receive(:finished_set_uuid).and_return(true)
-      expect(@work_order).to receive(:update_attributes).with(finished_set_uuid: nil)
-      @step.down
+  describe '#down' do
+    context 'when there is a next order' do
+      let(:next_order) { make_work_order }
+      it 'sets the finished set to nil and sets the next order original set to nil' do
+        allow(work_order).to receive(:finished_set_uuid).and_return(finished_set.uuid)
+        allow(next_order).to receive(:original_set_uuid).and_return(finished_set.uuid)
+        expect(work_order).to receive(:update_attributes!).with(finished_set_uuid: nil)
+        expect(next_order).to receive(:update_attributes!).with(original_set_uuid: nil)
+        step.down
+      end
+    end
+
+    context 'when there is a next order' do
+      let(:next_order) { nil }
+      it 'sets the finished set to nil' do
+        allow(work_order).to receive(:finished_set_uuid).and_return(finished_set.uuid)
+        expect(work_order).to receive(:update_attributes!).with(finished_set_uuid: nil)
+        step.down
+      end
     end
   end
 end

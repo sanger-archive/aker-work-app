@@ -8,44 +8,10 @@ require 'completion_cancel_steps/fail_step'
 
 class WorkOrdersController < ApplicationController
 
-  before_action :work_order, only: [:show, :complete, :cancel]
+  before_action :work_order, only: [:complete, :cancel]
 
-  skip_authorization_check only: [:index, :complete, :cancel, :get, :set_search]
+  skip_authorization_check only: [:complete, :cancel, :get, :set_search]
   skip_credentials only: [:complete, :cancel, :get]
-
-  def index
-    @active_work_orders = WorkOrder.active.for_user(current_user).order(created_at: :desc)
-    @pending_work_orders = WorkOrder.pending.for_user(current_user).order(created_at: :desc)
-    @completed_work_orders = WorkOrder.completed.for_user(current_user).order(created_at: :desc)
-    @cancelled_work_orders = WorkOrder.cancelled.for_user(current_user).order(created_at: :desc)
-  end
-
-  def create
-    authorize! :create, WorkOrder
-
-    work_order = WorkOrder.create!(owner_email: current_user.email, original_set_uuid: params[:set_id])
-
-    redirect_to work_order_build_path(
-      id: Wicked::FIRST_STEP,
-      work_order_id: work_order.id
-    )
-  end
-
-  def destroy
-    authorize! :write, work_order
-
-    if work_order.active?
-      flash[:error] = "This work order has already been issued, and cannot be cancelled."
-    else
-      work_order.destroy
-      flash[:notice] = "Work order cancelled"
-    end
-    redirect_to work_orders_path
-  end
-
-  def show
-    authorize! :read, work_order
-  end
 
   # Returns JSON containing the set service query result for about the set being
   # searched
@@ -57,6 +23,31 @@ class WorkOrdersController < ApplicationController
     rescue Faraday::ConnectionFailed => e
       render json: nil, status: 404
     end
+  end
+
+  def create_editable_set
+    plan = work_order.work_plan
+    authorize! :write, plan
+    data = {}
+    if !work_order.queued?
+      data[:error] = "This work order cannot be modified."
+    elsif work_order.set_uuid
+      data[:error] = "This work order already has an input set."
+    elsif !work_order.original_set_uuid
+      data[:error] = "This work order has no original set selected."
+    else
+      begin
+        new_set = work_order.create_editable_set
+        data[:view_set_url] = Rails.configuration.urls[:sets] + '/simple/sets/' + new_set.uuid
+        data[:new_set_name] = new_set.name
+      rescue => e
+        Rails.logger.error "create_editable_set failed for work order #{work_order.id}"
+        Rails.logger.error e
+        e.backtrace.each { |x| Rails.logger.error x}
+        data[:error] = "The new set could not be created."
+      end
+    end
+    render json: data.to_json
   end
 
   # -------- API ---------
@@ -79,18 +70,23 @@ class WorkOrdersController < ApplicationController
     #  specifying the work order owner as the responsible user.
     # The JWTSerializer middleware takes the user info from the
     #  request store.
-    RequestStore.store[:x_authorisation] = { email: work_order.owner_email, groups: ['world'] }
-    validator = WorkOrderValidatorService.new(work_order, params_for_completion)
-    valid = validator.validate?
-    if valid
-      result = complete_work_order(finish_status)
-      if params_for_completion[:work_order][:updated_materials].length >= 1
-         work_order.update(material_updated: true)
+
+    if BrokerHandle.working?
+      RequestStore.store[:x_authorisation] = { email: work_order.owner_email, groups: ['world'] }
+      validator = WorkOrderValidatorService.new(work_order, params_for_completion)
+      valid = validator.validate?
+      if valid
+        result = complete_work_order(finish_status)
+        if params_for_completion[:work_order][:updated_materials].length >= 1
+           work_order.update(material_updated: true)
+        end
+      else
+        result = validator.errors
       end
+      render json: { message: result[:msg] }, status: result[:status]
     else
-      result = validator.errors
+      render json: { message: "RabbitMQ broker is broken" }, status: 500
     end
-    render json: { message: result[:msg] }, status: result[:status]
   end
 
 private
@@ -170,13 +166,7 @@ private
   end
 
   def generate_completed_and_cancel_event
-    begin
-      work_order.generate_completed_and_cancel_event
-    rescue StandardError => e
-      # Current have to restart the server if there is an exception here
-      exception_string = e.backtrace.join("\n")
-      WorkOrderMailer.message_queue_error(work_order, exception_string).deliver_later
-    end
+    work_order.generate_completed_and_cancel_event
   end
 
   helper_method :work_order

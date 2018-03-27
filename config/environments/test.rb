@@ -55,14 +55,7 @@ Rails.application.configure do
   config.work_order_completion_json = 'work_order_completion.json'
 
   config.events = {
-    enabled: false,
-    broker_host: 'localhost',
-    broker_port: '5672',
-    broker_username: 'guest',
-    broker_password: 'guest',
-    exchange_name: 'aker.events',
-    warehouse_queue_name: 'aker.events.warehouse',
-    notification_queue_name: 'aker.events.notifications'
+    enabled: false
   }
 
   config.fake_ldap = true
@@ -74,8 +67,10 @@ Rails.application.configure do
 
   config.urls = { submission: '',
                   permissions: '',
-                  sets: '',
+                  sets: 'http://external-server:3002',
                   projects: '',
                   work_orders: '' }
+
+  config.akerdev_email = ENV.fetch('USER', 'user') + '@sanger.ac.uk'
 
 end

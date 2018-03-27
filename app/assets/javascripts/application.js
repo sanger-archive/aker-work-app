@@ -15,9 +15,8 @@
 //= require turbolinks
 //= require bootstrap-sprockets
 //= require js-routes
-//= require product_helper
 //= require set_search
-//= require_tree ./templates
+//= require dispatch
 //= require_tree .
 
 $(document).on("turbolinks:load", function() {

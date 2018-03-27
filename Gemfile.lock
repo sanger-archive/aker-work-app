@@ -1,8 +1,8 @@
 GIT
   remote: https://github.com/sanger/aker-billing-facade-client.git
-  revision: d62cb9ce09c4e7c74db4f698e540b7bd9f67cff1
+  revision: f69649affda5676faf7098d6416fd75d9c365310
   specs:
-    aker-billing-facade-client (0.1.2)
+    aker-billing-facade-client (0.1.5)
       activemodel
       faraday
 
@@ -35,9 +35,9 @@ GIT
 
 GIT
   remote: https://github.com/sanger/aker-set-client.git
-  revision: 20a3bd511d96d4232ccae770b536013ec609a8e6
+  revision: 764672ff8a5853142b1b791319895f62eb65acd2
   specs:
-    aker-set-client (0.2.0)
+    aker-set-client (0.2.1)
 
 GIT
   remote: https://github.com/sanger/aker-shared-navbar.git
@@ -79,39 +79,39 @@ GIT
 GEM
   remote: https://rubygems.org/
   specs:
-    actioncable (5.0.6)
-      actionpack (= 5.0.6)
-      nio4r (>= 1.2, < 3.0)
+    actioncable (5.1.5)
+      actionpack (= 5.1.5)
+      nio4r (~> 2.0)
       websocket-driver (~> 0.6.1)
-    actionmailer (5.0.6)
-      actionpack (= 5.0.6)
-      actionview (= 5.0.6)
-      activejob (= 5.0.6)
+    actionmailer (5.1.5)
+      actionpack (= 5.1.5)
+      actionview (= 5.1.5)
+      activejob (= 5.1.5)
       mail (~> 2.5, >= 2.5.4)
       rails-dom-testing (~> 2.0)
-    actionpack (5.0.6)
-      actionview (= 5.0.6)
-      activesupport (= 5.0.6)
+    actionpack (5.1.5)
+      actionview (= 5.1.5)
+      activesupport (= 5.1.5)
       rack (~> 2.0)
-      rack-test (~> 0.6.3)
+      rack-test (>= 0.6.3)
       rails-dom-testing (~> 2.0)
       rails-html-sanitizer (~> 1.0, >= 1.0.2)
-    actionview (5.0.6)
-      activesupport (= 5.0.6)
+    actionview (5.1.5)
+      activesupport (= 5.1.5)
       builder (~> 3.1)
-      erubis (~> 2.7.0)
+      erubi (~> 1.4)
       rails-dom-testing (~> 2.0)
       rails-html-sanitizer (~> 1.0, >= 1.0.3)
-    activejob (5.0.6)
-      activesupport (= 5.0.6)
+    activejob (5.1.5)
+      activesupport (= 5.1.5)
       globalid (>= 0.3.6)
-    activemodel (5.0.6)
-      activesupport (= 5.0.6)
-    activerecord (5.0.6)
-      activemodel (= 5.0.6)
-      activesupport (= 5.0.6)
-      arel (~> 7.0)
-    activesupport (5.0.6)
+    activemodel (5.1.5)
+      activesupport (= 5.1.5)
+    activerecord (5.1.5)
+      activemodel (= 5.1.5)
+      activesupport (= 5.1.5)
+      arel (~> 8.0)
+    activesupport (5.1.5)
       concurrent-ruby (~> 1.0, >= 1.0.2)
       i18n (~> 0.7)
       minitest (~> 5.1)
@@ -119,21 +119,25 @@ GEM
     addressable (2.5.2)
       public_suffix (>= 2.0.2, < 4.0)
     amq-protocol (2.3.0)
-    arel (7.1.4)
+    arel (8.0.0)
     ast (2.4.0)
-    autoprefixer-rails (8.0.0)
+    autoprefixer-rails (8.2.0)
       execjs
     axiom-types (0.1.1)
       descendants_tracker (~> 0.0.4)
       ice_nine (~> 0.11.0)
       thread_safe (~> 0.3, >= 0.3.1)
+    babel-source (5.8.35)
+    babel-transpiler (0.7.0)
+      babel-source (>= 4.0, < 6)
+      execjs (~> 2.0)
     bindex (0.5.0)
     bootstrap_form (2.7.0)
-    brakeman (4.1.1)
+    brakeman (4.2.0)
     builder (3.2.3)
-    bunny (0.9.0.pre10)
-      amq-protocol (>= 1.4.0)
-    byebug (10.0.0)
+    bunny (2.9.2)
+      amq-protocol (~> 2.3.0)
+    byebug (10.0.1)
     cancancan (2.1.3)
     capybara (2.18.0)
       addressable
@@ -142,7 +146,7 @@ GEM
       rack (>= 1.0.0)
       rack-test (>= 0.5.4)
       xpath (>= 2.0, < 4.0)
-    childprocess (0.8.0)
+    childprocess (0.9.0)
       ffi (~> 1.0, >= 1.0.11)
     cliver (0.3.2)
     codeclimate-engine-rb (0.4.1)
@@ -158,6 +162,7 @@ GEM
       execjs
     coffee-script-source (1.12.2)
     concurrent-ruby (1.0.5)
+    connection_pool (2.2.1)
     crack (0.4.3)
       safe_yaml (~> 1.0.0)
     crass (1.0.3)
@@ -165,9 +170,10 @@ GEM
     descendants_tracker (0.0.4)
       thread_safe (~> 0.3, >= 0.3.1)
     diff-lcs (1.3)
-    docile (1.1.5)
+    docile (1.3.0)
     ejs (1.1.1)
     equalizer (0.0.11)
+    erubi (1.7.1)
     erubis (2.7.0)
     execjs (2.7.0)
     factory_bot (4.8.2)
@@ -179,7 +185,7 @@ GEM
       multipart-post (>= 1.2, < 3)
     faraday_middleware (0.12.2)
       faraday (>= 0.7.4, < 1.0)
-    ffi (1.9.21)
+    ffi (1.9.23)
     finagle-thrift (1.4.2)
       thrift (~> 0.9.3)
     flay (2.10.0)
@@ -219,7 +225,15 @@ GEM
     listen (3.0.8)
       rb-fsevent (~> 0.9, >= 0.9.4)
       rb-inotify (~> 0.9, >= 0.9.7)
-    loofah (2.2.0)
+    lograge (0.9.0)
+      actionpack (>= 4)
+      activesupport (>= 4)
+      railties (>= 4)
+      request_store (~> 1.0)
+    logstash-event (1.2.02)
+    logstash-logger (0.26.1)
+      logstash-event (~> 1.2)
+    loofah (2.2.1)
       crass (~> 1.0.2)
       nokogiri (>= 1.5.9)
     mail (2.7.0)
@@ -231,13 +245,13 @@ GEM
     multi_json (1.13.1)
     multipart-post (2.0.0)
     net-ldap (0.16.1)
-    nio4r (2.2.0)
+    nio4r (2.3.0)
     nokogiri (1.8.2)
       mini_portile2 (~> 2.3.0)
     parallel (1.12.1)
     parser (2.4.0.2)
       ast (~> 2.3)
-    path_expander (1.0.2)
+    path_expander (1.0.3)
     pg (0.21.0)
     poltergeist (1.17.0)
       capybara (~> 2.1)
@@ -250,45 +264,53 @@ GEM
     pry-rails (0.3.6)
       pry (>= 0.10.4)
     public_suffix (3.0.2)
-    puma (3.11.2)
+    puma (3.11.3)
     rack (2.0.4)
-    rack-test (0.6.3)
-      rack (>= 1.0)
-    rails (5.0.6)
-      actioncable (= 5.0.6)
-      actionmailer (= 5.0.6)
-      actionpack (= 5.0.6)
-      actionview (= 5.0.6)
-      activejob (= 5.0.6)
-      activemodel (= 5.0.6)
-      activerecord (= 5.0.6)
-      activesupport (= 5.0.6)
+    rack-proxy (0.6.4)
+      rack
+    rack-test (0.8.3)
+      rack (>= 1.0, < 3)
+    rails (5.1.5)
+      actioncable (= 5.1.5)
+      actionmailer (= 5.1.5)
+      actionpack (= 5.1.5)
+      actionview (= 5.1.5)
+      activejob (= 5.1.5)
+      activemodel (= 5.1.5)
+      activerecord (= 5.1.5)
+      activesupport (= 5.1.5)
       bundler (>= 1.3.0)
-      railties (= 5.0.6)
+      railties (= 5.1.5)
       sprockets-rails (>= 2.0.0)
     rails-dom-testing (2.0.3)
       activesupport (>= 4.2.0)
       nokogiri (>= 1.6)
     rails-html-sanitizer (1.0.3)
       loofah (~> 2.0)
-    railties (5.0.6)
-      actionpack (= 5.0.6)
-      activesupport (= 5.0.6)
+    railties (5.1.5)
+      actionpack (= 5.1.5)
+      activesupport (= 5.1.5)
       method_source
       rake (>= 0.8.7)
       thor (>= 0.18.1, < 2.0)
     rainbow (2.2.2)
       rake
-    rake (12.3.0)
-    rb-fsevent (0.10.2)
+    rake (12.3.1)
+    rb-fsevent (0.10.3)
     rb-inotify (0.9.10)
       ffi (>= 0.5.0, < 2)
+    react-rails (2.4.4)
+      babel-transpiler (>= 0.7.0)
+      connection_pool
+      execjs
+      railties (>= 3.2)
+      tilt
     reek (4.7.3)
       codeclimate-engine-rb (~> 0.4.0)
       parser (>= 2.4.0.0, < 2.5)
       rainbow (~> 2.0)
     ref (2.0.0)
-    request_store (1.4.0)
+    request_store (1.4.1)
       rack (>= 1.4)
     rspec-core (3.7.1)
       rspec-support (~> 3.7.0)
@@ -308,10 +330,6 @@ GEM
       rspec-mocks (~> 3.7.0)
       rspec-support (~> 3.7.0)
     rspec-support (3.7.1)
-    rswag (1.5.2)
-      rswag-api (= 1.5.2)
-      rswag-specs (= 1.5.2)
-      rswag-ui (= 1.5.2)
     rswag-api (1.5.2)
       railties (>= 3.1, < 6.0)
     rswag-specs (1.5.2)
@@ -354,12 +372,12 @@ GEM
       sprockets (>= 2.8, < 4.0)
       sprockets-rails (>= 2.0, < 4.0)
       tilt (>= 1.1, < 3)
-    selenium-webdriver (3.9.0)
+    selenium-webdriver (3.11.0)
       childprocess (~> 0.5)
       rubyzip (~> 1.2)
     sexp_processor (4.10.1)
-    simplecov (0.15.1)
-      docile (~> 1.1.0)
+    simplecov (0.16.1)
+      docile (~> 1.1)
       json (>= 1.8, < 3)
       simplecov-html (~> 0.10.0)
     simplecov-html (0.10.2)
@@ -377,7 +395,6 @@ GEM
       actionpack (>= 4.0)
       activesupport (>= 4.0)
       sprockets (>= 3.0.0)
-    sqlite3 (1.3.13)
     sucker_punch (2.0.4)
       concurrent-ruby (~> 1.0.0)
     swagger-ui_rails (0.1.7)
@@ -412,6 +429,12 @@ GEM
       addressable (>= 2.3.6)
       crack (>= 0.3.2)
       hashdiff
+    webpacker (3.3.1)
+      activesupport (>= 4.2)
+      rack-proxy (>= 0.6.1)
+      railties (>= 4.2)
+    webpacker-react (0.3.2)
+      webpacker
     websocket-driver (0.6.5)
       websocket-extensions (>= 0.1.0)
     websocket-extensions (0.1.3)
@@ -439,7 +462,7 @@ DEPENDENCIES
   bootstrap-sass (~> 3.3.6)!
   bootstrap_form
   brakeman
-  bunny (= 0.9.0.pre10)
+  bunny (~> 2.9, >= 2.9.2)
   byebug
   capybara
   coffee-rails (~> 4.2)
@@ -455,6 +478,9 @@ DEPENDENCIES
   json_api_client!
   launchy
   listen (~> 3.0.5)
+  lograge
+  logstash-event
+  logstash-logger
   matcon_client!
   net-ldap
   pg (< 1.0)
@@ -462,10 +488,14 @@ DEPENDENCIES
   pry
   pry-rails (~> 0.3.6)
   puma (~> 3.0)
-  rails (~> 5.0.0, >= 5.0.0.1)
+  rails (~> 5.1)
+  react-rails
+  request_store
   rspec-json_expectations
   rspec-rails (~> 3.4)
-  rswag
+  rswag-api
+  rswag-specs
+  rswag-ui
   rubocop (~> 0.51.0)
   rubycritic
   sass-rails (~> 5.0)
@@ -474,15 +504,15 @@ DEPENDENCIES
   simplecov-rcov
   spring
   spring-watcher-listen (~> 2.0.0)
-  sqlite3
   swagger-ui_rails
   therubyracer
   timecop
   turbolinks (~> 5)
-  tzinfo-data
   uglifier (~> 3.2)
   web-console
   webmock
+  webpacker (~> 3.2)
+  webpacker-react (~> 0.3.2)
   wicked
   zipkin-tracer
 

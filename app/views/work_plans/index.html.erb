@@ -1,0 +1,34 @@
+<% content_for :title_button do %>
+  <%= link_to 'Order new work', work_plans_path, method: 'post',
+        class: 'btn btn-success pull-right',
+        style: "margin-top: 23px" %>
+<% end %>
+
+
+<div class="row">
+  <div class="col-md-12">
+    <h2>Unsubmitted Work Plans</h2>
+    <%= render "work_plans_table", work_plans: @in_construction_plans, group: 'construction' %>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-md-12">
+    <h2>Work Plans in progress</h2>
+    <%= render "work_plans_table", work_plans: @active_plans, group: 'active' %>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-md-12">
+    <h2>Old Work Plans</h2>
+    <%= render "work_plans_table", work_plans: @closed_plans, group: 'closed' %>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-md-12">
+    <h2>Cancelled Work Plans</h2>
+    <%= render "work_plans_table", work_plans: @cancelled_plans, group: 'cancelled' %>
+  </div>
+</div>
