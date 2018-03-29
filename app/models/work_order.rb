@@ -13,6 +13,8 @@ class WorkOrder < ApplicationRecord
   belongs_to :process, class_name: "Aker::Process", optional: false
   has_many :work_order_module_choices, dependent: :destroy
 
+  has_many :jobs
+
   after_initialize :create_uuid
 
   def create_uuid
@@ -181,9 +183,37 @@ class WorkOrder < ApplicationRecord
     "Work Order #{id}"
   end
 
+  def create_jobs
+    # Raise exception if module names are not valid from BillingFacadeMock
+    validate_module_names(module_choices)
+
+    material_ids = SetClient::Set.find_with_materials(set_uuid).first.materials.map{|m| m.id}
+    materials = all_results(MatconClient::Material.where("_id" => {"$in" => material_ids}).result_set)
+
+    unless materials.all? { |m| m.attributes['available'] }
+      raise "Some of the specified materials are not available."
+    end
+
+    containers = all_results(MatconClient::Container.where(
+      "slots.material": {
+        "$in": material_ids
+        }
+    ).result_set).uniq
+
+    ActiveRecord::Base.transaction do
+      containers.each do |container|
+        Job.create!(container_uuid: container.id, work_order: self)
+      end
+    end
+  end
+
+  def send_jobs_to_lims
+    jobs.each(&:start!)
+  end
+
   def send_to_lims
-    lims_url = work_plan.product.catalogue.url
-    LimsClient::post(lims_url, lims_data)
+    create_jobs
+    send_jobs_to_lims
   end
 
   def all_results(result_set)
@@ -218,78 +248,7 @@ class WorkOrder < ApplicationRecord
     dispatch_date + process.TAT
   end
 
-  # This method returns a JSON description of the order that will be sent to a LIMS to order work.
-  # It includes information that must be loaded from other services (study, set, etc.).
-  def lims_data
-    # Raise exception if module names are not valid from BillingFacadeMock
-    validate_module_names(module_choices)
 
-    material_ids = SetClient::Set.find_with_materials(set_uuid).first.materials.map{|m| m.id}
-    materials = all_results(MatconClient::Material.where("_id" => {"$in" => material_ids}).result_set)
-
-    unless materials.all? { |m| m.attributes['available'] }
-      raise "Some of the specified materials are not available."
-    end
-
-    material_data = materials.map do |m|
-          {
-            _id: m.id,
-            is_tumour: m.attributes['is_tumour'],
-            supplier_name: m.attributes['supplier_name'],
-            taxon_id: m.attributes['taxon_id'],
-            tissue_type: m.attributes['tissue_type'],
-            container: nil,
-            gender: m.attributes['gender'],
-            donor_id: m.attributes['donor_id'],
-            phenotype: m.attributes['phenotype'],
-            scientific_name: m.attributes['scientific_name'],
-            available: m.attributes['available']
-          }
-    end
-    describe_containers(material_ids, material_data)
-
-    project = work_plan.project
-    cost_code = project.cost_code
-    if project.subproject?
-      project = StudyClient::Node.find(project.parent_id).first
-    end
-
-    {
-      work_order: {
-        process_name: process.name,
-        process_uuid: process.uuid,
-        work_order_id: id,
-        comment: work_plan.comment,
-        project_uuid: project.node_uuid,
-        project_name: project.name,
-        data_release_uuid: project.data_release_uuid,
-        cost_code: cost_code,
-        materials: material_data,
-        modules: module_choices,
-      }
-    }
-  end
-
-  def describe_containers(material_ids, material_data)
-    containers = MatconClient::Container.where("slots.material" => { "$in" => material_ids}).result_set
-    material_map = material_data.each_with_object({}) { |t,h| h[t[:_id]] = t }
-    while containers do
-      containers.each do |container|
-        container.slots.each do |slot|
-          if material_ids.include? slot.material_id
-            unless material_map[slot.material_id][:container]
-              container_data = { barcode: container.barcode }
-              container_data[:num_of_rows] = container.num_of_rows
-              container_data[:num_of_cols] = container.num_of_cols
-              container_data[:address] = slot.address
-              material_map[slot.material_id][:container] = container_data
-            end
-          end
-        end
-      end
-      containers = (containers.has_next? ? containers.next : nil)
-    end
-  end
 
   def generate_completed_and_cancel_event
     begin
