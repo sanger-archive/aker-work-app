@@ -250,9 +250,6 @@ class WorkOrder < ApplicationRecord
 
     project = work_plan.project
     cost_code = project.cost_code
-    if project.subproject?
-      project = StudyClient::Node.find(project.parent_id).first
-    end
 
     {
       work_order: {
