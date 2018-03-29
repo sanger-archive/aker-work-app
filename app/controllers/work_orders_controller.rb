@@ -52,7 +52,7 @@ class WorkOrdersController < ApplicationController
 
   # -------- API ---------
   def get
-    render json: work_order.jobs.map(&:lims_data), status: 200
+    render json: work_order.lims_data_for_get, status: 200
   rescue ActiveRecord::RecordNotFound
     render json: {errors: [{status: '404', detail: 'Record not found'}]}, status: 404
   end

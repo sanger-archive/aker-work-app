@@ -61,43 +61,6 @@ RSpec.describe WorkOrder, type: :model do
     node
   end
 
-  def make_result_set(items)
-    rs = double('result_set', has_next?: false, length: items.length, to_a: items)
-    allow(rs).to receive(:map) { |&block| items.map(&block) }
-    allow(rs).to receive(:each) { |&block| items.each(&block) }
-    allow(rs).to receive(:all?) { |&block| items.all?(&block) }
-    double('result_set_wrapper', result_set: rs)
-  end
-
-  def make_materials
-    @materials = (1..3).map do |i|
-      attributes = {
-        'gender' => i.even? ? 'male' : 'female',
-        'donor_id' => "donor #{i}",
-        'phenotype' => "phenotype #{i}",
-        'scientific_name' => 'Mouse',
-        'available' => true
-      }
-      double(:material, id: make_uuid, attributes: attributes)
-    end
-    allow(MatconClient::Material).to receive(:where) do |args|
-      ids = args['_id']['$in']
-      found = ids.map do |id|
-        @materials.find { |m| m.id == id }
-      end
-      make_result_set(found)
-    end
-    @materials
-  end
-
-  def make_set_with_materials
-    @set = make_set
-
-    make_materials
-    allow(@set).to receive(:materials).and_return(@materials)
-    allow(SetClient::Set).to receive(:find_with_materials).with(@set.uuid).and_return([@set])
-    @set
-  end
 
   def make_processes(n)
     pros = (0...n).map { |i| create(:aker_process, name: "process #{i}") }
@@ -237,95 +200,6 @@ RSpec.describe WorkOrder, type: :model do
     end
   end
 
-  describe "#lims_data" do
-
-    def make_container(materials)
-      slots = materials.each_with_index.map do |material,i|
-        double('slot', material_id: material&.id, address: (i + 1).to_s)
-      end
-      @container = double('container',
-                          barcode: make_barcode,
-                          num_of_rows: 1,
-                          num_of_cols: materials.length,
-                          slots: slots)
-
-      allow(MatconClient::Container).to receive(:where) do |args|
-        material_ids = args['slots.material']['$in']
-        containers = []
-        if @container.slots.any? { |slot| material_ids.include? slot.material_id }
-          containers = [@container]
-        end
-        make_result_set(containers)
-      end
-      @container
-    end
-
-    let(:order) do
-      create(:work_order, process_id: process.id, work_plan: plan, set_uuid: @set.id, order_index: 0)
-    end
-
-    let(:modules) do
-      (1...3).map { |i| create(:aker_process_module, name: "Module#{i}", aker_process_id: process.id) }
-    end
-
-    before do
-      make_set_with_materials
-      make_container(@materials)
-      modules.each_with_index { |m,i| WorkOrderModuleChoice.create(work_order: order, process_module: m, position: i)}
-    end
-
-    context 'when some of the materials are unavailable' do
-      before do
-        @materials[0].attributes['available'] = false
-      end
-
-      it "should raise an exception" do
-        expect { order.lims_data }.to raise_error(/materials.*available/)
-      end
-    end
-
-    context 'when data is calculated' do
-      it "should return the lims_data" do
-        data = order.lims_data[:work_order]
-        expect(data[:process_name]).to eq(process.name)
-        expect(data[:process_uuid]).to eq(process.uuid)
-        expect(data[:work_order_id]).to eq(order.id)
-        expect(data[:comment]).to eq(plan.comment)
-        expect(data[:project_uuid]).to eq(project.node_uuid)
-        expect(data[:project_name]).to eq(project.name)
-        expect(data[:data_release_uuid]).to eq(project.data_release_uuid)
-        expect(data[:cost_code]).to eq(subproject.cost_code)
-        expect(data).not_to have_key(:desired_date)
-        expect(data[:modules]).to eq(["Module1", "Module2"])
-        material_data = data[:materials]
-        expect(material_data.length).to eq(@materials.length)
-        @materials.zip(material_data).each do |mat, dat|
-          slot = @container.slots.find { |the_slot| the_slot.material_id == mat.id }
-          expect(dat[:_id]).to eq(mat.id)
-          expect(dat[:container]).to eq(barcode: @container.barcode,
-                                        address: slot.address,
-                                        num_of_rows: @container.num_of_rows,
-                                        num_of_cols: @container.num_of_cols)
-          expect(dat[:gender]).to eq(mat.attributes['gender'])
-          expect(dat[:donor_id]).to eq(mat.attributes['donor_id'])
-          expect(dat[:phenotype]).to eq(mat.attributes['phenotype'])
-          expect(dat[:scientific_name]).to eq(mat.attributes['scientific_name'])
-        end
-      end
-    end
-
-    context 'when module name is not valid' do
-      before do
-        m = create(:aker_process_module, name: "xModule", aker_process_id: process.id)
-        WorkOrderModuleChoice.create(work_order: order, process_module: m, position: 2)
-      end
-      it 'should raise an exception' do
-        expect { order.lims_data }.to raise_exception('Process module could not be validated: ["xModule"]')
-      end
-    end
-
-  end
-
   describe '#module_choices' do
     let(:order) { create(:work_order, process: process, work_plan: plan) }
     let(:modules) do
@@ -357,63 +231,6 @@ RSpec.describe WorkOrder, type: :model do
     end
   end
 
-  describe '#describe_containers' do
-    def make_container(materials)
-      slots = materials.each_with_index.map do |mat, i|
-        double('slot', material_id: mat&.id, address: "A:#{i + 1}")
-      end
-      double('container', barcode: make_barcode,
-                          num_of_rows: 1,
-                          num_of_cols: materials.length,
-                          slots: slots)
-    end
-
-    before do
-      make_set_with_materials
-
-      @plate = make_container([nil, nil] + @materials[0..1]) # plate with some empty slots
-      @tube = make_container(@materials[2..2]) # tube with one material
-      @material_ids = @materials.map(&:id)
-      allow(MatconClient::Container).to receive(:where)
-        .with('slots.material' => { '$in' => @material_ids })
-        .and_return(make_result_set([@plate, @tube]))
-      @wo = build(:work_order)
-    end
-
-    it 'should load the descriptions into the data' do
-      material_data = @materials.map do |m|
-        {
-          _id: m.id,
-          container: nil,
-          gender: m.attributes['gender'],
-          donor_id: m.attributes['donor_id'],
-          phenotype: m.attributes['phenotype'],
-          scientific_name: m.attributes['scientific_name']
-        }
-      end
-
-      @wo.describe_containers(@material_ids, material_data)
-
-      expected = [
-        { barcode: @plate.barcode,
-          address: 'A:3',
-          num_of_cols: @plate.num_of_cols,
-          num_of_rows: @plate.num_of_rows },
-        { barcode: @plate.barcode,
-          address: 'A:4',
-          num_of_cols: @plate.num_of_cols,
-          num_of_rows: @plate.num_of_rows },
-        { barcode: @tube.barcode,
-          address: 'A:1',
-          num_of_cols: 1,
-          num_of_rows: 1 }
-      ]
-      expect(material_data.length).to eq(expected.length)
-      expected.zip(material_data).each do |exp, data|
-        expect(data[:container]).to eq(exp)
-      end
-    end
-  end
 
   describe '#finalise_set' do
     let(:unlocked_set) { make_set }
@@ -626,6 +443,31 @@ RSpec.describe WorkOrder, type: :model do
       end
     end
   end
+
+  describe '#create_jobs' do
+
+    context 'when some of the materials are unavailable' do
+      before do
+        @materials[0].attributes['available'] = false
+      end
+
+      it "should raise an exception" do
+        expect { work_order.create_jobs }.to raise_error(/materials.*available/)
+      end
+    end
+
+    context 'when module name is not valid' do
+      before do
+        m = create(:aker_process_module, name: "xModule", aker_process_id: process.id)
+        WorkOrderModuleChoice.create(work_order: order, process_module: m, position: 2)
+      end
+      it 'should raise an exception' do
+        expect { work_order.create_jobs }.to raise_exception('Process module could not be validated: ["xModule"]')
+      end
+    end
+
+  end
+
 
   describe '#next_order' do
     let(:plan) { create(:work_plan) }

@@ -226,7 +226,7 @@ class WorkOrder < ApplicationRecord
   end
 
   def lims_data_for_get
-    data = lims_data
+    data = {work_order: {jobs: jobs.map(&:lims_data) }}
     unless data[:work_order].nil?
       data[:work_order][:status] = status
     end
