@@ -245,7 +245,6 @@ class WorkOrder < ApplicationRecord
   end
 
 
-
   def generate_completed_and_cancel_event
     begin
       if closed?

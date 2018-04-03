@@ -83,9 +83,7 @@ class Job < ApplicationRecord
 
     project = work_order.work_plan.project
     cost_code = project.cost_code
-    if project.subproject?
-      project = StudyClient::Node.find(project.parent_id).first
-    end
+    
 
     {
       job: {
