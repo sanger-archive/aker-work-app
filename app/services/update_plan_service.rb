@@ -146,7 +146,6 @@ private
   end
 
   def check_broker
-    return true unless Rails.configuration.events[:enabled]
     return true if BrokerHandle.working?
     add_error("Could not connect to message exchange.")
     return false
