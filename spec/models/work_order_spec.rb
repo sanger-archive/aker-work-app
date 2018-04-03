@@ -40,6 +40,56 @@ RSpec.describe WorkOrder, type: :model do
     "AKER-#{@barcode_index}"
   end
 
+  def make_container(materials)
+    slots = materials.each_with_index.map do |mat, i|
+      double('slot', material_id: mat&.id, address: "A:#{i + 1}")
+    end
+    double('container', barcode: make_barcode,
+                        num_of_rows: 1,
+                        num_of_cols: materials.length,
+                        slots: slots)
+  end
+
+  def make_materials
+    @materials = (1..3).map do |i|
+      attributes = {
+        'gender' => i.even? ? 'male' : 'female',
+        'donor_id' => "donor #{i}",
+        'phenotype' => "phenotype #{i}",
+        'scientific_name' => 'Mouse',
+        'available' => true
+      }
+      double(:material, id: make_uuid, attributes: attributes)
+    end
+    allow(MatconClient::Material).to receive(:where) do |args|
+      ids = args['_id']['$in']
+      found = ids.map do |id|
+        @materials.find { |m| m.id == id }
+      end
+      make_result_set(found)
+    end
+    @materials
+  end
+
+  def make_result_set(items)
+    rs = double('result_set', has_next?: false, length: items.length, to_a: items)
+    allow(rs).to receive(:map) { |&block| items.map(&block) }
+    allow(rs).to receive(:each) { |&block| items.each(&block) }
+    allow(rs).to receive(:all?) { |&block| items.all?(&block) }
+    double('result_set_wrapper', result_set: rs)
+  end  
+
+  def make_set_with_materials
+    @set = make_set
+
+    make_materials
+    allow(@set).to receive(:materials).and_return(@materials)
+    allow(SetClient::Set).to receive(:find_with_materials).with(@set.uuid).and_return([@set])
+    @set
+  end
+
+
+
   def make_set(size = 6)
     uuid = make_uuid
     a_set = double(:set, uuid: uuid, id: uuid, meta: { 'size' => size }, locked: false)
@@ -445,6 +495,16 @@ RSpec.describe WorkOrder, type: :model do
   end
 
   describe '#create_jobs' do
+    let(:order) { create(:work_order, process: process, work_plan: plan, set_uuid: @set.id) }
+    let(:modules) do
+      (1...3).map { |i| create(:aker_process_module, name: "Module#{i}", aker_process_id: process.id) }
+    end
+
+    before do
+      make_set_with_materials
+      make_container(@materials)
+      modules.each_with_index { |m,i| WorkOrderModuleChoice.create(work_order: order, process_module: m, position: i)}
+    end
 
     context 'when some of the materials are unavailable' do
       before do
@@ -452,7 +512,7 @@ RSpec.describe WorkOrder, type: :model do
       end
 
       it "should raise an exception" do
-        expect { work_order.create_jobs }.to raise_error(/materials.*available/)
+        expect { order.create_jobs }.to raise_error(/materials.*available/)
       end
     end
 
@@ -462,7 +522,7 @@ RSpec.describe WorkOrder, type: :model do
         WorkOrderModuleChoice.create(work_order: order, process_module: m, position: 2)
       end
       it 'should raise an exception' do
-        expect { work_order.create_jobs }.to raise_exception('Process module could not be validated: ["xModule"]')
+        expect { order.create_jobs }.to raise_exception('Process module could not be validated: ["xModule"]')
       end
     end
 
