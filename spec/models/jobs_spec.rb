@@ -1,6 +1,8 @@
 require 'rails_helper'
+require 'support/work_orders_helper'
 
 RSpec.describe 'Jobs', type: :model do
+  include WorkOrdersHelper
   let(:catalogue) { create(:catalogue) }
   let(:product) { create(:product, name: 'Solylent Green', product_version: 3, catalogue: catalogue) }
   let(:process) do
@@ -18,84 +20,6 @@ RSpec.describe 'Jobs', type: :model do
 
   let(:plan) { create(:work_plan, project_id: subproject.id, product: product, comment: 'hello', desired_date: '2020-01-01') }
 
-  def make_node(name, cost_code, id, parent_id, is_sub, is_proj, data_release_uuid)
-    node = double('node',
-                  name: name,
-                  cost_code: cost_code,
-                  id: id,
-                  parent_id: parent_id,
-                  subproject?: is_sub,
-                  project?: is_proj,
-                  node_uuid: make_uuid,
-                  data_release_uuid: data_release_uuid)
-    allow(StudyClient::Node).to receive(:find).with(node.id).and_return([node])
-    node
-  end  
-
-  def make_uuid
-    SecureRandom.uuid
-  end
-
-  def make_set(size = 6)
-    uuid = make_uuid
-    a_set = double(:set, uuid: uuid, id: uuid, meta: { 'size' => size }, locked: false)
-    allow(SetClient::Set).to receive(:find).with(a_set.uuid).and_return([a_set])
-    a_set
-  end
-
-  def make_barcode
-    @barcode_index ||= 0
-    @barcode_index += 1
-    "AKER-#{@barcode_index}"
-  end
-
-  def make_container(materials)
-    slots = materials.each_with_index.map do |mat, i|
-      double('slot', material_id: mat&.id, address: "A:#{i + 1}")
-    end
-    double('container', barcode: make_barcode,
-                        num_of_rows: 1,
-                        num_of_cols: materials.length,
-                        slots: slots)
-  end
-
-  def make_set_with_materials
-    @set = make_set
-
-    make_materials
-    allow(@set).to receive(:materials).and_return(@materials)
-    allow(SetClient::Set).to receive(:find_with_materials).with(@set.uuid).and_return([@set])
-    @set
-  end
-
-  def make_result_set(items)
-    rs = double('result_set', has_next?: false, length: items.length, to_a: items)
-    allow(rs).to receive(:map) { |&block| items.map(&block) }
-    allow(rs).to receive(:each) { |&block| items.each(&block) }
-    allow(rs).to receive(:all?) { |&block| items.all?(&block) }
-    double('result_set_wrapper', result_set: rs)
-  end
-
-  def make_materials
-    @materials = (1..3).map do |i|
-      attributes = {
-        'gender' => i.even? ? 'male' : 'female',
-        'donor_id' => "donor #{i}",
-        'phenotype' => "phenotype #{i}",
-        'scientific_name' => 'Mouse',
-        'available' => true
-      }
-      double(:material, id: make_uuid, attributes: attributes)
-    end
-    allow(MatconClient::Material).to receive(:where) do |args|
-      ids = args['_id']['$in']
-      found = ids.map do |id|
-        @materials.find { |m| m.id == id }
-      end
-      make_result_set(found)
-    end
-    @materials
-  end
 
   context '#validation' do
     it 'fails to create a job if there is no work order specified' do
