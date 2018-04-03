@@ -13,10 +13,20 @@ module WorkOrdersHelper
     slots = materials.each_with_index.map do |mat, i|
       double('slot', material_id: mat&.id, address: "A:#{i + 1}")
     end
-    double('container', barcode: make_barcode,
+    container = double('container', id: make_uuid,
+                        barcode: make_barcode,
                         num_of_rows: 1,
                         num_of_cols: materials.length,
                         slots: slots)
+    allow(MatconClient::Container).to receive(:where) do |args|
+      debugger
+      ids = args[:'slots.material'][:'$in']
+      found = ids.map do |id|
+        materials.find { |m| m.id == id }
+      end
+      make_result_set(found)
+    end
+    container
   end
 
   def make_materials

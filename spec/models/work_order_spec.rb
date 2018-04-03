@@ -408,8 +408,15 @@ RSpec.describe WorkOrder, type: :model do
     end
 
     before do
+      @num_of_containers = 3
       make_set_with_materials
-      make_container(@materials)
+
+      grouped_materials = {}
+      @materials.each_with_index do |material, pos|
+        grouped_materials[(pos % @num_of_containers)] = [] unless grouped_materials[(pos % @num_of_containers)]
+        grouped_materials[(pos % @num_of_containers)].push(material)
+      end
+      @containers = grouped_materials.values.map {|materials| make_container(materials) }
       modules.each_with_index { |m,i| WorkOrderModuleChoice.create(work_order: order, process_module: m, position: i)}
     end
 
@@ -430,6 +437,18 @@ RSpec.describe WorkOrder, type: :model do
       end
       it 'should raise an exception' do
         expect { order.create_jobs }.to raise_exception('Process module could not be validated: ["xModule"]')
+      end
+    end
+
+    context 'when using several containers' do
+      before do
+        allow(MatconClient::Container).to receive(:where).with("slots.material": {
+          "$in": @materials.map(&:id)
+        }).and_return(make_result_set(@containers))        
+      end
+      it 'creates as many jobs as containers' do
+        order.create_jobs
+        expect(order.jobs.length).to eq(@num_of_containers)
       end
     end
 
