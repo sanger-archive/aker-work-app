@@ -3,6 +3,23 @@ class Job < ApplicationRecord
 
   validates :work_order, presence: true
 
+  validate :status_ready_for_update
+
+  def status_ready_for_update
+    if (started && cancelled && completed)
+      errors.add(:base, 'cannot be started, cancelled and completed at same time')
+    end
+    if (cancelled || completed) && (!started)
+      errors.add(:base, 'cannot be finish without starting')
+    end
+    if id
+      previous_object = Job.find(id)
+      if [:started, :cancelled, :completed].any?{|s| (!previous_object.send(s).nil? && !send(s).nil? && (previous_object.send(s) != send(s)))}
+        errors.add(:base, 'cannot use the same operation twice to change the status')
+      end
+    end
+  end
+
   def queued?
     status == 'queued'
   end
@@ -25,15 +42,15 @@ class Job < ApplicationRecord
   end
 
   def start!
-    update_attributes(started: Time.now)
+    update_attributes!(started: Time.now)
   end
 
   def cancel!
-    update_attributes(cancelled: Time.now)
+    update_attributes!(cancelled: Time.now)
   end
 
   def complete!
-    update_attributes(completed: Time.now)
+    update_attributes!(completed: Time.now)
   end
 
   def status

@@ -22,8 +22,38 @@ RSpec.describe 'Jobs', type: :model do
 
 
   context '#validation' do
+    let(:order) { create :work_order}
+    let(:job) {create :job, work_order: order}
     it 'fails to create a job if there is no work order specified' do
-      expect{create :job, work_order: nil}.to raise_exception
+      expect{create :job, work_order: nil}.to raise_exception(ActiveRecord::RecordInvalid)
+    end
+    it 'fails to perform the same operation twice to change status' do
+      job.start!
+      expect{ job.start! }.to raise_exception(ActiveRecord::RecordInvalid)
+    end
+    it 'cannot complete or cancel without starting' do
+      expect{ job.complete! }.to raise_exception(ActiveRecord::RecordInvalid)
+      expect{ job.cancel! }.to raise_exception(ActiveRecord::RecordInvalid)
+    end
+    it 'cannot be started, completed and cancel at same time' do
+      expect {
+        job.update_attributes!(started: Time.now, completed: Time.now, cancelled: Time.now)
+        }.to raise_exception(ActiveRecord::RecordInvalid)
+    end
+    it 'can start and complete after that' do
+      job.start!
+      job.complete!
+      expect(job.valid?).to eq(true)
+    end
+    it 'can start and cancel after that' do
+      job.start!
+      job.cancel!
+      expect(job.valid?).to eq(true)      
+    end
+    it 'cannot start, cancel and complete' do
+      job.start!
+      job.cancel!
+      expect{job.complete!}.to raise_exception(ActiveRecord::RecordInvalid)
     end
   end
   context '#status' do
@@ -45,7 +75,7 @@ RSpec.describe 'Jobs', type: :model do
     end
 
     it 'checks when the job is completed?' do
-      job.update_attributes(completed: Time.now)
+      job.update_attributes(started: Time.now, completed: Time.now)
       expect(job.queued?).to eq(false)
       expect(job.active?).to eq(false)
       expect(job.cancelled?).to eq(false)
@@ -53,7 +83,7 @@ RSpec.describe 'Jobs', type: :model do
     end
 
     it 'checks when the job is cancelled?' do
-      job.update_attributes(cancelled: Time.now)
+      job.update_attributes(started: Time.now, cancelled: Time.now)
       expect(job.queued?).to eq(false)
       expect(job.active?).to eq(false)
       expect(job.cancelled?).to eq(true)
