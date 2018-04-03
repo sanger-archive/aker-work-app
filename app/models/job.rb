@@ -94,7 +94,7 @@ class Job < ApplicationRecord
 
         process_name: work_order.process.name,
         process_uuid: work_order.process.uuid,
-        modules: work_order.module_choices
+        modules: work_order.module_choices,
         comment: work_order.work_plan.comment,
 
         project_uuid: project.node_uuid,
@@ -103,7 +103,7 @@ class Job < ApplicationRecord
         cost_code: project.cost_code,
 
         materials: material_data,
-        
+
         container: {
           container_id: container.id,
           barcode: container.barcode,
