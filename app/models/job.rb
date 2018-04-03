@@ -40,7 +40,7 @@ class Job < ApplicationRecord
     return 'cancelled' if cancelled
     return 'queued' if [started, cancelled, completed].all?(&:nil?)
     return 'active' if !started.nil? && [cancelled, completed].all?(&:nil?)
-    return 'completed' if !completed.nil? && [started, cancelled].all?(&:nil?)
+    return 'completed' if !completed.nil? && !started.nil? && cancelled.nil?
   end
 
   def container
@@ -83,7 +83,7 @@ class Job < ApplicationRecord
 
     project = work_order.work_plan.project
     cost_code = project.cost_code
-    
+
 
     {
       job: {

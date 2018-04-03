@@ -218,6 +218,10 @@ GEM
     json (2.1.0)
     json-schema (2.8.0)
       addressable (>= 2.4)
+    jsonapi-resources (0.9.0)
+      activerecord (>= 4.1)
+      concurrent-ruby
+      railties (>= 4.1)
     jwt (2.1.0)
     launchy (2.4.3)
       addressable (~> 2.3)
@@ -476,6 +480,7 @@ DEPENDENCIES
   js-routes
   json-schema
   json_api_client!
+  jsonapi-resources
   launchy
   listen (~> 3.0.5)
   lograge
