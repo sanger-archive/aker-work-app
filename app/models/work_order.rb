@@ -207,13 +207,9 @@ class WorkOrder < ApplicationRecord
     end
   end
 
-  def send_jobs_to_lims
-    jobs.each(&:start!)
-  end
-
   def send_to_lims
     create_jobs
-    send_jobs_to_lims
+    jobs.each(&:send_to_lims)
   end
 
   def all_results(result_set)

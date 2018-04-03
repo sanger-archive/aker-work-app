@@ -19,10 +19,12 @@ class Job < ApplicationRecord
     status == 'completed'
   end
 
-  def start!
+  def send_to_lims
     lims_url = work_order.work_plan.product.catalogue.url
-    LimsClient::post(lims_url, lims_data)
+    LimsClient::post(lims_url, lims_data)    
+  end
 
+  def start!
     update_attributes(started: Time.now)
   end
 
@@ -88,22 +90,26 @@ class Job < ApplicationRecord
     {
       job: {
         job_id: id,
+        work_order_id: work_order.id,
+
         process_name: work_order.process.name,
         process_uuid: work_order.process.uuid,
-        work_order_id: work_order.id,
+        modules: work_order.module_choices
         comment: work_order.work_plan.comment,
+
         project_uuid: project.node_uuid,
         project_name: project.name,
         data_release_uuid: project.data_release_uuid,
         cost_code: project.cost_code,
+
         materials: material_data,
+        
         container: {
           container_id: container.id,
           barcode: container.barcode,
           num_of_rows: container.num_of_rows,
           num_of_cols: container.num_of_cols
         },
-        modules: work_order.module_choices
       }
     }
   end
