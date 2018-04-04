@@ -38,9 +38,9 @@ class Job < ApplicationRecord
 
   def status
     return 'cancelled' if cancelled
-    return 'queued' if [started, cancelled, completed].all?(&:nil?)
-    return 'active' if !started.nil? && [cancelled, completed].all?(&:nil?)
-    return 'completed' if !completed.nil? && [started, cancelled].all?(&:nil?)
+    return 'completed' if completed
+    return 'active' if started
+    return 'queued'
   end
 
   def container
