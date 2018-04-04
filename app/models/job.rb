@@ -47,8 +47,12 @@ class Job < ApplicationRecord
     @container ||= MatconClient::Container.find(container_uuid)
   end
 
+  def original_set_material_ids
+    @original_set_material_ids ||= work_order.materials.map(&:id)
+  end
+
   def material_ids
-    @material_ids ||= container.slots.map(&:material_id).compact
+    @material_ids ||= container.slots.map(&:material_id).compact & original_set_material_ids
   end
 
   def materials
