@@ -34,6 +34,20 @@ RSpec.describe 'Api::V1::Jobs', type: :request do
       let(:order) { create :work_order }
       let(:job) { create :job, work_order: order}
 
+      it 'does not update the job when receiving params' do
+        body = {
+          data: {
+            type: 'jobs',
+            attributes: {
+              started: Time.now
+            }
+          }
+        }.to_json
+        put api_v1_job_path(job), headers: headers, params: body
+        job.reload
+        expect(job.started).to eq(nil)
+      end
+
       describe '#start' do
         context 'when job is queued' do
           before do
