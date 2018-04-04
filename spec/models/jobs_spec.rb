@@ -91,33 +91,38 @@ RSpec.describe 'Jobs', type: :model do
     end
   end
 
-  describe "#lims_data" do
+  context '#material_ids' do
 
-    def make_container(materials)
-      slots = materials.each_with_index.map do |material,i|
-        double('slot', material_id: material&.id, address: (i + 1).to_s)
-      end
-      @container = double('container',
-                          id: make_uuid,
-                          barcode: make_barcode,
-                          num_of_rows: 1,
-                          num_of_cols: materials.length,
-                          slots: slots)
-
-
-      allow(MatconClient::Container).to receive(:find).with(@container.id).and_return(@container)
-      allow(MatconClient::Material).to receive(:where).with("_id" => {"$in" => job.material_ids }).and_return(materials)
+    it 'returns only the materials from the container that also belongs to the set work order' do
+      # We create a group of materials
+      set = build_set_with_materials
       
-      allow(MatconClient::Container).to receive(:where) do |args|
-        material_ids = args['slots.material']['$in']
-        containers = []
-        if @container.slots.any? { |slot| material_ids.include? slot.material_id }
-          containers = [@container]
-        end
-        make_result_set(containers)
+      # We divide it in 2 groups
+      groups = []
+      set.materials.each_with_index do |material, pos| 
+        groups[pos % 2] = [] unless groups[pos % 2]
+        groups[pos % 2].push(material)
       end
-      @container
+
+      # Gets half of the materials to create a set
+      half_set = build_set_from_materials(groups[0])
+
+      # Create a container that contains the total of materials
+      make_container(set.materials)
+
+      # Creates an order on half of the materials of the container
+      order = create(:work_order, process_id: process.id, work_plan: plan, set_uuid: half_set.id, order_index: 0)
+
+      # Job for the container
+      job = create(:job, work_order: order, container_uuid: @container.id)
+      
+      # The materials of the job should be only the materials of the half set we created before, ignoring
+      # other materials in the container
+      expect(job.material_ids.length).to eq(half_set.materials.length)
     end
+  end
+
+  describe "#lims_data" do
 
     let(:order) do
       create(:work_order, process_id: process.id, work_plan: plan, set_uuid: @set.id, order_index: 0)
@@ -135,6 +140,8 @@ RSpec.describe 'Jobs', type: :model do
       make_set_with_materials
       make_container(@materials)
       modules.each_with_index { |m,i| WorkOrderModuleChoice.create(work_order: order, process_module: m, position: i)}
+
+      allow(MatconClient::Material).to receive(:where).with("_id" => {"$in" => job.material_ids }).and_return(@materials)
     end
 
     it "should return the lims_data" do

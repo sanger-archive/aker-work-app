@@ -25,8 +25,8 @@ class WorkOrder < ApplicationRecord
     work_plan.owner_email
   end
 
-  # The work order is in the 'active' state when it has been ordered
-  #  and the order has yet to be completed or cancelled.
+  # The work order is in the 'active' state when not all jobs have been
+  # compelted or cancelled
   def self.ACTIVE
     'active'
   end
@@ -38,14 +38,24 @@ class WorkOrder < ApplicationRecord
     'broken'
   end
 
+  # TODO: DEPRICATE
+  # The work order is in the 'completed' state when all jobs have been completed
   def self.COMPLETED
     'completed'
   end
 
+  # TODO: DEPRICATE
+  # The work order is in the 'cancelled' state when the work order has been cancelled
   def self.CANCELLED
     'cancelled'
   end
 
+  # The work order is in the 'concluded' state when the jobs have all been compelted or cancelled
+  def self.CONCLUDED
+    'concluded'
+  end
+
+  # The work order is in the 'queued' state when no jobs have been created
   def self.QUEUED
     'queued'
   end
@@ -59,6 +69,7 @@ class WorkOrder < ApplicationRecord
   scope :pending, -> { where('status NOT IN (?)', not_pending_status_list)}
   scope :completed, -> { where(status: WorkOrder.COMPLETED) }
   scope :cancelled, -> { where(status: WorkOrder.CANCELLED) }
+  scope :concluded, -> { where(status: WorkOrder.CONCLUDED) }
 
   def materials
     SetClient::Set.find_with_materials(set_uuid).first.materials
@@ -74,7 +85,7 @@ class WorkOrder < ApplicationRecord
   end
 
   def self.not_pending_status_list
-    [WorkOrder.ACTIVE, WorkOrder.BROKEN, WorkOrder.COMPLETED, WorkOrder.CANCELLED]
+    [WorkOrder.ACTIVE, WorkOrder.BROKEN, WorkOrder.COMPLETED, WorkOrder.CANCELLED, WorkOrder.CONCLUDED]
   end
 
   def pending?
@@ -87,7 +98,8 @@ class WorkOrder < ApplicationRecord
   end
 
   def closed?
-    status == WorkOrder.COMPLETED || status == WorkOrder.CANCELLED
+    # TODO: remove references to completed and cancelled
+    status == WorkOrder.COMPLETED || status == WorkOrder.CANCELLED || status == WorkOrder.CONCLUDED
   end
 
   def queued?
@@ -101,6 +113,11 @@ class WorkOrder < ApplicationRecord
   def broken?
     status == WorkOrder.BROKEN
   end
+
+  def concluded?
+    status == WorkOrder.CONCLUDED
+  end
+
 
 # checks work_plan is not cancelled, work order is queued, and the first order in the work plan not to be closed
   def can_be_dispatched?

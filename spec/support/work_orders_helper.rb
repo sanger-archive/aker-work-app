@@ -10,27 +10,33 @@ module WorkOrdersHelper
   end
 
   def make_container(materials)
-    slots = materials.each_with_index.map do |mat, i|
-      double('slot', material_id: mat&.id, address: "A:#{i + 1}")
+    slots = materials.each_with_index.map do |material,i|
+      double('slot', material_id: material&.id, address: (i + 1).to_s)
     end
-    container = double('container', id: make_uuid,
+    @container = double('container',
+                        id: make_uuid,
                         barcode: make_barcode,
                         num_of_rows: 1,
                         num_of_cols: materials.length,
                         slots: slots)
+
+
+    allow(MatconClient::Container).to receive(:find).with(@container.id).and_return(@container)
+    
+    
     allow(MatconClient::Container).to receive(:where) do |args|
-      debugger
-      ids = args[:'slots.material'][:'$in']
-      found = ids.map do |id|
-        materials.find { |m| m.id == id }
+      material_ids = args['slots.material']['$in']
+      containers = []
+      if @container.slots.any? { |slot| material_ids.include? slot.material_id }
+        containers = [@container]
       end
-      make_result_set(found)
+      make_result_set(containers)
     end
-    container
+    @container
   end
 
-  def make_materials
-    @materials = (1..3).map do |i|
+  def build_materials
+    materials = (1..3).map do |i|
       attributes = {
         'gender' => i.even? ? 'male' : 'female',
         'donor_id' => "donor #{i}",
@@ -43,11 +49,15 @@ module WorkOrdersHelper
     allow(MatconClient::Material).to receive(:where) do |args|
       ids = args['_id']['$in']
       found = ids.map do |id|
-        @materials.find { |m| m.id == id }
+        materials.find { |m| m.id == id }
       end
       make_result_set(found)
     end
-    @materials
+    materials    
+  end
+
+  def make_materials
+    @materials = build_materials
   end
 
   def make_result_set(items)
@@ -58,12 +68,27 @@ module WorkOrdersHelper
     double('result_set_wrapper', result_set: rs)
   end  
 
-  def make_set_with_materials
-    @set = make_set
+  def build_set_with_materials
+    set = make_set
 
-    make_materials
-    allow(@set).to receive(:materials).and_return(@materials)
-    allow(SetClient::Set).to receive(:find_with_materials).with(@set.uuid).and_return([@set])
+    materials = build_materials
+    allow(set).to receive(:materials).and_return(materials)
+    allow(SetClient::Set).to receive(:find_with_materials).with(set.uuid).and_return([set])
+    set    
+  end
+
+  def build_set_from_materials(materials)
+    set = make_set
+
+    allow(set).to receive(:materials).and_return(materials)
+    allow(SetClient::Set).to receive(:find_with_materials).with(set.uuid).and_return([set])
+    set    
+  end
+
+
+  def make_set_with_materials
+    @set = build_set_with_materials
+    @materials = @set.materials
     @set
   end
 
