@@ -9,8 +9,8 @@ class UpdateJobStep
   def up
     if @finish_status == 'complete'
       @job.complete!
-    elsif @finish_status == 'cancelled'
-      @job.cancelled!
+    elsif @finish_status == 'cancel'
+      @job.cancel!
     end
 
   end
@@ -18,7 +18,7 @@ class UpdateJobStep
   def down
     if @finish_status == 'complete'
       @job.update_attributes(completed: nil)
-    elsif @finish_status == 'cancelled'
+    elsif @finish_status == 'cancel'
       @job.update_attributes(cancelled: nil)
     end
   end

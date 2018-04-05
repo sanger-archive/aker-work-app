@@ -67,7 +67,7 @@ describe 'Work Orders API' do
       produces 'application/json'
       parameter name: :work_order_id, in: :path, type: :integer
       parameter name: :work_order, in: :body,
-                schema: JSON.parse(WorkOrderValidatorService.schema_content)
+                schema: JSON.parse(JobValidatorService.schema_content)
 
       response '200', 'work order found' do
         run_test!
@@ -94,7 +94,7 @@ describe 'Work Orders API' do
       produces 'application/json'
       parameter name: :work_order_id, in: :path, type: :string
       parameter name: :work_order, in: :body,
-                schema: JSON.parse(WorkOrderValidatorService.schema_content)
+                schema: JSON.parse(JobValidatorService.schema_content)
 
       response '200', 'work order found' do
         run_test!

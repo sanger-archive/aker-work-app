@@ -64,7 +64,7 @@ RSpec.describe WorkOrdersController, type: :controller do
 
       context 'when the work order is valid' do
         before do
-          allow_any_instance_of(WorkOrderValidatorService).to receive(:validate?).and_return(true)
+          allow_any_instance_of(JobValidatorService).to receive(:validate?).and_return(true)
           allow_any_instance_of(DispatchService).to receive(:process).and_return(true)
           post :complete, params: params
         end
@@ -99,8 +99,8 @@ RSpec.describe WorkOrdersController, type: :controller do
 
       context 'when the work order is not valid' do
         before do
-          allow_any_instance_of(WorkOrderValidatorService).to receive(:validate?).and_return(false)
-          allow_any_instance_of(WorkOrderValidatorService).to receive(:errors).and_return({msg: "Your work order is not completed"})
+          allow_any_instance_of(JobValidatorService).to receive(:validate?).and_return(false)
+          allow_any_instance_of(JobValidatorService).to receive(:errors).and_return({msg: "Your work order is not completed"})
           allow(BrokerHandle).to receive(:working?).and_return(true)
           post :complete, params: params
         end

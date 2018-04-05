@@ -1,6 +1,6 @@
 require 'rails_helper'
 
-RSpec.describe WorkOrderValidatorService do
+RSpec.describe JobValidatorService do
   let(:plan) { create(:work_plan) }
   let(:process) { create(:process, name: 'myprocess') }
   let(:order) do
@@ -14,7 +14,7 @@ RSpec.describe WorkOrderValidatorService do
     mj
   end
 
-  let(:validator) { WorkOrderValidatorService.new(order, msg) }
+  let(:validator) { JobValidatorService.new(order, msg) }
 
   before do
     query_double = double('query', first:nil)
