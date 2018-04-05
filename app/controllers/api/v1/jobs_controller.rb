@@ -105,8 +105,7 @@ module Api
         if success
           msg = flash[:notice] = "Your job is #{text_for_finish_status(finish_status)}"
           if @job.work_order.concluded?
-            # TODO: update to generate_concluded_event
-            @job.work_order.generate_completed_and_cancel_event
+            generate_concluded_event
           end
         elsif cleanup
           msg = flash[:error] = "The job could not be #{text_for_finish_status(finish_status)}"
@@ -125,6 +124,10 @@ module Api
         else
           return finish_status
         end
+      end
+
+      def generate_concluded_event
+        @job.work_order.generate_concluded_event
       end
 
     end

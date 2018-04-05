@@ -6,6 +6,9 @@ class Job < ApplicationRecord
   validate :status_ready_for_update
 
   def status_ready_for_update
+    if broken
+      errors.add(:base, 'cannot update, job is broken')
+    end
     if (started && cancelled && completed)
       errors.add(:base, 'cannot be started, cancelled and completed at same time')
     end
@@ -36,6 +39,10 @@ class Job < ApplicationRecord
     status == 'completed'
   end
 
+  def broken?
+    status == 'broken'
+  end
+
   def send_to_lims
     lims_url = work_order.work_plan.product.catalogue.url
     LimsClient::post(lims_url, lims_data)
@@ -54,10 +61,13 @@ class Job < ApplicationRecord
   end
 
   def broken!
-    # TODO: figure out what to do when broken
+    update_attributes!(broken: Time.now)
+    # update the work order to be broken too, jobs can still be concluded but work plan cannot progress
+    work_order.broken!
   end
 
   def status
+    return 'broken' if broken
     return 'cancelled' if cancelled
     return 'queued' if [started, cancelled, completed].all?(&:nil?)
     return 'active' if !started.nil? && [cancelled, completed].all?(&:nil?)

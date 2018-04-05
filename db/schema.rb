@@ -65,6 +65,7 @@ ActiveRecord::Schema.define(version: 20180328142742) do
     t.datetime "started"
     t.datetime "completed"
     t.datetime "cancelled"
+    t.datetime "broken"
     t.bigint "work_order_id", null: false
     t.index ["work_order_id"], name: "index_jobs_on_work_order_id"
   end

@@ -3,8 +3,8 @@ require 'event_message'
 require 'securerandom'
 
 # A work order, either in the progress of being defined (pending),
-# or fully defined and waiting to be completed (active),
-# or one that has been completed or cancelled (closed).
+# or fully defined and waiting to be concluded (active),
+# or one where all the jobs have either been completed or cancelled (concluded).
 class WorkOrder < ApplicationRecord
   include AkerPermissionGem::Accessible
 
@@ -38,19 +38,7 @@ class WorkOrder < ApplicationRecord
     'broken'
   end
 
-  # TODO: DEPRICATE
-  # The work order is in the 'completed' state when all jobs have been completed
-  def self.COMPLETED
-    'completed'
-  end
-
-  # TODO: DEPRICATE
-  # The work order is in the 'cancelled' state when the work order has been cancelled
-  def self.CANCELLED
-    'cancelled'
-  end
-
-  # The work order is in the 'concluded' state when the jobs have all been compelted or cancelled
+  # The work order is in the 'concluded' state when the jobs have all been completed or cancelled
   def self.CONCLUDED
     'concluded'
   end
@@ -65,10 +53,7 @@ class WorkOrder < ApplicationRecord
   end
 
   scope :active, -> { where(status: WorkOrder.ACTIVE) }
-  # status is either set, product, proposal
   scope :pending, -> { where('status NOT IN (?)', not_pending_status_list)}
-  scope :completed, -> { where(status: WorkOrder.COMPLETED) }
-  scope :cancelled, -> { where(status: WorkOrder.CANCELLED) }
   scope :concluded, -> { where(status: WorkOrder.CONCLUDED) }
 
   def materials
@@ -85,7 +70,7 @@ class WorkOrder < ApplicationRecord
   end
 
   def self.not_pending_status_list
-    [WorkOrder.ACTIVE, WorkOrder.BROKEN, WorkOrder.COMPLETED, WorkOrder.CANCELLED, WorkOrder.CONCLUDED]
+    [WorkOrder.ACTIVE, WorkOrder.BROKEN, WorkOrder.CONCLUDED]
   end
 
   def pending?
@@ -98,8 +83,7 @@ class WorkOrder < ApplicationRecord
   end
 
   def closed?
-    # TODO: remove references to completed and cancelled
-    status == WorkOrder.COMPLETED || status == WorkOrder.CANCELLED || status == WorkOrder.CONCLUDED
+    status == WorkOrder.CONCLUDED
   end
 
   def queued?
@@ -261,15 +245,14 @@ class WorkOrder < ApplicationRecord
     dispatch_date + process.TAT
   end
 
-
-  def generate_completed_and_cancel_event
+  def generate_concluded_event
     begin
       if closed?
-        message = WorkOrderEventMessage.new(work_order: self, status: status)
+        message = WorkOrderEventMessage.new(work_order: self, status: 'concluded')
         BrokerHandle.publish(message)
         BillingFacadeClient.send_event(self, status)
       else
-        Rails.logger.error('Complete/cancel event cannot be generated from a work order that has not been completed.')
+        Rails.logger.error('Concluded event cannot be generated from a work order where all the jobs are not either cancelled or completed.')
       end
     rescue => e
       Rails.logger.error e

@@ -128,7 +128,7 @@ class WorkOrderEventMessage < EventMessage
     if @status == 'submitted'
       metadata_for_submitted
     else
-      metadata_for_completed
+      metadata_for_concluded
     end
   end
 
@@ -151,12 +151,14 @@ class WorkOrderEventMessage < EventMessage
     end
   end
 
-  def metadata_for_completed
+  def metadata_for_concluded
     {
       'work_order_id' => @work_order.id,
       'comment' => @work_order.close_comment,
       'zipkin_trace_id' => @trace_id,
-      'num_new_materials' => num_new_materials
+      'num_new_materials' => num_new_materials,
+      'num_completed_jobs' => num_completed_jobs,
+      'num_cancelled_jobs' => num_cancelled_jobs
     }
   end
 
@@ -166,6 +168,14 @@ class WorkOrderEventMessage < EventMessage
     else
       0
     end
+  end
+
+  def num_completed_jobs
+    @work_order.jobs.where.not(completed: nil).length
+  end
+
+  def num_cancelled_jobs
+    @work_order.jobs.where.not(cancelled: nil).length
   end
 
   # Information only required by the notifier can be added here which should be ignored by the

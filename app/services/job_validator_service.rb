@@ -27,7 +27,7 @@ private
 
   def correct_status?
     return true if @job.status == 'active'
-    error_return(422, 'The job status should be active')
+    error_return(422, "The job status should be active. Currently it is #{@job.status}")
   end
 
   # TODO
