@@ -250,7 +250,7 @@ RSpec.describe WorkPlan, type: :model do
 
     context 'when all the orders are closed' do
       before do
-        plan.work_orders.each_with_index { |order,i| order.update_attributes(status: i==0 ? WorkOrder.COMPLETED : WorkOrder.CANCELLED) }
+        plan.work_orders.each_with_index { |order,i| order.update_attributes(status: WorkOrder.CONCLUDED) }
         plan.reload
       end
       it { expect(plan.status).to eq('closed') }
@@ -375,7 +375,7 @@ RSpec.describe WorkPlan, type: :model do
 
     context 'when an order is in progress' do
       it 'should say the process is in progress' do
-        plan.work_orders.first.update_attributes!(status: WorkOrder.COMPLETED)
+        plan.work_orders.first.update_attributes!(status: WorkOrder.CONCLUDED)
         order = plan.work_orders[1]
         order.update_attributes!(status: WorkOrder.ACTIVE)
         expect(plan.active_status).to eq("#{order.process.name} in progress")
@@ -384,19 +384,19 @@ RSpec.describe WorkPlan, type: :model do
 
     context 'when order cancelled' do
       it 'should say that the process was cancelled' do
-        plan.work_orders.first.update_attributes!(status: WorkOrder.COMPLETED)
+        plan.work_orders.first.update_attributes!(status: WorkOrder.CONCLUDED)
         order = plan.work_orders[1]
-        order.update_attributes!(status: WorkOrder.CANCELLED)
-        expect(plan.active_status).to eq("#{order.process.name} cancelled")
+        order.update_attributes!(status: WorkOrder.CONCLUDED)
+        expect(plan.active_status).to eq("#{order.process.name} concluded")
       end
     end
 
     context 'when order completed' do
       it 'should say that the process was completed' do
-        plan.work_orders.first.update_attributes!(status: WorkOrder.CANCELLED)
+        plan.work_orders.first.update_attributes!(status: WorkOrder.CONCLUDED)
         order = plan.work_orders[1]
-        order.update_attributes!(status: WorkOrder.COMPLETED)
-        expect(plan.active_status).to eq("#{order.process.name} completed")
+        order.update_attributes!(status: WorkOrder.CONCLUDED)
+        expect(plan.active_status).to eq("#{order.process.name} concluded")
       end
     end
   end

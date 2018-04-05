@@ -32,11 +32,24 @@ RSpec.describe 'Jobs', type: :model do
       expect{create :job, work_order: nil}.to raise_exception ActiveRecord::RecordInvalid
     end
   end
+
   context '#status' do
     let(:job) { create :job}
 
-    it 'checks when the jobs is queued' do
+    it 'checks when the job is broken' do
+      job.update_attributes(broken: Time.now)
+      expect(job.status).to eq('broken')
+      expect(job.broken?).to eq(true)
+      expect(job.queued?).to eq(false)
+      expect(job.active?).to eq(false)
+      expect(job.cancelled?).to eq(false)
+      expect(job.completed?).to eq(false)
+    end
+
+    it 'checks when the job is queued' do
+      expect(job.status).to eq('queued')
       expect(job.queued?).to eq(true)
+      expect(job.broken?).to eq(false)
       expect(job.active?).to eq(false)
       expect(job.cancelled?).to eq(false)
       expect(job.completed?).to eq(false)
@@ -44,25 +57,30 @@ RSpec.describe 'Jobs', type: :model do
 
     it 'checks when the job is active?' do
       job.update_attributes(started: Time.now)
-      expect(job.queued?).to eq(false)
+      expect(job.status).to eq('active')
       expect(job.active?).to eq(true)
+      expect(job.queued?).to eq(false)
+      expect(job.broken?).to eq(false)
       expect(job.cancelled?).to eq(false)
       expect(job.completed?).to eq(false)
     end
 
     it 'checks when the job is completed?' do
       job.update_attributes(started: Time.now, completed: Time.now)
+      expect(job.status).to eq('completed')
+      expect(job.completed?).to eq(true)
       expect(job.queued?).to eq(false)
+      expect(job.broken?).to eq(false)
       expect(job.active?).to eq(false)
       expect(job.cancelled?).to eq(false)
-      expect(job.completed?).to eq(true)
     end
 
     it 'checks when the job is cancelled?' do
       job.update_attributes(started: Time.now, cancelled: Time.now)
+      expect(job.status).to eq('cancelled')
+      expect(job.cancelled?).to eq(true)
       expect(job.queued?).to eq(false)
       expect(job.active?).to eq(false)
-      expect(job.cancelled?).to eq(true)
       expect(job.completed?).to eq(false)
     end
   end
