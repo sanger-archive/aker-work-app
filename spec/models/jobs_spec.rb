@@ -22,38 +22,14 @@ RSpec.describe 'Jobs', type: :model do
 
 
   context '#validation' do
-    let(:order) { create :work_order}
-    let(:job) {create :job, work_order: order}
+    it 'is not valid without a work order' do
+      expect(build(:job, work_order: nil)).not_to be_valid
+    end
+    it 'is valid with a work order' do
+      expect(build(:job)).to be_valid
+    end
     it 'fails to create a job if there is no work order specified' do
-      expect{create :job, work_order: nil}.to raise_exception(ActiveRecord::RecordInvalid)
-    end
-    it 'fails to perform the same operation twice to change status' do
-      job.start!
-      expect{ job.start! }.to raise_exception(ActiveRecord::RecordInvalid)
-    end
-    it 'cannot complete or cancel without starting' do
-      expect{ job.complete! }.to raise_exception(ActiveRecord::RecordInvalid)
-      expect{ job.cancel! }.to raise_exception(ActiveRecord::RecordInvalid)
-    end
-    it 'cannot be started, completed and cancel at same time' do
-      expect {
-        job.update_attributes!(started: Time.now, completed: Time.now, cancelled: Time.now)
-        }.to raise_exception(ActiveRecord::RecordInvalid)
-    end
-    it 'can start and complete after that' do
-      job.start!
-      job.complete!
-      expect(job.valid?).to eq(true)
-    end
-    it 'can start and cancel after that' do
-      job.start!
-      job.cancel!
-      expect(job.valid?).to eq(true)      
-    end
-    it 'cannot start, cancel and complete' do
-      job.start!
-      job.cancel!
-      expect{job.complete!}.to raise_exception(ActiveRecord::RecordInvalid)
+      expect{create :job, work_order: nil}.to raise_exception ActiveRecord::RecordInvalid
     end
   end
   context '#status' do
@@ -71,7 +47,7 @@ RSpec.describe 'Jobs', type: :model do
       expect(job.queued?).to eq(false)
       expect(job.active?).to eq(true)
       expect(job.cancelled?).to eq(false)
-      expect(job.completed?).to eq(false)      
+      expect(job.completed?).to eq(false)
     end
 
     it 'checks when the job is completed?' do
@@ -79,7 +55,7 @@ RSpec.describe 'Jobs', type: :model do
       expect(job.queued?).to eq(false)
       expect(job.active?).to eq(false)
       expect(job.cancelled?).to eq(false)
-      expect(job.completed?).to eq(true)      
+      expect(job.completed?).to eq(true)
     end
 
     it 'checks when the job is cancelled?' do
@@ -87,37 +63,42 @@ RSpec.describe 'Jobs', type: :model do
       expect(job.queued?).to eq(false)
       expect(job.active?).to eq(false)
       expect(job.cancelled?).to eq(true)
-      expect(job.completed?).to eq(false)      
+      expect(job.completed?).to eq(false)
+    end
+  end
+
+  context '#material_ids' do
+
+    it 'returns only the materials from the container that also belongs to the set work order' do
+      # We create a group of materials
+      set = build_set_with_materials
+
+      # We divide it in 2 groups
+      groups = []
+      set.materials.each_with_index do |material, pos|
+        groups[pos % 2] = [] unless groups[pos % 2]
+        groups[pos % 2].push(material)
+      end
+
+      # Gets half of the materials to create a set
+      half_set = build_set_from_materials(groups[0])
+
+      # Create a container that contains the total of materials
+      make_container(set.materials)
+
+      # Creates an order on half of the materials of the container
+      order = create(:work_order, process_id: process.id, work_plan: plan, set_uuid: half_set.id, order_index: 0)
+
+      # Job for the container
+      job = create(:job, work_order: order, container_uuid: @container.id)
+
+      # The materials of the job should be only the materials of the half set we created before, ignoring
+      # other materials in the container
+      expect(job.material_ids.length).to eq(half_set.materials.length)
     end
   end
 
   describe "#lims_data" do
-
-    def make_container(materials)
-      slots = materials.each_with_index.map do |material,i|
-        double('slot', material_id: material&.id, address: (i + 1).to_s)
-      end
-      @container = double('container',
-                          id: make_uuid,
-                          barcode: make_barcode,
-                          num_of_rows: 1,
-                          num_of_cols: materials.length,
-                          slots: slots)
-
-
-      allow(MatconClient::Container).to receive(:find).with(@container.id).and_return(@container)
-      allow(MatconClient::Material).to receive(:where).with("_id" => {"$in" => job.material_ids }).and_return(materials)
-      
-      allow(MatconClient::Container).to receive(:where) do |args|
-        material_ids = args['slots.material']['$in']
-        containers = []
-        if @container.slots.any? { |slot| material_ids.include? slot.material_id }
-          containers = [@container]
-        end
-        make_result_set(containers)
-      end
-      @container
-    end
 
     let(:order) do
       create(:work_order, process_id: process.id, work_plan: plan, set_uuid: @set.id, order_index: 0)
@@ -135,6 +116,8 @@ RSpec.describe 'Jobs', type: :model do
       make_set_with_materials
       make_container(@materials)
       modules.each_with_index { |m,i| WorkOrderModuleChoice.create(work_order: order, process_module: m, position: i)}
+
+      allow(MatconClient::Material).to receive(:where).with("_id" => {"$in" => job.material_ids }).and_return(@materials)
     end
 
     it "should return the lims_data" do

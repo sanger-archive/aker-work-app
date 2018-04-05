@@ -6,6 +6,9 @@ class Job < ApplicationRecord
   validate :status_ready_for_update
 
   def status_ready_for_update
+    if broken
+      errors.add(:base, 'cannot update, job is broken')
+    end
     if (started && cancelled && completed)
       errors.add(:base, 'cannot be started, cancelled and completed at same time')
     end
@@ -36,9 +39,13 @@ class Job < ApplicationRecord
     status == 'completed'
   end
 
+  def broken?
+    status == 'broken'
+  end
+
   def send_to_lims
     lims_url = work_order.work_plan.product.catalogue.url
-    LimsClient::post(lims_url, lims_data)    
+    LimsClient::post(lims_url, lims_data)
   end
 
   def start!
@@ -53,7 +60,14 @@ class Job < ApplicationRecord
     update_attributes!(completed: Time.now)
   end
 
+  def broken!
+    update_attributes!(broken: Time.now)
+    # update the work order to be broken too, jobs can still be concluded but work plan cannot progress
+    work_order.broken!
+  end
+
   def status
+    return 'broken' if broken
     return 'cancelled' if cancelled
     return 'queued' if [started, cancelled, completed].all?(&:nil?)
     return 'active' if !started.nil? && [cancelled, completed].all?(&:nil?)
@@ -64,8 +78,12 @@ class Job < ApplicationRecord
     @container ||= MatconClient::Container.find(container_uuid)
   end
 
+  def original_set_material_ids
+    @original_set_material_ids ||= work_order.materials.map(&:id)
+  end
+
   def material_ids
-    @material_ids ||= container.slots.map(&:material_id).compact
+    @material_ids ||= container.slots.map(&:material_id).compact & original_set_material_ids
   end
 
   def materials
@@ -76,11 +94,20 @@ class Job < ApplicationRecord
     container.slots.select{|slot| slot.material_id == material.id}.first.address
   end
 
+  def has_materials?(uuids)
+    return true if uuids.empty?
+    uuids_from_job = materials.map(&:id)
+    return false if uuids_from_job.empty?
+    uuids.all? do |uuid|
+      uuids_from_job.include?(uuid)
+    end
+  end
+
   # This method returns a JSON description of the order that will be sent to a LIMS to order work.
   # It includes information that must be loaded from other services (study, set, etc.).
   def lims_data
     material_data = materials.map do |m|
-      main_data = 
+      main_data =
         {
           _id: m.id,
           is_tumour: m.attributes['is_tumour'],
