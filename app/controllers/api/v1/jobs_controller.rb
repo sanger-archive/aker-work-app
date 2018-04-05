@@ -9,8 +9,7 @@ require 'completion_cancel_steps/update_job_step'
 module Api
   module V1
     class JobsController < JSONAPI::ResourceController
-      before_action :job, only: [:show, :update, :complete, :cancel, :start]
-
+      before_action :job, only: [:show, :complete, :cancel, :start]
       before_action :check_start, only: [:start]
 
       def complete
@@ -28,7 +27,7 @@ module Api
       end
 
       def finish(finish_status)
-        RequestStore.store[:x_authorisation] = { email: job.work_order.owner_email, groups: ['world'] }
+        RequestStore.store[:x_authorisation] = { email: @job.work_order.owner_email, groups: ['world'] }
         validator = JobValidatorService.new(@job, params_for_completion)
         valid = validator.validate?
         if valid
@@ -49,7 +48,7 @@ module Api
       end
 
       def check_start
-        error_filter unless job.queued?
+        error_filter unless @job.queued?
         true
       end
 
@@ -68,10 +67,6 @@ module Api
           p[:job][:containers] = []
         end
 
-        if p[:job][:updated_materials]
-          p[:job][:updated_materials].each do |m|
-          end
-        end
         return p
       end
 
@@ -84,15 +79,15 @@ module Api
         cleanup = false
         params = params_for_completion
         begin
-          material_step = CreateNewMaterialsStep.new(job, params)
+          material_step = CreateNewMaterialsStep.new(@job, params)
 
           success = DispatchService.new.process([
-            CreateContainersStep.new(job, params),
+            CreateContainersStep.new(@job, params),
             material_step,
-            UpdateOldMaterialsStep.new(job, params),
-            UpdateJobStep.new(job, params, finish_status),
-            UpdateWorkOrderStep.new(job, params),
-            LockSetStep.new(job, params, material_step)
+            UpdateOldMaterialsStep.new(@job, params),
+            UpdateJobStep.new(@job, params, finish_status),
+            UpdateWorkOrderStep.new(@job, params),
+            LockSetStep.new(@job, params, material_step)
           ])
 
           cleanup = !success
@@ -109,9 +104,9 @@ module Api
 
         if success
           msg = flash[:notice] = "Your job is #{text_for_finish_status(finish_status)}"
-          if job.work_order.concluded?
+          if @job.work_order.concluded?
             # TODO: update to generate_concluded_event
-            job.work_order.generate_completed_and_cancel_event
+            @job.work_order.generate_completed_and_cancel_event
           end
         elsif cleanup
           msg = flash[:error] = "The job could not be #{text_for_finish_status(finish_status)}"
