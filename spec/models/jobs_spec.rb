@@ -22,8 +22,14 @@ RSpec.describe 'Jobs', type: :model do
 
 
   context '#validation' do
+    it 'is not valid without a work order' do
+      expect(build(:job, work_order: nil)).not_to be_valid
+    end
+    it 'is valid with a work order' do
+      expect(build(:job)).to be_valid
+    end
     it 'fails to create a job if there is no work order specified' do
-      expect{create :job, work_order: nil}.to raise_exception
+      expect{create :job, work_order: nil}.to raise_exception ActiveRecord::RecordInvalid
     end
   end
   context '#status' do
