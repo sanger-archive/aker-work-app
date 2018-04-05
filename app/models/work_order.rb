@@ -60,15 +60,6 @@ class WorkOrder < ApplicationRecord
     SetClient::Set.find_with_materials(set_uuid).first.materials
   end
 
-  def has_materials?(uuids)
-    return true if uuids.empty?
-    return false if set_uuid.nil?
-    uuids_from_work_order_set = SetClient::Set.find_with_materials(set_uuid).first.materials.map(&:id)
-    uuids.all? do |uuid|
-      uuids_from_work_order_set.include?(uuid)
-    end
-  end
-
   def self.not_pending_status_list
     [WorkOrder.ACTIVE, WorkOrder.BROKEN, WorkOrder.CONCLUDED]
   end
@@ -101,7 +92,6 @@ class WorkOrder < ApplicationRecord
   def concluded?
     status == WorkOrder.CONCLUDED
   end
-
 
 # checks work_plan is not cancelled, work order is queued, and the first order in the work plan not to be closed
   def can_be_dispatched?
