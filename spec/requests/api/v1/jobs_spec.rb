@@ -38,6 +38,9 @@ RSpec.describe 'Api::V1::Jobs', type: :request do
     end
 
     context 'PUT' do
+      before do
+        allow(BrokerHandle).to receive(:working?).and_return(true)
+      end
       let(:order) { create :work_order }
       let(:job) { create :job, work_order: order}
 
@@ -99,43 +102,58 @@ RSpec.describe 'Api::V1::Jobs', type: :request do
         context 'when job is active' do
           before do
             job.start!
-            put api_v1_job_complete_path(job), headers: headers, params: params
           end
 
-          it 'returns a 200' do
-            expect(response).to have_http_status(:ok)
+          context 'when the broker is broken' do
+            before do
+              allow(BrokerHandle).to receive(:working?).and_return(false)
+              put api_v1_job_complete_path(job), headers: headers, params: params
+            end
+            it 'should have correct message in response body' do
+              msg = "RabbitMQ broker is broken"
+            end
           end
 
-          it 'conforms to the JSON API schema' do
-            expect(response).to match_api_schema('jsonapi')
+          context 'when the broker is working' do
+            before do
+              put api_v1_job_complete_path(job), headers: headers, params: params
+            end
+
+            it 'returns a 200' do
+              expect(response).to have_http_status(:ok)
+            end
+
+            it 'conforms to the JSON API schema' do
+
+              expect(response).to match_api_schema('jsonapi')
+            end
+
+            it 'sets the status to complete' do
+              job.reload
+              expect(job.status).to eq('completed')
+            end
+
+            it { expect(response).to have_http_status(:ok) }
+
+            it 'should have correct message in repsonse body' do
+              msg = "Your job is completed"
+              expect(response.body).to eq({meta: {message: msg} }.to_json)
+            end
+
+            it 'should add appropriate JWT to outgoing requests' do
+              serializer = JWTSerializer.new
+              app_double = double('app')
+              expect(app_double).to receive(:call)
+              serializer.instance_variable_set(:@app, app_double)
+              request_headers = {}
+              serializer.call(request_headers: request_headers)
+              coded_jwt = request_headers['X-Authorisation']
+              expect(coded_jwt).not_to be_nil
+              payload, _ = JWT.decode coded_jwt, Rails.application.config.jwt_secret_key, true, algorithm: 'HS256'
+              expect(payload).not_to be_nil
+              expect(payload["data"]["email"]).to eq(work_plan.owner_email)
+            end
           end
-
-          it 'sets the status to complete' do
-            job.reload
-            expect(job.status).to eq('completed')
-          end
-
-          it { expect(response).to have_http_status(:ok) }
-
-          it 'should have correct message in repsonse body' do
-            msg = "Your job is completed"
-            expect(response.body).to eq({message: msg}.to_json)
-          end
-
-          xit 'should add appropriate JWT to outgoing requests' do
-            serializer = JWTSerializer.new
-            app_double = double('app')
-            expect(app_double).to receive(:call)
-            serializer.instance_variable_set(:@app, app_double)
-            request_headers = {}
-            serializer.call(request_headers: request_headers)
-            coded_jwt = request_headers['X-Authorisation']
-            expect(coded_jwt).not_to be_nil
-            payload, _ = JWT.decode coded_jwt, Rails.application.config.jwt_secret_key, true, algorithm: 'HS256'
-            expect(payload).not_to be_nil
-            expect(payload["data"]["email"]).to eq(work_plan.owner_email)
-          end
-
         end
         context 'when job is queued' do
           before do
@@ -145,6 +163,10 @@ RSpec.describe 'Api::V1::Jobs', type: :request do
           it 'returns a failure' do
             expect(response).to have_http_status(:unprocessable_entity)
           end
+
+          it 'conforms to the JSON API schema' do
+            expect(response).to match_api_schema('jsonapi')
+          end          
 
           it 'does not change the status' do
             job.reload
@@ -161,6 +183,10 @@ RSpec.describe 'Api::V1::Jobs', type: :request do
           it 'returns a failure' do
             expect(response).to have_http_status(:unprocessable_entity)
           end
+
+          it 'conforms to the JSON API schema' do
+            expect(response).to match_api_schema('jsonapi')
+          end          
 
           it 'does not change the status' do
             job.reload
@@ -206,6 +232,11 @@ RSpec.describe 'Api::V1::Jobs', type: :request do
             job.reload
             expect(job.status).to eq('queued')
           end
+
+          it 'conforms to the JSON API schema' do
+            expect(response).to match_api_schema('jsonapi')
+          end
+
         end
         context 'when job is cancelled' do
           before do
@@ -222,6 +253,11 @@ RSpec.describe 'Api::V1::Jobs', type: :request do
             job.reload
             expect(job.status).to eq('cancelled')
           end
+
+          it 'conforms to the JSON API schema' do
+            expect(response).to match_api_schema('jsonapi')
+          end
+
         end
 
       end

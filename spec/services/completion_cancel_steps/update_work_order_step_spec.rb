@@ -6,14 +6,8 @@ RSpec.describe 'UpdateWorkOrderStep' do
   include TestServicesHelper
 
   let(:new_comment) { 'Any comment' }
-  let(:mode) { 'complete' }
-  let(:work_order) do
-    wo = make_active_work_order
-    allow(wo).to receive(:update_attributes!)
-    wo
-  end
 
-  let(:step) { UpdateWorkOrderStep.new(work_order, msg, mode) }
+  let(:step) { UpdateWorkOrderStep.new(first_job, msg) }
 
   let(:msg) { { work_order: { comment: new_comment } } }
 
@@ -21,35 +15,37 @@ RSpec.describe 'UpdateWorkOrderStep' do
     { status: new_status, close_comment: new_comment, completion_date: Date.today }
   end
 
+  let(:work_order) { make_work_order }
+
   setup do
     stub_matcon
   end
 
-  describe '#up' do
-    context 'when completing' do
-      let(:mode) { 'complete' }
+  let(:first_job) {
+    job = create :job
+    allow(job).to receive(:work_order).and_return(work_order)
+    job.complete!
+  }
+  let(:second_job) {
+    job = create :job
+    allow(job).to receive(:work_order).and_return(work_order)
+    job.cancel!
+  }
 
+  let(:jobs) { [first_job, second_job] }
+
+  describe '#up' do
+    context 'when all jobs are completed or cancelled' do
+      
+      before do
+        allow(work_order).to receive(:jobs).and_return(jobs)
+      end
       it 'should update the work order to complete' do
+
         expect(work_order).to receive(:update_attributes!).with(updated_attributes(WorkOrder.COMPLETED))
         step.up
       end
 
-      it 'should store the old state in the step' do
-        old_status = work_order.status
-        old_close_comment = work_order.close_comment
-        step.up
-        expect(step.old_status).to eq(old_status)
-        expect(step.old_close_comment).to eq(old_close_comment)
-      end
-    end
-
-    context 'when cancelling' do
-      let(:mode) { 'cancel' }
-
-      it 'should update the work order to cancelled' do
-        expect(work_order).to receive(:update_attributes!).with(updated_attributes(WorkOrder.CANCELLED))
-        step.up
-      end
       it 'should store the old state in the step' do
         old_status = work_order.status
         old_close_comment = work_order.close_comment

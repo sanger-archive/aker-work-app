@@ -16,7 +16,7 @@ class UpdateWorkOrderStep
 			@job.work_order.update_attributes!(
 				status: WorkOrder.CONCLUDED,
 				close_comment: @msg[:job][:comment],
-				completion_date: Date.today,
+				completion_date: Date.today
 			)
 		end
 	end

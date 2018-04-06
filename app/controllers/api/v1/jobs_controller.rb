@@ -23,22 +23,28 @@ module Api
       def start
         @job.start!
         jsondata = JSONAPI::ResourceSerializer.new(Api::V1::JobResource).serialize_to_hash(Api::V1::JobResource.new(@job, nil))
-        render json: { message: jsondata }, status: :ok
+        render json: jsondata, status: :ok
       end
 
       def finish(finish_status)
-        RequestStore.store[:x_authorisation] = { email: @job.work_order.owner_email, groups: ['world'] }
-        validator = JobValidatorService.new(@job, params_for_completion)
-        valid = validator.validate?
-        if valid
-          result = complete_job(finish_status)
-          # if params_for_completion[:work_order][:updated_materials].length >= 1
-          #   work_order.update(material_updated: true)
-          # end
+        if BrokerHandle.working?
+          RequestStore.store[:x_authorisation] = { email: @job.work_order.owner_email, groups: ['world'] }
+          validator = JobValidatorService.new(@job, params_for_completion)
+          valid = validator.validate?
+          if valid
+            result = complete_job(finish_status)
+            # if params_for_completion[:work_order][:updated_materials].length >= 1
+            #   work_order.update(material_updated: true)
+            # end
+            render json: { meta: { message: result[:msg] } }, status: result[:status]
+          else
+            result = validator.errors
+            render json: { errors: [ detail: result[:msg] ] }, status: result[:status]
+          end
+          
         else
-          result = validator.errors
+          render json: { errors: [ detail: "RabbitMQ broker is broken" ] }, status: 500
         end
-        render json: { message: result[:msg] }, status: result[:status]
       end
 
       private
