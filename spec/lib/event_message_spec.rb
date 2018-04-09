@@ -189,7 +189,7 @@ RSpec.describe 'EventMessage' do
         end
       end
 
-      context 'when work order is completed' do
+      context 'when work order is concluded' do
         let(:status) { 'completed' }
 
         it_behaves_like 'work order event message json'
@@ -207,7 +207,7 @@ RSpec.describe 'EventMessage' do
         end
 
         it 'should have the correct amount of metadata' do
-          expect(metadata.length).to eq(4)
+          expect(metadata.length).to eq(6)
         end
         it 'should have the correct comment' do
           expect(metadata['comment']).to eq(second_comment)
@@ -217,6 +217,18 @@ RSpec.describe 'EventMessage' do
         end
         it 'should have the correct num new materials' do
           expect(metadata['num_new_materials']).to eq(finished_set.meta['size'])
+        end
+        it 'should have the correct num of completed jobs' do
+          where_double = double('where')
+          allow(where_double).to receive(:not).and_return [1]
+          allow(work_order.jobs).to receive(:where).and_return where_double
+          expect(metadata['num_completed_jobs']).to eq(1)
+        end
+        it 'should have the corrent num of cancelled jobs' do
+          where_double = double('where')
+          allow(where_double).to receive(:not).and_return [1]
+          allow(work_order.jobs).to receive(:where).and_return where_double
+          expect(metadata['num_cancelled_jobs']).to eq(1)
         end
       end
     end
