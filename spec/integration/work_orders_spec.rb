@@ -31,22 +31,6 @@ describe 'Work Orders API' do
                         work_plan: work_plan)
   end
 
-  let(:instance_wo2) { create(:work_order) }
-
-  let(:work_order) do
-    json = build(:valid_work_order_completion_message_json)
-    json[:work_order][:work_order_id] = instance_wo.id
-    json
-  end
-
-  let(:work_order_id) { work_order[:work_order][:work_order_id] }
-
-  let(:invalid_work_order) do
-    json = build(:valid_work_order_completion_message_json)
-    json[:work_order][:work_order_id] = instance_wo2.id
-    json
-  end
-
   path '/api/v1/work_orders/{work_order_id}' do
     get 'Obtains the information of a work order' do
       tags 'Work Orders'
@@ -60,57 +44,4 @@ describe 'Work Orders API' do
     end
   end
 
-  path '/api/v1/work_orders/{work_order_id}/complete' do
-    post 'Completes a work order' do
-      tags 'Work Orders'
-      consumes 'application/json'
-      produces 'application/json'
-      parameter name: :work_order_id, in: :path, type: :integer
-      parameter name: :work_order, in: :body,
-                schema: JSON.parse(JobValidatorService.schema_content)
-
-      response '200', 'work order found' do
-        run_test!
-      end
-
-      response '422', 'wrong work order specified' do
-        let(:work_order) { invalid_work_order }
-        run_test!
-      end
-
-      response '502', 'the work order could not be updated' do
-        before do
-          expect_any_instance_of(LockSetStep).to receive(:up).and_raise('error')
-        end
-        run_test!
-      end
-    end
-  end
-
-  path '/api/v1/work_orders/{work_order_id}/cancel' do
-    post 'Cancels a work order' do
-      tags 'Work Orders'
-      consumes 'application/json'
-      produces 'application/json'
-      parameter name: :work_order_id, in: :path, type: :string
-      parameter name: :work_order, in: :body,
-                schema: JSON.parse(JobValidatorService.schema_content)
-
-      response '200', 'work order found' do
-        run_test!
-      end
-
-      response '422', 'wrong work order specified' do
-        let(:work_order) { invalid_work_order }
-        run_test!
-      end
-
-      response '502', 'the work order could not be updated' do
-        before do
-          expect_any_instance_of(LockSetStep).to receive(:up).and_raise('error')
-        end
-        run_test!
-      end
-    end
-  end
 end

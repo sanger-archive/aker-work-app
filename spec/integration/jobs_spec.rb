@@ -10,6 +10,7 @@ describe 'Jobs API' do
   include TestServicesHelper
 
   before do
+    webmock_matcon_schema
     allow_broker_connection
   end
 
@@ -46,25 +47,25 @@ describe 'Jobs API' do
   end
 
   let(:queue_job_msg) do
-    json = build(:valid_job_conclusion_message_json)
+    json = build(:valid_job_completion_message_json)
     json[:job][:job_id] = queued_job.id
     json
   end
 
   let(:start_job_msg) do
-    json = build(:valid_job_conclusion_message_json)
+    json = build(:valid_job_completion_message_json)
     json[:job][:job_id] = started_job.id
     json
   end
 
   let(:complete_job_msg) do
-    json = build(:valid_job_conclusion_message_json)
+    json = build(:valid_job_completion_message_json)
     json[:job][:job_id] = completed_job.id
     json
   end
 
   let(:cancel_job_msg) do
-    json = build(:valid_job_conclusion_message_json)
+    json = build(:valid_job_completion_message_json)
     json[:job][:job_id] = cancelled_job.id
     json
   end
