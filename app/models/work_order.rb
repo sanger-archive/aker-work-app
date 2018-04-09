@@ -236,7 +236,7 @@ class WorkOrder < ApplicationRecord
   end
 
   def generate_concluded_event
-    #begin
+    begin
       if closed?
         message = WorkOrderEventMessage.new(work_order: self, status: 'concluded')
         BrokerHandle.publish(message)
@@ -244,14 +244,14 @@ class WorkOrder < ApplicationRecord
       else
         Rails.logger.error('Concluded event cannot be generated from a work order where all the jobs are not either cancelled or completed.')
       end
-    #rescue => e
-    #  Rails.logger.error e
-    #  Rails.logger.error e.backtrace
-    #end
+    rescue => e
+      Rails.logger.error e
+      Rails.logger.error e.backtrace
+    end
   end
 
   def generate_submitted_event
-    #begin
+    begin
       if active?
         message = WorkOrderEventMessage.new(work_order: self, status: 'submitted')
         BrokerHandle.publish(message)
@@ -259,10 +259,10 @@ class WorkOrder < ApplicationRecord
       else
         Rails.logger.error("Submitted event cannot be generated from a work order that is not active.")
       end
-    #rescue => e
-    #  Rails.logger.error e
-    #  Rails.logger.error e.backtrace
-    #end
+    rescue => e
+      Rails.logger.error e
+      Rails.logger.error e.backtrace
+    end
   end
 
   def module_choices
