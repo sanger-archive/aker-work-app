@@ -12,7 +12,7 @@ class JobValidatorService
   def validate?
     [
       :correct_status?,                    # - Job status
-      # :json_schema_valid?,                 # - JSON Schema
+      :json_schema_valid?,                 # - JSON Schema
       :job_exists?,                        # - Validate job exists
       :job_has_updated_materials?,         # - Validate materials are in the original job
       :updated_materials_unique?,          # should not have two updates for the same material
@@ -30,19 +30,18 @@ private
     error_return(422, "The job status should be active. Currently it is #{@job.status}")
   end
 
-  # TODO
-  # def json_schema_valid?
-  #   list = JSON::Validator.fully_validate(schema_content, @msg)
-  #   return true if list.length == 0
-  #   error_return(422, "The job does not comply with the schema at #{schema_url} because: #{list.join(',')}")
-  # end
+  def json_schema_valid?
+    list = JSON::Validator.fully_validate(schema_content, @msg)
+    return true if list.length == 0
+    error_return(422, "The job does not comply with the schema at #{schema_url} because: #{list.join(',')}")
+  end
 
   def job_exists?
-    job = Job.find_by(id: @msg[:job][:job_id])
-    if @job.nil?
+    job_from_msg = Job.find_by(id: @msg[:job][:job_id])
+    if job_from_msg.nil?
       return error_return(404, "Job #{@msg[:job][:job_id]} does not exist")
     end
-    return true if job == @job
+    return true if job_from_msg == @job
     error_return(422, "Wrong job specified")
   end
 
