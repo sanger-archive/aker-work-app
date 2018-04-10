@@ -173,4 +173,27 @@ RSpec.describe Job, type: :model do
 
   end
 
+  describe '#broken' do
+
+    let(:job) { create(:job) }
+
+    context 'when it is not broken' do
+      it 'should not be broken' do
+        expect(job).not_to be_broken
+      end
+    end
+
+    context 'when it is broken' do
+      before do
+        job.broken!
+      end
+
+      it 'should be broken' do
+        expect(job).to be_broken
+        expect(job.broken).not_to be_nil
+        expect(job.status).to eq('broken')
+      end
+    end
+  end
+
 end
