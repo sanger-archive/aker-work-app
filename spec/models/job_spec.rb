@@ -1,7 +1,7 @@
 require 'rails_helper'
 require 'support/work_orders_helper'
 
-RSpec.describe 'Jobs', type: :model do
+RSpec.describe Job, type: :model do
   include WorkOrdersHelper
   let(:catalogue) { create(:catalogue) }
   let(:product) { create(:product, name: 'Solylent Green', product_version: 3, catalogue: catalogue) }
