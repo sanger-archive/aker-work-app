@@ -46,7 +46,7 @@ RSpec.describe 'Api::V1::Jobs', type: :request do
       before do
         allow(BrokerHandle).to receive(:working?).and_return(true)
       end
-      let(:order) { create :work_order }
+      let(:order) { create(:work_order, status: WorkOrder.ACTIVE) }
       let(:job) { create :job, work_order: order}
 
       it 'does not update the job when receiving params' do
