@@ -1,14 +1,14 @@
 class CreateContainersStep
   attr_reader :new_containers
 
-  def initialize(work_order, msg)
-    @work_order = work_order
+  def initialize(job, msg)
+    @job = job
     @msg = msg
   end
 
   def containers_to_create
     extra_fields = { print_count: 0 }
-    @msg[:work_order][:containers].
+    @msg[:job][:containers].
       reject { |c| MatconClient::Container.where(barcode: c[:barcode]).first }.
       map { |c| c.merge(extra_fields) }
   end

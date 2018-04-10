@@ -26,7 +26,7 @@ RSpec.describe WorkPlansController, type: :controller do
       }
       let!(:closed_plans) {
         plans = (1..2).map { create(:work_plan, project_id: project_id, owner_email: user.email) }
-        statuses = ['completed', 'cancelled']
+        statuses = ['concluded', 'concluded']
         plans.zip(statuses).each do |plan, status|
           create(:work_order, work_plan: plan, process: pro, status: status)
         end

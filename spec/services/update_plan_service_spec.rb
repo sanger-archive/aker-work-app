@@ -1159,7 +1159,7 @@ RSpec.describe UpdatePlanService do
     context 'when the project is not authorised' do
       let(:plan) do
         plan = make_plan_with_orders
-        plan.work_orders.first.update_attributes!(status: 'completed', finished_set_uuid: locked_set.uuid)
+        plan.work_orders.first.update_attributes!(status: 'concluded', finished_set_uuid: locked_set.uuid)
         plan
       end
 
@@ -1206,7 +1206,7 @@ RSpec.describe UpdatePlanService do
     context 'when the materials are not authorised' do
       let(:plan) do
         plan = make_plan_with_orders
-        plan.work_orders.first.update_attributes!(status: 'completed', finished_set_uuid: locked_set.uuid)
+        plan.work_orders.first.update_attributes!(status: 'concluded', finished_set_uuid: locked_set.uuid)
         plan
       end
 
@@ -1264,7 +1264,7 @@ RSpec.describe UpdatePlanService do
     context 'when the order is already active' do
       let(:plan) do
         plan = make_plan_with_orders
-        plan.work_orders.first.update_attributes!(status: 'completed', finished_set_uuid: locked_set.uuid)
+        plan.work_orders.first.update_attributes!(status: 'concluded', finished_set_uuid: locked_set.uuid)
         plan.work_orders[1].update_attributes!(status: 'active')
         plan
       end
@@ -1303,7 +1303,7 @@ RSpec.describe UpdatePlanService do
     context 'when the order is ready to be dispatched' do
       let(:plan) do
         plan = make_plan_with_orders
-        plan.work_orders.first.update_attributes!(status: 'completed', finished_set_uuid: locked_set.uuid)
+        plan.work_orders.first.update_attributes!(status: 'concluded', finished_set_uuid: locked_set.uuid)
         plan
       end
       it { expect(@result).to be_truthy }

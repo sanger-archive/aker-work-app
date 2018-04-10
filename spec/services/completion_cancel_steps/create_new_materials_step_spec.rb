@@ -23,8 +23,8 @@ RSpec.describe 'CreateNewMaterialsStep' do
 
 
   def make_step(msg)
-    @work_order = make_work_order
-    @step = CreateNewMaterialsStep.new(@work_order, msg)
+    @job = make_job
+    @step = CreateNewMaterialsStep.new(@job, msg)
   end
 
 
@@ -37,7 +37,7 @@ RSpec.describe 'CreateNewMaterialsStep' do
     context 'when no container is provided' do
       before do
         @msg = { 
-          :work_order => { 
+          :job => { 
             :new_materials => @num_times.times.map { @material_params }
           }
         }
@@ -53,7 +53,7 @@ RSpec.describe 'CreateNewMaterialsStep' do
       before do
         @wrong_barcode = 'wrong'
         @msg = { 
-          :work_order => { 
+          :job => { 
             :new_materials => @num_times.times.map { @material_params.merge({
               container: { barcode: @wrong_barcode}
               }) }
@@ -70,7 +70,7 @@ RSpec.describe 'CreateNewMaterialsStep' do
       before do
         @good_barcode = 'good'
         @msg = { 
-          :work_order => { 
+          :job => { 
             :new_materials => @num_times.times.map {|pos| @material_params.merge({
               container: { barcode: @good_barcode, address: "A:1" }
               }) }
@@ -100,7 +100,7 @@ RSpec.describe 'CreateNewMaterialsStep' do
       context 'when the material is in a container (TUBE)' do
         before do
           @msg = { 
-          :work_order => { 
+          :job => { 
             :new_materials => @num_times.times.map {|pos| @material_params.merge({
               container: { barcode: @good_barcode }
               }) }
@@ -122,7 +122,7 @@ RSpec.describe 'CreateNewMaterialsStep' do
     before do
       @good_barcode = 1
       @msg = { 
-        :work_order => { 
+        :job => { 
             :new_materials => @num_times.times.map {|pos| @material_params.merge({
               container: { barcode: @good_barcode }
               }) }
