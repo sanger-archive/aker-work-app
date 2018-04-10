@@ -52,7 +52,8 @@ Rails.application.configure do
 
   config.billing_facade_url = 'http://external-server:3601'
 
-  config.work_order_completion_json = 'work_order_completion.json'
+  config.job_completion_json = 'job_completion.json'
+
 
   config.events = {
     enabled: false

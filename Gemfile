@@ -42,6 +42,8 @@ gem 'webpacker-react', '~> 0.3.2'
 gem 'wicked'
 gem 'zipkin-tracer'
 
+gem 'jsonapi-resources'
+
 ###
 # Sanger gems
 ###

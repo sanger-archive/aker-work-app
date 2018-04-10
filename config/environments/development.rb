@@ -86,7 +86,7 @@ Rails.application.configure do
     catalogues_queue: 'aker_catalogues_q'
   }
 
-  config.work_order_completion_json = 'work_order_completion.json'
+  config.job_completion_json = 'job_completion.json'
 
   config.billing_facade_url = 'http://localhost:3601'
 

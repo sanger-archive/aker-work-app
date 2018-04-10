@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180328142742) do
+ActiveRecord::Schema.define(version: 20180409145654) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -65,7 +65,9 @@ ActiveRecord::Schema.define(version: 20180328142742) do
     t.datetime "started"
     t.datetime "completed"
     t.datetime "cancelled"
+    t.datetime "broken"
     t.bigint "work_order_id", null: false
+    t.string "close_comment"
     t.index ["work_order_id"], name: "index_jobs_on_work_order_id"
   end
 
@@ -107,7 +109,6 @@ ActiveRecord::Schema.define(version: 20180328142742) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.decimal "total_cost", precision: 8, scale: 2
-    t.string "close_comment"
     t.decimal "cost_per_sample", precision: 8, scale: 2
     t.boolean "material_updated", default: false, null: false
     t.integer "order_index", null: false

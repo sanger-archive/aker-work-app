@@ -53,6 +53,10 @@ module TestServicesHelper
     @work_order = instance_double('work_order', owner_email: 'person@sanger.ac.uk', id: made_up_id)
   end
 
+  def make_job
+    @job = create :job
+  end
+
   def make_active_work_order
     instance_double('work_order', status: 'active',
                                   comment: 'any comment old',
@@ -187,7 +191,7 @@ module TestServicesHelper
   def allow_broker_connection
     stub_const('BrokerHandle', class_double('BrokerHandle'))
     allow(BrokerHandle).to receive(:working?).and_return(true)
-    allow_any_instance_of(WorkOrder).to receive(:generate_completed_and_cancel_event)
+    allow_any_instance_of(WorkOrder).to receive(:generate_concluded_event)
   end
 
 end

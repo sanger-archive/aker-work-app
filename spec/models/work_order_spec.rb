@@ -247,22 +247,22 @@ RSpec.describe WorkOrder, type: :model do
     end
   end
 
-  describe '#generate_completed_and_cancel_event' do
+  describe '#generate_concluded_event' do
     context 'if work order does not have status completed or cancelled' do
       it 'generates an event using the BrokerHandle' do
         wo = build(:work_order)
         expect(BrokerHandle).not_to receive(:publish).with(an_instance_of(WorkOrderEventMessage))
-        expect(Rails.logger).to receive(:error).with('Complete/cancel event cannot be generated from a work order that has not been completed.')
-        wo.generate_completed_and_cancel_event
+        expect(Rails.logger).to receive(:error).with('Concluded event cannot be generated from a work order where all the jobs are not either cancelled or completed.')
+        wo.generate_concluded_event
       end
     end
 
     context 'if work order does have status completed or cancelled' do
       it 'generates an event using the BrokerHandle' do
-        wo = build(:work_order, status: 'completed')
-        allow(BillingFacadeClient).to receive(:send_event).with(wo, 'completed')
+        wo = build(:work_order, status: 'concluded')
+        allow(BillingFacadeClient).to receive(:send_event).with(wo, 'concluded')
         expect(BrokerHandle).to receive(:publish).with(an_instance_of(WorkOrderEventMessage))
-        wo.generate_completed_and_cancel_event
+        wo.generate_concluded_event
       end
     end
   end
@@ -313,8 +313,8 @@ RSpec.describe WorkOrder, type: :model do
       context 'when the last order in the plan, not closed, is the work order' do
         it 'should return true' do
           plan.create_orders(process_options, nil)
-          plan.work_orders[0].update_attributes(status: WorkOrder.COMPLETED)
-          plan.work_orders[1].update_attributes(status: WorkOrder.CANCELLED)
+          plan.work_orders[0].update_attributes(status: WorkOrder.CONCLUDED)
+          plan.work_orders[1].update_attributes(status: WorkOrder.CONCLUDED)
           plan.work_orders.reload
 
           expect(plan.work_orders[0].can_be_dispatched?).to eq(false)
@@ -444,7 +444,7 @@ RSpec.describe WorkOrder, type: :model do
       before do
         allow(MatconClient::Container).to receive(:where).with("slots.material": {
           "$in": @materials.map(&:id)
-        }).and_return(make_result_set(@containers))        
+        }).and_return(make_result_set(@containers))
       end
       it 'creates as many jobs as containers' do
         order.create_jobs

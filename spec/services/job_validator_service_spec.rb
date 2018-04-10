@@ -1,20 +1,26 @@
 require 'rails_helper'
 
-RSpec.describe WorkOrderValidatorService do
+RSpec.describe JobValidatorService do
   let(:plan) { create(:work_plan) }
   let(:process) { create(:process, name: 'myprocess') }
   let(:order) do
     wo = create(:work_order, status: 'active', work_plan: plan, process: process)
-    allow(wo).to receive(:has_materials?).and_return(true)
+    
     wo
   end
+  let(:job) { 
+    job = create :job, work_order: order
+    job.start!
+    allow(job).to receive(:has_materials?).and_return(true)
+    job
+  }
   let(:msg) do
-    mj = build(:work_order_completion_message_json)
-    mj[:work_order][:work_order_id] = order.id
+    mj = build(:job_completion_message_json)
+    mj[:job][:job_id] = job.id
     mj
   end
 
-  let(:validator) { WorkOrderValidatorService.new(order, msg) }
+  let(:validator) { JobValidatorService.new(job, msg) }
 
   before do
     query_double = double('query', first:nil)
@@ -49,25 +55,25 @@ RSpec.describe WorkOrderValidatorService do
   end
 
   describe "#validate?" do
-    it "fails when the work order is not in the right status" do
-      order.status = 'completed'
-      expect_error(/work order.*active/i)
+    it "fails when the job is not in the right status" do
+      job.complete!
+      expect_error(/job.*active/i)
     end
     it "fails when the json schema validation is not valid" do
       msg['extra_info']='another extra info'
       expect_error(/extra_info/i)
     end
-    it "fails when the work order does not exists" do
-      msg[:work_order][:work_order_id] = -1
-      expect_error(/work order.*exist/i)
+    it "fails when the job does not exists" do
+      msg[:job][:job_id] = -1
+      expect_error(/job.*exist/i)
     end
-    it "fails when the work order updated materials are not the same defined in the message" do
-      allow(order).to receive(:has_materials?).and_return false
-      expect_error(/materials.*work order/i)
+    it "fails when the job updated materials are not the same defined in the message" do
+      allow(job).to receive(:has_materials?).and_return false
+      expect_error(/materials.*job/i)
     end
 
     it "fails when the updated materials has a repeated material" do
-      um = msg[:work_order][:updated_materials]
+      um = msg[:job][:updated_materials]
       um.push(um.first)
       expect_error(/material.*repeated/)
     end
@@ -80,29 +86,31 @@ RSpec.describe WorkOrderValidatorService do
       expect_error(/container.*different/i)
     end
     it "fails when a container is specified twice" do
-      c = msg[:work_order][:containers]
+      c = msg[:job][:containers]
       c.push(c.first)
       expect_error(/barcode.*unique/i)
     end
     it "fails when a material location without address is repeated" do
-      mat = msg[:work_order][:new_materials]
+      mat = msg[:job][:new_materials]
       mat.first[:container].delete(:address)
       mat.push(mat.first)
 
       expect_error(/materials.*location/i)
     end
     it "fails when a material location with address is repeated" do
-      mat = msg[:work_order][:new_materials]
+      mat = msg[:job][:new_materials]
       mat.push(mat.first)
 
       expect_error(/materials.*location/i)
     end
     it "allows two materials in different addresses of one container" do
-      mat = msg[:work_order][:new_materials]
+      mat = msg[:job][:new_materials]
       new_mat = mat.first.clone
       new_mat[:container] = {
         barcode: "XYZ-123",
         address: "A:2",
+
+
       }
       mat.push(new_mat)
 
@@ -110,7 +118,7 @@ RSpec.describe WorkOrderValidatorService do
       expect(validator.errors).to be_empty
     end
     it "fails when a material location is given with and without an address" do
-      mat = msg[:work_order][:new_materials]
+      mat = msg[:job][:new_materials]
       new_mat = mat.first.clone
       new_mat[:container] = {
         barcode: "XYZ-123"
@@ -120,7 +128,7 @@ RSpec.describe WorkOrderValidatorService do
       expect_error(/materials.*location/i)
     end
     it "fails when a material location is missing from containers" do
-      mat = msg[:work_order][:new_materials]
+      mat = msg[:job][:new_materials]
       new_mat = mat.first.clone
       new_mat[:container] = {
         barcode: "ABC-XYZ"
@@ -131,7 +139,7 @@ RSpec.describe WorkOrderValidatorService do
     end
 
     it "fails when a superfluous container is specified" do
-      conts = msg[:work_order][:containers]
+      conts = msg[:job][:containers]
       new_cont = conts.first.clone
       new_cont[:barcode] = 'ABC-XYZ'
       conts.push(new_cont)

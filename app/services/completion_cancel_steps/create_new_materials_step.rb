@@ -5,8 +5,8 @@ class CreateNewMaterialsStep
 
 	attr_reader :materials, :modified_containers
 
-  def initialize(work_order, msg)
-    @work_order = work_order
+  def initialize(job, msg)
+    @job = job
     @msg = msg
   end
 
@@ -22,10 +22,10 @@ class CreateNewMaterialsStep
     @container_previous_contents = {}
     @modified_containers = []
 
-    @msg[:work_order][:new_materials].each do |mat|
+    @msg[:job][:new_materials].each do |mat|
       container = mat[:container]
       mat.delete(:container)
-      mat[:owner_id] = @work_order.owner_email
+      mat[:owner_id] = @job.work_order.owner_email
       new_material = MatconClient::Material.create(mat)
       # if result set or array, get the material from it
       if new_material.class != MatconClient::Material

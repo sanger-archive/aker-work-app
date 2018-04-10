@@ -32,11 +32,24 @@ RSpec.describe 'Jobs', type: :model do
       expect{create :job, work_order: nil}.to raise_exception ActiveRecord::RecordInvalid
     end
   end
+
   context '#status' do
     let(:job) { create :job}
 
-    it 'checks when the jobs is queued' do
+    it 'checks when the job is broken' do
+      job.update_attributes(broken: Time.now)
+      expect(job.status).to eq('broken')
+      expect(job.broken?).to eq(true)
+      expect(job.queued?).to eq(false)
+      expect(job.active?).to eq(false)
+      expect(job.cancelled?).to eq(false)
+      expect(job.completed?).to eq(false)
+    end
+
+    it 'checks when the job is queued' do
+      expect(job.status).to eq('queued')
       expect(job.queued?).to eq(true)
+      expect(job.broken?).to eq(false)
       expect(job.active?).to eq(false)
       expect(job.cancelled?).to eq(false)
       expect(job.completed?).to eq(false)
@@ -44,26 +57,31 @@ RSpec.describe 'Jobs', type: :model do
 
     it 'checks when the job is active?' do
       job.update_attributes(started: Time.now)
-      expect(job.queued?).to eq(false)
+      expect(job.status).to eq('active')
       expect(job.active?).to eq(true)
+      expect(job.queued?).to eq(false)
+      expect(job.broken?).to eq(false)
       expect(job.cancelled?).to eq(false)
-      expect(job.completed?).to eq(false)      
+      expect(job.completed?).to eq(false)
     end
 
     it 'checks when the job is completed?' do
-      job.update_attributes(completed: Time.now)
+      job.update_attributes(started: Time.now, completed: Time.now)
+      expect(job.status).to eq('completed')
+      expect(job.completed?).to eq(true)
       expect(job.queued?).to eq(false)
+      expect(job.broken?).to eq(false)
       expect(job.active?).to eq(false)
       expect(job.cancelled?).to eq(false)
-      expect(job.completed?).to eq(true)      
     end
 
     it 'checks when the job is cancelled?' do
-      job.update_attributes(cancelled: Time.now)
+      job.update_attributes(started: Time.now, cancelled: Time.now)
+      expect(job.status).to eq('cancelled')
+      expect(job.cancelled?).to eq(true)
       expect(job.queued?).to eq(false)
       expect(job.active?).to eq(false)
-      expect(job.cancelled?).to eq(true)
-      expect(job.completed?).to eq(false)      
+      expect(job.completed?).to eq(false)
     end
   end
 
@@ -72,10 +90,10 @@ RSpec.describe 'Jobs', type: :model do
     it 'returns only the materials from the container that also belongs to the set work order' do
       # We create a group of materials
       set = build_set_with_materials
-      
+
       # We divide it in 2 groups
       groups = []
-      set.materials.each_with_index do |material, pos| 
+      set.materials.each_with_index do |material, pos|
         groups[pos % 2] = [] unless groups[pos % 2]
         groups[pos % 2].push(material)
       end
@@ -91,7 +109,7 @@ RSpec.describe 'Jobs', type: :model do
 
       # Job for the container
       job = create(:job, work_order: order, container_uuid: @container.id)
-      
+
       # The materials of the job should be only the materials of the half set we created before, ignoring
       # other materials in the container
       expect(job.material_ids.length).to eq(half_set.materials.length)

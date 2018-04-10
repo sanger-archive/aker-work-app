@@ -7,14 +7,14 @@ RSpec.describe "UpdateOldMaterialsStep" do
   include TestServicesHelper
 
   def make_step(msg)
-    @step = UpdateOldMaterialsStep.new(make_work_order, msg)
+    @step = UpdateOldMaterialsStep.new(make_job, msg)
   end
 
   setup do
     @an_id = 'ID1'
     @material_params = { _id: @an_id, a: 1, b: 2 }
     @msg = { 
-      :work_order => { 
+      :job => { 
         :updated_materials => [@material_params]
       }
     }

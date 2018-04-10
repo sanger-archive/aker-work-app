@@ -3,6 +3,27 @@ class Job < ApplicationRecord
 
   validates :work_order, presence: true
 
+  validate :status_ready_for_update
+
+  def status_ready_for_update
+    if broken
+      errors.add(:base, 'cannot update, job is broken')
+    end
+    if (started && cancelled && completed)
+      errors.add(:base, 'cannot be started, cancelled and completed at same time')
+    end
+    if (cancelled || completed) && (!started)
+      errors.add(:base, 'cannot be finish without starting')
+    end
+    if id
+      previous_object = Job.find(id)      
+      columns_to_check = [:started, :cancelled, :completed].select{|s| !previous_object.send(s).nil?}
+      if ((columns_to_check & changed_attributes.keys).length > 0)
+        errors.add(:base, 'cannot use the same operation twice to change the status')
+      end      
+    end
+  end
+
   def queued?
     status == 'queued'
   end
@@ -19,28 +40,39 @@ class Job < ApplicationRecord
     status == 'completed'
   end
 
+  def broken?
+    status == 'broken'
+  end
+
   def send_to_lims
     lims_url = work_order.work_plan.product.catalogue.url
-    LimsClient::post(lims_url, lims_data)    
+    LimsClient::post(lims_url, lims_data)
   end
 
   def start!
-    update_attributes(started: Time.now)
+    update_attributes!(started: Time.now)
   end
 
   def cancel!
-    update_attributes(cancelled: Time.now)
+    update_attributes!(cancelled: Time.now)
   end
 
   def complete!
-    update_attributes(completed: Time.now)
+    update_attributes!(completed: Time.now)
+  end
+
+  def broken!
+    update_attributes!(broken: Time.now)
+    # update the work order to be broken too, jobs can still be concluded but work plan cannot progress
+    work_order.broken!
   end
 
   def status
+    return 'broken' if broken
     return 'cancelled' if cancelled
-    return 'completed' if completed
-    return 'active' if started
-    return 'queued'
+    return 'queued' if [started, cancelled, completed].all?(&:nil?)
+    return 'active' if !started.nil? && [cancelled, completed].all?(&:nil?)
+    return 'completed' if !completed.nil? && !started.nil? && cancelled.nil?
   end
 
   def container
@@ -63,11 +95,20 @@ class Job < ApplicationRecord
     container.slots.select{|slot| slot.material_id == material.id}.first.address
   end
 
+  def has_materials?(uuids)
+    return true if uuids.empty?
+    uuids_from_job = materials.map(&:id)
+    return false if uuids_from_job.empty?
+    uuids.all? do |uuid|
+      uuids_from_job.include?(uuid)
+    end
+  end
+
   # This method returns a JSON description of the order that will be sent to a LIMS to order work.
   # It includes information that must be loaded from other services (study, set, etc.).
   def lims_data
     material_data = materials.map do |m|
-      main_data = 
+      main_data =
         {
           _id: m.id,
           is_tumour: m.attributes['is_tumour'],
@@ -87,7 +128,7 @@ class Job < ApplicationRecord
 
     project = work_order.work_plan.project
     cost_code = project.cost_code
-    
+
 
     {
       job: {
