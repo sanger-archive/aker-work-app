@@ -10,13 +10,13 @@
 #
 # The state machine could be represented as following:
 #
-#
-#   QUEUED ---------------- BROKEN
-#     |                      |||
-#     |      COMPLETED ------ ||
-#     |    /                  ||
+#                 (1)                     Methods to change status:
+#   QUEUED ---------------- BROKEN        (1) broken!
+#     |                  (1) |||          (2) start!
+# (2) |      COMPLETED ------ ||          (3) complete!
+#     | (3)/             (1)  ||          (4) cancel!
 #   ACTIVE ------------------- |
-#          \                   |
+#       (4)\             (1)   |
 #            CANCELLED --------
 #
 class Job < ApplicationRecord
