@@ -16,10 +16,11 @@ class Job < ApplicationRecord
       errors.add(:base, 'cannot be finish without starting')
     end
     if id
-      previous_object = Job.find(id)
-      if [:started, :cancelled, :completed].any?{|s| (!previous_object.send(s).nil? && !send(s).nil? && (previous_object.send(s) != send(s)))}
+      previous_object = Job.find(id)      
+      columns_to_check = [:started, :cancelled, :completed].select{|s| !previous_object.send(s).nil?}
+      if ((columns_to_check & changed_attributes.keys).length > 0)
         errors.add(:base, 'cannot use the same operation twice to change the status')
-      end
+      end      
     end
   end
 
