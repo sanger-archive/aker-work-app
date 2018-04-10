@@ -1,6 +1,7 @@
 require 'rails_helper'
 
 RSpec.describe 'Api::V1::Jobs', type: :request do
+  include TestServicesHelper
   let(:headers) do
     {
       "Content-Type" => "application/vnd.api+json",
@@ -13,6 +14,10 @@ RSpec.describe 'Api::V1::Jobs', type: :request do
         job_id: job.id,
       },
     }.to_json
+  end
+
+  before do
+    webmock_matcon_schema
   end
 
   describe 'Resource' do
@@ -140,19 +145,6 @@ RSpec.describe 'Api::V1::Jobs', type: :request do
               expect(response.body).to eq({meta: {message: msg} }.to_json)
             end
 
-            it 'should add appropriate JWT to outgoing requests' do
-              serializer = JWTSerializer.new
-              app_double = double('app')
-              expect(app_double).to receive(:call)
-              serializer.instance_variable_set(:@app, app_double)
-              request_headers = {}
-              serializer.call(request_headers: request_headers)
-              coded_jwt = request_headers['X-Authorisation']
-              expect(coded_jwt).not_to be_nil
-              payload, _ = JWT.decode coded_jwt, Rails.application.config.jwt_secret_key, true, algorithm: 'HS256'
-              expect(payload).not_to be_nil
-              expect(payload["data"]["email"]).to eq(work_plan.owner_email)
-            end
           end
         end
         context 'when job is queued' do
