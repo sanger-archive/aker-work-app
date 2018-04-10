@@ -1,5 +1,6 @@
 class UpdateJobStep
   def initialize(job, msg, finish_status)
+    attr_reader :old_close_comment
     @finish_status = finish_status
     @job = job
     @msg = msg
@@ -7,6 +8,12 @@ class UpdateJobStep
 
   # Step 4 - Update Job
   def up
+    @old_close_comment = @job.close_comment
+
+    @job.update_attributes!(
+      close_comment: @msg[:job][:comment]
+    )   
+
     if @finish_status == 'complete'
       @job.complete!
     elsif @finish_status == 'cancel'
@@ -21,5 +28,6 @@ class UpdateJobStep
     elsif @finish_status == 'cancel'
       @job.update_attributes(cancelled: nil)
     end
+    @job.update_attributes!(close_comment: old_close_comment)    
   end
 end

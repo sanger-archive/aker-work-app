@@ -41,7 +41,6 @@ module Api
             result = validator.errors
             render json: { errors: [ detail: result[:msg] ] }, status: result[:status]
           end
-          
         else
           render json: { errors: [ detail: "RabbitMQ broker is broken" ] }, status: 500
         end
