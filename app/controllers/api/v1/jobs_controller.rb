@@ -91,7 +91,7 @@ module Api
             material_step,
             UpdateOldMaterialsStep.new(@job, params),
             UpdateJobStep.new(@job, params, finish_status),
-            UpdateWorkOrderStep.new(@job, params),
+            UpdateWorkOrderStep.new(@job),
             LockSetStep.new(@job, params, material_step)
           ])
 

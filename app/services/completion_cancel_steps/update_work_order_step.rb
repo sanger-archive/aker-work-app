@@ -1,8 +1,7 @@
 class UpdateWorkOrderStep
 	attr_reader :old_status
-	def initialize(job, msg)
+	def initialize(job)
 		@job = job
-		@msg = msg
 	end
 
 	# Step 4 - Update WorkOrder
