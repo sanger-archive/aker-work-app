@@ -38,7 +38,6 @@ RSpec.describe 'EventMessage' do
       let(:product) { build(:product, name: 'test product') }
       let(:process) { build(:process, name: 'test process') }
       let(:first_comment) { 'first comment' }
-      let(:second_comment) { 'second comment' }
       let(:expected_work_order_role) do
         {
           'role_type' => 'work_order',
@@ -89,7 +88,6 @@ RSpec.describe 'EventMessage' do
       let(:work_order) do
         wo = build(:work_order, status: WorkOrder.ACTIVE, work_plan: plan, process: process)
         allow(wo).to receive(:id).and_return 123
-        allow(wo).to receive(:close_comment).and_return second_comment
         allow(wo).to receive(:total_cost).and_return 50
         allow(wo).to receive(:set).and_return set
         allow(wo).to receive(:finished_set).and_return finished_set
@@ -169,15 +167,12 @@ RSpec.describe 'EventMessage' do
 
         # Metadata
         it 'should have the correct amount of metadata' do
-          expect(metadata.length).to eq(5)
+          expect(metadata.length).to eq(4)
         end
         it 'should have the correct work order id' do
           expect(metadata['work_order_id']).to eq(work_order.id)
         end
 
-        it 'should have the correct comment' do
-          expect(metadata['comment']).to eq(first_comment)
-        end
         it 'should have the correct quoted price' do
           expect(metadata['quoted_price']).to eq(work_order.total_cost)
         end
@@ -189,7 +184,7 @@ RSpec.describe 'EventMessage' do
         end
       end
 
-      context 'when work order is completed' do
+      context 'when work order is concluded' do
         let(:status) { 'completed' }
 
         it_behaves_like 'work order event message json'
@@ -207,16 +202,26 @@ RSpec.describe 'EventMessage' do
         end
 
         it 'should have the correct amount of metadata' do
-          expect(metadata.length).to eq(4)
+          expect(metadata.length).to eq(5)
         end
-        it 'should have the correct comment' do
-          expect(metadata['comment']).to eq(second_comment)
-        end
+
         it 'should have the correct trace id' do
           expect(metadata['zipkin_trace_id']).to eq(fake_trace)
         end
         it 'should have the correct num new materials' do
           expect(metadata['num_new_materials']).to eq(finished_set.meta['size'])
+        end
+        it 'should have the correct num of completed jobs' do
+          where_double = double('where')
+          allow(where_double).to receive(:not).and_return [1]
+          allow(work_order.jobs).to receive(:where).and_return where_double
+          expect(metadata['num_completed_jobs']).to eq(1)
+        end
+        it 'should have the corrent num of cancelled jobs' do
+          where_double = double('where')
+          allow(where_double).to receive(:not).and_return [1]
+          allow(work_order.jobs).to receive(:where).and_return where_double
+          expect(metadata['num_cancelled_jobs']).to eq(1)
         end
       end
     end
