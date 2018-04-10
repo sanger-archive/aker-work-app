@@ -1,6 +1,7 @@
 class UpdateJobStep
+  attr_reader :old_close_comment
+
   def initialize(job, msg, finish_status)
-    attr_reader :old_close_comment
     @finish_status = finish_status
     @job = job
     @msg = msg
