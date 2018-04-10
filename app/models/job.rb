@@ -6,14 +6,14 @@ class Job < ApplicationRecord
   validate :status_ready_for_update
 
   def status_ready_for_update
-    if broken
+    if broken_was
       errors.add(:base, 'cannot update, job is broken')
     end
     if (started && cancelled && completed)
       errors.add(:base, 'cannot be started, cancelled and completed at same time')
     end
     if (cancelled || completed) && (!started)
-      errors.add(:base, 'cannot be finish without starting')
+      errors.add(:base, 'cannot be finished without starting')
     end
     if id
       previous_object = Job.find(id)      
@@ -70,9 +70,9 @@ class Job < ApplicationRecord
   def status
     return 'broken' if broken
     return 'cancelled' if cancelled
-    return 'queued' if [started, cancelled, completed].all?(&:nil?)
-    return 'active' if !started.nil? && [cancelled, completed].all?(&:nil?)
-    return 'completed' if !completed.nil? && !started.nil? && cancelled.nil?
+    return 'completed' if completed
+    return 'active' if started
+    return 'queued'
   end
 
   def container
