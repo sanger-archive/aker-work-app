@@ -165,24 +165,20 @@ class Catalogue < ApplicationRecord
       raise "Products in catalogue contain repeated process uuids: #{products_with_duplicate_processes}"
     end
   end
+
+  def get_all_jobs
+    jobs = []
+    products.each do |product|
+      work_plans = WorkPlan.where(product_id: product.id)
+      work_plans.each do |plan|
+        work_orders = plan.work_orders
+        work_orders.each do |order|
+          jobs += order.jobs
+        end
+      end
+    end
+    jobs
+  end
+
 end
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

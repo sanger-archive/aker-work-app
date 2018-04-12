@@ -26,6 +26,11 @@ class Job < ApplicationRecord
 
   validate :status_ready_for_update
 
+  scope :is_not_broken, -> { where(broken: nil) }
+  scope :is_queued, -> { where(started: nil, completed: nil, cancelled: nil, broken: nil) }
+  scope :is_active, -> { is_not_broken.where.not(started: nil).where(completed: nil, cancelled: nil) }
+  scope :is_concluded, -> { is_not_broken.where.not(started: nil).where('(completed IS NOT NULL) OR (cancelled IS NOT NULL)') }
+
   # Before modifying the state for an object, it checks that the preconditions for each step have been met
   def status_ready_for_update
     # No broken job can be modified
@@ -42,11 +47,11 @@ class Job < ApplicationRecord
     end
     # Once a job is in a status, it cannot be set again into the same status
     if id
-      previous_object = Job.find(id)      
+      previous_object = Job.find(id)
       columns_to_check = [:started, :cancelled, :completed].select{|s| !previous_object.send(s).nil?}
       if ((columns_to_check & changed_attributes.keys).length > 0)
         errors.add(:base, 'cannot use the same operation twice to change the status')
-      end      
+      end
     end
   end
 
@@ -128,6 +133,18 @@ class Job < ApplicationRecord
     uuids.all? do |uuid|
       uuids_from_job.include?(uuid)
     end
+  end
+
+  # This method returns a ActiveRecord:Relation of the jobs for a pipeline
+  # It throws an exception if there is more than one catalogue, or the catalogue does not exist
+  def self.get_jobs_for_pipeline(pipeline)
+    catalogues = Catalogue.where('lower(pipeline) = lower(?)', pipeline).where(current: true)
+
+    if catalogues.length!=1
+      raise JSONAPI::Exceptions::RecordNotFound, "pipeline: #{pipeline}"
+    end
+    jobs_ids = catalogues[0].get_all_jobs
+    Job.where(id: jobs_ids.map(&:id))
   end
 
   # This method returns a JSON description of the order that will be sent to a LIMS to order work.
