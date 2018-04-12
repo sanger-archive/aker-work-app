@@ -11,11 +11,11 @@ module Api
 
       filter :status, apply: ->(records, value, _options) {
         if value[0] == 'queued'
-          records.is_queued
+          records.queued
         elsif value[0] == 'active'
-          records.is_active
+          records.active
         elsif value[0] == 'concluded'
-          records.is_concluded
+          records.concluded
         end
       }
 

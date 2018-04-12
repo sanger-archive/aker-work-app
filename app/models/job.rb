@@ -26,10 +26,10 @@ class Job < ApplicationRecord
 
   validate :status_ready_for_update
 
-  scope :is_not_broken, -> { where(broken: nil) }
-  scope :is_queued, -> { where(started: nil, completed: nil, cancelled: nil, broken: nil) }
-  scope :is_active, -> { is_not_broken.where.not(started: nil).where(completed: nil, cancelled: nil) }
-  scope :is_concluded, -> { is_not_broken.where.not(started: nil).where('(completed IS NOT NULL) OR (cancelled IS NOT NULL)') }
+  scope :not_broken, -> { where(broken: nil) }
+  scope :queued, -> { where(started: nil, completed: nil, cancelled: nil, broken: nil) }
+  scope :active, -> { not_broken.where.not(started: nil).where(completed: nil, cancelled: nil) }
+  scope :concluded, -> { not_broken.where.not(started: nil).where('(completed IS NOT NULL) OR (cancelled IS NOT NULL)') }
 
   # Before modifying the state for an object, it checks that the preconditions for each step have been met
   def status_ready_for_update
@@ -138,6 +138,8 @@ class Job < ApplicationRecord
   # This method returns a ActiveRecord:Relation of the jobs for a pipeline
   # It throws an exception if there is more than one catalogue, or the catalogue does not exist
   def self.get_jobs_for_pipeline(pipeline)
+    # TODO: Use joins instead
+    # e.g. Job.joins(:work_order).where('work_order_id=work_orders.id')
     catalogues = Catalogue.where('lower(pipeline) = lower(?)', pipeline).where(current: true)
 
     if catalogues.length!=1
