@@ -145,8 +145,8 @@ class Job < ApplicationRecord
     if catalogues.length!=1
       raise JSONAPI::Exceptions::RecordNotFound, "pipeline: #{pipeline}"
     end
-    jobs_ids = catalogues[0].get_all_jobs
-    Job.where(id: jobs_ids.map(&:id))
+    jobs = catalogues[0].get_all_jobs
+    Job.where(id: jobs.map(&:id))
   end
 
   # This method returns a JSON description of the order that will be sent to a LIMS to order work.

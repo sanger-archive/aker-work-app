@@ -26,35 +26,35 @@ module Api
       }
 
       def date_requested
-        @model.work_order.dispatch_date
+        @model.work_order&.dispatch_date
       end
 
       def requested_by
-        @model.work_order.work_plan.owner_email
+        @model.work_order&.work_plan&.owner_email
       end
 
       def project
-        @model.work_order.work_plan.project.name
+        @model.work_order&.work_plan&.project&.name
       end
 
       def desired_date
-        @model.work_order.work_plan.desired_date
+        @model.work_order&.work_plan&.desired_date
       end
 
       def product
-        @model.work_order.work_plan.product.name
+        @model.work_order&.work_plan&.product&.name
       end
 
       def product_options
-        @model.work_order.work_plan.product.processes.map(&:name)
+        @model.work_order&.work_plan&.product&.processes&.map(&:name)
       end
 
       def batch_size
-        @model.material_ids.length
+        @model&.material_ids&.length
       end
 
       def work_plan_comment
-        @model.work_order.work_plan.comment
+        @model.work_order&.work_plan&.comment
       end
     end
   end

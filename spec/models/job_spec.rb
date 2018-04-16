@@ -3,7 +3,7 @@ require 'support/work_orders_helper'
 
 RSpec.describe Job, type: :model do
   include WorkOrdersHelper
-  let(:catalogue) { create(:catalogue) }
+  let(:catalogue) { create(:catalogue, pipeline: 'mypipeline') }
   let(:product) { create(:product, name: 'Solylent Green', product_version: 3, catalogue: catalogue) }
   let(:process) do
     pro = create(:aker_process, name: 'Baking')
@@ -33,13 +33,42 @@ RSpec.describe Job, type: :model do
     end
   end
 
+  describe "#status scopes" do
+    context "when there are jobs" do
+      let(:time) { Time.now }
+      let(:job1) { create(:job) }
+      let(:job2) { create(:job, started: time) }
+      let(:job3) { create(:job, started: time) }
+      let(:job4) { create(:job, started: time, completed: time) }
+      let(:job5) { create(:job, started: time, broken: time) }
+      let(:job6) { create(:job, started: time, cancelled: time) }
+
+      it "can find not broken jobs" do
+        expect(Job.not_broken).to eq([job1, job2, job3, job4, job6])
+      end
+
+      it "can find queued jobs" do
+        expect(Job.queued).to eq([job1])
+      end
+
+      it "can find active jobs" do
+        expect(Job.active).to eq([job2, job3])
+      end
+
+      it "can find concluded jobs" do
+        expect(Job.concluded).to eq([job4, job6])
+      end
+
+    end
+  end
+
   context '#status' do
     let(:job) { create :job}
 
     it 'checks when the job is broken' do
-      job.update_attributes(broken: Time.now)
+      job.broken!
       expect(job.status).to eq('broken')
-      expect(job.broken?).to eq(true)
+      expect(job).to be_broken
       expect(job.queued?).to eq(false)
       expect(job.active?).to eq(false)
       expect(job.cancelled?).to eq(false)
@@ -48,7 +77,7 @@ RSpec.describe Job, type: :model do
 
     it 'checks when the job is queued' do
       expect(job.status).to eq('queued')
-      expect(job.queued?).to eq(true)
+      expect(job).to be_queued
       expect(job.broken?).to eq(false)
       expect(job.active?).to eq(false)
       expect(job.cancelled?).to eq(false)
@@ -56,9 +85,9 @@ RSpec.describe Job, type: :model do
     end
 
     it 'checks when the job is active?' do
-      job.update_attributes(started: Time.now)
+      job.start!
       expect(job.status).to eq('active')
-      expect(job.active?).to eq(true)
+      expect(job).to be_active
       expect(job.queued?).to eq(false)
       expect(job.broken?).to eq(false)
       expect(job.cancelled?).to eq(false)
@@ -66,9 +95,10 @@ RSpec.describe Job, type: :model do
     end
 
     it 'checks when the job is completed?' do
-      job.update_attributes(started: Time.now, completed: Time.now)
+      job.start!
+      job.complete!
       expect(job.status).to eq('completed')
-      expect(job.completed?).to eq(true)
+      expect(job).to be_completed
       expect(job.queued?).to eq(false)
       expect(job.broken?).to eq(false)
       expect(job.active?).to eq(false)
@@ -76,9 +106,10 @@ RSpec.describe Job, type: :model do
     end
 
     it 'checks when the job is cancelled?' do
-      job.update_attributes(started: Time.now, cancelled: Time.now)
+      job.start!
+      job.cancel!
       expect(job.status).to eq('cancelled')
-      expect(job.cancelled?).to eq(true)
+      expect(job).to be_cancelled
       expect(job.queued?).to eq(false)
       expect(job.active?).to eq(false)
       expect(job.completed?).to eq(false)
@@ -170,29 +201,16 @@ RSpec.describe Job, type: :model do
         expect(dat[:scientific_name]).to eq(mat.attributes['scientific_name'])
       end
     end
-
   end
 
-  describe '#broken' do
-
-    let(:job) { create(:job) }
-
-    context 'when it is not broken' do
-      it 'should not be broken' do
-        expect(job).not_to be_broken
-      end
-    end
-
-    context 'when it is broken' do
-      before do
-        job.broken!
-      end
-
-      it 'should be broken' do
-        expect(job).to be_broken
-        expect(job.broken).not_to be_nil
-        expect(job.status).to eq('broken')
-      end
+  describe "#get_jobs_for_pipeline" do
+    let(:job1) { create :job }
+    let(:job2) { create :job }
+    let(:jobs) { [job1, job2] }
+    it "returns a list of jobs for a pipeline" do
+      catalogue.update_attributes(current: true)
+      allow_any_instance_of(Catalogue).to receive(:get_all_jobs).and_return(jobs)
+      expect(Job.get_jobs_for_pipeline(catalogue.pipeline)).to eq jobs
     end
   end
 

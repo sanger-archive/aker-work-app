@@ -12,6 +12,7 @@ describe 'Jobs API' do
   before do
     webmock_matcon_schema
     allow_broker_connection
+    stub_matcon
   end
 
   let(:catalogue) { create(:catalogue) }
@@ -30,8 +31,10 @@ describe 'Jobs API' do
                         work_plan: work_plan)
   end
 
+  let(:container) { make_container }
+
   let(:queued_job) do
-    create(:job, work_order: work_order)
+    create(:job, work_order: work_order, container_uuid: container.id)
   end
 
   let(:started_job) do
