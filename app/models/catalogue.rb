@@ -16,6 +16,7 @@ class Catalogue < ApplicationRecord
         validate_products(product_params)
         validate_processes(process_params, product_params)
         validate_module_names(process_params)
+        validate_module_parameters(process_params)
 
         lims_id = catalogue_params[:lims_id]
         where(lims_id: lims_id).update_all(current: false)
@@ -34,7 +35,7 @@ class Catalogue < ApplicationRecord
     process_params.each_with_index.map do |p, i|
       accepted_process_keys = %i[name TAT uuid process_class]
       process = Aker::Process.create!(p.select { |k, _v| accepted_process_keys.include?(k) })
-      create_process_modules(p[:process_module_pairings], process.id)
+      create_process_modules(p, process.id)
       process
     end
   end
@@ -53,18 +54,43 @@ class Catalogue < ApplicationRecord
     end
   end
 
+  def self.validate_params_for_module(params_for_module)
+    if params_for_module[:min_value] > params_for_module[:max_value]
+      raise "Error in module #{params_for_module[:name]}. #{params_for_module[:min_value]} > #{params_for_module[:max_value]}" 
+    end
+    true
+  end
 
-  def self.create_process_modules(process_module_pairing, process_id)
-    process_module_pairing.each do |pm|
+  def self.validate_module_parameters(processes_params)
+    processes_params.all? do |process_params|
+      process_params[:module_parameters].all?{|p| validate_params_for_module(p)}
+    end
+  end
+
+  def self.get_params_for_module_name(params, module_name)
+    params.select{|p| p[:name] == module_name}.first if params
+  end
+
+  def self.build_process_module_from_name(name, process_id, module_parameters)
+    mod = Aker::ProcessModule.where(name: name, aker_process_id: process_id).first_or_create
+    params_for_module = get_params_for_module_name(module_parameters, name)
+    if params_for_module
+      mod.update_attributes!(min_value: params_for_module[:min_value], max_value: params_for_module[:max_value])
+    end
+    mod
+  end
+
+  def self.create_process_modules(process_params, process_id)
+    process_params[:process_module_pairings].each do |pm|
       # Create the process module(s), if they don't already exist
       if pm[:to_step]
-        to_module = Aker::ProcessModule.where(name: pm[:to_step], aker_process_id: process_id).first_or_create
+        to_module = build_process_module_from_name(pm[:to_step], process_id, process_params[:module_parameters])
       else
         to_module = nil
       end
 
       if pm[:from_step]
-        from_module = Aker::ProcessModule.where(name: pm[:from_step], aker_process_id: process_id).first_or_create
+        from_module = build_process_module_from_name(pm[:from_step], process_id, process_params[:module_parameters])
       else
         from_module = nil
       end

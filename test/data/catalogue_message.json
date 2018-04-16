@@ -1,0 +1,16 @@
+{"catalogue":{"id":1,"pipeline":"WGS",
+"url":"http://dev.psd.sanger.ac.uk:6600/api/v2/aker/work_orders",
+"lims_id":"SQSC","products":[
+{"id":2,"name":"QC","description":"Lorem Ipsum","product_version":1,"availability":1,
+"requested_biomaterial_type":"blood","product_class":"genotyping","processes":[
+{"id":2,"name":"QCedu1","stage":1,"TAT":5,
+"module_parameters": [{"name": "Genotyping CGP SNP", "min_value": 0, "max_value" : 44 }],
+"process_module_pairings":[{"from_step":null,"to_step":
+"Quantification","default_path":true},{"from_step":null,"to_step":"Genotyping CGP SNP","default_path":false},
+{"from_step":null,"to_step":"Genotyping DDD SNP","default_path":false},{"from_step":null,"to_step":"Genotyping HumGen SNP",
+"default_path":false},{"from_step":"Quantification","to_step":null,"default_path":false},{"from_step":"Genotyping CGP SNP",
+"to_step":null,"default_path":false},{"from_step":"Genotyping DDD SNP","to_step":null,"default_path":false},
+{"from_step":"Genotyping HumGen SNP","to_step":null,"default_path":true},{"from_step":"Quantification","to_step":
+"Genotyping CGP SNP","default_path":true},{"from_step":"Quantification","to_step":"Genotyping DDD SNP","default_path":false},
+{"from_step":"Quantification","to_step":"Genotyping HumGen SNP","default_path":false}]}]}]}}
+ 
