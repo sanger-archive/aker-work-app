@@ -1,14 +1,15 @@
 Rails.application.configure do
   # NOTE: Settings specified here will take precedence over those in config/application.rb.
 
+  # Verifies that versions and hashed value of the package contents in the project's package.json
+  config.webpacker.check_yarn_integrity = true
+
   config.log_formatter = Logger::Formatter.new
   # Use the lowest log level to ensure availability of diagnostic information when problems arise.
   config.log_level = :debug
 
   # Verifies that versions and hashed value of the package contents in the project's package.json
   config.webpacker.check_yarn_integrity = false
-
-  # Settings specified here will take precedence over those in config/application.rb.
 
   # config.relative_url_root = '/work-orders'
 
@@ -85,13 +86,13 @@ Rails.application.configure do
     catalogues_queue: 'aker_catalogues_q'
   }
 
-  config.work_order_completion_json = 'work_order_completion.json'
+  config.job_completion_json = 'job_completion.json'
 
   config.billing_facade_url = 'http://localhost:3601'
 
   config.fake_ldap = true
 
-  config.action_mailer.default_url_options = { host: 'localhost', port: 3000 }
+  config.action_mailer.default_url_options = { host: 'localhost', port: 3001 }
 
   # SSO
   config.default_jwt_user = { email: ENV.fetch('USER', 'user') + '@sanger.ac.uk',
@@ -106,4 +107,6 @@ Rails.application.configure do
                   sets: 'http://localhost:3002',
                   projects: '',
                   work_orders: '' }
+
+  config.akerdev_email = ENV.fetch('USER', 'user') + '@sanger.ac.uk'
 end
