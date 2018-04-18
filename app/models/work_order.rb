@@ -3,8 +3,8 @@ require 'event_message'
 require 'securerandom'
 
 # A work order, either in the progress of being defined (pending),
-# or fully defined and waiting to be completed (active),
-# or one that has been completed or cancelled (closed).
+# or fully defined and waiting to be concluded (active),
+# or one where all the jobs have either been completed or cancelled (concluded).
 class WorkOrder < ApplicationRecord
   include AkerPermissionGem::Accessible
 
@@ -12,6 +12,8 @@ class WorkOrder < ApplicationRecord
 
   belongs_to :process, class_name: "Aker::Process", optional: false
   has_many :work_order_module_choices, dependent: :destroy
+
+  has_many :jobs
 
   after_initialize :create_uuid
 
@@ -23,8 +25,8 @@ class WorkOrder < ApplicationRecord
     work_plan.owner_email
   end
 
-  # The work order is in the 'active' state when it has been ordered
-  #  and the order has yet to be completed or cancelled.
+  # The work order is in the 'active' state when not all jobs have been
+  # compelted or cancelled
   def self.ACTIVE
     'active'
   end
@@ -36,14 +38,12 @@ class WorkOrder < ApplicationRecord
     'broken'
   end
 
-  def self.COMPLETED
-    'completed'
+  # The work order is in the 'concluded' state when the jobs have all been completed or cancelled
+  def self.CONCLUDED
+    'concluded'
   end
 
-  def self.CANCELLED
-    'cancelled'
-  end
-
+  # The work order is in the 'queued' state when no jobs have been created
   def self.QUEUED
     'queued'
   end
@@ -53,26 +53,15 @@ class WorkOrder < ApplicationRecord
   end
 
   scope :active, -> { where(status: WorkOrder.ACTIVE) }
-  # status is either set, product, proposal
   scope :pending, -> { where('status NOT IN (?)', not_pending_status_list)}
-  scope :completed, -> { where(status: WorkOrder.COMPLETED) }
-  scope :cancelled, -> { where(status: WorkOrder.CANCELLED) }
+  scope :concluded, -> { where(status: WorkOrder.CONCLUDED) }
 
   def materials
     SetClient::Set.find_with_materials(set_uuid).first.materials
   end
 
-  def has_materials?(uuids)
-    return true if uuids.empty?
-    return false if set_uuid.nil?
-    uuids_from_work_order_set = SetClient::Set.find_with_materials(set_uuid).first.materials.map(&:id)
-    uuids.all? do |uuid|
-      uuids_from_work_order_set.include?(uuid)
-    end
-  end
-
   def self.not_pending_status_list
-    [WorkOrder.ACTIVE, WorkOrder.BROKEN, WorkOrder.COMPLETED, WorkOrder.CANCELLED]
+    [WorkOrder.ACTIVE, WorkOrder.BROKEN, WorkOrder.CONCLUDED]
   end
 
   def pending?
@@ -85,7 +74,7 @@ class WorkOrder < ApplicationRecord
   end
 
   def closed?
-    status == WorkOrder.COMPLETED || status == WorkOrder.CANCELLED
+    status == WorkOrder.CONCLUDED
   end
 
   def queued?
@@ -98,6 +87,10 @@ class WorkOrder < ApplicationRecord
 
   def broken?
     status == WorkOrder.BROKEN
+  end
+
+  def concluded?
+    status == WorkOrder.CONCLUDED
   end
 
 # checks work_plan is not cancelled, work order is queued, and the first order in the work plan not to be closed
@@ -181,9 +174,33 @@ class WorkOrder < ApplicationRecord
     "Work Order #{id}"
   end
 
+  def create_jobs
+    # Raise exception if module names are not valid from BillingFacadeMock
+    validate_module_names(module_choices)
+
+    material_ids = SetClient::Set.find_with_materials(set_uuid).first.materials.map{|m| m.id}
+    materials = all_results(MatconClient::Material.where("_id" => {"$in" => material_ids}).result_set)
+
+    unless materials.all? { |m| m.attributes['available'] }
+      raise "Some of the specified materials are not available."
+    end
+
+    containers = all_results(MatconClient::Container.where(
+      "slots.material": {
+        "$in": material_ids
+        }
+    ).result_set).uniq
+
+    ActiveRecord::Base.transaction do
+      containers.each do |container|
+        Job.create!(container_uuid: container.id, work_order: self)
+      end
+    end
+  end
+
   def send_to_lims
-    lims_url = work_plan.product.catalogue.url
-    LimsClient::post(lims_url, lims_data)
+    create_jobs
+    jobs.each(&:send_to_lims)
   end
 
   def all_results(result_set)
@@ -196,7 +213,7 @@ class WorkOrder < ApplicationRecord
   end
 
   def lims_data_for_get
-    data = lims_data
+    data = {work_order: {jobs: jobs.map(&:lims_data) }}
     unless data[:work_order].nil?
       data[:work_order][:status] = status
     end
@@ -218,96 +235,33 @@ class WorkOrder < ApplicationRecord
     dispatch_date + process.TAT
   end
 
-  # This method returns a JSON description of the order that will be sent to a LIMS to order work.
-  # It includes information that must be loaded from other services (study, set, etc.).
-  def lims_data
-    # Raise exception if module names are not valid from BillingFacadeMock
-    validate_module_names(module_choices)
-
-    material_ids = SetClient::Set.find_with_materials(set_uuid).first.materials.map{|m| m.id}
-    materials = all_results(MatconClient::Material.where("_id" => {"$in" => material_ids}).result_set)
-
-    unless materials.all? { |m| m.attributes['available'] }
-      raise "Some of the specified materials are not available."
-    end
-
-    material_data = materials.map do |m|
-          {
-            _id: m.id,
-            is_tumour: m.attributes['is_tumour'],
-            supplier_name: m.attributes['supplier_name'],
-            taxon_id: m.attributes['taxon_id'],
-            tissue_type: m.attributes['tissue_type'],
-            container: nil,
-            gender: m.attributes['gender'],
-            donor_id: m.attributes['donor_id'],
-            phenotype: m.attributes['phenotype'],
-            scientific_name: m.attributes['scientific_name'],
-            available: m.attributes['available']
-          }
-    end
-    describe_containers(material_ids, material_data)
-
-    project = work_plan.project
-    cost_code = project.cost_code
-    if project.subproject?
-      project = StudyClient::Node.find(project.parent_id).first
-    end
-
-    {
-      work_order: {
-        process_name: process.name,
-        process_uuid: process.uuid,
-        work_order_id: id,
-        comment: work_plan.comment,
-        project_uuid: project.node_uuid,
-        project_name: project.name,
-        data_release_uuid: project.data_release_uuid,
-        cost_code: cost_code,
-        materials: material_data,
-        modules: module_choices,
-      }
-    }
-  end
-
-  def describe_containers(material_ids, material_data)
-    containers = MatconClient::Container.where("slots.material" => { "$in" => material_ids}).result_set
-    material_map = material_data.each_with_object({}) { |t,h| h[t[:_id]] = t }
-    while containers do
-      containers.each do |container|
-        container.slots.each do |slot|
-          if material_ids.include? slot.material_id
-            unless material_map[slot.material_id][:container]
-              container_data = { barcode: container.barcode }
-              container_data[:num_of_rows] = container.num_of_rows
-              container_data[:num_of_cols] = container.num_of_cols
-              container_data[:address] = slot.address
-              material_map[slot.material_id][:container] = container_data
-            end
-          end
-        end
+  def generate_concluded_event
+    begin
+      if closed?
+        message = WorkOrderEventMessage.new(work_order: self, status: 'concluded')
+        BrokerHandle.publish(message)
+        BillingFacadeClient.send_event(self, status)
+      else
+        Rails.logger.error('Concluded event cannot be generated from a work order where all the jobs are not either cancelled or completed.')
       end
-      containers = (containers.has_next? ? containers.next : nil)
-    end
-  end
-
-  def generate_completed_and_cancel_event
-    if closed?
-      message = WorkOrderEventMessage.new(work_order: self, status: status)
-      BrokerHandle.publish(message)
-      BillingFacadeClient.send_event(self, status)
-    else
-      raise 'You cannot generate an event from a work order that has not been completed.'
+    rescue => e
+      Rails.logger.error e
+      Rails.logger.error e.backtrace
     end
   end
 
   def generate_submitted_event
-    if active?
-      message = WorkOrderEventMessage.new(work_order: self, status: 'submitted')
-      BrokerHandle.publish(message)
-      BillingFacadeClient.send_event(self, 'submitted')
-    else
-      raise 'You cannot generate an submitted event from a work order that is not active.'
+    begin
+      if active?
+        message = WorkOrderEventMessage.new(work_order: self, status: 'submitted')
+        BrokerHandle.publish(message)
+        BillingFacadeClient.send_event(self, 'submitted')
+      else
+        Rails.logger.error("Submitted event cannot be generated from a work order that is not active.")
+      end
+    rescue => e
+      Rails.logger.error e
+      Rails.logger.error e.backtrace
     end
   end
 

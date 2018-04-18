@@ -14,6 +14,7 @@ class WorkPlan < ApplicationRecord
   def project
     return nil unless project_id
     return @project if @project&.id==project_id
+    Rails.logger.debug "Loading project for work plan"
     @project = StudyClient::Node.find(project_id).first
   end
 
@@ -22,6 +23,7 @@ class WorkPlan < ApplicationRecord
   def original_set
     return nil unless original_set_uuid
     return @original_set if @original_set&.uuid==original_set_uuid
+    Rails.logger.debug "Loading original set for work plan"
     begin
       @original_set = SetClient::Set.find(original_set_uuid).first
     rescue JsonApiClient::Errors::NotFound => e
@@ -108,26 +110,29 @@ class WorkPlan < ApplicationRecord
   end
 
   def cancelled?
-    status=='cancelled'
+    cancelled.present?
   end
 
   def in_construction?
     status=='construction'
   end
 
+  # cancelled - the plan has been cancelled
   # broken - one of the orders is broken
   # closed - all of the orders are complete or cancelled (in some combination)
   # active - the orders are underway
-  # cancelled - the plan has been cancelled
   # construction - the plan is not yet underway
   def status
     return 'cancelled' if cancelled
-    if project_id && !work_orders.empty?
-      return 'broken' if work_orders.any?(&:broken?)
-      return 'closed' if work_orders.all?(&:closed?)
-      return 'active' if (work_orders.any?(&:active?) || work_orders.any?(&:closed?) && work_orders.any?(&:queued?))
+    if project_id
+      wos = work_orders.to_a # load them all now so we don't make multiple queries
+      if !wos.empty?
+        return 'broken' if wos.any?(&:broken?)
+        return 'closed' if wos.all?(&:closed?)
+        return 'active' unless wos.all?(&:queued?)
+      end
     end
-    'construction'
+    return 'construction'
   end
 
   # Everyone has :read and :create permission.

@@ -250,7 +250,7 @@ RSpec.describe WorkPlan, type: :model do
 
     context 'when all the orders are closed' do
       before do
-        plan.work_orders.each_with_index { |order,i| order.update_attributes(status: i==0 ? WorkOrder.COMPLETED : WorkOrder.CANCELLED) }
+        plan.work_orders.each_with_index { |order,i| order.update_attributes(status: WorkOrder.CONCLUDED) }
         plan.reload
       end
       it { expect(plan.status).to eq('closed') }
@@ -375,7 +375,7 @@ RSpec.describe WorkPlan, type: :model do
 
     context 'when an order is in progress' do
       it 'should say the process is in progress' do
-        plan.work_orders.first.update_attributes!(status: WorkOrder.COMPLETED)
+        plan.work_orders.first.update_attributes!(status: WorkOrder.CONCLUDED)
         order = plan.work_orders[1]
         order.update_attributes!(status: WorkOrder.ACTIVE)
         expect(plan.active_status).to eq("#{order.process.name} in progress")
@@ -384,19 +384,19 @@ RSpec.describe WorkPlan, type: :model do
 
     context 'when order cancelled' do
       it 'should say that the process was cancelled' do
-        plan.work_orders.first.update_attributes!(status: WorkOrder.COMPLETED)
+        plan.work_orders.first.update_attributes!(status: WorkOrder.CONCLUDED)
         order = plan.work_orders[1]
-        order.update_attributes!(status: WorkOrder.CANCELLED)
-        expect(plan.active_status).to eq("#{order.process.name} cancelled")
+        order.update_attributes!(status: WorkOrder.CONCLUDED)
+        expect(plan.active_status).to eq("#{order.process.name} concluded")
       end
     end
 
     context 'when order completed' do
       it 'should say that the process was completed' do
-        plan.work_orders.first.update_attributes!(status: WorkOrder.CANCELLED)
+        plan.work_orders.first.update_attributes!(status: WorkOrder.CONCLUDED)
         order = plan.work_orders[1]
-        order.update_attributes!(status: WorkOrder.COMPLETED)
-        expect(plan.active_status).to eq("#{order.process.name} completed")
+        order.update_attributes!(status: WorkOrder.CONCLUDED)
+        expect(plan.active_status).to eq("#{order.process.name} concluded")
       end
     end
   end
@@ -411,19 +411,23 @@ RSpec.describe WorkPlan, type: :model do
   describe '#cancelled' do
     context 'when a new work plan is created' do
       it 'should have cancelled set to nil' do
-        plan = WorkPlan.new(owner_email: 'user')
+        plan = create(:work_plan)
         expect(plan.cancelled).to be_nil
+        expect(plan).not_to be_cancelled
       end
     end
 
     context 'when a work plan is cancelled' do
       it 'should have cancelled set to the time of cancelling' do
-        plan = WorkPlan.new(owner_email: 'dave')
+        plan = create(:work_plan)
         cancelled_time = Time.now
         plan.update_attributes(cancelled: cancelled_time)
         plan = WorkPlan.find(plan.id)
         expect(plan.cancelled).not_to be_nil
+        # timestamp loses some precision when it is stored in the database
         expect(plan.cancelled).to be_within(1.second).of cancelled_time
+        expect(plan).to be_cancelled
+        expect(plan.status).to eq('cancelled')
       end
     end
   end

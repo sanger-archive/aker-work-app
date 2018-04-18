@@ -3,6 +3,7 @@
 require 'bunny'
 require 'event_message'
 require 'ostruct'
+require 'work_order_mailer'
 
 # This class should control connection, publishing and consuming from the broker
 class Broker
@@ -14,28 +15,65 @@ class Broker
   end
 
   def create_connection
-    !connected? && connect!
+    connected? || connect
+  end
+
+  def connected?
+    @connection&.connected?
+  end
+
+  def working?
+    if connected?
+      return true unless unconfirmed?
+      handle_broker_unconfirmed
+      return false
+    else
+      return connect
+    end
   end
 
   def publish(message)
-    create_connection unless connected?
+    # self.working? should have been checked before this method was called.
+    # If it is not working now, raise an exception.
+    if !working?
+      Rails.logger.error("Publishing aborted: #{message}")
+      raise "The message could not be published"
+    end
     Rails.logger.debug('Publishing message to broker')
     @exchange.publish(message.generate_json, routing_key: EventMessage::ROUTING_KEY)
     @channel.wait_for_confirms
-    raise 'There is an unconfirmed set.' if @channel.unconfirmed_set.count.positive?
+    if unconfirmed?
+      Rails.logger.error('There is an unconfirmed set in the broker.')
+      raise "The event message was not confirmed."
+    end
   end
 
-  private
+private
+
+  def unconfirmed?
+    @channel.unconfirmed_set.present? # unconfirmed_set may return nil or a set that may be empty
+  end
 
   def connect!
     start_connection
     exchange_and_queue_handler
     consume_catalogue_queue
     add_close_connection_handler
+    handle_broker_connected
+    return true
   end
 
-  def connected?
-    !@connection.nil?
+  # This returns true if successful, false if unsuccessful.
+  # It logs errors and sends emails as appropriate.
+  def connect
+    begin
+      return connect!
+    rescue => e
+      Rails.logger.error "Failed to connect to RabbitMQ"
+      Rails.logger.error e
+      handle_broker_not_connected
+      return false
+    end
   end
 
   def start_connection
@@ -117,14 +155,38 @@ class Broker
     Catalogue.where(lims_id: data[:lims_id]).update_all(current: false)
   end
 
+  def handle_broker_not_connected
+    unless @emailed_about_outage
+      WorkOrderMailer.broker_not_connected.deliver_later
+      @emailed_about_outage = true
+    end
+  end
+
+  def handle_broker_connected
+    if @emailed_about_outage
+      WorkOrderMailer.broker_reconnected.deliver_later
+      @emailed_about_outage = false
+    end
+  end
+
+  def handle_broker_unconfirmed
+    unless @emailed_about_outage
+      WorkOrderMailer.broker_unconfirmed.deliver_later
+      @emailed_about_outage = true
+    end
+  end
+
   def add_close_connection_handler
-    at_exit do
-      Rails.logger.info('RabbitMQ connection closed.')
-      close
+    unless @close_handler_added
+      at_exit do
+        Rails.logger.info('RabbitMQ connection closed.')
+        close
+      end
+      @close_handler_added = true
     end
   end
 
   def close
-    @connection.close
+    @connection&.close
   end
 end

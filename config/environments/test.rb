@@ -52,7 +52,8 @@ Rails.application.configure do
 
   config.billing_facade_url = 'http://external-server:3601'
 
-  config.work_order_completion_json = 'work_order_completion.json'
+  config.job_completion_json = 'job_completion.json'
+
 
   config.events = {
     enabled: false
@@ -70,5 +71,7 @@ Rails.application.configure do
                   sets: 'http://external-server:3002',
                   projects: '',
                   work_orders: '' }
+
+  config.akerdev_email = ENV.fetch('USER', 'user') + '@sanger.ac.uk'
 
 end

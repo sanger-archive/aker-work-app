@@ -1,0 +1,35 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "title": "Job",
+    "description": "Job completion message",
+    "type": "object",
+    "properties": {
+      "job": {
+        "type": "object",
+        "properties": {
+          "job_id": { "type": "integer"},
+          "comment": { "type": ["string", "null"] },
+          "updated_materials": {
+            "type": "array",
+            "items": {
+              "$ref": "<%= Rails.configuration.material_url %>/materials/json_patch_schema"
+            }
+          },
+          "new_materials": {
+            "type": "array",
+            "items": {
+              "$ref": "<%= Rails.configuration.material_url %>/materials/schema"
+            }
+          },
+          "containers": {
+            "type": "array",
+            "items": {
+              "$ref": "<%= Rails.configuration.material_url %>/containers/json_schema"
+            }
+          }
+        }
+      }
+    },
+    "additionalProperties": false,
+    "required": ["job"]
+}

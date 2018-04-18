@@ -94,6 +94,10 @@ RSpec.describe UpdatePlanService do
     end
   end
 
+  def stub_broker_connection
+    stub_const('BrokerHandle', class_double('BrokerHandle', working?: true))
+  end
+
   describe 'selecting a project' do
 
     def extra_stubbing
@@ -594,7 +598,7 @@ RSpec.describe UpdatePlanService do
 
       it { expect(@result).to be_falsey }
       it 'should produce an error message' do
-        expect(messages[:error]).to match /invalid/i
+        expect(messages[:error]).to eq "Please select an option to proceed"
       end
       it 'should not set the product in the plan' do
         expect(plan.product_id).to be_nil
@@ -626,7 +630,7 @@ RSpec.describe UpdatePlanService do
 
       it { expect(@result).to be_falsey }
       it 'should produce an error message' do
-        expect(messages[:error]).to match /invalid/i
+        expect(messages[:error]).to eq "Please select an option to proceed"
       end
       it 'should not set the product in the plan' do
         expect(plan.product_id).to be_nil
@@ -793,6 +797,7 @@ RSpec.describe UpdatePlanService do
       allow_any_instance_of(WorkOrder).to receive(:finalise_set) { @finalised_set = true }
       stub_project
       stub_stamps
+      stub_broker_connection
     end
 
     context 'when the order is queued' do
@@ -1068,6 +1073,15 @@ RSpec.describe UpdatePlanService do
       allow_any_instance_of(WorkOrder).to receive(:generate_submitted_event) { @sent_event = true }
       stub_project
       stub_stamps
+      stub_broker_connection
+    end
+
+    context 'when the broker is broken' do
+      let(:plan) { make_plan_with_orders }
+      before do
+        allow(BrokerHandle).to receive(:connected?).and_return(false)
+      end
+      it { expect(@result).to be_falsey }
     end
 
     context 'when the first order is queued' do
@@ -1145,7 +1159,7 @@ RSpec.describe UpdatePlanService do
     context 'when the project is not authorised' do
       let(:plan) do
         plan = make_plan_with_orders
-        plan.work_orders.first.update_attributes!(status: 'completed', finished_set_uuid: locked_set.uuid)
+        plan.work_orders.first.update_attributes!(status: 'concluded', finished_set_uuid: locked_set.uuid)
         plan
       end
 
@@ -1192,7 +1206,7 @@ RSpec.describe UpdatePlanService do
     context 'when the materials are not authorised' do
       let(:plan) do
         plan = make_plan_with_orders
-        plan.work_orders.first.update_attributes!(status: 'completed', finished_set_uuid: locked_set.uuid)
+        plan.work_orders.first.update_attributes!(status: 'concluded', finished_set_uuid: locked_set.uuid)
         plan
       end
 
@@ -1250,7 +1264,7 @@ RSpec.describe UpdatePlanService do
     context 'when the order is already active' do
       let(:plan) do
         plan = make_plan_with_orders
-        plan.work_orders.first.update_attributes!(status: 'completed', finished_set_uuid: locked_set.uuid)
+        plan.work_orders.first.update_attributes!(status: 'concluded', finished_set_uuid: locked_set.uuid)
         plan.work_orders[1].update_attributes!(status: 'active')
         plan
       end
@@ -1289,7 +1303,7 @@ RSpec.describe UpdatePlanService do
     context 'when the order is ready to be dispatched' do
       let(:plan) do
         plan = make_plan_with_orders
-        plan.work_orders.first.update_attributes!(status: 'completed', finished_set_uuid: locked_set.uuid)
+        plan.work_orders.first.update_attributes!(status: 'concluded', finished_set_uuid: locked_set.uuid)
         plan
       end
       it { expect(@result).to be_truthy }
@@ -1322,19 +1336,7 @@ RSpec.describe UpdatePlanService do
       it 'should have changed the dispatch date' do
         expect(orders[1].reload.dispatch_date).not_to be_nil
       end
-      
+
     end
   end
 end
-
-
-
-
-
-
-
-
-
-
-
-
