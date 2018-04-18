@@ -34,7 +34,7 @@ RSpec.describe 'CreateContainerStep' do
   describe '#up' do
     context 'when no containers are requested' do
       before do
-        make_step(work_order: {containers: []})        
+        make_step(job: {containers: []})        
         @step.up
       end
       it 'should not have created any containers' do
@@ -46,7 +46,7 @@ RSpec.describe 'CreateContainerStep' do
     end
     context 'when new containers are requested' do
       before do
-        make_step(work_order: {containers: containers})
+        make_step(job: {containers: containers})
         @step.up
       end
       it 'should have called create with the appropriate arguments' do
@@ -60,7 +60,7 @@ RSpec.describe 'CreateContainerStep' do
     context 'when containers already exist' do
       before do
         containers.each { |c| load_container(c) }
-        make_step(work_order: {containers: containers})
+        make_step(job: {containers: containers})
         @step.up
       end
 
@@ -75,7 +75,7 @@ RSpec.describe 'CreateContainerStep' do
     context 'when containers partially already exist' do
       before do
         load_container(containers.first)
-        make_step(work_order: {containers: containers})
+        make_step(job: {containers: containers})
         @step.up
       end
 
@@ -93,7 +93,7 @@ RSpec.describe 'CreateContainerStep' do
   describe '#down' do
     context 'when there are no containers to destroy' do
       before do
-        make_step(work_order: {containers: []})
+        make_step(job: {containers: []})
         @step.instance_variable_set(:@new_containers, [])
         @step.down
       end
@@ -105,7 +105,7 @@ RSpec.describe 'CreateContainerStep' do
     end
     context 'when there are containers to destroy' do
       before do
-        make_step(work_order: {containers: containers})
+        make_step(job: {containers: containers})
         @step.up
         @created_containers = @step.new_containers.clone
         @created_containers.each { |c| allow(c).to receive(:destroy) }

@@ -2,15 +2,15 @@ class UpdateOldMaterialsStep
 
   attr_reader :materials_before_changes
 
-  def initialize(work_order, msg)
-    @work_order = work_order
+  def initialize(job, msg)
+    @job = job
     @msg = msg
   end
 
   # Step 3 - Update old materials
   def up
     @materials_before_changes = []
-    @msg[:work_order][:updated_materials].each do |updated_params|
+    @msg[:job][:updated_materials].each do |updated_params|
       uuid = updated_params[:_id]
       updated_params.delete(:_id)
       material = MatconClient::Material.find(uuid)

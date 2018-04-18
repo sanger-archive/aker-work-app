@@ -1,9 +1,9 @@
 FactoryBot.define do
-  factory :work_order_completion_message_json, class: Hash do |work_order|
+  factory :job_completion_message_json, class: Hash do |job|
     initialize_with { Hash.new.merge({
-        "work_order": {
+        "job": {
           "status": "complete",
-          "work_order_id": 1,
+          "job_id": 1,
           "comment": "Extra information about the completed work order.",
 
           "updated_materials": [
@@ -46,11 +46,11 @@ FactoryBot.define do
     }
   end
 
-  factory :valid_work_order_completion_message_json, class: Hash do |work_order|
+  factory :valid_job_completion_message_json, class: Hash do |job|
     initialize_with { Hash.new.merge({
-        "work_order": {
+        "job": {
           "status": "complete",
-          "work_order_id": 1,
+          "job_id": 1,
           "comment": "Extra information about the completed work order.",
           "updated_materials": [],
           "new_materials": [],
@@ -60,11 +60,11 @@ FactoryBot.define do
     }
   end
 
-  factory :invalid_work_order_completion_message_json, class: Hash do |work_order|
+  factory :invalid_job_completion_message_json, class: Hash do |job|
     initialize_with { Hash.new.merge({
-        "work_order": {
+        "job": {
           "status": "pending",
-          "work_order_id": 1,
+          "job_id": 1,
           "comment": "Extra information about the completed work order.",
           "updated_materials": [],
           "new_materials": [],
@@ -74,10 +74,10 @@ FactoryBot.define do
     }
   end
 
-  factory :test_work_order_completion, class: Hash do |work_order|
+  factory :test_job_completion, class: Hash do |job|
     initialize_with { Hash.new.merge({
-      "work_order": {
-        "work_order_id": 14,
+      "job": {
+        "job_id": 14,
         "comment": "string",
         "updated_materials": [],
         "new_materials": [{
