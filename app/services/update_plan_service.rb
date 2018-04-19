@@ -54,6 +54,7 @@ class UpdatePlanService
       update_order = {
         order_id: @work_plan_params[:work_order_id],
         modules: module_ids,
+        modules_selected_value: modules_selected_value_from_module_ids(module_ids)
       }
       return false unless validate_modules(module_ids)
       order = WorkOrder.find(update_order[:order_id])
@@ -66,7 +67,7 @@ class UpdatePlanService
         return false
       end
       return false unless check_process_module_ids(module_ids, order.process)
-      @work_plan_params = @work_plan_params.except(:work_order_id, :work_order_modules)
+      @work_plan_params = @work_plan_params.except(:work_order_id, :work_order_modules, :work_order_module)
 
     elsif @work_plan_params[:work_order_id] || @work_plan_params[:work_order_modules]
       add_error("Invalid parameters")
@@ -87,7 +88,8 @@ class UpdatePlanService
       if update_order
         WorkOrderModuleChoice.where(work_order_id: update_order[:order_id]).each(&:destroy)
         update_order[:modules].each_with_index do |mid, i|
-          WorkOrderModuleChoice.create!(work_order_id: update_order[:order_id], aker_process_modules_id: mid, position: i)
+          WorkOrderModuleChoice.create!(work_order_id: update_order[:order_id], aker_process_modules_id: mid, position: i, 
+            selected_value: update_order[:modules_selected_value][i])
         end
       end
 
@@ -113,6 +115,16 @@ class UpdatePlanService
   end
 
 private
+
+  def modules_selected_value_from_module_ids(module_ids)
+    module_ids.map(&:to_s).map do |id| 
+      if @work_plan_params[:work_order_module][id]
+        @work_plan_params[:work_order_module][id][:selected_value]
+      else
+        nil
+      end
+    end
+  end
 
   def ready_for_step
     unless @work_plan.original_set_uuid

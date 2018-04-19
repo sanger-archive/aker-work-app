@@ -225,7 +225,7 @@ class WorkOrder < ApplicationRecord
     module_choices = WorkOrderModuleChoice.where(work_order_id: id)
     module_choices.each do |c|
       mod = Aker::ProcessModule.find(c.aker_process_modules_id)
-      path.push({name: mod.name, id: mod.id})
+      path.push({name: mod.name, id: mod.id, selected_value: c.selected_value.to_s})
     end
     path
   end

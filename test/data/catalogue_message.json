@@ -1,16 +1,172 @@
-{"catalogue":{"id":1,"pipeline":"WGS",
-"url":"http://dev.psd.sanger.ac.uk:6600/api/v2/aker/work_orders",
-"lims_id":"SQSC","products":[
-{"id":2,"name":"QC","description":"Lorem Ipsum","product_version":1,"availability":1,
-"requested_biomaterial_type":"blood","product_class":"genotyping","processes":[
-{"id":2,"name":"QCedu1","stage":1,"TAT":5,
-"module_parameters": [{"name": "Genotyping CGP SNP", "min_value": 0, "max_value" : 44 }],
-"process_module_pairings":[{"from_step":null,"to_step":
-"Quantification","default_path":true},{"from_step":null,"to_step":"Genotyping CGP SNP","default_path":false},
-{"from_step":null,"to_step":"Genotyping DDD SNP","default_path":false},{"from_step":null,"to_step":"Genotyping HumGen SNP",
-"default_path":false},{"from_step":"Quantification","to_step":null,"default_path":false},{"from_step":"Genotyping CGP SNP",
-"to_step":null,"default_path":false},{"from_step":"Genotyping DDD SNP","to_step":null,"default_path":false},
-{"from_step":"Genotyping HumGen SNP","to_step":null,"default_path":true},{"from_step":"Quantification","to_step":
-"Genotyping CGP SNP","default_path":true},{"from_step":"Quantification","to_step":"Genotyping DDD SNP","default_path":false},
-{"from_step":"Quantification","to_step":"Genotyping HumGen SNP","default_path":false}]}]}]}}
- 
+{
+   "catalogue":{
+      "pipeline":"WGS",
+      "url":"http://localhost:3400",
+      "lims_id":"mylims",
+      "processes":[
+         {
+            "uuid":"51c4c8c7-2e7a-41dd-a36a-3f44963a00b9",
+            "name":"QC",
+            "TAT":5,
+            "process_class":"genotyping",
+            "module_parameters": [{"name": "Quantification", "min_value": 1, "max_value" : 5 }],
+            "process_module_pairings":[
+               {
+                  "from_step":null,
+                  "to_step":"Quantification",
+                  "default_path":true
+               },
+               {
+                  "from_step":null,
+                  "to_step":"Genotyping CGP SNP",
+                  "default_path":false
+               },
+               {
+                  "from_step":null,
+                  "to_step":"Genotyping DDD SNP",
+                  "default_path":false
+               },
+               {
+                  "from_step":null,
+                  "to_step":"Genotyping HumGen SNP",
+                  "default_path":false
+               },
+               {
+                  "from_step":"Quantification",
+                  "to_step":null,
+                  "default_path":false
+               },
+               {
+                  "from_step":"Genotyping CGP SNP",
+                  "to_step":null,
+                  "default_path":false
+               },
+               {
+                  "from_step":"Genotyping DDD SNP",
+                  "to_step":null,
+                  "default_path":false
+               },
+               {
+                  "from_step":"Genotyping HumGen SNP",
+                  "to_step":null,
+                  "default_path":true
+               },
+               {
+                  "from_step":"Quantification",
+                  "to_step":"Genotyping CGP SNP",
+                  "default_path":false
+               },
+               {
+                  "from_step":"Quantification",
+                  "to_step":"Genotyping DDD SNP",
+                  "default_path":false
+               },
+               {
+                  "from_step":"Quantification",
+                  "to_step":"Genotyping HumGen SNP",
+                  "default_path":true
+               }
+            ]
+         },
+         {
+            "uuid":"81fa3b15-1598-45f9-8c89-45e4a651fe13",
+            "name":"Library 30x Human Whole Genome",
+            "TAT":8,
+            "process_class":"dna_sequencing",
+            "process_module_pairings":[
+               {
+                  "from_step":null,
+                  "to_step":"PCR FREE",
+                  "default_path":false
+               },
+               {
+                  "from_step":null,
+                  "to_step":"8 PCR Cycles",
+                  "default_path":false
+               },
+               {
+                  "from_step":null,
+                  "to_step":"6 PCR Cycles",
+                  "default_path":true
+               },
+               {
+                  "from_step":"PCR FREE",
+                  "to_step":null,
+                  "default_path":false
+               },
+               {
+                  "from_step":"8 PCR Cycles",
+                  "to_step":null,
+                  "default_path":false
+               },
+               {
+                  "from_step":"6 PCR Cycles",
+                  "to_step":null,
+                  "default_path":true
+               }
+            ]
+         },
+         {
+            "uuid":"0bc48d2f-dcf6-448a-82d0-75665e9069d1",
+            "name":"30x Human Whole Genome Sequencing",
+            "TAT":8,
+            "process_class":"dna_sequencing",
+            "module_parameters": [
+                {"name": "Multiplex Pooling (m=2..96)", "min_value": 2, "max_value" : 96 }
+            ],
+            "process_module_pairings":[
+               {
+                  "from_step":null,
+                  "to_step":"NovaSeq",
+                  "default_path":false
+               },
+               {
+                  "from_step":null,
+                  "to_step":"Single Plex Pooling (m=1)",
+                  "default_path":false
+               },
+               {
+                  "from_step":null,
+                  "to_step":"Multiplex Pooling (m=2..96)",
+                  "default_path":true
+               },
+               {
+                  "from_step":"NovaSeq",
+                  "to_step":null,
+                  "default_path":false
+               },
+               {
+                  "from_step":"HiSeq X",
+                  "to_step":null,
+                  "default_path":true
+               },
+               {
+                  "from_step":"Single Plex Pooling (m=1)",
+                  "to_step":"HiSeq X",
+                  "default_path":false
+               },
+               {
+                  "from_step":"Multiplex Pooling (m=2..96)",
+                  "to_step":"HiSeq X",
+                  "default_path":true
+               }
+            ]
+         }
+      ],
+      "products":[
+         {
+            "uuid":"fedd99f6-a028-471b-9790-90bf46f9b445",
+            "name":"30x Human Whole Genome Sequencing",
+            "description":"Quality Control",
+            "product_version":1,
+            "availability":1,
+            "requested_biomaterial_type":"blood",
+            "process_uuids":[
+               "51c4c8c7-2e7a-41dd-a36a-3f44963a00b9",
+               "81fa3b15-1598-45f9-8c89-45e4a651fe13",
+               "0bc48d2f-dcf6-448a-82d0-75665e9069d1"
+            ]
+         }
+      ]
+   }
+}

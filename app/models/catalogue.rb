@@ -62,7 +62,7 @@ class Catalogue < ApplicationRecord
   end
 
   def self.validate_module_parameters(processes_params)
-    processes_params.all? do |process_params|
+    processes_params.select{|p| p[:module_parameters]}.all? do |process_params|
       process_params[:module_parameters].all?{|p| validate_params_for_module(p)}
     end
   end
