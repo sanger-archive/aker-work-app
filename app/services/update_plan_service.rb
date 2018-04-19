@@ -33,6 +33,13 @@ class UpdatePlanService
     # Requesting to set the modules for all orders in the plan
     if @work_plan_params[:product_options].present? && @work_plan_params[:product_id].present?
       product_options = JSON.parse(@work_plan_params[:product_options])
+      product_options_selected_values = product_options.map do |list|
+        list.map do |module_id| 
+          if @work_plan_params[:work_order_module][module_id.to_s]
+            @work_plan_params[:work_order_module][module_id.to_s][:selected_value]
+          end
+        end
+      end
       product = Product.find(@work_plan_params[:product_id])
       return false unless validate_modules(product_options.flatten)
       return false unless check_product_module_ids(product_options, product)
@@ -51,10 +58,11 @@ class UpdatePlanService
     # Requesting to update the modules in one order
     if @work_plan_params[:work_order_id] && @work_plan_params[:work_order_modules]
       module_ids = JSON.parse(@work_plan_params[:work_order_modules])
+      modules_selected_values = modules_selected_value_from_module_ids(module_ids)
       update_order = {
         order_id: @work_plan_params[:work_order_id],
         modules: module_ids,
-        modules_selected_value: modules_selected_value_from_module_ids(module_ids)
+        modules_selected_value: modules_selected_values
       }
       return false unless validate_modules(module_ids)
       order = WorkOrder.find(update_order[:order_id])
@@ -67,35 +75,46 @@ class UpdatePlanService
         return false
       end
       return false unless check_process_module_ids(module_ids, order.process)
-      @work_plan_params = @work_plan_params.except(:work_order_id, :work_order_modules, :work_order_module)
+      @work_plan_params = @work_plan_params.except(:work_order_id, :work_order_modules)
 
     elsif @work_plan_params[:work_order_id] || @work_plan_params[:work_order_modules]
       add_error("Invalid parameters")
       return false
     end
 
+    @work_plan_params = @work_plan_params.except(:work_order_module)
+
     if @work_plan.update_attributes(@work_plan_params)
       locked_set_uuid = nil
-
-      if (@work_plan_params[:product_id] || product_options) && !@work_plan.work_orders.empty?
-        # User is changing their product or options - delete the incorrect work orders
-        locked_set_uuid = @work_plan.work_orders.first.set_uuid
-        work_order_ids = @work_plan.work_orders.map(&:id)
-        WorkOrderModuleChoice.where(work_order_id: work_order_ids).each(&:destroy)
-        @work_plan.work_orders.destroy_all
-      end
-
-      if update_order
-        WorkOrderModuleChoice.where(work_order_id: update_order[:order_id]).each(&:destroy)
-        update_order[:modules].each_with_index do |mid, i|
-          WorkOrderModuleChoice.create!(work_order_id: update_order[:order_id], aker_process_modules_id: mid, position: i, 
-            selected_value: update_order[:modules_selected_value][i])
+      begin
+        if (@work_plan_params[:product_id] || product_options) && !@work_plan.work_orders.empty?
+          # User is changing their product or options - delete the incorrect work orders
+          locked_set_uuid = @work_plan.work_orders.first.set_uuid
+          work_order_ids = @work_plan.work_orders.map(&:id)
+          WorkOrderModuleChoice.where(work_order_id: work_order_ids).each(&:destroy)
+          @work_plan.work_orders.destroy_all
         end
+
+        if update_order
+          ActiveRecord::Base.transaction do
+            WorkOrderModuleChoice.where(work_order_id: update_order[:order_id]).each(&:destroy)
+            update_order[:modules].each_with_index do |mid, i|
+              WorkOrderModuleChoice.create!(work_order_id: update_order[:order_id], aker_process_modules_id: mid, position: i, 
+                selected_value: update_order[:modules_selected_value][i])
+            end
+          end
+        end
+      rescue => e
+        Rails.logger.error("Failed to update work orders")
+        Rails.logger.error e
+        Rails.logger.error e.backtrace
+        add_error("Update of work orders failed")
+        return false          
       end
 
       if product_options && @work_plan.work_orders.empty?
         begin
-          @work_plan.create_orders(product_options, locked_set_uuid)
+          @work_plan.create_orders(product_options, locked_set_uuid, product_options_selected_values)
         rescue => e
           Rails.logger.error("Failed to create work orders")
           Rails.logger.error e

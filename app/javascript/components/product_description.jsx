@@ -502,7 +502,7 @@ class ProcessModuleParameters extends React.Component {
       const name = "work_plan[work_order_module]["+this.props.selectedOption.id+"][selected_value]"
       return(
         <div className={this.classes()}>
-          <input value={this.state.selectedValue} type="text" name={name} className="form-control" placeholder={caption} onChange={this.onChange} />
+          <input autoComplete="off" value={this.state.selectedValue} type="text" name={name} className="form-control" placeholder={caption} onChange={this.onChange} />
           {this.renderFeedback(caption)}
         </div>
       )
