@@ -1,6 +1,8 @@
-#
+# frozen_string_literal: true
+
 # This class represents a unit of job performed inside a work order for a set of biomaterial
-# inside a container. Any instance could take one of the following status depending on the situation:
+# inside a container. Any instance could take one of the following status depending on the
+# situation:
 #
 # - queued    : The job is created, but not sent to a LIMS to start its work
 # - active    : The job has started
@@ -26,33 +28,31 @@ class Job < ApplicationRecord
 
   validate :status_ready_for_update
 
-  scope :not_broken, -> { where(broken: nil) }
-  scope :queued, -> { where(started: nil, completed: nil, cancelled: nil, broken: nil) }
-  scope :active, -> { not_broken.where.not(started: nil).where(completed: nil, cancelled: nil) }
-  scope :concluded, -> { not_broken.where.not(started: nil).where('(completed IS NOT NULL) OR (cancelled IS NOT NULL)') }
-
-  # Before modifying the state for an object, it checks that the preconditions for each step have been met
+  # Before modifying the state for an object, it checks that the pre-conditions for each step have
+  # been met
   def status_ready_for_update
     # No broken job can be modified
-    if broken_was
-      errors.add(:base, 'cannot update, job is broken')
-    end
+    broken_was && errors.add(:base, 'cannot update, job is broken')
+
     # A job is either completed or cancelled
-    if (started && cancelled && completed)
+    if started && cancelled && completed
       errors.add(:base, 'cannot be started, cancelled and completed at same time')
     end
+
     # A job cannot be cancelled or completed before being started
-    if (cancelled || completed) && (!started)
+    if (cancelled || completed) && !started
       errors.add(:base, 'cannot be finished without starting')
     end
+
     # Once a job is in a status, it cannot be set again into the same status
-    if id
-      previous_object = Job.find(id)
-      columns_to_check = [:started, :cancelled, :completed].select{|s| !previous_object.send(s).nil?}
-      if ((columns_to_check & changed_attributes.keys).length > 0)
-        errors.add(:base, 'cannot use the same operation twice to change the status')
-      end
-    end
+    return unless id
+
+    previous_object = Job.find(id)
+    columns_to_check = %i[started cancelled completed].reject { |s| previous_object.send(s).nil? }
+
+    return unless (columns_to_check & changed_attributes.keys).length.positive?
+
+    errors.add(:base, 'cannot use the same operation twice to change the status')
   end
 
   def queued?
@@ -77,24 +77,25 @@ class Job < ApplicationRecord
 
   def send_to_lims
     lims_url = work_order.work_plan.product.catalogue.url
-    LimsClient::post(lims_url, lims_data)
+    LimsClient.post(lims_url, lims_data)
   end
 
   def start!
-    update_attributes!(started: Time.now)
+    update!(started: Time.zone.now)
   end
 
   def cancel!
-    update_attributes!(cancelled: Time.now)
+    update!(cancelled: Time.zone.now)
   end
 
   def complete!
-    update_attributes!(completed: Time.now)
+    update!(completed: Time.zone.now)
   end
 
   def broken!
-    update_attributes!(broken: Time.now)
-    # update the work order to be broken too, jobs can still be concluded but work plan cannot progress
+    update!(broken: Time.zone.now)
+    # update the work order to be broken too, jobs can still be concluded but work plan cannot
+    # progress
     work_order.broken!
   end
 
@@ -103,7 +104,7 @@ class Job < ApplicationRecord
     return 'cancelled' if cancelled
     return 'completed' if completed
     return 'active' if started
-    return 'queued'
+    'queued'
   end
 
   def container
@@ -119,34 +120,20 @@ class Job < ApplicationRecord
   end
 
   def materials
-    @materials ||= MatconClient::Material.where("_id" => {"$in" => material_ids })
+    @materials ||= MatconClient::Material.where('_id' => { '$in' => material_ids })
   end
 
   def address_for_material(container, material)
-    container.slots.select{|slot| slot.material_id == material.id}.first.address
+    container.slots.select { |slot| slot.material_id == material.id }.first.address
   end
 
-  def has_materials?(uuids)
+  def materials?(uuids)
     return true if uuids.empty?
     uuids_from_job = materials.map(&:id)
     return false if uuids_from_job.empty?
     uuids.all? do |uuid|
       uuids_from_job.include?(uuid)
     end
-  end
-
-  # This method returns a ActiveRecord:Relation of the jobs for a pipeline
-  # It throws an exception if there is more than one catalogue, or the catalogue does not exist
-  def self.get_jobs_for_pipeline(pipeline)
-    # TODO: Use joins instead
-    # e.g. Job.joins(:work_order).where('work_order_id=work_orders.id')
-    catalogues = Catalogue.where('lower(pipeline) = lower(?)', pipeline).where(current: true)
-
-    if catalogues.length!=1
-      raise JSONAPI::Exceptions::RecordNotFound, "pipeline: #{pipeline}"
-    end
-    jobs = catalogues[0].get_all_jobs
-    Job.where(id: jobs.map(&:id))
   end
 
   # This method returns a JSON description of the order that will be sent to a LIMS to order work.
@@ -172,8 +159,6 @@ class Job < ApplicationRecord
     end
 
     project = work_order.work_plan.project
-    cost_code = project.cost_code
-
 
     {
       job: {
@@ -197,9 +182,8 @@ class Job < ApplicationRecord
           barcode: container.barcode,
           num_of_rows: container.num_of_rows,
           num_of_cols: container.num_of_cols
-        },
+        }
       }
     }
   end
-
 end

@@ -1,18 +1,20 @@
+# frozen_string_literal: true
+
 require 'rails_helper'
 
 RSpec.describe 'Api::V1::Jobs', type: :request do
   include TestServicesHelper
   let(:headers) do
     {
-      "Content-Type" => "application/vnd.api+json",
-      "Accept" => "application/vnd.api+json"
+      'Content-Type' => 'application/vnd.api+json',
+      'Accept' => 'application/vnd.api+json'
     }
   end
   let(:params) do
     {
       job: {
-        job_id: job.id,
-      },
+        job_id: job.id
+      }
     }.to_json
   end
 
@@ -24,13 +26,25 @@ RSpec.describe 'Api::V1::Jobs', type: :request do
   describe 'Resource' do
     context 'GET' do
       let(:set_for_work_order) { made_up_set }
-      let(:yesterday) { Time.now.yesterday}
-      let(:tomorrow) { Time.now.tomorrow}
+      let(:yesterday) { Time.zone.now.yesterday }
+      let(:tomorrow) { Time.zone.now.tomorrow }
       let(:project) { make_node('my project', 'S0001', 1, 0, false, true) }
       let(:catalogue) { create(:catalogue) }
       let(:product) { create(:product, catalogue: catalogue) }
-      let(:plan) { create :work_plan, owner_email: 'owner@here.com', desired_date: tomorrow, project_id: project.id, product_id: product.id, comment: 'a comment' }
-      let(:order) { create :work_order, set_uuid: set_for_work_order.id, dispatch_date: yesterday, work_plan_id: plan.id }
+      let(:plan) do
+        create :work_plan,
+               owner_email: 'owner@here.com',
+               desired_date: tomorrow,
+               project_id: project.id,
+               product_id: product.id,
+               comment: 'a comment'
+      end
+      let(:order) do
+        create :work_order,
+               set_uuid: set_for_work_order.id,
+               dispatch_date: yesterday,
+               work_plan_id: plan.id
+      end
       let(:container) { make_container }
       let(:job) { create :job, work_order: order, container_uuid: container.id }
 
@@ -54,7 +68,8 @@ RSpec.describe 'Api::V1::Jobs', type: :request do
         expect(obtained_job['data']['attributes']['completed']).to eq(nil)
         expect(obtained_job['data']['attributes']['cancelled']).to eq(nil)
         expect(obtained_job['data']['attributes']['broken']).to eq(nil)
-        expect(obtained_job['data']['attributes']['date-requested']).to eq(order.dispatch_date.to_s)
+        expect(obtained_job['data']['attributes']['date-requested'])
+          .to eq(order.dispatch_date.to_s)
         expect(obtained_job['data']['attributes']['requested-by']).to eq(plan.owner_email)
         expect(obtained_job['data']['attributes']['project']).to eq(project.name)
         expect(obtained_job['data']['attributes']['desired-date']).to eq(plan.desired_date.to_s)
@@ -72,14 +87,14 @@ RSpec.describe 'Api::V1::Jobs', type: :request do
       let(:set_for_work_order) { made_up_set }
       let(:order) { create :work_order, set_uuid: set_for_work_order.id }
       let(:container) { make_container }
-      let(:job) { create :job, work_order: order, container_uuid: container.id}
+      let(:job) { create :job, work_order: order, container_uuid: container.id }
 
       it 'does not update the job when receiving params' do
         body = {
           data: {
             type: 'jobs',
             attributes: {
-              started: Time.now
+              started: Time.zone.now
             }
           }
         }.to_json
@@ -122,7 +137,6 @@ RSpec.describe 'Api::V1::Jobs', type: :request do
             expect(job.status).to eq('active')
           end
         end
-
       end
 
       describe '#complete' do
@@ -140,7 +154,7 @@ RSpec.describe 'Api::V1::Jobs', type: :request do
               put api_v1_job_complete_path(job), headers: headers, params: params
             end
             it 'should have correct message in response body' do
-              msg = "RabbitMQ broker is broken"
+              'RabbitMQ broker is broken'
             end
           end
 
@@ -154,7 +168,6 @@ RSpec.describe 'Api::V1::Jobs', type: :request do
             end
 
             it 'conforms to the JSON API schema' do
-
               expect(response).to match_api_schema('jsonapi')
             end
 
@@ -166,10 +179,9 @@ RSpec.describe 'Api::V1::Jobs', type: :request do
             it { expect(response).to have_http_status(:ok) }
 
             it 'should have correct message in repsonse body' do
-              msg = "Your job is completed"
-              expect(response.body).to eq({meta: {message: msg} }.to_json)
+              msg = 'Your job is completed'
+              expect(response.body).to eq({ meta: { message: msg } }.to_json)
             end
-
           end
         end
         context 'when job is queued' do
@@ -210,7 +222,6 @@ RSpec.describe 'Api::V1::Jobs', type: :request do
             expect(job.status).to eq('completed')
           end
         end
-
       end
 
       describe '#cancel' do
@@ -253,7 +264,6 @@ RSpec.describe 'Api::V1::Jobs', type: :request do
           it 'conforms to the JSON API schema' do
             expect(response).to match_api_schema('jsonapi')
           end
-
         end
         context 'when job is cancelled' do
           before do
@@ -291,16 +301,43 @@ RSpec.describe 'Api::V1::Jobs', type: :request do
       let(:work_order4) { create(:work_order, set_uuid: made_up_set.id, work_plan: work_plan) }
 
       let(:container) { make_container }
-      let(:started_time) { Time.now }
+      let(:started_time) { Time.zone.now }
 
       let!(:queued_job) { create(:job, work_order: work_order1, container_uuid: container.id) }
-      let!(:started_job) { create(:job, work_order: work_order2, started: started_time, container_uuid: container.id) }
-      let!(:completed_job) { create(:job, work_order: work_order3, started: started_time, completed: Time.now, container_uuid: container.id) }
-      let!(:cancelled_job) { create(:job, work_order: work_order4, started: started_time, cancelled: Time.now, container_uuid: container.id) }
+      let!(:started_job) do
+        create :job,
+               work_order: work_order2,
+               started: started_time,
+               container_uuid: container.id
+      end
+      let!(:completed_job) do
+        create :job,
+               work_order: work_order3,
+               started: started_time,
+               completed: Time.zone.now,
+               container_uuid: container.id
+      end
+      let!(:cancelled_job) do
+        create :job,
+               work_order: work_order4,
+               started: started_time,
+               cancelled: Time.zone.now,
+               container_uuid: container.id
+      end
+
+      context 'when filtering by many statuses' do
+        before do
+          get api_v1_jobs_path, headers: headers, params: { 'filter[status]': 'queued,active' }
+        end
+
+        it 'returns a 500' do
+          expect(response).to have_http_status(:internal_server_error)
+        end
+      end
 
       context 'when filtering by queued jobs' do
         before do
-          get api_v1_jobs_path, headers: headers, params: { "filter[status]": "queued" }
+          get api_v1_jobs_path, headers: headers, params: { 'filter[status]': 'queued' }
         end
 
         it 'returns a 200' do
@@ -309,12 +346,12 @@ RSpec.describe 'Api::V1::Jobs', type: :request do
 
         it 'returns a list of queued jobs' do
           body = JSON.parse(response.body)
-          expect(body['data'][0]['id']).to eq (queued_job.id.to_s)
-          expect(body['data'][0]['attributes']['started']).to eq (queued_job.started)
-          expect(body['data'][0]['attributes']['completed']).to eq (queued_job.completed)
-          expect(body['data'][0]['attributes']['cancelled']).to eq (queued_job.cancelled)
-          expect(body['data'][0]['attributes']['broken']).to eq (queued_job.broken)
-          expect(body['data'][0]['attributes']['work-order-id']).to eq (queued_job.work_order.id)
+          expect(body['data'][0]['id']).to eq queued_job.id.to_s
+          expect(body['data'][0]['attributes']['started']).to eq queued_job.started
+          expect(body['data'][0]['attributes']['completed']).to eq queued_job.completed
+          expect(body['data'][0]['attributes']['cancelled']).to eq queued_job.cancelled
+          expect(body['data'][0]['attributes']['broken']).to eq queued_job.broken
+          expect(body['data'][0]['attributes']['work-order-id']).to eq queued_job.work_order.id
         end
 
         it 'conforms to the JSON API schema' do
@@ -324,7 +361,7 @@ RSpec.describe 'Api::V1::Jobs', type: :request do
 
       context 'when filtering by active jobs' do
         before do
-          get api_v1_jobs_path, headers: headers, params: { "filter[status]": "active" }
+          get api_v1_jobs_path, headers: headers, params: { 'filter[status]': 'active' }
         end
 
         it 'returns a 200' do
@@ -333,12 +370,14 @@ RSpec.describe 'Api::V1::Jobs', type: :request do
 
         it 'returns a list of active jobs' do
           body = JSON.parse(response.body)
-          expect(body['data'][0]['id']).to eq (started_job.id.to_s)
-          expect(DateTime.parse(body['data'][0]['attributes']['started'])).to be_within(1).of(started_job.started.to_datetime)
-          expect(body['data'][0]['attributes']['completed']).to eq (started_job.completed)
-          expect(body['data'][0]['attributes']['cancelled']).to eq (started_job.cancelled)
-          expect(body['data'][0]['attributes']['broken']).to eq (started_job.broken)
-          expect(body['data'][0]['attributes']['work-order-id']).to eq (started_job.work_order.id)
+          expect(body['data'][0]['id']).to eq started_job.id.to_s
+          expect(Date.iso8601(body['data'][0]['attributes']['started']))
+            .to be_within(1)
+            .of(started_job.started.to_datetime)
+          expect(body['data'][0]['attributes']['completed']).to eq started_job.completed
+          expect(body['data'][0]['attributes']['cancelled']).to eq started_job.cancelled
+          expect(body['data'][0]['attributes']['broken']).to eq started_job.broken
+          expect(body['data'][0]['attributes']['work-order-id']).to eq started_job.work_order.id
         end
 
         it 'conforms to the JSON API schema' do
@@ -348,7 +387,7 @@ RSpec.describe 'Api::V1::Jobs', type: :request do
 
       context 'when filtering by concluded jobs' do
         before do
-          get api_v1_jobs_path, headers: headers, params: { "filter[status]": "concluded" }
+          get api_v1_jobs_path, headers: headers, params: { 'filter[status]': 'concluded' }
         end
 
         it 'returns a 200' do
@@ -358,18 +397,26 @@ RSpec.describe 'Api::V1::Jobs', type: :request do
         it 'returns a list of concluded jobs' do
           body = JSON.parse(response.body)
           expect(body['data'].length).to eq 2
-          expect(body['data'][0]['id']).to eq (completed_job.id.to_s)
-          expect(DateTime.parse(body['data'][0]['attributes']['started'])).to be_within(1).of(completed_job.started.to_datetime)
-          expect(DateTime.parse(body['data'][0]['attributes']['completed'])).to be_within(1).of(completed_job.completed.to_datetime)
-          expect(body['data'][0]['attributes']['cancelled']).to eq (completed_job.cancelled)
-          expect(body['data'][0]['attributes']['broken']).to eq (completed_job.broken)
-          expect(body['data'][0]['attributes']['work-order-id']).to eq (completed_job.work_order.id)
-          expect(body['data'][1]['id']).to eq (cancelled_job.id.to_s)
-          expect(DateTime.parse(body['data'][1]['attributes']['started'])).to be_within(1).of(cancelled_job.started.to_datetime)
-          expect(body['data'][1]['attributes']['completed']).to eq (cancelled_job.completed)
-          expect(DateTime.parse(body['data'][1]['attributes']['cancelled'])).to be_within(1).of(cancelled_job.cancelled.to_datetime)
-          expect(body['data'][1]['attributes']['broken']).to eq (cancelled_job.broken)
-          expect(body['data'][1]['attributes']['work-order-id']).to eq (cancelled_job.work_order.id)
+          expect(body['data'][0]['id']).to eq completed_job.id.to_s
+          expect(Date.iso8601(body['data'][0]['attributes']['started']))
+            .to be_within(1)
+            .of(completed_job.started.to_datetime)
+          expect(Date.iso8601(body['data'][0]['attributes']['completed']))
+            .to be_within(1)
+            .of(completed_job.completed.to_datetime)
+          expect(body['data'][0]['attributes']['cancelled']).to eq completed_job.cancelled
+          expect(body['data'][0]['attributes']['broken']).to eq completed_job.broken
+          expect(body['data'][0]['attributes']['work-order-id']).to eq completed_job.work_order.id
+          expect(body['data'][1]['id']).to eq cancelled_job.id.to_s
+          expect(Date.iso8601(body['data'][1]['attributes']['started']))
+            .to be_within(1)
+            .of(cancelled_job.started.to_datetime)
+          expect(body['data'][1]['attributes']['completed']).to eq cancelled_job.completed
+          expect(Date.iso8601(body['data'][1]['attributes']['cancelled']))
+            .to be_within(1)
+            .of(cancelled_job.cancelled.to_datetime)
+          expect(body['data'][1]['attributes']['broken']).to eq cancelled_job.broken
+          expect(body['data'][1]['attributes']['work-order-id']).to eq cancelled_job.work_order.id
         end
 
         it 'conforms to the JSON API schema' do
@@ -377,6 +424,83 @@ RSpec.describe 'Api::V1::Jobs', type: :request do
         end
       end
 
+      context 'when filtering by an unknown status' do
+        before do
+          get api_v1_jobs_path, headers: headers, params: { 'filter[status]': 'unknown' }
+        end
+
+        it 'returns a 500' do
+          expect(response).to have_http_status(:internal_server_error)
+        end
+      end
+    end
+
+    describe '#filter[lims]' do
+      let(:catalogue) { create(:catalogue) }
+      let(:product) { create(:product, catalogue: catalogue) }
+
+      let(:project) { make_node('my project', 'S0001', 1, 0, false, true) }
+      let(:work_plan) { create(:work_plan, product: product, project_id: project.id) }
+
+      let(:work_order1) { create(:work_order, set_uuid: made_up_set.id, work_plan: work_plan) }
+      let(:work_order2) { create(:work_order, set_uuid: made_up_set.id, work_plan: work_plan) }
+      let(:work_order3) { create(:work_order, set_uuid: made_up_set.id, work_plan: work_plan) }
+      let(:work_order4) { create(:work_order, set_uuid: made_up_set.id, work_plan: work_plan) }
+
+      let(:container) { make_container }
+      let(:started_time) { Time.zone.now }
+
+      let!(:queued_job) { create(:job, work_order: work_order1, container_uuid: container.id) }
+      let!(:started_job) do
+        create :job,
+               work_order: work_order2,
+               started: started_time,
+               container_uuid: container.id
+      end
+      let!(:completed_job) do
+        create :job,
+               work_order: work_order3,
+               started: started_time,
+               completed: Time.zone.now,
+               container_uuid: container.id
+      end
+      let!(:cancelled_job) do
+        create :job,
+               work_order: work_order4,
+               started: started_time,
+               cancelled: Time.zone.now,
+               container_uuid: container.id
+      end
+
+      context 'when filtering by valid lims id' do
+        before do
+          get api_v1_jobs_path, headers: headers, params: { 'filter[lims]': 'the LIMS' }
+        end
+
+        it 'returns a 200' do
+          expect(response).to have_http_status(:ok)
+        end
+
+        it 'returns a list of jobs' do
+          body = JSON.parse(response.body)
+          expect(body['data'].length).to eq 4
+        end
+      end
+
+      context 'when filtering by invalid lims id' do
+        before do
+          get api_v1_jobs_path, headers: headers, params: { 'filter[lims]': 'unknown LIMS' }
+        end
+
+        it 'returns a 200' do
+          expect(response).to have_http_status(:ok)
+        end
+
+        it 'returns a list of jobs' do
+          body = JSON.parse(response.body)
+          expect(body['data'].length).to eq 0
+        end
+      end
     end
   end
 end

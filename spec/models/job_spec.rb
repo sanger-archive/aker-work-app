@@ -1,10 +1,14 @@
+# frozen_string_literal: true
+
 require 'rails_helper'
 require 'support/work_orders_helper'
 
 RSpec.describe Job, type: :model do
   include WorkOrdersHelper
   let(:catalogue) { create(:catalogue, pipeline: 'mypipeline') }
-  let(:product) { create(:product, name: 'Solylent Green', product_version: 3, catalogue: catalogue) }
+  let(:product) do
+    create(:product, name: 'Solylent Green', product_version: 3, catalogue: catalogue)
+  end
   let(:process) do
     pro = create(:aker_process, name: 'Baking')
     create(:aker_product_process, product: product, aker_process: pro, stage: 0)
@@ -16,54 +20,34 @@ RSpec.describe Job, type: :model do
     end
   end
   let(:project) { make_node('Operation Wolf', 'S1001', 41, 40, false, true, SecureRandom.uuid) }
-  let(:subproject) { make_node('Operation Thunderbolt', 'S1001-0', 42, project.id, true, false, nil) }
+  let(:subproject) do
+    make_node('Operation Thunderbolt', 'S1001-0', 42, project.id, true, false, nil)
+  end
 
-  let(:plan) { create(:work_plan, project_id: subproject.id, product: product, comment: 'hello', desired_date: '2020-01-01') }
-
+  let(:plan) do
+    create(:work_plan,
+           project_id: subproject.id,
+           product: product,
+           comment: 'hello',
+           desired_date: '2020-01-01')
+  end
 
   context '#validation' do
     it 'is not valid without a work order' do
       expect(build(:job, work_order: nil)).not_to be_valid
     end
+
     it 'is valid with a work order' do
       expect(build(:job)).to be_valid
     end
+
     it 'fails to create a job if there is no work order specified' do
-      expect{create :job, work_order: nil}.to raise_exception ActiveRecord::RecordInvalid
-    end
-  end
-
-  describe "#status scopes" do
-    context "when there are jobs" do
-      let(:time) { Time.now }
-      let(:job1) { create(:job) }
-      let(:job2) { create(:job, started: time) }
-      let(:job3) { create(:job, started: time) }
-      let(:job4) { create(:job, started: time, completed: time) }
-      let(:job5) { create(:job, started: time, broken: time) }
-      let(:job6) { create(:job, started: time, cancelled: time) }
-
-      it "can find not broken jobs" do
-        expect(Job.not_broken).to eq([job1, job2, job3, job4, job6])
-      end
-
-      it "can find queued jobs" do
-        expect(Job.queued).to eq([job1])
-      end
-
-      it "can find active jobs" do
-        expect(Job.active).to eq([job2, job3])
-      end
-
-      it "can find concluded jobs" do
-        expect(Job.concluded).to eq([job4, job6])
-      end
-
+      expect { create :job, work_order: nil }.to raise_exception ActiveRecord::RecordInvalid
     end
   end
 
   context '#status' do
-    let(:job) { create :job}
+    let(:job) { create :job }
 
     it 'checks when the job is broken' do
       job.broken!
@@ -117,7 +101,6 @@ RSpec.describe Job, type: :model do
   end
 
   context '#material_ids' do
-
     it 'returns only the materials from the container that also belongs to the set work order' do
       # We create a group of materials
       set = build_set_with_materials
@@ -136,40 +119,53 @@ RSpec.describe Job, type: :model do
       make_container(set.materials)
 
       # Creates an order on half of the materials of the container
-      order = create(:work_order, process_id: process.id, work_plan: plan, set_uuid: half_set.id, order_index: 0)
+      order = create(:work_order,
+                     process_id: process.id,
+                     work_plan: plan,
+                     set_uuid: half_set.id,
+                     order_index: 0)
 
       # Job for the container
       job = create(:job, work_order: order, container_uuid: @container.id)
 
-      # The materials of the job should be only the materials of the half set we created before, ignoring
-      # other materials in the container
+      # The materials of the job should be only the materials of the half set we created before,
+      # ignoring other materials in the container
       expect(job.material_ids.length).to eq(half_set.materials.length)
     end
   end
 
   describe "#lims_data" do
+    before do
+      make_set_with_materials
+      make_container(@materials)
+      modules.each_with_index do |m, i|
+        WorkOrderModuleChoice.create(work_order: order, process_module: m, position: i)
+      end
+
+      allow(MatconClient::Material).to receive(:where)
+        .with('_id' => { '$in' => job.material_ids })
+        .and_return(@materials)
+    end
 
     let(:order) do
-      create(:work_order, process_id: process.id, work_plan: plan, set_uuid: @set.id, order_index: 0)
+      create(:work_order,
+             process_id: process.id,
+             work_plan: plan,
+             set_uuid: @set.id,
+             order_index: 0)
     end
 
     let(:modules) do
-      (1...3).map { |i| create(:aker_process_module, name: "Module#{i}", aker_process_id: process.id) }
+      (1...3).map do |i|
+        create(:aker_process_module, name: "Module#{i}", aker_process_id: process.id)
+      end
     end
 
     let(:job) do
       create(:job, work_order: order, container_uuid: @container.id)
     end
 
-    before do
-      make_set_with_materials
-      make_container(@materials)
-      modules.each_with_index { |m,i| WorkOrderModuleChoice.create(work_order: order, process_module: m, position: i)}
-
-      allow(MatconClient::Material).to receive(:where).with("_id" => {"$in" => job.material_ids }).and_return(@materials)
-    end
-
-    it "should return the lims_data" do
+    it 'should return the lims_data' do
       data = job.lims_data[:job]
       expect(data[:job_id]).to eq(job.id)
       expect(data[:work_order_id]).to eq(job.work_order.id)
@@ -182,14 +178,15 @@ RSpec.describe Job, type: :model do
       expect(data[:data_release_uuid]).to eq(subproject.data_release_uuid)
       expect(data[:cost_code]).to eq(subproject.cost_code)
       expect(data).not_to have_key(:desired_date)
-      expect(data[:modules]).to eq(["Module1", "Module2"])
+      expect(data[:modules]).to eq(%w[Module1 Module2])
       material_data = data[:materials]
       expect(material_data.length).to eq(@materials.length)
       expect(data[:container]).to eq(
-                                    container_id: @container.id,
-                                    barcode: @container.barcode,
-                                    num_of_rows: @container.num_of_rows,
-                                    num_of_cols: @container.num_of_cols)
+        container_id: @container.id,
+        barcode: @container.barcode,
+        num_of_rows: @container.num_of_rows,
+        num_of_cols: @container.num_of_cols
+      )
 
       @materials.zip(material_data).each do |mat, dat|
         slot = @container.slots.find { |the_slot| the_slot.material_id == mat.id }
@@ -202,16 +199,4 @@ RSpec.describe Job, type: :model do
       end
     end
   end
-
-  describe "#get_jobs_for_pipeline" do
-    let(:job1) { create :job }
-    let(:job2) { create :job }
-    let(:jobs) { [job1, job2] }
-    it "returns a list of jobs for a pipeline" do
-      catalogue.update_attributes(current: true)
-      allow_any_instance_of(Catalogue).to receive(:get_all_jobs).and_return(jobs)
-      expect(Job.get_jobs_for_pipeline(catalogue.pipeline)).to eq jobs
-    end
-  end
-
 end
