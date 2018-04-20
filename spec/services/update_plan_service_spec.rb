@@ -75,7 +75,8 @@ RSpec.describe UpdatePlanService do
   def make_plan_with_orders
     plan = create(:work_plan, original_set_uuid: set.uuid, project_id: project.id, product: product)
     module_choices = processes.map { |pro| [pro.process_modules.first.id] }
-    wo = plan.create_orders(module_choices, set.id)
+    product_options_selected_values = module_choices.map{|c| [nil]}
+    wo = plan.create_orders(module_choices, set.id, product_options_selected_values)
     plan.reload
   end
 

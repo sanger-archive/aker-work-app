@@ -35,7 +35,7 @@ class UpdatePlanService
       product_options = JSON.parse(@work_plan_params[:product_options])
       product_options_selected_values = product_options.map do |list|
         list.map do |module_id| 
-          if @work_plan_params[:work_order_module][module_id.to_s]
+          if @work_plan_params[:work_order_module] && @work_plan_params[:work_order_module][module_id.to_s]
             @work_plan_params[:work_order_module][module_id.to_s][:selected_value]
           end
         end
@@ -137,7 +137,7 @@ private
 
   def modules_selected_value_from_module_ids(module_ids)
     module_ids.map(&:to_s).map do |id| 
-      if @work_plan_params[:work_order_module][id]
+      if @work_plan_params[:work_order_module] && @work_plan_params[:work_order_module][id]
         @work_plan_params[:work_order_module][id][:selected_value]
       else
         nil
