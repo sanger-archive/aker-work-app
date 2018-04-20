@@ -113,7 +113,7 @@ RSpec.describe ProductsController, type: :controller do
 
         
         product_processes = processes.each_with_index.map do |pro, i|
-          option_for_module = alt_modules[i].to_custom_hash.merge(selected_value: "").reject{|k| ((k == :min_value) || (k==:max_value))}
+          option_for_module = alt_modules[i].to_custom_hash.merge(selected_value: nil).reject{|k| ((k == :min_value) || (k==:max_value))}
           path_for_process = [option_for_module]
           { name: pro.name, id: pro.id, links: pro.build_available_links, path: path_for_process,
             tat: pro.TAT, process_class: pro.process_class_human }

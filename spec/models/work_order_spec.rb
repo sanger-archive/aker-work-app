@@ -361,7 +361,13 @@ RSpec.describe WorkOrder, type: :model do
     context 'when there are work order module choices for a work order' do
       it 'returns a list of module choices' do
         modules.each_with_index { |m,i| WorkOrderModuleChoice.create(work_order: order, process_module: m, position: i)}
-        expect(order.selected_path).to eq([{name: modules[0].name, id: modules[0].id, selected_value: ""},{name: modules[1].name, id: modules[1].id, selected_value: ""}])
+        expect(order.selected_path).to eq([{name: modules[0].name, id: modules[0].id, selected_value: nil},{name: modules[1].name, id: modules[1].id, selected_value: nil}])
+      end
+      it 'includes the selected values for the choices' do
+        modules.each_with_index { |m,i| WorkOrderModuleChoice.create(work_order: order, process_module: m, position: i, selected_value: i)}
+        expect(order.selected_path).to eq([
+          {name: modules[0].name, id: modules[0].id, selected_value: 0},
+          {name: modules[1].name, id: modules[1].id, selected_value: 1}])        
       end
     end
     context 'when there are no work order module choices for a work order' do
