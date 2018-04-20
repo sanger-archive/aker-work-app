@@ -35,8 +35,8 @@ class UpdatePlanService
       product_options = JSON.parse(@work_plan_params[:product_options])
       product_options_selected_values = product_options.map do |list|
         list.map do |module_id| 
-          if @work_plan_params[:work_order_module] && @work_plan_params[:work_order_module][module_id.to_s]
-            @work_plan_params[:work_order_module][module_id.to_s][:selected_value]
+          if @work_plan_params[:work_order_module] && @work_plan_params[:work_order_module][module_id]
+            @work_plan_params[:work_order_module][module_id][:selected_value]
           end
         end
       end
@@ -100,7 +100,7 @@ class UpdatePlanService
             WorkOrderModuleChoice.where(work_order_id: update_order[:order_id]).each(&:destroy)
             update_order[:modules].each_with_index do |mid, i|
               WorkOrderModuleChoice.create!(work_order_id: update_order[:order_id], aker_process_modules_id: mid, position: i, 
-                selected_value: update_order[:modules_selected_value][i])
+                selected_value: update_order[:modules_selected_value][i].to_i)
             end
           end
         end
@@ -136,7 +136,7 @@ class UpdatePlanService
 private
 
   def modules_selected_value_from_module_ids(module_ids)
-    module_ids.map(&:to_s).map do |id| 
+    module_ids.map do |id| 
       if @work_plan_params[:work_order_module] && @work_plan_params[:work_order_module][id]
         @work_plan_params[:work_order_module][id][:selected_value]
       else
