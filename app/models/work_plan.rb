@@ -52,6 +52,8 @@ class WorkPlan < ApplicationRecord
   # The process_module_ids needs to be an array of arrays of module ids to link to the respective orders.
   # The locked set uuid is passed for the first order, in case such a locked
   # set already exists
+  # The product_options_selected_values is an array of arrays that matches with process_module_ids by position. It contains
+  # the selected argument for the module (if any) or nil if the module does not need a selected value
   def create_orders(process_module_ids, locked_set_uuid, product_options_selected_values)
     unless product
       raise "No product is selected"
