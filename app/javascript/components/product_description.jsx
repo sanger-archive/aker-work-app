@@ -451,7 +451,7 @@ class ProcessModulesSelectDropdowns extends React.Component {
   }
 }
 
-class ProcessModuleParameters extends React.Component {
+export class ProcessModuleParameters extends React.Component {
   constructor(props) {
     super(props)
     this.validValue = this.validValue.bind(this)
