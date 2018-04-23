@@ -150,4 +150,5 @@ class WorkPlan < ApplicationRecord
       email_or_group.include?(owner_email)
     end
   end
+
 end
