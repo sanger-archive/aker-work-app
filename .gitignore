@@ -27,7 +27,7 @@ yarn-debug.log*
 # Assets to be compiled for each environment
 /public/assets
 /public/packs
-/public/packs-test
+#/public/packs-test
 
 # Mocha temp folder
 .tmp
