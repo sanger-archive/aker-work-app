@@ -6,8 +6,8 @@ AllCops:
     - '**/Rakefile'
     - '**/config.ru'
     - '**/Gemfile'
-  # Exclude:
-    # - 'db/**/*'
+  Exclude:
+    - 'db/**/*'
     # - 'config/**/*'
     # - 'script/**/*'
 
