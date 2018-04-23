@@ -5,7 +5,9 @@ module Api
     class JobResource < JSONAPI::Resource
       attributes :container_uuid, :work_order_id, :started, :completed, :cancelled, :broken,
                  :date_requested, :requested_by, :project, :desired_date, :product,
-                 :product_options, :batch_size, :work_plan_comment
+                 :product_options, :batch_size, :work_plan_comment, :barcode
+
+      paginator :offset
 
       # We may want to filter jobs by both status and pipeline
       # e.g. /api/v1/jobs?filter[status]=concluded&filter[pipeline]=xxx
@@ -77,6 +79,10 @@ module Api
 
       def work_plan_comment
         @model.work_order&.work_plan&.comment
+      end
+
+      def barcode
+        @model.container.barcode
       end
     end
   end
