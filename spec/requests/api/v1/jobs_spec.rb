@@ -85,7 +85,7 @@ RSpec.describe 'Api::V1::Jobs', type: :request do
         allow(BrokerHandle).to receive(:working?).and_return(true)
       end
       let(:set_for_work_order) { made_up_set }
-      let(:order) { create :work_order, set_uuid: set_for_work_order.id }
+      let(:order) { create :work_order, set_uuid: set_for_work_order.id, status: WorkOrder.ACTIVE }
       let(:container) { make_container }
       let(:job) { create :job, work_order: order, container_uuid: container.id }
 
