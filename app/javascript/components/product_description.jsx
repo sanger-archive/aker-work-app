@@ -40,7 +40,8 @@ export class ProductDescription extends React.Component {
     event.preventDefault();
 
 // processStage is the stage of the process for a product
-    const processStage = event.target.parentElement.id
+    const processStage = event.target.parentElement.id //parentElement.parentElement.id
+    //event.target.parentElement.id
     const selectElementId = parseInt(event.target.id, 10)
 
     const processModuleName = event.target.selectedOptions[0].text
@@ -334,7 +335,7 @@ class Process extends React.Component {
         <ProcessNameLabel name={pro.name}/>
         {fields}
         <div id={index} className="col-md-12">
-          <ProcessModulesSelectDropdowns links={pro.links} path={pro.path} onChange={onChange} enabled={pro.enabled}/>
+          <ProcessModulesSelectDropdowns processStageId={index} links={pro.links} path={pro.path} onChange={onChange} enabled={pro.enabled}/>
         </div>
       </Fragment>
     )
@@ -440,7 +441,7 @@ class ProcessModulesSelectDropdowns extends React.Component {
       if (!selected) {
         selected = options[0];
       }
-      select_dropdowns.push(<ProcessModuleSelectElement selected={selected} selectedValueForChoice={obj.selected_value} options={options} key={index} id={index} onChange={this.props.onChange} enabled={this.props.enabled} />)
+      select_dropdowns.push(<ProcessModuleSelectElement processStageId={this.props.processStageId} selected={selected} selectedValueForChoice={obj.selected_value} options={options} key={index} id={index} onChange={this.props.onChange} enabled={this.props.enabled} />)
     })
 
     return (
@@ -542,7 +543,7 @@ class ProcessModuleSelectElement extends React.Component {
     const selectedOption = this.props.options.filter((opt) => { return (opt.id == selection) })[0]
     return(
       <div className="row">
-        <div className="col-md-6">
+        <div className="col-md-6" id={this.props.processStageId}>
           { this.renderSelect(select_options, selection) }
         </div>
         <ProcessModuleParameters selectedOption={selectedOption} selectedValueForChoice={this.props.selectedValueForChoice} />

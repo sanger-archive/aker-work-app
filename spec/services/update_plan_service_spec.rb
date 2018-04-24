@@ -446,7 +446,7 @@ RSpec.describe UpdatePlanService do
       def work_order_module
         processes.map(&:process_modules).flatten.reduce({}) do |memo, mod|
           mod.update_attributes(min_value:1, max_value: 5)
-          memo[mod.id] = {
+          memo[mod.id.to_s] = {
             selected_value: selected_value
           }
           memo
@@ -808,7 +808,7 @@ RSpec.describe UpdatePlanService do
       def work_order_module
         processes.map(&:process_modules).flatten.reduce({}) do |memo, mod|
           mod.update_attributes(min_value:1, max_value: 5)
-          memo[mod.id] = {
+          memo[mod.id.to_s] = {
             selected_value: selected_value
           }
           memo
