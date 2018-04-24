@@ -120,6 +120,7 @@ module TestServicesHelper
                                 id: made_up_uuid)
     allow(container).to receive(:material_id=)
     allow(container).to receive(:save)
+    allow(MatconClient::Container).to receive(:find).with(container.id).and_return(container)
     container
   end
 

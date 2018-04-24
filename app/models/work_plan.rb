@@ -52,7 +52,9 @@ class WorkPlan < ApplicationRecord
   # The process_module_ids needs to be an array of arrays of module ids to link to the respective orders.
   # The locked set uuid is passed for the first order, in case such a locked
   # set already exists
-  def create_orders(process_module_ids, locked_set_uuid)
+  # The product_options_selected_values is an array of arrays that matches with process_module_ids by position. It contains
+  # the selected argument for the module (if any) or nil if the module does not need a selected value
+  def create_orders(process_module_ids, locked_set_uuid, product_options_selected_values)
     unless product
       raise "No product is selected"
     end
@@ -62,12 +64,14 @@ class WorkPlan < ApplicationRecord
     unless work_orders.empty?
       return work_orders
     end
-    product.processes.each_with_index do |pro, i|
-      wo = WorkOrder.create!(process: pro, order_index: i, work_plan: self, status: WorkOrder.QUEUED,
-              original_set_uuid: i==0 ? original_set_uuid : nil, set_uuid: i==0 ? locked_set_uuid : nil)
-      module_ids = process_module_ids[i]
-      module_ids.each_with_index do |mid, j|
-        WorkOrderModuleChoice.create!(work_order_id: wo.id, aker_process_modules_id: mid, position: j)
+    ActiveRecord::Base.transaction do
+      product.processes.each_with_index do |pro, i|
+        wo = WorkOrder.create!(process: pro, order_index: i, work_plan: self, status: WorkOrder.QUEUED,
+                original_set_uuid: i==0 ? original_set_uuid : nil, set_uuid: i==0 ? locked_set_uuid : nil)
+        module_ids = process_module_ids[i]
+        module_ids.each_with_index do |mid, j|
+          WorkOrderModuleChoice.create!(work_order_id: wo.id, aker_process_modules_id: mid, position: j, selected_value: product_options_selected_values[i][j])
+        end
       end
     end
     work_orders.reload
@@ -146,4 +150,5 @@ class WorkPlan < ApplicationRecord
       email_or_group.include?(owner_email)
     end
   end
+
 end

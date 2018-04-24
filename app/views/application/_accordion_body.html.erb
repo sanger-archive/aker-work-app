@@ -48,7 +48,8 @@
   <!-- Supply pro.name, pro.tat and pro.process_class in the appropriate fields if you want them to show up
        on the dispatch page the way they do on the products page
   -->
-  <%= react_component('WorkOrderProcess', { index: index, work_order_id: work_order.id, pro: { name: nil, links: pro.build_available_links, path: work_order.selected_path, tat: nil, process_class: nil, enabled: work_order.queued? } }) %>
+  <%= react_component('WorkOrderProcess', { index: index, work_order_id: work_order.id, pro: { name: nil, links: pro.build_available_links, path: work_order.selected_path, 
+    tat: nil, process_class: nil, enabled: work_order.queued? } }) %>
 
   <% if work_order.can_be_dispatched? %>
     <%= f.submit "Dispatch", class: "btn btn-success pull-right", style: "margin-top: 10px;", value: "dispatch" %>
