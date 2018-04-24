@@ -87,16 +87,16 @@ class UpdatePlanService
     if @work_plan.update_attributes(@work_plan_params)
       locked_set_uuid = nil
       begin
-        if (@work_plan_params[:product_id] || product_options) && !@work_plan.work_orders.empty?
-          # User is changing their product or options - delete the incorrect work orders
-          locked_set_uuid = @work_plan.work_orders.first.set_uuid
-          work_order_ids = @work_plan.work_orders.map(&:id)
-          WorkOrderModuleChoice.where(work_order_id: work_order_ids).each(&:destroy)
-          @work_plan.work_orders.destroy_all
-        end
+        ActiveRecord::Base.transaction do
+          if (@work_plan_params[:product_id] || product_options) && !@work_plan.work_orders.empty?
+            # User is changing their product or options - delete the incorrect work orders
+            locked_set_uuid = @work_plan.work_orders.first.set_uuid
+            work_order_ids = @work_plan.work_orders.map(&:id)
+            WorkOrderModuleChoice.where(work_order_id: work_order_ids).each(&:destroy)
+            @work_plan.work_orders.destroy_all
+          end
 
-        if update_order
-          ActiveRecord::Base.transaction do
+          if update_order
             WorkOrderModuleChoice.where(work_order_id: update_order[:order_id]).each(&:destroy)
             update_order[:modules].each_with_index do |mid, i|
               WorkOrderModuleChoice.create!(work_order_id: update_order[:order_id], aker_process_modules_id: mid, position: i, 

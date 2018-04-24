@@ -475,7 +475,7 @@ export class ProcessModuleParameters extends React.Component {
   classes() {
     let list = ["col-md-3"]
 
-    if (this.state.selectedValue.length > 0) {
+    if (this.state.selectedValue && this.state.selectedValue.toString().length > 0) {
       if (this.validValue()) {
         list.push("has-success")
       } else {
