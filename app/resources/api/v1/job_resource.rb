@@ -7,7 +7,7 @@ module Api
                  :date_requested, :requested_by, :project, :desired_date, :product,
                  :product_options, :batch_size, :work_plan_comment, :barcode
 
-      paginator :offset
+      paginator :paged
 
       # We may want to filter jobs by both status and pipeline
       # e.g. /api/v1/jobs?filter[status]=concluded&filter[pipeline]=xxx
@@ -84,6 +84,7 @@ module Api
       def barcode
         @model.container.barcode
       end
+
     end
   end
 end
