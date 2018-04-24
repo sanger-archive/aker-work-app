@@ -75,7 +75,8 @@ RSpec.describe UpdatePlanService do
   def make_plan_with_orders
     plan = create(:work_plan, original_set_uuid: set.uuid, project_id: project.id, product: product)
     module_choices = processes.map { |pro| [pro.process_modules.first.id] }
-    wo = plan.create_orders(module_choices, set.id)
+    product_options_selected_values = module_choices.map{|c| [nil]}
+    wo = plan.create_orders(module_choices, set.id, product_options_selected_values)
     plan.reload
   end
 
@@ -441,6 +442,39 @@ RSpec.describe UpdatePlanService do
       end
     end
 
+    context 'when there is a selected value' do
+      def work_order_module
+        processes.map(&:process_modules).flatten.reduce({}) do |memo, mod|
+          mod.update_attributes(min_value:1, max_value: 5)
+          memo[mod.id] = {
+            selected_value: selected_value
+          }
+          memo
+        end        
+      end
+      let(:plan) { create(:work_plan, original_set_uuid: set.uuid, project_id: project.id) }
+      let(:params) do
+        {
+          product_id: product.id,
+          comment: 'commentary',
+          desired_date: Date.today,
+          product_options: product_options.to_json,
+          work_order_module: work_order_module
+        }
+      end
+      context 'when the module selected values are not valid' do
+        let(:selected_value) { 7 }
+        it { expect(@result).to be_falsey }
+        it 'should produce an error message' do
+          expect(messages[:error]).to match Regexp.new('Creating.*failed.*')
+        end
+      end
+      context 'when the module selected values are valid' do
+        let(:selected_value) { 3 }
+        it { expect(@result).to be_truthy }
+      end
+
+    end
     context 'when the module ids are not a valid path for a process' do
       let(:plan) { create(:work_plan, original_set_uuid: set.uuid, project_id: project.id) }
       let(:product_options) do
@@ -770,6 +804,37 @@ RSpec.describe UpdatePlanService do
         expect(modules[1]).to eq([processes[1].process_modules[0].id])
       end
     end
+    context 'when there is a selected value' do
+      def work_order_module
+        processes.map(&:process_modules).flatten.reduce({}) do |memo, mod|
+          mod.update_attributes(min_value:1, max_value: 5)
+          memo[mod.id] = {
+            selected_value: selected_value
+          }
+          memo
+        end        
+      end
+      let(:params) do
+        {
+          work_order_id: old_orders[1].id,
+          work_order_modules: module_ids.to_json,
+          work_order_module: work_order_module
+        }
+      end
+      context 'when the module selected values are not valid' do
+        let(:selected_value) { 7 }
+        it { expect(@result).to be_falsey }
+        it 'should produce an error message' do
+          expect(messages[:error]).to match Regexp.new('Update.*failed.*')
+        end
+      end
+      context 'when the module selected values are valid' do
+        let(:selected_value) { 3 }
+        it { expect(@result).to be_truthy }
+      end
+
+    end
+
   end
 
   describe 'dispatching the first order' do

@@ -15,6 +15,10 @@ RSpec.describe WorkPlan, type: :model do
     end
   end
 
+  let(:modules_selected_values) do
+    process_options.map {|list| list.map{ nil }}
+  end
+
   let(:set) do
     s = make_set
     allow(s).to receive(:create_locked_clone).and_return(locked_set)
@@ -110,7 +114,7 @@ RSpec.describe WorkPlan, type: :model do
     context 'when no product is selected' do
       let(:plan) { create(:work_plan, original_set_uuid: set.uuid) }
 
-      it { expect { plan.create_orders(process_options, nil) }.to raise_error("No product is selected") }
+      it { expect { plan.create_orders(process_options, nil, modules_selected_values) }.to raise_error("No product is selected") }
     end
 
     context 'when work orders already exist' do
@@ -122,14 +126,14 @@ RSpec.describe WorkPlan, type: :model do
       end
 
       it 'should return the existing orders' do
-        expect(plan.create_orders(process_options, nil)).to eq(existing_orders)
+        expect(plan.create_orders(process_options, nil, modules_selected_values)).to eq(existing_orders)
       end
     end
 
     context 'when work orders need to be created' do
       let!(:processes) { make_processes(3) }
       let(:plan) { create(:work_plan, product: product, original_set_uuid: set.uuid) }
-      let(:orders) { plan.create_orders(process_options, nil) }
+      let(:orders) { plan.create_orders(process_options, nil, modules_selected_values) }
 
       it 'should create an order for each process' do
         expect(orders.length).to eq(processes.length)
@@ -168,7 +172,7 @@ RSpec.describe WorkPlan, type: :model do
       let(:locked_set_uuid) { SecureRandom.uuid }
       let!(:processes) { make_processes(3) }
       let(:plan) { create(:work_plan, product: product, original_set_uuid: set.uuid) }
-      let(:orders) { plan.create_orders(process_options, locked_set_uuid) }
+      let(:orders) { plan.create_orders(process_options, locked_set_uuid, modules_selected_values) }
 
       it 'should set the sets correctly' do
         expect(orders.first.original_set_uuid).to eq(plan.original_set_uuid)
@@ -189,7 +193,7 @@ RSpec.describe WorkPlan, type: :model do
 
     # Check that the order is definitely controlled by the order_index field
     it 'should be kept in order according to order_index' do
-      expect(plan.create_orders(process_options, nil).map(&:order_index)).to eq([0,1,2])
+      expect(plan.create_orders(process_options, nil, modules_selected_values).map(&:order_index)).to eq([0,1,2])
       plan.work_orders[1].update_attributes(order_index: 5)
       expect(plan.work_orders.reload.map(&:order_index)).to eq([0,2,5])
       plan.work_orders[0].update_attributes(order_index: 4)
@@ -222,7 +226,7 @@ RSpec.describe WorkPlan, type: :model do
     context 'when the product has also been selected' do
       before do
         plan.update_attributes!(product: product, project_id: project.id, original_set_uuid: set.uuid)
-        plan.create_orders(process_options, nil).first.update_attributes!(set_uuid: set.uuid)
+        plan.create_orders(process_options, nil, modules_selected_values).first.update_attributes!(set_uuid: set.uuid)
       end
       it { expect(plan.wizard_step).to eq('dispatch') }
     end
@@ -232,7 +236,7 @@ RSpec.describe WorkPlan, type: :model do
     let!(:processes) { make_processes(3) }
     let(:plan) do
       pl = create(:work_plan, product: product, project_id: project.id, original_set_uuid: set.uuid)
-      pl.create_orders(process_options, nil).first.update_attributes!(set_uuid: set.uuid)
+      pl.create_orders(process_options, nil, modules_selected_values).first.update_attributes!(set_uuid: set.uuid)
       pl
     end
 
@@ -364,7 +368,7 @@ RSpec.describe WorkPlan, type: :model do
   describe '#active_status' do
     let(:plan) do
       pl = create(:work_plan, product: product, project_id: project.id, original_set_uuid: set.id)
-      pl.create_orders(process_options, nil)
+      pl.create_orders(process_options, nil, modules_selected_values)
       pl.work_orders.reload
       pl
     end
