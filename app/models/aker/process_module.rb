@@ -4,6 +4,6 @@ class Aker::ProcessModule < ApplicationRecord
   belongs_to :aker_process, class_name: "Aker::Process", required: true
 
   def to_custom_hash
-    {name: name, id: id}
+    {name: name, id: id, min_value: min_value, max_value: max_value}
   end
 end

@@ -151,7 +151,6 @@ export class ProductDescription extends React.Component {
 
   render() {
     var productOptionComponents = [];
-    // debugger
     // if (this.props.product_id){
     //   this.getProductInfo(this.props.product_id);
     //   this.setState({ showProductInfo: true })
@@ -441,7 +440,7 @@ class ProcessModulesSelectDropdowns extends React.Component {
       if (!selected) {
         selected = options[0];
       }
-      select_dropdowns.push(<ProcessModuleSelectElement selected={selected} options={options} key={index} id={index} onChange={this.props.onChange} enabled={this.props.enabled} />)
+      select_dropdowns.push(<ProcessModuleSelectElement selected={selected} selectedValueForChoice={obj.selected_value} options={options} key={index} id={index} onChange={this.props.onChange} enabled={this.props.enabled} />)
     })
 
     return (
@@ -452,7 +451,87 @@ class ProcessModulesSelectDropdowns extends React.Component {
   }
 }
 
+export class ProcessModuleParameters extends React.Component {
+  constructor(props) {
+    super(props)
+    this.validValue = this.validValue.bind(this)
+    this.classes = this.classes.bind(this)
+    this.onChange = this.onChange.bind(this)
+    this.renderFeedback = this.renderFeedback.bind(this)
+    this.state = {
+      selectedValue: this.props.selectedValueForChoice || ""
+    }
+  }
+  validValue() {
+    return(
+      (this.state.selectedValue >= this.props.selectedOption.min_value) && 
+      (this.state.selectedValue <= this.props.selectedOption.max_value)
+    )
+  }
+  onChange(e) {
+    this.setState({selectedValue: e.target.value})
+  }
+  classes() {
+    let list = ["col-md-3"]
+
+    if (this.state.selectedValue.length > 0) {
+      if (this.validValue()) {
+        list.push("has-success")
+      } else {
+        list.push("has-error")
+      }
+    } else {
+      list.push("has-warning")
+    }
+    return list.join(' ')
+  }
+  renderFeedback(caption) {
+    if ((this.validValue()) || ((this.state.selectedValue.length === 0))) {
+      return(null)      
+    } else {
+      return(
+        <div className="text-danger">
+            {caption}
+        </div>
+        )      
+    }
+  }
+  render() {
+    if ((this.props.selectedOption.min_value || this.props.selectedOption.max_value)) {
+      const caption = "Enter value between "+ this.props.selectedOption.min_value + " and "+this.props.selectedOption.max_value
+      const name = "work_plan[work_order_module]["+this.props.selectedOption.id+"][selected_value]"
+      return(
+        <div className={this.classes()}>
+          <input autoComplete="off" value={this.state.selectedValue} type="text" name={name} className="form-control" placeholder={caption} onChange={this.onChange} />
+          {this.renderFeedback(caption)}
+        </div>
+      )
+    } else {
+      return(null)
+    }
+  }
+}
+
 class ProcessModuleSelectElement extends React.Component {
+  constructor(props) {
+    super(props)
+    this.renderSelect = this.renderSelect.bind(this)
+  }
+  renderSelect(select_options, selection) {
+    if (this.props.enabled) {
+      return(
+        <select className="form-control" value={selection} onChange={this.props.onChange} id={this.props.id}>
+          { select_options }
+        </select>    
+      )
+    } else {
+      return(
+        <select className="form-control" value={selection} onChange={this.props.onChange} id={this.props.id} disabled>
+          { select_options }
+        </select>          
+      )
+    }
+  }
   render() {
     const select_options = [];
     this.props.options.forEach((option, index) => {
@@ -460,25 +539,21 @@ class ProcessModuleSelectElement extends React.Component {
     })
     const selection = this.props.selected ? this.props.selected.id : ""
 
-    if (this.props.enabled) {
-      return (
-        <select className="form-control" value={selection} onChange={this.props.onChange} id={this.props.id}>
-          { select_options }
-        </select>
-      )
-    } else {
-      return (
-        <select className="form-control" value={selection} onChange={this.props.onChange} id={this.props.id} disabled>
-          { select_options }
-        </select>
-      )
-    }
+    const selectedOption = this.props.options.filter((opt) => { return (opt.id == selection) })[0]
+    return(
+      <div className="row">
+        <div className="col-md-6">
+          { this.renderSelect(select_options, selection) }
+        </div>
+        <ProcessModuleParameters selectedOption={selectedOption} selectedValueForChoice={this.props.selectedValueForChoice} />
+      </div>
+    )
   }
 }
 
 class ProcessModuleSelectOption extends React.Component {
   render() {
-   const productObject = this.props.obj;
+    const productObject = this.props.obj;
     return (
       <Fragment>
         <option value={productObject.id}>{productObject.name}</option>

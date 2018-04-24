@@ -11,7 +11,7 @@ RSpec.describe Aker::ProcessModule, type: :model do
     it "returns the name and id of a module" do
       aker_process = create(:aker_process)
       mod = Aker::ProcessModule.create!(name: 'mod1', aker_process_id: aker_process.id)
-      expect(mod.to_custom_hash).to eq({name: mod.name, id: mod.id})
+      expect(mod.to_custom_hash).to eq({name: mod.name, id: mod.id, min_value: nil, max_value: nil})
     end
   end
 

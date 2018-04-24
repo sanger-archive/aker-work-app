@@ -27,7 +27,7 @@ RSpec.describe ProductsController, type: :controller do
       mod
     end
   end
-  
+
   let(:work_plan) { create(:work_plan, project_id: project.id) }
 
   def setup_user(name = "user")
@@ -111,8 +111,11 @@ RSpec.describe ProductsController, type: :controller do
         expect(r[:cost_code]).to eq project.cost_code
         expect(r[:total_tat]).to eq (processes[0].TAT + processes[1].TAT)
 
+        
         product_processes = processes.each_with_index.map do |pro, i|
-          { name: pro.name, id: pro.id, links: pro.build_available_links, path: [alt_modules[i].to_custom_hash],
+          option_for_module = alt_modules[i].to_custom_hash.merge(selected_value: nil).reject{|k| ((k == :min_value) || (k==:max_value))}
+          path_for_process = [option_for_module]
+          { name: pro.name, id: pro.id, links: pro.build_available_links, path: path_for_process,
             tat: pro.TAT, process_class: pro.process_class_human }
         end
         expect(r[:product_processes]).to eq(JSON.parse(product_processes.to_json, symbolize_names: true))

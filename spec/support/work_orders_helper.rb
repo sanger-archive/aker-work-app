@@ -1,7 +1,9 @@
+# frozen_string_literal: true
+
 module WorkOrdersHelper
   def make_uuid
     SecureRandom.uuid
-  end  
+  end
 
   def make_barcode
     @barcode_index ||= 0
@@ -10,7 +12,7 @@ module WorkOrdersHelper
   end
 
   def make_container(materials)
-    slots = materials.each_with_index.map do |material,i|
+    slots = materials.each_with_index.map do |material, i|
       double('slot', material_id: material&.id, address: (i + 1).to_s)
     end
     @container = double('container',
@@ -20,10 +22,8 @@ module WorkOrdersHelper
                         num_of_cols: materials.length,
                         slots: slots)
 
-
     allow(MatconClient::Container).to receive(:find).with(@container.id).and_return(@container)
-    
-    
+
     allow(MatconClient::Container).to receive(:where) do |args|
       material_ids = args['slots.material']['$in']
       containers = []
@@ -53,7 +53,7 @@ module WorkOrdersHelper
       end
       make_result_set(found)
     end
-    materials    
+    materials
   end
 
   def make_materials
@@ -66,7 +66,7 @@ module WorkOrdersHelper
     allow(rs).to receive(:each) { |&block| items.each(&block) }
     allow(rs).to receive(:all?) { |&block| items.all?(&block) }
     double('result_set_wrapper', result_set: rs)
-  end  
+  end
 
   def build_set_with_materials
     set = make_set
@@ -74,7 +74,7 @@ module WorkOrdersHelper
     materials = build_materials
     allow(set).to receive(:materials).and_return(materials)
     allow(SetClient::Set).to receive(:find_with_materials).with(set.uuid).and_return([set])
-    set    
+    set
   end
 
   def build_set_from_materials(materials)
@@ -82,9 +82,8 @@ module WorkOrdersHelper
 
     allow(set).to receive(:materials).and_return(materials)
     allow(SetClient::Set).to receive(:find_with_materials).with(set.uuid).and_return([set])
-    set    
+    set
   end
-
 
   def make_set_with_materials
     @set = build_set_with_materials
@@ -113,7 +112,6 @@ module WorkOrdersHelper
     node
   end
 
-
   def make_processes(n)
     pros = (0...n).map { |i| create(:aker_process, name: "process #{i}") }
     pros.each_with_index { |pro, i| create(:aker_product_process, product: product, aker_process: pro, stage: i) }
@@ -126,5 +124,4 @@ module WorkOrdersHelper
     end
     pros
   end
-
 end

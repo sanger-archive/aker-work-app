@@ -1,10 +1,3 @@
-# Messages
-The following is a list of messages which can be used in Work Orders, mainly for testing purposes.
-
-## New catalogue
-The following message can be used to create a new catalogue but currently process names have to be
-unique so adjust the message as required.
-```json
 {
    "catalogue":{
       "pipeline":"WGS",
@@ -16,6 +9,7 @@ unique so adjust the message as required.
             "name":"QC",
             "TAT":5,
             "process_class":"genotyping",
+            "module_parameters": [{"name": "Quantification", "min_value": 1, "max_value" : 5 }],
             "process_module_pairings":[
                {
                   "from_step":null,
@@ -117,6 +111,9 @@ unique so adjust the message as required.
             "name":"30x Human Whole Genome Sequencing",
             "TAT":8,
             "process_class":"dna_sequencing",
+            "module_parameters": [
+                {"name": "Multiplex Pooling (m=2..96)", "min_value": 2, "max_value" : 96 }
+            ],
             "process_module_pairings":[
                {
                   "from_step":null,
@@ -173,4 +170,3 @@ unique so adjust the message as required.
       ]
    }
 }
-```

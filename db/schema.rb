@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180409145654) do
+ActiveRecord::Schema.define(version: 20180416131952) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -31,6 +31,8 @@ ActiveRecord::Schema.define(version: 20180409145654) do
   create_table "aker_process_modules", id: :serial, force: :cascade do |t|
     t.string "name", null: false
     t.integer "aker_process_id"
+    t.integer "min_value"
+    t.integer "max_value"
     t.index ["aker_process_id", "name"], name: "index_aker_process_modules_on_aker_process_id_and_name", unique: true
     t.index ["aker_process_id"], name: "index_aker_process_modules_on_aker_process_id"
   end
@@ -100,6 +102,7 @@ ActiveRecord::Schema.define(version: 20180409145654) do
     t.integer "work_order_id"
     t.integer "aker_process_modules_id"
     t.integer "position"
+    t.integer "selected_value"
     t.index ["aker_process_modules_id"], name: "index_work_order_module_choices_on_aker_process_modules_id"
     t.index ["work_order_id"], name: "index_work_order_module_choices_on_work_order_id"
   end

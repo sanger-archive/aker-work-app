@@ -88,7 +88,7 @@ class PlanWizardController < ApplicationController
   def work_plan_params
     return {} unless params[:work_plan]
     params.require(:work_plan).permit(
-      :original_set_uuid, :project_id, :product_id, :product_options, :comment, :desired_date, :work_order_id, :work_order_modules
+      :original_set_uuid, :project_id, :product_id, :product_options, :comment, :desired_date, :work_order_id, :work_order_modules, :work_order_module => {}
     )
   end
 

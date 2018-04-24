@@ -12,6 +12,7 @@ describe 'Jobs API' do
   before do
     webmock_matcon_schema
     allow_broker_connection
+    stub_matcon
   end
 
   let(:catalogue) { create(:catalogue) }
@@ -30,20 +31,22 @@ describe 'Jobs API' do
                         work_plan: work_plan)
   end
 
+  let(:container) { make_container }
+
   let(:queued_job) do
-    create(:job, work_order: work_order)
+    create(:job, work_order: work_order, container_uuid: container.id)
   end
 
   let(:started_job) do
-    create(:job, work_order: work_order, started: Time.now)
+    create(:job, work_order: work_order, started: Time.zone.now)
   end
 
   let(:completed_job) do
-    create(:job, work_order: work_order, started: Time.now, completed: Time.now)
+    create(:job, work_order: work_order, started: Time.zone.now, completed: Time.zone.now)
   end
 
   let(:cancelled_job) do
-    create(:job, work_order: work_order, started: Time.now, cancelled: Time.now)
+    create(:job, work_order: work_order, started: Time.zone.now, cancelled: Time.zone.now)
   end
 
   let(:queue_job_msg) do
@@ -72,7 +75,6 @@ describe 'Jobs API' do
 
   path '/api/v1/jobs/{job_id}' do
     get 'Obtains the information of a job that exists' do
-
       parameter name: :job_id, in: :path, type: :integer
 
       response '200', 'job obtained' do
@@ -84,7 +86,6 @@ describe 'Jobs API' do
 
   path '/api/v1/jobs/{job_id}/start' do
     put 'Starts a job' do
-
       consumes 'application/json'
       produces 'application/json'
       parameter name: :job_id, in: :path, type: :integer
@@ -102,7 +103,6 @@ describe 'Jobs API' do
         let(:job) { start_job_msg }
         run_test!
       end
-
     end
   end
 
@@ -130,7 +130,6 @@ describe 'Jobs API' do
 
   path '/api/v1/jobs/{job_id}/cancel' do
     put 'Cancels a work order' do
-
       consumes 'application/json'
       produces 'application/json'
       parameter name: :job_id, in: :path, type: :string
@@ -148,7 +147,6 @@ describe 'Jobs API' do
         let(:job) { cancel_job_msg }
         run_test!
       end
-
     end
   end
 end

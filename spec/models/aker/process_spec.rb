@@ -57,7 +57,7 @@ RSpec.describe Aker::Process, type: :model do
         end
         it 'creates an object describing that linear process' do
           expect(@process.build_available_links).to eq(
-            'start' => [{:name => @list_of_modules[0].name, :id => @list_of_modules[0].id}],
+            'start' => [@list_of_modules[0].to_custom_hash],
             @list_of_modules[0].name => [@list_of_modules[1].to_custom_hash],
             @list_of_modules[1].name => [@list_of_modules[2].to_custom_hash],
             @list_of_modules[2].name => [@list_of_modules[3].to_custom_hash],
@@ -80,7 +80,7 @@ RSpec.describe Aker::Process, type: :model do
           end
           it 'creates an object describing the loop' do
             expect(@process.build_available_links).to eq(
-              'start' => [{:name => @list_of_modules[0].name, :id => @list_of_modules[0].id}],
+              'start' => [@list_of_modules[0].to_custom_hash],
               @list_of_modules[0].name => [@list_of_modules[1].to_custom_hash],
               @list_of_modules[1].name => [@list_of_modules[2].to_custom_hash],
               @list_of_modules[2].name => [@list_of_modules[3].to_custom_hash],
