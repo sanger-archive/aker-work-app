@@ -308,11 +308,12 @@ RSpec.describe WorkOrder, type: :model do
   describe '#can_be_dispatched?' do
     context 'when the work order is queued' do
       let!(:processes) { make_processes(3) }
+      let(:modules_selected_values) { processes.map{ [nil] }}
       let(:plan) { create(:work_plan, product: product) }
 
       context 'when the last order in the plan, not closed, is the work order' do
         it 'should return true' do
-          plan.create_orders(process_options, nil)
+          plan.create_orders(process_options, nil, modules_selected_values)
           plan.work_orders[0].update_attributes(status: WorkOrder.CONCLUDED)
           plan.work_orders[1].update_attributes(status: WorkOrder.CONCLUDED)
           plan.work_orders.reload
@@ -324,7 +325,7 @@ RSpec.describe WorkOrder, type: :model do
       end
       context 'when the last order in the plan, not closed, is not the work order' do
         it 'should return false' do
-          plan.create_orders(process_options, nil)
+          plan.create_orders(process_options, nil, modules_selected_values)
           plan.work_orders[0].update_attributes(status: WorkOrder.QUEUED)
           plan.work_orders.reload
 
@@ -360,7 +361,14 @@ RSpec.describe WorkOrder, type: :model do
     context 'when there are work order module choices for a work order' do
       it 'returns a list of module choices' do
         modules.each_with_index { |m,i| WorkOrderModuleChoice.create(work_order: order, process_module: m, position: i)}
-        expect(order.selected_path).to eq([{name: modules[0].name, id: modules[0].id},{name: modules[1].name, id: modules[1].id}])
+        expect(order.selected_path).to eq([{name: modules[0].name, id: modules[0].id, selected_value: nil},{name: modules[1].name, id: modules[1].id, selected_value: nil}])
+      end
+      it 'includes the selected values for the choices' do
+        modules.each_with_index { |m,i| WorkOrderModuleChoice.create(work_order: order, process_module: m, position: i, selected_value: i)}
+        expect(order.selected_path).to eq([
+          {name: modules[0].name, id: modules[0].id, selected_value: 0},
+          {name: modules[1].name, id: modules[1].id, selected_value: 1}
+        ])
       end
     end
     context 'when there are no work order module choices for a work order' do

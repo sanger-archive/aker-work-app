@@ -10,12 +10,15 @@ RSpec.describe Catalogue, type: :model do
     let(:process_uuid) { SecureRandom.uuid }
 
     context 'when the catalogue is valid' do
+      let(:min_quantification_value) { 1 }
+      let(:max_quantification_value) { 5 }
       let(:params) do
         {
           lims_id: lims_id, url: 'france', pipeline: 'cells',
           processes: [
-            { uuid: process_uuid, name: 'QC', TAT: 5,
-              process_class: 'genotyping',
+            { uuid: process_uuid, name: "QC", TAT: 5,
+              process_class: "genotyping",
+              module_parameters: [{name: "Quantification", min_value: min_quantification_value, max_value: max_quantification_value }],
               process_module_pairings: [
                 { from_step: nil, to_step: 'Quantification', default_path: true },
                 { from_step: 'Genotyping HumGen SNP', to_step: nil, default_path: true },
@@ -105,6 +108,12 @@ RSpec.describe Catalogue, type: :model do
         expect(pairings[2]).to have_attributes(from_step_id: module1.id,
                                                to_step_id: module3.id,
                                                aker_process_id: process.id)
+      end
+
+      it "loads the module arguments into the created modules" do
+        module1 = Aker::ProcessModule.find_by(name: "Quantification")
+        expect(module1.min_value).to eq(min_quantification_value)
+        expect(module1.max_value).to eq(max_quantification_value)
       end
 
       it 'should have called the validation methods' do
@@ -214,14 +223,66 @@ RSpec.describe Catalogue, type: :model do
     end
   end
 
-  describe '#validate_processes' do
+  describe '#validate_modules' do
+    let(:min_quantification_value) { 1 }
+    let(:max_quantification_value) { 5 }
+
     def make_process
       uuid = SecureRandom.uuid
       {
         uuid: uuid,
         name: "Process #{uuid}",
         TAT: 5,
-        process_module_pairings: []
+        module_parameters: [
+          {name: "Quantification", min_value: min_quantification_value, max_value: max_quantification_value }
+        ],
+        process_module_pairings: [
+          { from_step: nil, to_step: "Quantification", default_path: true},
+          { from_step: "Genotyping HumGen SNP", to_step: nil, default_path: true},
+          { from_step: "Quantification", to_step: "Genotyping CGP SNP", default_path: true}
+        ]
+      }
+    end
+
+    let(:valid_product_params) do
+      uuid = SecureRandom.uuid
+      [
+        {
+          uuid: uuid,
+          name: "Product #{uuid}",
+          description: "Lorem Ipsum",
+          product_version: 1,
+          availability: 1,
+          requested_biomaterial_type: "blood",
+          process_uuids: product_process_uuids,
+        }
+      ]
+    end
+
+    let(:product_process_uuids) { process_params&.map { |pro| pro[:uuid] } || [] }
+
+    let(:product_params) { valid_product_params }
+    let(:process_params) { (0...2).map { make_process } }    
+
+    context 'with wrong module parameters' do
+      let(:min_quantification_value) { 30 }
+      it 'raise exception when min value > max value' do
+        expect { Catalogue.validate_module_parameters(process_params) }.to raise_error /Error in module/i
+      end
+    end
+
+  end
+
+  describe '#validate_processes' do
+
+    def make_process
+      uuid = SecureRandom.uuid
+      {
+        uuid: uuid,
+        name: "Process #{uuid}",
+        TAT: 5,
+        process_module_pairings: [
+        ]
       }
     end
 
