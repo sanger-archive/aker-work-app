@@ -373,7 +373,7 @@ private
       add_error("The request to the LIMS failed.")
       return false
     end
-    order.update_attributes!(status: 'active', dispatch_date: Date.today)
+    order.update_attributes!(status: 'active', dispatch_date: Time.now)
     return true
   end
 

@@ -19,6 +19,7 @@ RSpec.describe 'Api::V1::Jobs', type: :request do
   end
 
   before do
+    Timecop.freeze(Time.now)
     webmock_matcon_schema
     stub_matcon
   end
@@ -26,7 +27,7 @@ RSpec.describe 'Api::V1::Jobs', type: :request do
   describe 'Resource' do
     context 'GET' do
       let(:set_for_work_order) { made_up_set }
-      let(:yesterday) { Time.zone.now.yesterday }
+      let(:yesterday) { Time.now.yesterday }
       let(:tomorrow) { Time.zone.now.tomorrow }
       let(:project) { make_node('my project', 'S0001', 1, 0, false, true) }
       let(:catalogue) { create(:catalogue) }
@@ -68,8 +69,8 @@ RSpec.describe 'Api::V1::Jobs', type: :request do
         expect(obtained_job['data']['attributes']['completed']).to eq(nil)
         expect(obtained_job['data']['attributes']['cancelled']).to eq(nil)
         expect(obtained_job['data']['attributes']['broken']).to eq(nil)
-        expect(obtained_job['data']['attributes']['date-requested'])
-          .to eq(order.dispatch_date.to_s)
+        expect(obtained_job['data']['attributes']['date-requested'].to_datetime.to_i)
+          .to eq(order.dispatch_date.to_datetime.to_i)
         expect(obtained_job['data']['attributes']['requested-by']).to eq(plan.owner_email)
         expect(obtained_job['data']['attributes']['project']).to eq(project.name)
         expect(obtained_job['data']['attributes']['desired-date']).to eq(plan.desired_date.to_s)
@@ -77,6 +78,7 @@ RSpec.describe 'Api::V1::Jobs', type: :request do
         expect(obtained_job['data']['attributes']['product-options']).to eq([])
         expect(obtained_job['data']['attributes']['batch-size']).to eq(0)
         expect(obtained_job['data']['attributes']['work-plan-comment']).to eq(plan.comment)
+        expect(obtained_job['data']['attributes']['barcode']).to eq(container.barcode)
       end
     end
 
@@ -352,6 +354,7 @@ RSpec.describe 'Api::V1::Jobs', type: :request do
           expect(body['data'][0]['attributes']['cancelled']).to eq queued_job.cancelled
           expect(body['data'][0]['attributes']['broken']).to eq queued_job.broken
           expect(body['data'][0]['attributes']['work-order-id']).to eq queued_job.work_order.id
+          expect(body['meta']['record-count']).to eq 1
         end
 
         it 'conforms to the JSON API schema' do
