@@ -11,7 +11,6 @@ module Api
     class JobsController < JSONAPI::ResourceController
       before_action :job, only: [:show, :complete, :cancel, :start]
       before_action :check_start, only: [:start]
-      before_action :set_headers
 
       def complete
         finish('complete')
@@ -48,16 +47,6 @@ module Api
       end
 
       private
-
-      def set_headers
-        response.set_header("x-total-count", total_count)
-      end
-
-      def total_count
-        status = params['filter']['status']
-        return Job.all.select {|j| ['completed', 'cancelled'].include?(j.status) }.length if  status == 'concluded'
-        return Job.all.select {|job| job.status == status }.length
-      end
 
       def error_filter
         head :unprocessable_entity

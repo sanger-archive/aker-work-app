@@ -837,7 +837,7 @@ RSpec.describe UpdatePlanService do
     end
 
     context 'when the order is active' do
-      let(:old_date) { Date.yesterday }
+      let(:old_date) { Time.now.yesterday }
       let(:plan) do
         plan = make_plan_with_orders
         plan.work_orders[0].update_attributes(status: 'active', dispatch_date: old_date)
