@@ -450,7 +450,7 @@ RSpec.describe UpdatePlanService do
             selected_value: selected_value
           }
           memo
-        end        
+        end
       end
       let(:plan) { create(:work_plan, original_set_uuid: set.uuid, project_id: project.id) }
       let(:params) do
@@ -812,7 +812,7 @@ RSpec.describe UpdatePlanService do
             selected_value: selected_value
           }
           memo
-        end        
+        end
       end
       let(:params) do
         {
@@ -940,7 +940,7 @@ RSpec.describe UpdatePlanService do
         expect(orders[0].reload).to be_active
       end
       it 'should not have changed the dispatch date' do
-        expect(orders[0].reload.dispatch_date).to eq(old_date)
+        expect(orders[0].reload.dispatch_date.to_i).to eq(old_date.to_i)
       end
     end
 
