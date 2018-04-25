@@ -17,7 +17,7 @@ class UpdateWorkOrderStep
 		if all_jobs_concluded
 			work_order.update_attributes!(
 				status: WorkOrder.CONCLUDED,
-				completion_date: Date.today
+				completion_date: Time.now
 			)
 		end
 	end
