@@ -31,11 +31,5 @@ module WorkOrders
 
     config.autoload_paths << Rails.root.join('lib')
 
-    config.middleware.insert_before 0, Rack::Cors do
-      allow do
-        origins '*'
-        resource '*', :headers => :any, :methods => [:get, :put, :options], :expose => ['x-total-count']
-      end
-    end
   end
 end
