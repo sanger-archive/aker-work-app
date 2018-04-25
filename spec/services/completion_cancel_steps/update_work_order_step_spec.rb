@@ -10,13 +10,13 @@ RSpec.describe 'UpdateWorkOrderStep' do
 
 
   def updated_attributes(new_status)
-    { status: new_status,  completion_date: Date.today }
+    { status: new_status,  completion_date: Time.now }
   end
 
   let(:work_order) { make_work_order }
 
   setup do
-    Timecop.freeze(Date.today)
+    Timecop.freeze(Time.now)
     stub_matcon
   end
 
@@ -39,14 +39,14 @@ RSpec.describe 'UpdateWorkOrderStep' do
 
   describe '#up' do
     context 'when all jobs are completed or cancelled' do
-      
+
       before do
         allow(work_order).to receive(:jobs).and_return(jobs)
         allow(work_order).to receive(:status).and_return(WorkOrder.ACTIVE)
         allow(work_order).to receive(:active?).and_return(true)
       end
       it 'should update the work order to complete' do
-        expect(work_order).to receive(:update_attributes!).with(updated_attributes(WorkOrder.CONCLUDED))
+        expect(work_order).to receive(:update_attributes!).with(status: WorkOrder.CONCLUDED, completion_date: Time.now)
         step.up
       end
 

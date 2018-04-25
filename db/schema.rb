@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180416131952) do
+ActiveRecord::Schema.define(version: 20180423135801) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -115,8 +115,8 @@ ActiveRecord::Schema.define(version: 20180416131952) do
     t.decimal "cost_per_sample", precision: 8, scale: 2
     t.boolean "material_updated", default: false, null: false
     t.integer "order_index", null: false
-    t.date "dispatch_date"
-    t.date "completion_date"
+    t.datetime "dispatch_date"
+    t.datetime "completion_date"
     t.uuid "original_set_uuid"
     t.uuid "set_uuid"
     t.uuid "finished_set_uuid"
