@@ -17,5 +17,6 @@ else
     def self.consume; end
     def self.working?; end
     def self.connected?; end
+    def self.events_disabled?; end
   end
 end

@@ -8,6 +8,7 @@ RSpec.describe 'Broker' do
 
   let(:params) do
     {
+      enabled: true,
       broker_host: 'broker_host',
       broker_port: 'broker_port',
       broker_username: 'broker_username',

@@ -177,7 +177,7 @@ private
   end
 
   def check_broker
-    return true if BrokerHandle.working?
+    return true if BrokerHandle.working? || BrokerHandle.events_disabled?
     add_error("Could not connect to message exchange.")
     return false
   end
