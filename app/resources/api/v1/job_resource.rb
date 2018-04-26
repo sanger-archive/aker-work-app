@@ -20,7 +20,7 @@ module Api
                values
              end),
              apply: (lambda do |records, values, _options|
-               unbroken_jobs = records.joins(work_order: [work_plan: [product: [:processes]]]).where(broken: nil)
+               unbroken_jobs = records.where(broken: nil)
                jobs = case values[0]
                       when 'queued'
                         unbroken_jobs.where(started: nil, completed: nil, cancelled: nil)
