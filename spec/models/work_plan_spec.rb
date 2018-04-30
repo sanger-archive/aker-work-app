@@ -75,8 +75,17 @@ RSpec.describe WorkPlan, type: :model do
     end
 
     context 'when the plan has a project id' do
-      let(:plan) { build(:work_plan, project_id: project.id) }
-      it { expect(plan.project).to eq(project) }
+      context 'when the project does exist' do
+        let(:plan) { build(:work_plan, project_id: project.id) }
+        it { expect(plan.project).to eq(project) }
+      end
+      context 'when the project does not exist' do
+        let(:plan) { build(:work_plan, project_id: 'not exist') }
+        before do
+          allow(StudyClient::Node).to receive(:find).with(plan.project_id).and_raise(JsonApiClient::Errors::NotFound, "")
+        end
+        it { expect(plan.project).to eq(nil) }
+      end
     end
 
     context 'when the plan has a @project with a different project_id' do
