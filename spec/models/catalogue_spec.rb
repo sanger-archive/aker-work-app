@@ -141,6 +141,13 @@ RSpec.describe Catalogue, type: :model do
     end
   end
 
+  describe '#job_creation_url' do
+    it 'should generate the url from the catalogue url' do
+      catalogue = create(:catalogue, url: 'http://testingurl')
+      expect(catalogue.job_creation_url).to eq('http://testingurl/api/v2/aker/jobs')
+    end
+  end
+
   describe 'validation' do
     it 'should not be valid without a lims_id' do
       expect(build(:catalogue, lims_id: nil)).not_to be_valid
