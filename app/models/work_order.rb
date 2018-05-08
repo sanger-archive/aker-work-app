@@ -199,7 +199,7 @@ class WorkOrder < ApplicationRecord
   end
 
   def send_to_lims
-    create_jobs
+    create_jobs if jobs.empty?
     jobs.each(&:send_to_lims)
   end
 

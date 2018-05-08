@@ -74,7 +74,7 @@ module Api
       end
 
       def product_options
-        @model.work_order&.work_plan&.product&.processes&.map(&:name)
+        @model.work_order&.work_plan&.product&.processes&.map(&:name)&.join(', ')
       end
 
       def batch_size
