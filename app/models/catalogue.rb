@@ -8,6 +8,10 @@ class Catalogue < ApplicationRecord
 
   validates :lims_id, presence: true
 
+  def job_creation_url
+    "#{url}/api/v2/aker/jobs"
+  end
+
   def self.create_with_products(catalogue_params)
     catalogue = nil
     begin

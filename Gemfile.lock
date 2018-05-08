@@ -34,6 +34,12 @@ GIT
       cancancan
 
 GIT
+  remote: https://github.com/sanger/aker-projects-client-gem.git
+  revision: f13c3d95d7ed38402c72208151dfb4416c1ffbb1
+  specs:
+    aker-study-client (0.2.3)
+
+GIT
   remote: https://github.com/sanger/aker-set-client.git
   revision: 25f71170b2bcede66a27223b99aece1fb57cf08c
   specs:
@@ -50,12 +56,6 @@ GIT
   revision: dc52d4417249b38293b7a2ab4901a84ee4fc34af
   specs:
     aker_stamp_client (0.2.0)
-
-GIT
-  remote: https://github.com/sanger/aker-study-client.git
-  revision: f13c3d95d7ed38402c72208151dfb4416c1ffbb1
-  specs:
-    aker-study-client (0.2.3)
 
 GIT
   remote: https://github.com/sanger/bootstrap-sass.git
@@ -459,7 +459,7 @@ PLATFORMS
 DEPENDENCIES
   aker-billing-facade-client!
   aker-set-client!
-  aker-study-client (>= 0.2.3)!
+  aker-study-client!
   aker_credentials_gem!
   aker_permission_gem!
   aker_shared_navbar!
