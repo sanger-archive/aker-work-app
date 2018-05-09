@@ -47,9 +47,9 @@ GIT
 
 GIT
   remote: https://github.com/sanger/aker-shared-navbar.git
-  revision: c7b225c43fb16e7ccfaf3128d4a61a904af75d15
+  revision: 3311f7fc9f0920300614b6a77ab64cdf9b6ab5a2
   specs:
-    aker_shared_navbar (0.1.2)
+    aker_shared_navbar (0.1.3)
 
 GIT
   remote: https://github.com/sanger/aker-stamp-client.git
@@ -377,7 +377,7 @@ GEM
       sprockets (>= 2.8, < 4.0)
       sprockets-rails (>= 2.0, < 4.0)
       tilt (>= 1.1, < 3)
-    selenium-webdriver (3.11.0)
+    selenium-webdriver (3.12.0)
       childprocess (~> 0.5)
       rubyzip (~> 1.2)
     sexp_processor (4.11.0)
