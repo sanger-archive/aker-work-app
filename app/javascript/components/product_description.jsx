@@ -173,7 +173,7 @@ export class ProductDescription extends React.Component {
     return (
       <div>
         <ErrorConsole msg={this.state.errorMessage}/>
-        { enabled && 
+        { enabled &&
           <input type='hidden' name='work_plan[product_id]' value={productId} />
         }
         { enabled &&
@@ -465,7 +465,7 @@ export class ProcessModuleParameters extends React.Component {
   }
   validValue() {
     return(
-      (this.state.selectedValue >= this.props.selectedOption.min_value) && 
+      (this.state.selectedValue >= this.props.selectedOption.min_value) &&
       (this.state.selectedValue <= this.props.selectedOption.max_value)
     )
   }
@@ -488,13 +488,13 @@ export class ProcessModuleParameters extends React.Component {
   }
   renderFeedback(caption) {
     if ((this.validValue()) || ((this.state.selectedValue.length === 0))) {
-      return(null)      
+      return(null)
     } else {
       return(
         <div className="text-danger">
             {caption}
         </div>
-        )      
+        )
     }
   }
   render() {
@@ -523,13 +523,13 @@ class ProcessModuleSelectElement extends React.Component {
       return(
         <select className="form-control" value={selection} onChange={this.props.onChange} id={this.props.id}>
           { select_options }
-        </select>    
+        </select>
       )
     } else {
       return(
         <select className="form-control" value={selection} onChange={this.props.onChange} id={this.props.id} disabled>
           { select_options }
-        </select>          
+        </select>
       )
     }
   }
@@ -609,9 +609,12 @@ ${errorText}`}</pre>
 
     return (
       <Fragment>
-          <pre>{`Number of samples: ${numSamples}
+        <pre>{`Number of samples: ${numSamples}
 Estimated cost per sample: ${convertToCurrency(costPerSample)}
-Total: ${convertToCurrency(total)}`}</pre>
+Total: ${convertToCurrency(total)}
+`}
+          <span style={{color: 'red'}}> &#9888; These values come from mock UBW.</span>
+        </pre>
       </Fragment>
     );
   }
