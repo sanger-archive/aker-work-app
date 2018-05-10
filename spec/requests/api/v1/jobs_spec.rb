@@ -75,7 +75,7 @@ RSpec.describe 'Api::V1::Jobs', type: :request do
         expect(obtained_job['data']['attributes']['project']).to eq(project.name)
         expect(obtained_job['data']['attributes']['desired-date']).to eq(plan.desired_date.to_s)
         expect(obtained_job['data']['attributes']['product']).to eq(plan.product.name)
-        expect(obtained_job['data']['attributes']['product-options']).to eq('')
+        expect(obtained_job['data']['attributes']['process-modules']).to eq('')
         expect(obtained_job['data']['attributes']['process']).to eq(job.work_order.process.name)
         expect(obtained_job['data']['attributes']['batch-size']).to eq(0)
         expect(obtained_job['data']['attributes']['work-plan-comment']).to eq(plan.comment)
