@@ -27,7 +27,7 @@ module Api
       end
 
       def finish(finish_status)
-        if BrokerHandle.working?
+        if BrokerHandle.working? || BrokerHandle.events_disabled?
           RequestStore.store[:x_authorisation] = { email: @job.work_order.owner_email, groups: ['world'] }
           validator = JobValidatorService.new(@job, params_for_completion)
           valid = validator.validate?
