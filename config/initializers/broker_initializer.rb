@@ -12,11 +12,12 @@ if Rails.configuration.events[:enabled]
   end
 else
   # Create an "empty" class definition with fake methods to use when events are disabled
-  BrokerHandle = Class.new do
-    def self.publish(obj); end
-    def self.consume; end
-    def self.working?; end
-    def self.connected?; end
-    def self.events_disabled?; end
+  BrokerHandle = Broker.new.tap do |obj|
+    obj.instance_eval do
+      def publish(obj); end
+      def consume; end
+      def working?; end
+      def connected?; end
+    end
   end
 end
