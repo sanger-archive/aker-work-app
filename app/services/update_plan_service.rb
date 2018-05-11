@@ -370,7 +370,7 @@ private
       Rails.logger.error "Failed to send work order"
       Rails.logger.error e
       Rails.logger.error e.backtrace
-      add_error("The request to the LIMS failed.")
+      add_error("The request to the LIMS failed. Description: #{e}")
       return false
     end
     order.update_attributes!(status: 'active', dispatch_date: Time.now)
