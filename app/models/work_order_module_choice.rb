@@ -3,8 +3,20 @@ class WorkOrderModuleChoice < ActiveRecord::Base
   belongs_to :work_order, required: true
   belongs_to :process_module, class_name: 'Aker::ProcessModule', foreign_key: 'aker_process_modules_id'
 
+  def description
+     "#{process_module.name}#{selected_value_description}"
+  end
+
+  def selected_value_description
+    requires_selected_value? ? " (#{selected_value})" : ""
+  end
+
+  def requires_selected_value?
+    process_module.min_value || process_module.max_value
+  end
+
   def selected_value_is_right
-    if process_module.min_value || process_module.max_value
+    if requires_selected_value?
       if !selected_value
         errors.add(:selected_value, 'The selected value does not have a valid value')
       end

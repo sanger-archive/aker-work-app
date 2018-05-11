@@ -33,6 +33,7 @@ class Broker
   end
 
   def publish(message)
+    return if events_disabled?
     # self.working? should have been checked before this method was called.
     # If it is not working now, raise an exception.
     if !working?
@@ -46,6 +47,14 @@ class Broker
       Rails.logger.error('There is an unconfirmed set in the broker.')
       raise "The event message was not confirmed."
     end
+  end
+
+  def events_enabled?
+    @events_config.enabled
+  end
+
+  def events_disabled?
+    !events_enabled?
   end
 
 private

@@ -23,6 +23,9 @@
 #
 class Job < ApplicationRecord
   belongs_to :work_order
+  has_one :process, through: :work_order
+
+  has_many :work_order_module_choices, through: :work_order
 
   validates :work_order, presence: true
 
