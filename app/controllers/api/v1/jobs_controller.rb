@@ -11,6 +11,7 @@ module Api
     class JobsController < JSONAPI::ResourceController
       before_action :job, only: [:show, :complete, :cancel, :start]
       before_action :check_start, only: [:start]
+      before_action :remove_submitter, only: [:complete, :cancel]
 
       def complete
         finish('complete')
@@ -27,7 +28,7 @@ module Api
       end
 
       def finish(finish_status)
-        if BrokerHandle.working?
+        if BrokerHandle.working? || BrokerHandle.events_disabled?
           RequestStore.store[:x_authorisation] = { email: @job.work_order.owner_email, groups: ['world'] }
           validator = JobValidatorService.new(@job, params_for_completion)
           valid = validator.validate?
@@ -135,6 +136,13 @@ module Api
         @job.work_order.generate_concluded_event
       end
 
+      # Ignore the submitter_id in material metadata
+      def remove_submitter
+        updated_materials = params.fetch(:job).dig("updated_materials")
+        new_materials = params.fetch(:job).dig("new_materials")
+        params["job"]["updated_materials"].each { |m| m.delete(:submitter_id) } if updated_materials
+        params["job"]["new_materials"].each { |m| m.delete(:submitter_id) } if new_materials
+      end
     end
   end
 end

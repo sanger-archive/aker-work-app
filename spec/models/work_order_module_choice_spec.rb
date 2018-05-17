@@ -1,8 +1,28 @@
 require 'rails_helper'
 RSpec.describe WorkOrderModuleChoice do
-  describe '#validation' do
     let(:process) { create(:aker_process) }
     let(:work_order) { create :work_order }
+
+  describe '#description' do
+    let(:process_module) { create :aker_process_module, name: 'Process A', aker_process: process, min_value: 1, max_value: 99 }
+    let(:choice) { 
+      create :work_order_module_choice, process_module: process_module, work_order: work_order, selected_value: 33 
+    }
+
+    it 'displays the module name and the selected value' do
+      expect(choice.description).to eq('Process A (33)')
+    end
+
+    context 'when there is no required selected value' do
+      let(:process_module) { create :aker_process_module, name: 'Process A', aker_process: process, min_value: nil, max_value: nil }
+      it 'does not display the selected value' do
+        expect(choice.description).to eq('Process A')
+      end
+
+    end
+  end
+
+  describe '#validation' do
 
     context 'when the process module does not specify any value restrictions' do
       let(:process_module) { create :aker_process_module, aker_process: process }      

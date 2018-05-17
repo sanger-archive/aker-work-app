@@ -23,6 +23,9 @@
 #
 class Job < ApplicationRecord
   belongs_to :work_order
+  has_one :process, through: :work_order
+
+  has_many :work_order_module_choices, through: :work_order
 
   validates :work_order, presence: true
 
@@ -76,7 +79,7 @@ class Job < ApplicationRecord
   end
 
   def send_to_lims
-    lims_url = work_order.work_plan.product.catalogue.url
+    lims_url = work_order.work_plan.product.catalogue.job_creation_url
     LimsClient.post(lims_url, lims_data)
   end
 

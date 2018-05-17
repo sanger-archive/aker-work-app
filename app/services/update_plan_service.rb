@@ -34,9 +34,9 @@ class UpdatePlanService
     if @work_plan_params[:product_options].present? && @work_plan_params[:product_id].present?
       product_options = JSON.parse(@work_plan_params[:product_options])
       product_options_selected_values = product_options.map do |list|
-        list.map do |module_id| 
-          if @work_plan_params[:work_order_module] && @work_plan_params[:work_order_module][module_id]
-            @work_plan_params[:work_order_module][module_id][:selected_value]
+        list.map do |module_id|
+          if @work_plan_params[:work_order_module] && @work_plan_params[:work_order_module][module_id.to_s]
+            @work_plan_params[:work_order_module][module_id.to_s][:selected_value]
           end
         end
       end
@@ -87,19 +87,19 @@ class UpdatePlanService
     if @work_plan.update_attributes(@work_plan_params)
       locked_set_uuid = nil
       begin
-        if (@work_plan_params[:product_id] || product_options) && !@work_plan.work_orders.empty?
-          # User is changing their product or options - delete the incorrect work orders
-          locked_set_uuid = @work_plan.work_orders.first.set_uuid
-          work_order_ids = @work_plan.work_orders.map(&:id)
-          WorkOrderModuleChoice.where(work_order_id: work_order_ids).each(&:destroy)
-          @work_plan.work_orders.destroy_all
-        end
+        ActiveRecord::Base.transaction do
+          if (@work_plan_params[:product_id] || product_options) && !@work_plan.work_orders.empty?
+            # User is changing their product or options - delete the incorrect work orders
+            locked_set_uuid = @work_plan.work_orders.first.set_uuid
+            work_order_ids = @work_plan.work_orders.map(&:id)
+            WorkOrderModuleChoice.where(work_order_id: work_order_ids).each(&:destroy)
+            @work_plan.work_orders.destroy_all
+          end
 
-        if update_order
-          ActiveRecord::Base.transaction do
+          if update_order
             WorkOrderModuleChoice.where(work_order_id: update_order[:order_id]).each(&:destroy)
             update_order[:modules].each_with_index do |mid, i|
-              WorkOrderModuleChoice.create!(work_order_id: update_order[:order_id], aker_process_modules_id: mid, position: i, 
+              WorkOrderModuleChoice.create!(work_order_id: update_order[:order_id], aker_process_modules_id: mid, position: i,
                 selected_value: update_order[:modules_selected_value][i].to_i)
             end
           end
@@ -109,7 +109,7 @@ class UpdatePlanService
         Rails.logger.error e
         Rails.logger.error e.backtrace
         add_error("Update of work orders failed")
-        return false          
+        return false
       end
 
       if product_options && @work_plan.work_orders.empty?
@@ -136,9 +136,9 @@ class UpdatePlanService
 private
 
   def modules_selected_value_from_module_ids(module_ids)
-    module_ids.map do |id| 
-      if @work_plan_params[:work_order_module] && @work_plan_params[:work_order_module][id]
-        @work_plan_params[:work_order_module][id][:selected_value]
+    module_ids.map do |id|
+      if @work_plan_params[:work_order_module] && @work_plan_params[:work_order_module][id.to_s]
+        @work_plan_params[:work_order_module][id.to_s][:selected_value]
       else
         nil
       end
@@ -177,7 +177,7 @@ private
   end
 
   def check_broker
-    return true if BrokerHandle.working?
+    return true if BrokerHandle.working? || BrokerHandle.events_disabled?
     add_error("Could not connect to message exchange.")
     return false
   end
@@ -236,6 +236,7 @@ private
     end
 
     return false unless authorize_project(@work_plan.project_id)
+    return false unless data_release_strategy_exists
 
     unless order.original_set_uuid
       previous_order = orders.reverse.find(&:closed?)
@@ -346,6 +347,15 @@ private
     end
   end
 
+  def data_release_strategy_exists
+    if @work_plan.project_data_release_exist?
+      return true
+    else
+      add_error("The project selected does not have a data release strategy.")
+      return false
+    end
+  end
+
   def create_work_order_module_choices(product_options)
     work_order_id = @work_plan.id
 
@@ -370,10 +380,10 @@ private
       Rails.logger.error "Failed to send work order"
       Rails.logger.error e
       Rails.logger.error e.backtrace
-      add_error("The request to the LIMS failed.")
+      add_error("The request to the LIMS failed. Description: #{e}")
       return false
     end
-    order.update_attributes!(status: 'active', dispatch_date: Date.today)
+    order.update_attributes!(status: 'active', dispatch_date: Time.now)
     return true
   end
 

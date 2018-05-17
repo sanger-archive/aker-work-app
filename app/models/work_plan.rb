@@ -15,7 +15,16 @@ class WorkPlan < ApplicationRecord
     return nil unless project_id
     return @project if @project&.id==project_id
     Rails.logger.debug "Loading project for work plan"
-    @project = StudyClient::Node.find(project_id).first
+    begin
+      @project = StudyClient::Node.find(project_id).first
+    rescue JsonApiClient::Errors::NotFound => e
+      Rails.logger.error "Loading project for work plan does not exist #{project_id}"
+      return nil
+    end
+  end
+
+  def project_data_release_exist?
+    !!project&.data_release_uuid
   end
 
   # This is the set chosen by the user that will be the "original set" for the first
@@ -27,6 +36,7 @@ class WorkPlan < ApplicationRecord
     begin
       @original_set = SetClient::Set.find(original_set_uuid).first
     rescue JsonApiClient::Errors::NotFound => e
+      Rails.logger.error "Loading set for work plan does not exist #{original_set_uuid}"
       return nil
     end
   end

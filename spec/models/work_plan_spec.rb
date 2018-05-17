@@ -4,11 +4,7 @@ require 'ostruct'
 RSpec.describe WorkPlan, type: :model do
   let(:catalogue) { create(:catalogue) }
   let(:product) { create(:product, catalogue: catalogue) }
-  let(:project) do
-    proj = double(:project, id: 12)
-    allow(StudyClient::Node).to receive(:find).with(proj.id).and_return([proj])
-    proj
-  end
+  let(:project) { make_project(12, '123') }
   let(:process_options) do
     product.processes.map do |pro|
       pro.process_modules.map(&:id)
@@ -47,6 +43,13 @@ RSpec.describe WorkPlan, type: :model do
     pros
   end
 
+  def make_project(id, data_release_uuid)
+    proj = double(:project, id: id)
+    allow(proj).to receive(:data_release_uuid).and_return(data_release_uuid)
+    allow(StudyClient::Node).to receive(:find).with(id).and_return([proj])
+    proj
+  end
+
   describe '#uuid' do
     context 'when a new plan is made' do
       it 'is given a uuid' do
@@ -75,8 +78,17 @@ RSpec.describe WorkPlan, type: :model do
     end
 
     context 'when the plan has a project id' do
-      let(:plan) { build(:work_plan, project_id: project.id) }
-      it { expect(plan.project).to eq(project) }
+      context 'when the project does exist' do
+        let(:plan) { build(:work_plan, project_id: project.id) }
+        it { expect(plan.project).to eq(project) }
+      end
+      context 'when the project does not exist' do
+        let(:plan) { build(:work_plan, project_id: 'not exist') }
+        before do
+          allow(StudyClient::Node).to receive(:find).with(plan.project_id).and_raise(JsonApiClient::Errors::NotFound, "")
+        end
+        it { expect(plan.project).to eq(nil) }
+      end
     end
 
     context 'when the plan has a @project with a different project_id' do
@@ -102,6 +114,27 @@ RSpec.describe WorkPlan, type: :model do
     end
   end
 
+  describe '#project_data_release_exist?' do
+    context 'when the plan has a project' do
+      context 'when the project has a data release uuid' do
+        let(:plan) { build(:work_plan, project_id: project.id) }
+
+        it { expect(plan.project_data_release_exist?).to eq(true) }
+      end
+
+      context 'when the project does not have a data release uuid' do
+        let(:project) { make_project(18, nil) }
+        let(:plan) { build(:work_plan, project_id: project.id) }
+
+        it { expect(plan.project_data_release_exist?).to eq(false) }
+      end
+
+    end
+    context 'when the plan has no project' do
+      let(:plan) { build(:work_plan) }
+      it { expect(plan.project_data_release_exist?).to eq(false) }
+    end
+  end
 
   describe '#owner_email' do
     it 'should be sanitised' do

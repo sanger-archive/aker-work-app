@@ -9,7 +9,7 @@ RSpec.describe UpdatePlanService do
   let(:service) { UpdatePlanService.new(params, plan, dispatch, user_and_groups, messages) }
   let(:catalogue) { create(:catalogue) }
   let(:product) { create(:product, catalogue: catalogue) }
-  let(:project) { make_project(18, 'S1234-0') }
+  let(:project) { make_project(18, 'S1234-0', '123') }
   let(:set) { make_set(false, true, locked_set) }
   let(:locked_set) { make_set(false, true) }
   let(:processes) { create_processes(product) }
@@ -41,8 +41,9 @@ RSpec.describe UpdatePlanService do
     return double(:response, result_set: result_set)
   end
 
-  def make_project(id, cost_code)
+  def make_project(id, cost_code, data_release_uuid)
     proj = double(:project, id: id, name: "project #{id}", cost_code: cost_code)
+    allow(proj).to receive(:data_release_uuid).and_return(data_release_uuid)
     allow(StudyClient::Node).to receive(:find).with(id).and_return([proj])
     proj
   end
@@ -105,7 +106,7 @@ RSpec.describe UpdatePlanService do
       stub_project
     end
 
-    let(:new_project) { make_project(21, 'S1234-2') }
+    let(:new_project) { make_project(21, 'S1234-2', '123') }
 
     let(:params) { { project_id: new_project.id } }
 
@@ -191,7 +192,7 @@ RSpec.describe UpdatePlanService do
     end
 
     context 'when the project has no cost code' do
-      let(:new_project) { make_project(21, nil) }
+      let(:new_project) { make_project(21, nil, '123') }
       let(:plan) { create(:work_plan, original_set_uuid: set.uuid) }
 
       it { expect(@result).to be_falsey }
@@ -446,11 +447,11 @@ RSpec.describe UpdatePlanService do
       def work_order_module
         processes.map(&:process_modules).flatten.reduce({}) do |memo, mod|
           mod.update_attributes(min_value:1, max_value: 5)
-          memo[mod.id] = {
+          memo[mod.id.to_s] = {
             selected_value: selected_value
           }
           memo
-        end        
+        end
       end
       let(:plan) { create(:work_plan, original_set_uuid: set.uuid, project_id: project.id) }
       let(:params) do
@@ -808,11 +809,11 @@ RSpec.describe UpdatePlanService do
       def work_order_module
         processes.map(&:process_modules).flatten.reduce({}) do |memo, mod|
           mod.update_attributes(min_value:1, max_value: 5)
-          memo[mod.id] = {
+          memo[mod.id.to_s] = {
             selected_value: selected_value
           }
           memo
-        end        
+        end
       end
       let(:params) do
         {
@@ -899,10 +900,31 @@ RSpec.describe UpdatePlanService do
       it 'should have a dispatch date' do
         expect(orders[0].reload.dispatch_date).not_to be_nil
       end
+
+      context 'when the project does not have a data release uuid' do
+        let(:project) { make_project(21, 'S1234-2', nil) }
+
+        it { expect(@result).to be_falsey }
+        it 'should produce an error message' do
+          expect(messages[:error]).to match /project.*data release/i
+        end
+        it 'should have not created any jobs' do
+          expect(orders[0].jobs.reload).to eq([])
+        end
+        it 'should not have sent the order' do
+          expect(@sent_to_lims).to eq(false)
+        end
+        it 'should not have generated an event' do
+          expect(@sent_event).to eq(false)
+        end
+        it 'should not have changed the order status' do
+          expect(orders[0].reload).to be_queued
+        end
+      end
     end
 
     context 'when the order is active' do
-      let(:old_date) { Date.yesterday }
+      let(:old_date) { Time.now.yesterday }
       let(:plan) do
         plan = make_plan_with_orders
         plan.work_orders[0].update_attributes(status: 'active', dispatch_date: old_date)
@@ -940,7 +962,7 @@ RSpec.describe UpdatePlanService do
         expect(orders[0].reload).to be_active
       end
       it 'should not have changed the dispatch date' do
-        expect(orders[0].reload.dispatch_date).to eq(old_date)
+        expect(orders[0].reload.dispatch_date.to_i).to eq(old_date.to_i)
       end
     end
 

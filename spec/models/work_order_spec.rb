@@ -390,7 +390,7 @@ RSpec.describe WorkOrder, type: :model do
     end
     context 'when the process doesnt exist' do
       let!(:process) { nil }
-      let!(:order) { build(:work_order, work_plan: plan, dispatch_date: Date.today, process: nil )}
+      let!(:order) { build(:work_order, work_plan: plan, dispatch_date: Time.now, process: nil )}
       it 'should return nil' do
         expect(order.estimated_completion_date).to be nil
       end
@@ -402,7 +402,7 @@ RSpec.describe WorkOrder, type: :model do
       end
     end
     context 'when both the dispatch date and process exist' do
-      let!(:order) { build(:work_order, work_plan: plan, process: process, dispatch_date: Date.today )}
+      let!(:order) { build(:work_order, work_plan: plan, process: process, dispatch_date: Time.now )}
       it 'should the dispatch date + the process TAT' do
         expect(order.estimated_completion_date).to eq(order.dispatch_date+process.TAT)
       end

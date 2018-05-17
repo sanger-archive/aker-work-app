@@ -42,6 +42,7 @@ gem 'webpacker', '~> 3.2'
 gem 'webpacker-react', '~> 0.3.2'
 gem 'wicked'
 gem 'zipkin-tracer'
+gem 'rack-cors'
 
 ###
 # Sanger gems
@@ -51,7 +52,7 @@ gem 'aker_credentials_gem', github: 'sanger/aker-credentials'
 gem 'aker_permission_gem', github: 'sanger/aker-permission'
 gem 'aker-set-client', github: 'sanger/aker-set-client'
 gem 'aker_stamp_client', github: 'sanger/aker-stamp-client'
-gem 'aker-study-client', '>= 0.2.3', github: 'sanger/aker-study-client'
+gem 'aker-study-client', github: 'sanger/aker-projects-client-gem'
 gem 'aker_shared_navbar', github: 'sanger/aker-shared-navbar'
 gem 'bootstrap-sass', '~> 3.3.6', github: 'sanger/bootstrap-sass'
 gem 'json_api_client', github: 'sanger/json_api_client'
