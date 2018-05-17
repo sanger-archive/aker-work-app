@@ -23,6 +23,10 @@ class WorkPlan < ApplicationRecord
     end
   end
 
+  def project_data_release_exist?
+    !!project&.data_release_uuid
+  end
+
   # This is the set chosen by the user that will be the "original set" for the first
   #  work order (when that is created)
   def original_set
