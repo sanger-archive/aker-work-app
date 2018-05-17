@@ -34,7 +34,7 @@ class UpdatePlanService
     if @work_plan_params[:product_options].present? && @work_plan_params[:product_id].present?
       product_options = JSON.parse(@work_plan_params[:product_options])
       product_options_selected_values = product_options.map do |list|
-        list.map do |module_id| 
+        list.map do |module_id|
           if @work_plan_params[:work_order_module] && @work_plan_params[:work_order_module][module_id.to_s]
             @work_plan_params[:work_order_module][module_id.to_s][:selected_value]
           end
@@ -99,7 +99,7 @@ class UpdatePlanService
           if update_order
             WorkOrderModuleChoice.where(work_order_id: update_order[:order_id]).each(&:destroy)
             update_order[:modules].each_with_index do |mid, i|
-              WorkOrderModuleChoice.create!(work_order_id: update_order[:order_id], aker_process_modules_id: mid, position: i, 
+              WorkOrderModuleChoice.create!(work_order_id: update_order[:order_id], aker_process_modules_id: mid, position: i,
                 selected_value: update_order[:modules_selected_value][i].to_i)
             end
           end
@@ -109,7 +109,7 @@ class UpdatePlanService
         Rails.logger.error e
         Rails.logger.error e.backtrace
         add_error("Update of work orders failed")
-        return false          
+        return false
       end
 
       if product_options && @work_plan.work_orders.empty?
@@ -136,7 +136,7 @@ class UpdatePlanService
 private
 
   def modules_selected_value_from_module_ids(module_ids)
-    module_ids.map do |id| 
+    module_ids.map do |id|
       if @work_plan_params[:work_order_module] && @work_plan_params[:work_order_module][id.to_s]
         @work_plan_params[:work_order_module][id.to_s][:selected_value]
       else
@@ -236,6 +236,7 @@ private
     end
 
     return false unless authorize_project(@work_plan.project_id)
+    return false unless data_release_strategy_exists
 
     unless order.original_set_uuid
       previous_order = orders.reverse.find(&:closed?)
@@ -342,6 +343,15 @@ private
       return true
     rescue AkerPermissionGem::NotAuthorized => e
       add_error(e.message)
+      return false
+    end
+  end
+
+  def data_release_strategy_exists
+    if @work_plan.project_data_release_exist?
+      return true
+    else
+      add_error("The project selected does not have a data release strategy.")
       return false
     end
   end
