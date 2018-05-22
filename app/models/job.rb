@@ -167,7 +167,7 @@ class Job < ApplicationRecord
       job: {
         job_id: id,
         work_order_id: work_order.id,
-        job_url: job_url,
+        aker_job_url: job_url,
 
         process_name: work_order.process.name,
         process_uuid: work_order.process.uuid,
