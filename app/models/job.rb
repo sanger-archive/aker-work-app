@@ -167,6 +167,7 @@ class Job < ApplicationRecord
       job: {
         job_id: id,
         work_order_id: work_order.id,
+        aker_job_url: job_url,
 
         process_name: work_order.process.name,
         process_uuid: work_order.process.uuid,
@@ -188,5 +189,9 @@ class Job < ApplicationRecord
         }
       }
     }
+  end
+
+  def job_url
+    Rails.application.config.urls[:work_orders]+'/api/v1/jobs/'+self.id.to_s
   end
 end

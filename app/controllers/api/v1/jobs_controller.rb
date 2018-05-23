@@ -49,12 +49,12 @@ module Api
 
       private
 
-      def error_filter
-        head :unprocessable_entity
+      def error_started
+        render json: {"msg": "This job has already been started."}, status: :unprocessable_entity
       end
 
       def check_start
-        error_filter unless @job.queued?
+        error_started unless @job.queued?
         true
       end
 
