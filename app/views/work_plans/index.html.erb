@@ -1,5 +1,9 @@
+<% content_for :main_title do %>
+My Work Plans
+<% end %>
+
 <% content_for :title_button do %>
-  <%= link_to 'Order new work', work_plans_path, method: 'post',
+  <%= link_to 'Order work', work_plans_path, method: 'post',
         class: 'btn btn-success pull-right',
         style: "margin-top: 23px" %>
 <% end %>
@@ -7,28 +11,33 @@
 
 <div class="row">
   <div class="col-md-12">
-    <h2>Unsubmitted Work Plans</h2>
+    <h4>Pending</h4>
+    <p>These work plans haven't yet had their first work order dispatched. Partially created work plans are saved here for you.</p>
     <%= render "work_plans_table", work_plans: @in_construction_plans, group: 'construction' %>
   </div>
 </div>
 
 <div class="row">
   <div class="col-md-12">
-    <h2>Work Plans in progress</h2>
+    <h4>In Progress</h4>
+    <p>These work plans have work orders that have been dispatched to Scientific Operations. Once they complete or cancel your
+      work order you will be able to dispatch the next one.</p>
     <%= render "work_plans_table", work_plans: @active_plans, group: 'active' %>
   </div>
 </div>
 
 <div class="row">
   <div class="col-md-12">
-    <h2>Old Work Plans</h2>
+    <h4>Finished Work Plans</h4>
+    <p>These work plans have had all of their work orders completed or cancelled by Scientific Operations.</p>
     <%= render "work_plans_table", work_plans: @closed_plans, group: 'closed' %>
   </div>
 </div>
 
 <div class="row">
   <div class="col-md-12">
-    <h2>Cancelled Work Plans</h2>
+    <h4>Cancelled</h4>
+    <p>These work plans are those which you have canelled.</p>
     <%= render "work_plans_table", work_plans: @cancelled_plans, group: 'cancelled' %>
   </div>
 </div>

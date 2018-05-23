@@ -12,19 +12,24 @@
 
 <div>
   <div class="row">
-    <div class="col-md-6"><b><%= work_order.name %></b></div>
-    <div class="col-md-6">Dispatch Date: <%= work_order.dispatch_date %></div>
+    <% if work_order.dispatch_date %>
+      <div class="col-md-6">Dispatch Date: <%= work_order.dispatch_date %></div>
+    <% end %>
   </div>
   <div class="row">
     <div id="set-for-<%=work_order.id%>" class="col-md-6">
-      Input Set: <%= view_set_link(input_set) %>
-      <% if show_create_set_link %>
-        <% url = create_editable_set_url(work_order.id) %>
-        <input type="button" value="Create editable set" class="btn create_editable_set_button"
-          onclick="postCreateEditableSet(<%= work_order.id %>, '<%= url %>')"" />
+      <% if input_set %>
+        Input Set: <%= view_set_link(input_set) %>
+        <% if show_create_set_link %>
+          <% url = create_editable_set_url(work_order.id) %>
+          <input type="button" value="Create editable set" class="btn btn-xs create_editable_set_button"
+            onclick="postCreateEditableSet(<%= work_order.id %>, '<%= url %>')" />
+        <% end %>
       <% end %>
     </div>
-    <div class="col-md-6">Output Set: <%= view_set_link(output_set) %></div>
+    <% if output_set %>
+      <div class="col-md-6">Output Set: <%= view_set_link(output_set) %></div>
+    <% end %>
   </div>
   <div class="row">
     <div id="original-set-for-<%=work_order.id%>" class="col-md-6">
@@ -35,7 +40,7 @@
     <div class="col-md-6">
       <% if work_order.completion_date %>
         Completion Date: <%= work_order.completion_date %>
-      <% else %>
+      <% elsif work_order.estimated_completion_date %>
         Estimated Completion Date: <%= work_order.estimated_completion_date %>
       <% end %>
     </div>
@@ -48,14 +53,13 @@
   <!-- Supply pro.name, pro.tat and pro.process_class in the appropriate fields if you want them to show up
        on the dispatch page the way they do on the products page
   -->
-  <%= react_component('WorkOrderProcess', { index: index, work_order_id: work_order.id, pro: { name: nil, links: pro.build_available_links, path: work_order.selected_path, 
+  <%= react_component('WorkOrderProcess', { index: index, work_order_id: work_order.id, pro: { name: nil, links: pro.build_available_links, path: work_order.selected_path,
     tat: nil, process_class: nil, enabled: work_order.queued? } }) %>
 
   <% if work_order.can_be_dispatched? %>
-    <%= f.submit "Dispatch", class: "btn btn-success pull-right", style: "margin-top: 10px;", value: "dispatch" %>
+    <%= f.submit "Dispatch", class: "btn btn-success pull-right", style: "margin-left: 10px; ", value: "dispatch" %>
   <% end %>
   <% if enabled %>
-    <%= f.submit "Save", class: "btn btn-primary pull-right", style: "margin-right: 10px; margin-top: 10px;", value: "save" %>
+    <%= f.submit "Save", class: "btn btn-primary pull-right", value: "save" %>
   <% end %>
-
 <% end %>
