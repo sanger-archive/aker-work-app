@@ -66,11 +66,11 @@ Rails.application.configure do
   config.login_url = config.auth_service_url + '/login'
   config.logout_url = config.auth_service_url + '/logout'
 
-  config.urls = { submission: '',
+  config.urls = { reception: '',
                   permissions: '',
                   sets: 'http://external-server:3002',
                   projects: '',
-                  work_orders: '' }
+                  work: '' }
 
   config.akerdev_email = ENV.fetch('USER', 'user') + '@sanger.ac.uk'
 
