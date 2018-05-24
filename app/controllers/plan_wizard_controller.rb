@@ -1,13 +1,18 @@
 class PlanWizardController < ApplicationController
   include Wicked::Wizard
 
-  steps :set, :project, :product, :dispatch
+  steps :set, :project, :product, :data_release_strategy, :dispatch
 
   helper_method :work_plan, :get_my_sets, :project, :get_spendable_projects, :get_current_catalogues,
-                :get_current_catalogues_with_products, :last_step?, :first_step?
+                :get_current_catalogues_with_products, :get_data_release_strategies, :last_step?, :first_step?
 
   def show
     authorize! :write, work_plan
+
+    if step == :data_release_strategy && !is_product_from_ss?
+      skip_step
+    end
+
     if step==Wicked::FINISH_STEP
       jump_to(:dispatch)
     end
@@ -54,6 +59,16 @@ class PlanWizardController < ApplicationController
     get_current_catalogues.map { |c| [c.pipeline, c.products.map { |p| [p.name, p.id, {'disabled'=> p.suspended? }] } ] }.insert(0, ['', ['']])
   end
 
+  def get_data_release_strategies
+    data_release_strategies = []
+    begin
+      data_release_strategies = DataReleaseStrategyClient.find_strategies_by_user(current_user.email)
+    rescue Faraday::ConnectionFailed => e
+      flash[:error] = "There is no connection with the Data release service."
+    end
+    data_release_strategies
+  end
+
   def last_step?
     step == steps.last
   end
@@ -88,8 +103,12 @@ class PlanWizardController < ApplicationController
   def work_plan_params
     return {} unless params[:work_plan]
     params.require(:work_plan).permit(
-      :original_set_uuid, :project_id, :product_id, :product_options, :comment, :desired_date, :work_order_id, :work_order_modules, :work_order_module => {}
+      :original_set_uuid, :project_id, :product_id, :product_options, :comment, :desired_date, :data_release_strategy_id, :work_order_id, :work_order_modules, :work_order_module => {}
     )
+  end
+
+  def is_product_from_ss?
+    @work_plan.product.catalogue.url == Rails.configuration.ss_data_release_url
   end
 
 end

@@ -162,6 +162,7 @@ class Job < ApplicationRecord
     end
 
     project = work_order.work_plan.project
+    data_release_strategy_id = work_order.work_plan.data_release_strategy_id
 
     {
       job: {
@@ -176,7 +177,7 @@ class Job < ApplicationRecord
 
         project_uuid: project.node_uuid,
         project_name: project.name,
-        data_release_uuid: project.data_release_uuid,
+        data_release_uuid: data_release_strategy_id,
         cost_code: project.cost_code,
 
         materials: material_data,

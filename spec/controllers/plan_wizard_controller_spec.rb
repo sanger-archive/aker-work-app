@@ -22,6 +22,22 @@ RSpec.describe PlanWizardController, type: :controller do
     set
   end
 
+  def create_data_release_strategy(id, name)
+    DataReleaseStrategy.new(id: id, name: name)
+  end
+
+    # Creates two processes for a product. Each process has two modules: one default and one not default.
+  def create_processes(prod)
+    (0..1).map do |i|
+      pro = create(:process, name: "process #{prod.id}-#{i}")
+      create(:aker_product_process, product: product, aker_process: pro, stage: i)
+      mod = create(:aker_process_module, name: "module #{prod.id}-#{i}", aker_process_id: pro.id)
+      create(:aker_process_module_pairings, to_step_id: mod.id, default_path: true, aker_process: pro)
+      create(:aker_process_module_pairings, from_step_id: mod.id, default_path: true, aker_process: pro)
+     pro
+    end
+  end
+
   describe "#show" do
     context "when the order belongs to the current user" do
       it "should work" do
@@ -45,6 +61,34 @@ RSpec.describe PlanWizardController, type: :controller do
         expect(response).to have_http_status(:found)
         expect(response.redirect_url).to be_present
         expect(flash[:alert]).to match(/not authori[sz]ed/)
+      end
+    end
+
+    context "when the product selected is not from SS" do
+      let(:catalogue) { create(:catalogue, url: 'not_ss_url') }
+      let(:product) { create(:product, catalogue: catalogue) }
+      let(:processes) { create_processes(product) }
+      let(:product_options) { processes.map { |pro| [pro.process_modules.first.id] } }
+
+      it 'should skip the data release strategy step' do
+        wp = create(:work_plan, owner_email: @user.email, original_set_uuid: SecureRandom.uuid, project_id: 123, product: product)
+        controller.instance_variable_set(:@work_plan, wp)
+
+        get :show, params: { work_plan_id: wp.id, id: 'data_release_strategy' }
+        expect(response.redirect_url).to match /dispatch*/
+      end
+    end
+    context "when the product selected is from SS" do
+      let(:catalogue) { create(:catalogue, url: Rails.configuration.ss_data_release_url) }
+      let(:product) { create(:product, catalogue: catalogue) }
+      let(:processes) { create_processes(product) }
+      let(:product_options) { processes.map { |pro| [pro.process_modules.first.id] } }
+
+      it 'should not skip the data release strategy step' do
+        wp = create(:work_plan, owner_email: @user.email, original_set_uuid: SecureRandom.uuid, project_id: 123, product: product)
+        get :show, params: { work_plan_id: wp.id, id: 'data_release_strategy' }
+        wp.reload
+        expect(wp.wizard_step).to eq 'data_release_strategy'
       end
     end
   end
@@ -100,6 +144,42 @@ RSpec.describe PlanWizardController, type: :controller do
           expect(response.redirect_url).to be_nil
         end
       end
+      context "when work order is at data release strategy step" do
+        before do
+          project = double(:project, id: 123)
+          catalogue = create(:catalogue)
+          product = create(:product, catalogue: catalogue)
+          @wp.update_attributes(original_set_uuid: SecureRandom.uuid, project_id: project.id, product_id: product.id)
+        end
+        it "should show error and stay on step when no data release strategy is selected" do
+          put :update, params: { work_plan_id: @wp.id, id: 'data_release_strategy'}
+          expect(flash[:error]).to eq 'Please select an option to proceed'
+          expect(UpdatePlanService).not_to receive(:new)
+          expect(response.redirect_url).to be_nil
+        end
+        it "should show error and stay on step when the data release strategy is not a uuid" do
+          allow(DataReleaseStrategyClient).to receive(:find_strategy_by_uuid).and_return(create_data_release_strategy(1234, 'strat1'))
+          put :update, params: { work_plan_id: @wp.id, id: 'data_release_strategy', work_plan: { data_release_strategy_id: 1234 } }
+          expect(flash[:error]).to eq 'The value for data release strategy selected is not a UUID'
+          expect(UpdatePlanService).not_to receive(:new)
+          expect(response.redirect_url).to be_nil
+        end
+        it "should show error and stay on step when the data release strategy does not exist" do
+          put :update, params: { work_plan_id: @wp.id, id: 'data_release_strategy', work_plan: { data_release_strategy_id: 'unknown' } }
+          expect(flash[:error]).to eq 'No data release strategy could be found with uuid unknown'
+          expect(UpdatePlanService).not_to receive(:new)
+          expect(response.redirect_url).to be_nil
+        end
+        it "should show error and stay on step if connection with the data release service failed" do
+          allow(DataReleaseStrategyClient).to receive(:find_strategy_by_uuid).and_return(create_data_release_strategy(1234, 'strat1'))
+          allow(DataReleaseStrategyClient).to receive(:find_strategies_by_user).and_raise(Faraday::ConnectionFailed, '')
+          put :update, params: { work_plan_id: @wp.id, id: 'data_release_strategy', work_plan: { data_release_strategy_id: SecureRandom.uuid }}
+          expect(flash[:error]).to eq 'There is no connection with the Data release service. Please contact with the administrator'
+          expect(UpdatePlanService).not_to receive(:new)
+          expect(response.redirect_url).to be_nil
+        end
+      end
+
       context "when work order is at summary step" do
         before do
           project = double(:project, id: 123)

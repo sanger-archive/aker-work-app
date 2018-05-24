@@ -1,6 +1,8 @@
 # A sequence of work orders created for a particular product
 class WorkPlan < ApplicationRecord
   belongs_to :product, optional: true
+  belongs_to :data_release_strategy, optional: true
+
   has_many :work_orders, -> { order(:order_index) }, dependent: :destroy
   after_initialize :create_uuid
   before_validation :sanitise_owner
@@ -21,10 +23,6 @@ class WorkPlan < ApplicationRecord
       Rails.logger.error "Loading project for work plan does not exist #{project_id}"
       return nil
     end
-  end
-
-  def project_data_release_exist?
-    !!project&.data_release_uuid
   end
 
   # This is the set chosen by the user that will be the "original set" for the first
@@ -108,6 +106,7 @@ class WorkPlan < ApplicationRecord
     return 'set' unless original_set_uuid
     return 'project' unless project_id
     return 'product' unless product_id
+    return 'data_release_strategy' unless data_release_strategy_id
     'dispatch'
   end
 

@@ -4,7 +4,7 @@ require 'ostruct'
 RSpec.describe WorkPlan, type: :model do
   let(:catalogue) { create(:catalogue) }
   let(:product) { create(:product, catalogue: catalogue) }
-  let(:project) { make_project(12, '123') }
+  let(:project) { make_project(12) }
   let(:process_options) do
     product.processes.map do |pro|
       pro.process_modules.map(&:id)
@@ -43,9 +43,8 @@ RSpec.describe WorkPlan, type: :model do
     pros
   end
 
-  def make_project(id, data_release_uuid)
+  def make_project(id)
     proj = double(:project, id: id)
-    allow(proj).to receive(:data_release_uuid).and_return(data_release_uuid)
     allow(StudyClient::Node).to receive(:find).with(id).and_return([proj])
     proj
   end
@@ -114,25 +113,21 @@ RSpec.describe WorkPlan, type: :model do
     end
   end
 
-  describe '#project_data_release_exist?' do
-    context 'when the plan has a project' do
-      context 'when the project has a data release uuid' do
-        let(:plan) { build(:work_plan, project_id: project.id) }
-
-        it { expect(plan.project_data_release_exist?).to eq(true) }
+  describe '#data_release_strategy' do
+    context 'when the plan has a data_release_strategy' do
+      let(:drs) { create(:data_release_strategy) }
+      let(:plan) do
+        pl = create(:work_plan, data_release_strategy_id: drs.id)
+        allow(pl).to receive(:data_release_strategy).and_return drs
+        pl
       end
-
-      context 'when the project does not have a data release uuid' do
-        let(:project) { make_project(18, nil) }
-        let(:plan) { build(:work_plan, project_id: project.id) }
-
-        it { expect(plan.project_data_release_exist?).to eq(false) }
+      it 'has a data release strategy' do
+        expect(plan.data_release_strategy).to eq(drs)
       end
-
     end
-    context 'when the plan has no project' do
+    context 'when the plan has no data_release_strategy' do
       let(:plan) { build(:work_plan) }
-      it { expect(plan.project_data_release_exist?).to eq(false) }
+      it { expect(plan.data_release_strategy).to eq(nil) }
     end
   end
 
@@ -259,6 +254,14 @@ RSpec.describe WorkPlan, type: :model do
     context 'when the product has also been selected' do
       before do
         plan.update_attributes!(product: product, project_id: project.id, original_set_uuid: set.uuid)
+        plan.create_orders(process_options, nil, modules_selected_values).first.update_attributes!(set_uuid: set.uuid)
+      end
+      it { expect(plan.wizard_step).to eq('data_release_strategy') }
+    end
+    context 'when the data release strategy has also been selected' do
+      let(:drs) { create(:data_release_strategy) }
+      before do
+        plan.update_attributes!(product: product, project_id: project.id, original_set_uuid: set.uuid, data_release_strategy_id: drs.id)
         plan.create_orders(process_options, nil, modules_selected_values).first.update_attributes!(set_uuid: set.uuid)
       end
       it { expect(plan.wizard_step).to eq('dispatch') }
