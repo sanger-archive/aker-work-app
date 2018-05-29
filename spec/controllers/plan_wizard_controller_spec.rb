@@ -178,6 +178,14 @@ RSpec.describe PlanWizardController, type: :controller do
           expect(UpdatePlanService).not_to receive(:new)
           expect(response.redirect_url).to be_nil
         end
+        it "should show error and stay on step if the strategy selected is not valid for the current user" do
+          allow(DataReleaseStrategyClient).to receive(:find_strategy_by_uuid).and_return(create_data_release_strategy(1234, 'strat1'))
+          allow(DataReleaseStrategyClient).to receive(:find_strategies_by_user).and_return([create_data_release_strategy(4321, 'strat2')])
+          put :update, params: { work_plan_id: @wp.id, id: 'data_release_strategy', work_plan: { data_release_strategy_id: SecureRandom.uuid }}
+          expect(flash[:error]).to eq 'The current user cannot select the Data release strategy provided.'
+          expect(UpdatePlanService).not_to receive(:new)
+          expect(response.redirect_url).to be_nil
+        end
       end
 
       context "when work order is at summary step" do
