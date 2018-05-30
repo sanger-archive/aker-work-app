@@ -19,17 +19,20 @@ RSpec.describe Job, type: :model do
       pro.process_modules.map(&:id)
     end
   end
-  let(:project) { make_node('Operation Wolf', 'S1001', 41, 40, false, true, SecureRandom.uuid) }
+  let(:project) { make_node('Operation Wolf', 'S1001', 41, 40, false, true) }
   let(:subproject) do
-    make_node('Operation Thunderbolt', 'S1001-0', 42, project.id, true, false, nil)
+    make_node('Operation Thunderbolt', 'S1001-0', 42, project.id, true, false)
   end
+
+  let(:drs) { create(:data_release_strategy) }
 
   let(:plan) do
     create(:work_plan,
            project_id: subproject.id,
            product: product,
            comment: 'hello',
-           desired_date: '2020-01-01')
+           desired_date: '2020-01-01',
+           data_release_strategy_id: drs.id)
   end
 
   context '#validation' do
@@ -175,7 +178,7 @@ RSpec.describe Job, type: :model do
       expect(data[:comment]).to eq(plan.comment)
       expect(data[:project_uuid]).to eq(subproject.node_uuid)
       expect(data[:project_name]).to eq(subproject.name)
-      expect(data[:data_release_uuid]).to eq(subproject.data_release_uuid)
+      expect(data[:data_release_uuid]).to eq(job.work_order.work_plan.data_release_strategy_id)
       expect(data[:cost_code]).to eq(subproject.cost_code)
       expect(data).not_to have_key(:desired_date)
       expect(data[:modules]).to eq(%w[Module1 Module2])

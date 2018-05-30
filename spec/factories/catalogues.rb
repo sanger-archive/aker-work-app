@@ -5,6 +5,7 @@ FactoryBot.define do
 
   factory :catalogue do
     lims_id lims_id
+    url 'someurl'
   end
 
   factory :catalogue_json, class: Hash do

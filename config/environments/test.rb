@@ -74,4 +74,7 @@ Rails.application.configure do
 
   config.akerdev_email = ENV.fetch('USER', 'user') + '@sanger.ac.uk'
 
+  config.sequencescape_url = 'http://localhost:3000'
+
+
 end

@@ -139,7 +139,8 @@ class WorkOrderEventMessage < EventMessage
       #'comment' => plan.comment,
       'quoted_price' => @work_order.total_cost,
       'zipkin_trace_id' => @trace_id,
-      'num_materials' => num_materials
+      'num_materials' => num_materials,
+      'data_release_strategy_uuid' => @work_order.work_plan.data_release_strategy_id
     }
   end
 
