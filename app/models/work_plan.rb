@@ -161,7 +161,7 @@ class WorkPlan < ApplicationRecord
   end
 
   def is_product_from_sequencescape?
-    product.catalogue.url == Rails.configuration.sequencescape_url
+    product.catalogue.lims_id == "SQSC"
   end
 
 end

@@ -65,7 +65,7 @@ RSpec.describe PlanWizardController, type: :controller do
     end
 
     context "when the product selected is not from SS" do
-      let(:catalogue) { create(:catalogue, url: 'not_ss_url') }
+      let(:catalogue) { create(:catalogue, lims_id: 'not_SQSC') }
       let(:product) { create(:product, catalogue: catalogue) }
       let(:processes) { create_processes(product) }
       let(:product_options) { processes.map { |pro| [pro.process_modules.first.id] } }
@@ -79,7 +79,7 @@ RSpec.describe PlanWizardController, type: :controller do
       end
     end
     context "when the product selected is from SS" do
-      let(:catalogue) { create(:catalogue, url: Rails.configuration.sequencescape_url) }
+      let(:catalogue) { create(:catalogue, lims_id: 'SQSC') }
       let(:product) { create(:product, catalogue: catalogue) }
       let(:processes) { create_processes(product) }
       let(:product_options) { processes.map { |pro| [pro.process_modules.first.id] } }
@@ -146,7 +146,7 @@ RSpec.describe PlanWizardController, type: :controller do
       context "when work order is at data release strategy step" do
         before do
           project = double(:project, id: 123)
-          catalogue = create(:catalogue, url: Rails.configuration.sequencescape_url)
+          catalogue = create(:catalogue, lims_id: 'SQSC')
           product = create(:product, catalogue: catalogue)
           @wp.update_attributes(original_set_uuid: SecureRandom.uuid, project_id: project.id, product_id: product.id)
         end

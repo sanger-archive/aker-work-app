@@ -475,14 +475,14 @@ RSpec.describe WorkPlan, type: :model do
   describe '#is_product_from_sequencescape?' do
     context 'when the plans product catalogue url is not sequencescape' do
       it 'should return false' do
-        catalogue.update_attributes!(url: 'notsequencescape')
+        catalogue.update_attributes!(lims_id: 'not_SQSC')
         plan = create(:work_plan, product: product)
         expect(plan.is_product_from_sequencescape?).to eq false
       end
     end
     context 'when the plans product catalogue url is sequencescape' do
       it 'should return true' do
-        catalogue.update_attributes!(url: Rails.configuration.sequencescape_url)
+        catalogue.update_attributes!(lims_id: 'SQSC')
         plan = create(:work_plan, product: product)
         expect(plan.is_product_from_sequencescape?).to eq true
       end

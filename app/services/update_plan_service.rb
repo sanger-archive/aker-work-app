@@ -175,12 +175,6 @@ private
         return false
       end
     end
-    if @dispatch
-      unless !!@work_plan.data_release_strategy_id
-        add_error("Please select a data release strategy in an earlier step.")
-        return false
-      end
-    end
     return true
   end
 

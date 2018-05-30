@@ -7,7 +7,7 @@ RSpec.describe UpdatePlanService do
   let(:params) { }
   let(:user_and_groups) { ['user@here', 'all'] }
   let(:service) { UpdatePlanService.new(params, plan, dispatch, user_and_groups, messages) }
-  let(:catalogue) { create(:catalogue, url: Rails.configuration.sequencescape_url ) }
+  let(:catalogue) { create(:catalogue, lims_id: 'SQSC' ) }
   let(:product) { create(:product, catalogue: catalogue) }
   let(:project) { make_project(18, 'S1234-0') }
   let(:set) { make_set(false, true, locked_set) }
