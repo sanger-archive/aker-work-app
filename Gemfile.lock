@@ -35,9 +35,9 @@ GIT
 
 GIT
   remote: https://github.com/sanger/aker-projects-client-gem.git
-  revision: f13c3d95d7ed38402c72208151dfb4416c1ffbb1
+  revision: 55aaa946ccf0f63504db7d5539ee4e3e4374f1cc
   specs:
-    aker-study-client (0.2.3)
+    aker-study-client (0.2.4)
 
 GIT
   remote: https://github.com/sanger/aker-set-client.git

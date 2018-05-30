@@ -160,4 +160,8 @@ class WorkPlan < ApplicationRecord
     end
   end
 
+  def is_product_from_sequencescape?
+    product.catalogue.url == Rails.configuration.sequencescape_url
+  end
+
 end

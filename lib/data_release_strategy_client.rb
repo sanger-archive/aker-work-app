@@ -27,7 +27,7 @@ module DataReleaseStrategyClient
 
   # Connection to access the data release server
   def self.get_connection
-    conn = Faraday.new(:url => Rails.application.config.ss_data_release_url) do |faraday|
+    conn = Faraday.new(:url => Rails.application.config.sequencescape_url) do |faraday|
       faraday.request  :url_encoded
       faraday.response :logger
       faraday.adapter  Faraday.default_adapter

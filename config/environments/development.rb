@@ -108,7 +108,7 @@ Rails.application.configure do
                   projects: '',
                   work: '' }
 
-  config.ss_data_release_url = 'http://localhost:3000'
+  config.sequencescape_url = 'http://localhost:3000'
 
   config.akerdev_email = ENV.fetch('USER', 'user') + '@sanger.ac.uk'
 end

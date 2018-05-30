@@ -163,9 +163,21 @@ private
         return false
       end
     end
+    unless @work_plan.product_id
+      if [:data_release_strategy_id].any? { |field| @work_plan_params[field] }
+        add_error("Please select a product in an earlier step.")
+        return false
+      end
+    end
     if @work_plan.work_orders.empty?
       if [:order_id, :work_order_modules].any? { |field| @work_plan_params[field] }
         add_error("Please specify the product fully in an earlier step.")
+        return false
+      end
+    end
+    if @dispatch
+      unless !!@work_plan.data_release_strategy_id
+        add_error("Please select a data release strategy in an earlier step.")
         return false
       end
     end
@@ -353,7 +365,12 @@ private
   end
 
   def validate_data_release_strategy_selection(data_release_strategy_id)
-    return false if data_release_strategy_id.nil?
+    return true unless @work_plan.is_product_from_sequencescape?
+
+    if data_release_strategy_id.nil?
+      add_error("Please select a data release strategy in an earlier step.")
+      return false
+    end
 
     strategy = DataReleaseStrategyClient.find_strategy_by_uuid(data_release_strategy_id)
 
@@ -404,7 +421,9 @@ private
     end
     order = WorkOrder.find(order_id)
     begin
-      order.send_to_lims
+      ActiveRecord::Base.transaction do
+        order.send_to_lims
+      end
     rescue => e
       Rails.logger.error "Failed to send work order"
       Rails.logger.error e

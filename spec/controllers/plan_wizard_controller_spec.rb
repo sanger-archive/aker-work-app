@@ -79,7 +79,7 @@ RSpec.describe PlanWizardController, type: :controller do
       end
     end
     context "when the product selected is from SS" do
-      let(:catalogue) { create(:catalogue, url: Rails.configuration.ss_data_release_url) }
+      let(:catalogue) { create(:catalogue, url: Rails.configuration.sequencescape_url) }
       let(:product) { create(:product, catalogue: catalogue) }
       let(:processes) { create_processes(product) }
       let(:product_options) { processes.map { |pro| [pro.process_modules.first.id] } }
@@ -102,7 +102,6 @@ RSpec.describe PlanWizardController, type: :controller do
         it "should show error and stay on step when no set is selected" do
           put :update, params: { work_plan_id: @wp.id, id: 'set'}
           expect(flash[:error]).to eq 'Please select an option to proceed'
-
         end
       end
       context "when work order is at project step" do
@@ -147,9 +146,16 @@ RSpec.describe PlanWizardController, type: :controller do
       context "when work order is at data release strategy step" do
         before do
           project = double(:project, id: 123)
-          catalogue = create(:catalogue)
+          catalogue = create(:catalogue, url: Rails.configuration.sequencescape_url)
           product = create(:product, catalogue: catalogue)
           @wp.update_attributes(original_set_uuid: SecureRandom.uuid, project_id: project.id, product_id: product.id)
+        end
+        it "should show error and stay on step when no product is selected" do
+          @wp.update_attributes(product_id: nil)
+          put :update, params: { work_plan_id: @wp.id, id: 'data_release_strategy', work_plan: { data_release_strategy_id: 1234 }}
+          expect(flash[:error]).to eq 'Please select a product in an earlier step.'
+          expect(UpdatePlanService).not_to receive(:new)
+          expect(response.redirect_url).to be_nil
         end
         it "should show error and stay on step when no data release strategy is selected" do
           put :update, params: { work_plan_id: @wp.id, id: 'data_release_strategy'}

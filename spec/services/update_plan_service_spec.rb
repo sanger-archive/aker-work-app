@@ -7,7 +7,7 @@ RSpec.describe UpdatePlanService do
   let(:params) { }
   let(:user_and_groups) { ['user@here', 'all'] }
   let(:service) { UpdatePlanService.new(params, plan, dispatch, user_and_groups, messages) }
-  let(:catalogue) { create(:catalogue) }
+  let(:catalogue) { create(:catalogue, url: Rails.configuration.sequencescape_url ) }
   let(:product) { create(:product, catalogue: catalogue) }
   let(:project) { make_project(18, 'S1234-0') }
   let(:set) { make_set(false, true, locked_set) }
@@ -910,6 +910,7 @@ RSpec.describe UpdatePlanService do
       stub_project
       stub_stamps
       stub_broker_connection
+      stub_data_release_strategy
     end
 
     context 'when the order is queued' do
@@ -1158,6 +1159,20 @@ RSpec.describe UpdatePlanService do
       end
       it 'should not have changed the dispatch date' do
         expect(orders[0].reload.dispatch_date).to be_nil
+      end
+    end
+    context 'when the data release strategy is not valid' do
+      def stub_data_release_strategy
+        allow(DataReleaseStrategyClient).to receive(:find_strategies_by_user).and_return([])
+      end
+      it "should return false" do
+        expect(@result).to be_falsey
+      end
+      it 'should produce an error message' do
+        expect(messages[:error]).to match /The current user cannot select the Data release strategy provided./i
+      end
+      it 'should not have sent the order' do
+        expect(@sent_to_lims).to eq(false)
       end
     end
   end

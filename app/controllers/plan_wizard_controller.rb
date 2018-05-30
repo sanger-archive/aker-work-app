@@ -9,7 +9,7 @@ class PlanWizardController < ApplicationController
   def show
     authorize! :write, work_plan
 
-    if step == :data_release_strategy && !is_product_from_ss?
+    if step == :data_release_strategy && !work_plan.is_product_from_sequencescape?
       skip_step
     end
 
@@ -105,10 +105,6 @@ class PlanWizardController < ApplicationController
     params.require(:work_plan).permit(
       :original_set_uuid, :project_id, :product_id, :product_options, :comment, :desired_date, :data_release_strategy_id, :work_order_id, :work_order_modules, :work_order_module => {}
     )
-  end
-
-  def is_product_from_ss?
-    @work_plan.product.catalogue.url == Rails.configuration.ss_data_release_url
   end
 
 end
