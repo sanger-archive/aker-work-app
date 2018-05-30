@@ -14,7 +14,7 @@ FactoryBot.define do
               "donor_id": "id1",
               "supplier_name": "id1",
               "scientific_name": "Mouse"
-            },
+            }
           ],
 
           "new_materials": [
@@ -23,7 +23,7 @@ FactoryBot.define do
               "donor_id": "id1",
               "supplier_name": "id1",
               "scientific_name": "Mouse",
-              "phenotype": '',
+              "phenotype": "",
               "parents": [ "parent_id_1", "parent_id_2"],
               "container": {
                 "barcode": "XYZ-123",
@@ -40,7 +40,7 @@ FactoryBot.define do
               "row_is_alpha": true,
               "col_is_alpha": false
             }
-          ],
+          ]
         }
       })
     }
@@ -82,7 +82,7 @@ FactoryBot.define do
         "updated_materials": [],
         "new_materials": [{
     "supplier_name": "1",
-     "gender": "male", 
+     "gender": "male",
     "donor_id": "d",
      "phenotype": "dd",
      "scientific_name": "Homo Sapiens",
@@ -91,7 +91,7 @@ FactoryBot.define do
         ],
         "containers": [{
     "num_of_cols": 2,
-     "num_of_rows":2, 
+     "num_of_rows":2,
     "col_is_alpha":false,
      "row_is_alpha": true,
     "barcode": "AKER2-1237"

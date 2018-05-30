@@ -98,7 +98,7 @@ module WorkOrdersHelper
     a_set
   end
 
-  def make_node(name, cost_code, id, parent_id, is_sub, is_proj, data_release_uuid)
+  def make_node(name, cost_code, id, parent_id, is_sub, is_proj)
     node = double('node',
                   name: name,
                   cost_code: cost_code,
@@ -106,8 +106,7 @@ module WorkOrdersHelper
                   parent_id: parent_id,
                   subproject?: is_sub,
                   project?: is_proj,
-                  node_uuid: make_uuid,
-                  data_release_uuid: data_release_uuid)
+                  node_uuid: make_uuid)
     allow(StudyClient::Node).to receive(:find).with(node.id).and_return([node])
     node
   end
