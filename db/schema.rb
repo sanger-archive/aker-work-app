@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180423135801) do
+ActiveRecord::Schema.define(version: 20180523125254) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -60,6 +60,14 @@ ActiveRecord::Schema.define(version: 20180423135801) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["lims_id"], name: "index_catalogues_on_lims_id"
+  end
+
+  create_table "data_release_strategies", id: :uuid, default: -> { "uuid_generate_v4()" }, force: :cascade do |t|
+    t.string "name"
+    t.string "study_code"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["id"], name: "index_data_release_strategies_on_id", unique: true
   end
 
   create_table "jobs", id: :serial, force: :cascade do |t|
@@ -138,6 +146,8 @@ ActiveRecord::Schema.define(version: 20180423135801) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.datetime "cancelled"
+    t.uuid "data_release_strategy_id"
+    t.index ["data_release_strategy_id"], name: "index_work_plans_on_data_release_strategy_id"
     t.index ["owner_email"], name: "index_work_plans_on_owner_email"
     t.index ["product_id"], name: "index_work_plans_on_product_id"
   end
@@ -151,5 +161,6 @@ ActiveRecord::Schema.define(version: 20180423135801) do
   add_foreign_key "work_order_module_choices", "work_orders"
   add_foreign_key "work_orders", "aker_processes", column: "process_id"
   add_foreign_key "work_orders", "work_plans"
+  add_foreign_key "work_plans", "data_release_strategies"
   add_foreign_key "work_plans", "products"
 end

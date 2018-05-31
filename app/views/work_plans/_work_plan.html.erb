@@ -5,7 +5,7 @@
   <% if work_plan.active? %>
     <td><%= work_plan.active_status %></td>
   <% elsif work_plan.in_construction? %>
-    <td><%= work_plan.wizard_step.capitalize %></td>
+    <td><%= work_plan.wizard_step.gsub(/_/, ' ').capitalize %></td>
   <% end %>
 
   <td><%= localize(work_plan.created_at, format: :terse) %></td>

@@ -102,11 +102,13 @@ Rails.application.configure do
   config.login_url = config.auth_service_url + '/login'
   config.logout_url = config.auth_service_url + '/logout'
 
-  config.urls = { submission: '',
+  config.urls = { reception: '',
                   permissions: '',
                   sets: 'http://localhost:3002',
                   projects: '',
-                  work_orders: '' }
+                  work: '' }
+
+  config.sequencescape_url = 'http://localhost:3000'
 
   config.akerdev_email = ENV.fetch('USER', 'user') + '@sanger.ac.uk'
 end

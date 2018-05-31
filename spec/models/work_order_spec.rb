@@ -17,8 +17,8 @@ RSpec.describe WorkOrder, type: :model do
       pro.process_modules.map(&:id)
     end
   end
-  let(:project) { make_node('Operation Wolf', 'S1001', 41, 40, false, true, SecureRandom.uuid) }
-  let(:subproject) { make_node('Operation Thunderbolt', 'S1001-0', 42, project.id, true, false, nil) }
+  let(:project) { make_node('Operation Wolf', 'S1001', 41, 40, false, true) }
+  let(:subproject) { make_node('Operation Thunderbolt', 'S1001-0', 42, project.id, true, false) }
 
   let(:plan) { create(:work_plan, project_id: subproject.id, product: product, comment: 'hello', desired_date: '2020-01-01') }
 

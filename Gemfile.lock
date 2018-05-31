@@ -35,9 +35,9 @@ GIT
 
 GIT
   remote: https://github.com/sanger/aker-projects-client-gem.git
-  revision: f13c3d95d7ed38402c72208151dfb4416c1ffbb1
+  revision: 55aaa946ccf0f63504db7d5539ee4e3e4374f1cc
   specs:
-    aker-study-client (0.2.3)
+    aker-study-client (0.2.4)
 
 GIT
   remote: https://github.com/sanger/aker-set-client.git
@@ -47,9 +47,9 @@ GIT
 
 GIT
   remote: https://github.com/sanger/aker-shared-navbar.git
-  revision: ba119eabf10053af24739c4c6a0729d19034dbbc
+  revision: 799c36ad63c98b3894efbbb2ec6aef983ce35b47
   specs:
-    aker_shared_navbar (0.1.6)
+    aker_shared_navbar (0.1.7)
 
 GIT
   remote: https://github.com/sanger/aker-stamp-client.git
@@ -240,6 +240,8 @@ GEM
     loofah (2.2.2)
       crass (~> 1.0.2)
       nokogiri (>= 1.5.9)
+    macaddr (1.7.1)
+      systemu (~> 2.6.2)
     mail (2.7.0)
       mini_mime (>= 0.1.1)
     method_source (0.9.0)
@@ -403,6 +405,7 @@ GEM
     sucker_punch (2.0.4)
       concurrent-ruby (~> 1.0.0)
     swagger-ui_rails (0.1.7)
+    systemu (2.6.5)
     therubyracer (0.12.3)
       libv8 (~> 3.16.14.15)
       ref
@@ -420,6 +423,8 @@ GEM
     uglifier (3.2.0)
       execjs (>= 0.3.0, < 3)
     unicode-display_width (1.3.2)
+    uuid (2.3.9)
+      macaddr (~> 1.0)
     virtus (1.0.5)
       axiom-types (~> 0.1)
       coercible (~> 1.0)
@@ -516,6 +521,7 @@ DEPENDENCIES
   timecop
   turbolinks (~> 5)
   uglifier (~> 3.2)
+  uuid
   web-console
   webmock
   webpacker (~> 3.2)
