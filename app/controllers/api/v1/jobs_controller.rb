@@ -5,6 +5,7 @@ require 'completion_cancel_steps/lock_set_step'
 require 'completion_cancel_steps/update_work_order_step'
 require 'completion_cancel_steps/fail_step'
 require 'completion_cancel_steps/update_job_step'
+require 'completion_cancel_steps/create_master_set_step'
 
 module Api
   module V1
@@ -85,15 +86,17 @@ module Api
         cleanup = false
         params = params_for_completion
         begin
-          material_step = CreateNewMaterialsStep.new(@job, params)
+          new_material_step = CreateNewMaterialsStep.new(@job, params)
+          updated_material_step = UpdateOldMaterialsStep.new(@job, params)
 
           success = DispatchService.new.process([
             CreateContainersStep.new(@job, params),
-            material_step,
-            UpdateOldMaterialsStep.new(@job, params),
+            new_material_step,
+            updated_material_step,
             UpdateJobStep.new(@job, params, finish_status),
             UpdateWorkOrderStep.new(@job),
-            LockSetStep.new(@job, params, material_step)
+            LockSetStep.new(@job, params, new_material_step, updated_material_step),
+            CreateMasterSetStep.new(@job)
           ])
 
           cleanup = !success
@@ -137,6 +140,7 @@ module Api
       end
 
       # Ignore the submitter_id in material metadata
+      # TODO: Move this to CreateNewMaterialsStep and UpdateOldMaterialsStep
       def remove_submitter
         updated_materials = params.fetch(:job).dig("updated_materials")
         new_materials = params.fetch(:job).dig("new_materials")
