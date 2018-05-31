@@ -1,3 +1,5 @@
+require 'data_release_strategy_client'
+
 class PlanWizardController < ApplicationController
   include Wicked::Wizard
 
