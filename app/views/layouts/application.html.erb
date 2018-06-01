@@ -5,7 +5,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <title>Work Orders | Aker </title>
+    <title>Work Plans | Aker </title>
 
     <%= stylesheet_link_tag    'application', media: 'all', 'data-turbolinks-track': 'reload' %>
     <%= javascript_include_tag 'application', 'data-turbolinks-track': 'reload' %>
@@ -19,7 +19,9 @@
   <div class="container" id="content">
     <div class="row">
       <div class="col-md-8">
-        <h1>Work Orders</h1>
+        <h1>
+          <%= yield(:main_title) %>
+        </h1>
       </div>
       <div class="col-md-4">
         <%= yield(:title_button) if content_for?(:title_button) %>
