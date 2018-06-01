@@ -24,12 +24,14 @@
         <h4 class="panel-title">
           <%= work_order.process.name %>
           <span class="pull-right">
-            Work Order
+            Work Order <%= " #{work_order.id}" %>
+            <span class="label label-primary">
             <% if work_order.can_be_dispatched? %>
-              <%= " #{work_order.id} [READY FOR DISPATCH]"%>
+              READY FOR DISPATCH
             <% elsif %>
-              <%= " #{work_order.id} [#{work_order.status.upcase}]" %>
+              <%= work_order.status.upcase %>
             <% end %>
+            </span>
           </span>
         </h4>
       </div>
