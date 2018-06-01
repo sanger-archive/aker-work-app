@@ -7,7 +7,7 @@
   <%= f.collection_radio_buttons(:data_release_strategy_id, get_data_release_strategies, :id,
     :name,
     disabled: !enabled,
-    label: "These are the strategies:") %>
+    label: "These are the active Sequencescape studies that you follow, manage or created. Please select one to be used as the Data Release Strategy for this Work Plan:") %>
 
   <%= render 'buttons', work_plan: work_plan, f: f %>
 
