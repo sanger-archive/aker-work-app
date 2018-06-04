@@ -6,7 +6,6 @@ class CreateMasterSetStep
   # Step 4 - Create a master set, with materials from each jobs set, belonging to the work order
   def up
     work_order = @job.work_order
-
     if work_order.concluded?
       work_order.jobs.reload
 
@@ -35,10 +34,11 @@ class CreateMasterSetStep
   end
 
   def down
-    # next_order = work_order.next_order
-    # if next_order&.original_set_uuid==work_order.finished_set_uuid
-    #   next_order.update_attributes!(original_set_uuid: nil)
-    # end
-    # work_order.update_attributes!(finished_set_uuid: nil)
+    work_order = @job.work_order
+    next_order = work_order.next_order
+    if next_order && next_order&.original_set_uuid==work_order.finished_set_uuid
+      next_order.update_attributes!(original_set_uuid: nil)
+    end
+    work_order.update_attributes!(finished_set_uuid: nil)
   end
 end
