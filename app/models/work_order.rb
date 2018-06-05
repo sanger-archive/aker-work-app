@@ -194,7 +194,7 @@ class WorkOrder < ApplicationRecord
     ActiveRecord::Base.transaction do
       containers.each do |container|
         job = Job.create!(container_uuid: container.id, work_order: self)
-        job.claim_materials!
+        job.set_materials_availability(false)
       end
     end
   end

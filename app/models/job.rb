@@ -83,15 +83,9 @@ class Job < ApplicationRecord
     LimsClient.post(lims_url, lims_data)
   end
 
-  def claim_materials!
+  def set_materials_availability(flag)
     materials.result_set.each do |mat|
-      mat.update_attributes(available: false)
-    end
-  end
-
-  def release_materials!
-    materials.result_set.each do |mat|
-      mat.update_attributes(available: true)
+      mat.update_attributes(available: flag)
     end    
   end
 

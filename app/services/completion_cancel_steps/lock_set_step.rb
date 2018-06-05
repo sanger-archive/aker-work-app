@@ -26,7 +26,7 @@ class LockSetStep
     @job.update_attributes!(set_uuid: @job_concluded_set.id)
 
     # Release the materials so they can be used by another work order
-    @job.release_materials!
+    @job.set_materials_availability(true)
 
     new_mats = @new_material_step.materials.map(&:id)
     updated_mats = @updated_material_step.materials.map(&:id)
@@ -42,7 +42,7 @@ class LockSetStep
   def down
     return unless @job.set_uuid
 
-    @job.claim_materials!
+    @job.set_materials_availability(false)
     @job.update_attributes(set_uuid: nil)
 
   end

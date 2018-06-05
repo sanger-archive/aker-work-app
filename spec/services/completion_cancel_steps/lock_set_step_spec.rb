@@ -49,7 +49,7 @@ RSpec.describe 'LockSetStep' do
         allow(SetClient::Set).to receive(:create).and_return(created_set)
         expect(created_set).to receive(:set_materials)
         expect(created_set).to receive(:update_attributes).with(owner_id: work_plan.owner_email, locked: true)
-        expect(job).to receive(:release_materials!)
+        expect(job).to receive(:set_materials_availability).with(true)
         step.up
       end
     end
@@ -58,7 +58,7 @@ RSpec.describe 'LockSetStep' do
     it 'unsets the set from the job and claim back the materials' do
       job.update_attributes(set_uuid: SecureRandom.uuid)
       job.reload
-      expect(job).to receive(:claim_materials!)
+      expect(job).to receive(:set_materials_availability).with(false)
       step.down
       job.reload
       expect(job.set_uuid).to eq(nil)
