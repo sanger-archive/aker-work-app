@@ -28,6 +28,7 @@ gem 'net-ldap' # Pure Ruby LDAP library. Read more: https://github.com/ruby-ldap
 gem 'pg', '~> 1.0' # https://bitbucket.org/ged/ruby-pg/issues/270/pg-100-x64-mingw32-rails-server-not-start
 gem 'pry'
 gem 'puma', '~> 3.0' # Use Puma as the app server
+gem 'rack-cors'
 gem 'rails', '~> 5.1.0' # Bundle edge Rails instead: gem 'rails', github: 'rails/rails'
 gem 'react-rails'
 gem 'request_store'
@@ -38,12 +39,11 @@ gem 'swagger-ui_rails'
 gem 'therubyracer', platforms: :ruby # See https://github.com/rails /execjs#readme for more
 gem 'turbolinks', '~> 5' # Turbolinks makes navigating your web application faster.
 gem 'uglifier', '~> 3.2' # Use Uglifier as compressor for JavaScript assets
+gem 'uuid'
 gem 'webpacker', '~> 3.2'
 gem 'webpacker-react', '~> 0.3.2'
 gem 'wicked'
 gem 'zipkin-tracer'
-gem 'rack-cors'
-gem 'uuid'
 
 ###
 # Sanger gems
