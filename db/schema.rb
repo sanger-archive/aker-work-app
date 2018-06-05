@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180523125254) do
+ActiveRecord::Schema.define(version: 20180531084456) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -78,6 +78,7 @@ ActiveRecord::Schema.define(version: 20180523125254) do
     t.datetime "broken"
     t.bigint "work_order_id", null: false
     t.string "close_comment"
+    t.uuid "set_uuid"
     t.index ["work_order_id"], name: "index_jobs_on_work_order_id"
   end
 

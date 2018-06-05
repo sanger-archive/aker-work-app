@@ -454,7 +454,10 @@ RSpec.describe WorkOrder, type: :model do
           "$in": @materials.map(&:id)
         }).and_return(make_result_set(@containers))
       end
-      it 'creates as many jobs as containers' do
+      it 'creates as many jobs as containers and mark materials as unavailable' do
+        @materials.each do |mat|
+          expect(mat).to receive(:update_attributes).with(available: false)
+        end
         order.create_jobs
         expect(order.jobs.length).to eq(@num_of_containers)
       end
