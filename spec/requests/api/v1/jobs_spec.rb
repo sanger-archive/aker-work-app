@@ -18,6 +18,13 @@ RSpec.describe 'Api::V1::Jobs', type: :request do
     }.to_json
   end
 
+  def mock_set_creation
+    mocked_set = double('set', id: 'some_id')
+    allow(mocked_set).to receive(:update_attributes)
+    allow(mocked_set).to receive(:set_materials)
+    allow(SetClient::Set).to receive(:create).and_return(mocked_set)
+  end  
+
   before do
     Timecop.freeze(Time.now)
     webmock_matcon_schema
@@ -145,6 +152,8 @@ RSpec.describe 'Api::V1::Jobs', type: :request do
       describe '#complete' do
         before do
           allow(BillingFacadeClient).to receive(:send_event)
+
+          mock_set_creation
         end
         context 'when job is active' do
           before do
@@ -230,6 +239,9 @@ RSpec.describe 'Api::V1::Jobs', type: :request do
       describe '#cancel' do
         before do
           allow(BillingFacadeClient).to receive(:send_event)
+
+          mock_set_creation
+          
         end
         context 'when job is active' do
           before do

@@ -13,6 +13,11 @@ describe 'Jobs API' do
     webmock_matcon_schema
     allow_broker_connection
     stub_matcon
+
+    mocked_set = double('set', id: 'some_id')
+    allow(mocked_set).to receive(:update_attributes)
+    allow(mocked_set).to receive(:set_materials)
+    allow(SetClient::Set).to receive(:create).and_return(mocked_set)
   end
 
   let(:catalogue) { create(:catalogue) }
@@ -64,12 +69,14 @@ describe 'Jobs API' do
   let(:complete_job_msg) do
     json = build(:valid_job_completion_message_json)
     json[:job][:job_id] = completed_job.id
+    json[:job][:comment] = ''
     json
   end
 
   let(:cancel_job_msg) do
     json = build(:valid_job_completion_message_json)
     json[:job][:job_id] = cancelled_job.id
+    json[:job][:comment] = ''
     json
   end
 

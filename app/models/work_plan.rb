@@ -1,5 +1,8 @@
 # A sequence of work orders created for a particular product
 class WorkPlan < ApplicationRecord
+
+  SEQUENCESCAPE_LIMS_ID = "SQSC"
+
   belongs_to :product, optional: true
   belongs_to :data_release_strategy, optional: true
 
@@ -161,7 +164,7 @@ class WorkPlan < ApplicationRecord
   end
 
   def is_product_from_sequencescape?
-    product.catalogue.lims_id == "SQSC"
+    product.catalogue.lims_id == SEQUENCESCAPE_LIMS_ID
   end
 
 end

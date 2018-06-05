@@ -83,6 +83,12 @@ class Job < ApplicationRecord
     LimsClient.post(lims_url, lims_data)
   end
 
+  def set_materials_availability(flag)
+    materials.result_set.each do |mat|
+      mat.update_attributes(available: flag)
+    end    
+  end
+
   def start!
     update!(started: Time.zone.now)
   end
@@ -195,4 +201,11 @@ class Job < ApplicationRecord
   def job_url
     Rails.application.config.urls[:work]+'/api/v1/jobs/'+self.id.to_s
   end
+
+  def set
+    return nil unless set_uuid
+    return @set if @set&.uuid==set_uuid
+    @set = SetClient::Set.find(set_uuid).first
+  end
+
 end
