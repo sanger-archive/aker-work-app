@@ -83,6 +83,18 @@ class Job < ApplicationRecord
     LimsClient.post(lims_url, lims_data)
   end
 
+  def claim_materials!
+    materials.result_set.each do |mat|
+      mat.update_attributes(available: false)
+    end
+  end
+
+  def release_materials!
+    materials.result_set.each do |mat|
+      mat.update_attributes(available: true)
+    end    
+  end
+
   def start!
     update!(started: Time.zone.now)
   end

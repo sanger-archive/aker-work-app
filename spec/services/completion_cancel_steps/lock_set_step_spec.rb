@@ -44,18 +44,21 @@ RSpec.describe 'LockSetStep' do
       end
     end
     context 'when there are changed materials' do
-      it 'creates a locked set for the materials updated in the job' do
+      it 'creates a locked set for the materials updated in the job and release materials' do
         created_set = double('set', id: 'someidentifier')
         allow(SetClient::Set).to receive(:create).and_return(created_set)
         expect(created_set).to receive(:set_materials)
         expect(created_set).to receive(:update_attributes).with(owner_id: work_plan.owner_email, locked: true)
+        expect(job).to receive(:release_materials!)
         step.up
       end
     end
   end
   describe '#down' do
-    it 'unsets the set from the job' do
-      job.update_attributes(set_uuid: 'some_uuid')
+    it 'unsets the set from the job and claim back the materials' do
+      job.update_attributes(set_uuid: SecureRandom.uuid)
+      job.reload
+      expect(job).to receive(:claim_materials!)
       step.down
       job.reload
       expect(job.set_uuid).to eq(nil)
