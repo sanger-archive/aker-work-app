@@ -9,7 +9,7 @@ class CreateMasterSetStep
     if work_order.concluded?
       work_order.jobs.reload
 
-      all_jobs_set_uuids = work_order.jobs.map(&:set_uuid)
+      all_jobs_set_uuids = work_order.jobs.map(&:set_uuid).compact
 
       all_jobs_material_uuids = all_jobs_set_uuids.map do |uuid|
         SetClient::Set.find_with_materials(uuid).first.materials.map(&:id)

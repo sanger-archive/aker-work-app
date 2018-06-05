@@ -32,19 +32,12 @@ class LockSetStep
 
     @job_concluded_set.set_materials(unique_material_ids)
 
-    locked = false
+    @job_concluded_set.update_attributes(owner_id: work_order.work_plan.owner_email, locked: true)
 
-    @job_concluded_set.update_attributes(owner_id: work_order.owner_email, locked: true)
-
-    locked = true
   end
 
   def down
     return unless @job.set_uuid
-
-    unless locked
-      # destroy set
-    end
 
     if @job.set_uuid==job_concluded_set.id
       @job.update_attributes(set_uuid: nil)
