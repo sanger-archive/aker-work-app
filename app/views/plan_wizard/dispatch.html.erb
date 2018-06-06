@@ -7,9 +7,10 @@
   <h2>Work Plan <%= work_plan.id %></h2>
   <h5><%= work_plan.product.name %></h5>
   <h6>Created: <%= work_plan.created_at.strftime('%d/%m/%y') %></h6>
-  <h6>Desired Date: <%= work_plan.desired_date %></h6>
   <h6>Project: <%= work_plan.project.name %>
   <p>
+  <%= f.check_box :priority, {label: 'High priority', disabled: !work_plan.in_construction?}, "high", "standard" %>
+
   <%= f.text_field :comment, label: 'Comment', disabled: !work_plan.in_construction? %>
 
   <%= render 'products_accordion' %>

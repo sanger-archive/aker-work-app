@@ -6,8 +6,6 @@
 
   <%= react_component('ProductDescription', { data: get_current_catalogues_with_products, num_samples: work_plan.num_original_samples, work_plan_id: work_plan.id, productId: work_plan.product_id, enabled: enabled }) %>
 
-  <%= f.text_field :desired_date, data: { behavior: "datepicker" }, disabled: !enabled %>
-
   <%= render 'buttons', work_plan: work_plan, f: f %>
 
 <% end %>

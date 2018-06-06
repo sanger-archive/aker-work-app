@@ -123,21 +123,21 @@ RSpec.describe PlanWizardController, type: :controller do
           @wp.update_attributes(original_set_uuid: SecureRandom.uuid)
         end
         it "should show error and stay on step when product is empty" do
-          put :update, params: { work_plan_id: @wp.id, id: 'product', work_plan: {comment:"", desired_date:"", product_id:""}}
+          put :update, params: { work_plan_id: @wp.id, id: 'product', work_plan: {comment:"", product_id:""}}
           expect(flash[:error]).to eq 'Please select a project in an earlier step.'
           expect(UpdatePlanService).not_to receive(:new)
           expect(response.redirect_url).to be_nil
         end
 
         it "should show error and stay on step when no product is selected" do
-          put :update, params: { work_plan_id: @wp.id, id: 'product', work_plan: {comment:"", desired_date:""}}
+          put :update, params: { work_plan_id: @wp.id, id: 'product', work_plan: {comment:""}}
           expect(flash[:error]).to eq 'Please select a project in an earlier step.'
           expect(UpdatePlanService).not_to receive(:new)
           expect(response.redirect_url).to be_nil
         end
 
-        it "should show error and stay on step when no product is selected but comment or date is" do
-          put :update, params: { work_plan_id: @wp.id, id: 'product', work_plan: {comment:"xxx", desired_date:""}}
+        it "should show error and stay on step when no product is selected but comment is" do
+          put :update, params: { work_plan_id: @wp.id, id: 'product', work_plan: {comment:"xxx"}}
           expect(flash[:error]).to eq 'Please select a project in an earlier step.'
           expect(UpdatePlanService).not_to receive(:new)
           expect(response.redirect_url).to be_nil

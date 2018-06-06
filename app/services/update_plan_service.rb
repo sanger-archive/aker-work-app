@@ -152,13 +152,13 @@ private
 
   def ready_for_step
     unless @work_plan.original_set_uuid
-      if [:project_id, :product_id, :product_options, :comment, :desired_date, :order_id, :work_order_modules, :data_release_strategy_id ].any? { |field| @work_plan_params[field] }
+      if [:project_id, :product_id, :product_options, :comment, :priority, :order_id, :work_order_modules, :data_release_strategy_id ].any? { |field| @work_plan_params[field] }
         add_error("Please select a set in an earlier step.")
         return false
       end
     end
     unless @work_plan.project_id
-      if [:product_id, :product_options, :comment, :desired_date, :order_id, :work_order_modules, :data_release_strategy_id].any? { |field| @work_plan_params[field] }
+      if [:product_id, :product_options, :comment, :priority, :order_id, :work_order_modules, :data_release_strategy_id].any? { |field| @work_plan_params[field] }
         add_error("Please select a project in an earlier step.")
         return false
       end
@@ -218,7 +218,7 @@ private
       add_error("This work plan cannot be updated.")
       return false
     end
-    if [:original_set_uuid, :project_id, :product_id, :product_options, :comment, :desired_date].any? { |field| @work_plan_params[field] }
+    if [:original_set_uuid, :project_id, :product_id, :product_options, :comment, :priority].any? { |field| @work_plan_params[field] }
       add_error("That change cannot be made because this work plan is in progress.")
       return false
     end

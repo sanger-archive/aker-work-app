@@ -20,7 +20,7 @@ RSpec.describe WorkOrder, type: :model do
   let(:project) { make_node('Operation Wolf', 'S1001', 41, 40, false, true) }
   let(:subproject) { make_node('Operation Thunderbolt', 'S1001-0', 42, project.id, true, false) }
 
-  let(:plan) { create(:work_plan, project_id: subproject.id, product: product, comment: 'hello', desired_date: '2020-01-01') }
+  let(:plan) { create(:work_plan, project_id: subproject.id, product: product, comment: 'hello') }
 
   before do
     @barcode_index = 100
