@@ -23,7 +23,7 @@ RSpec.describe 'Api::V1::Jobs', type: :request do
     allow(mocked_set).to receive(:update_attributes)
     allow(mocked_set).to receive(:set_materials)
     allow(SetClient::Set).to receive(:create).and_return(mocked_set)
-  end  
+  end
 
   before do
     Timecop.freeze(Time.now)
@@ -35,14 +35,12 @@ RSpec.describe 'Api::V1::Jobs', type: :request do
     context 'GET' do
       let(:set_for_work_order) { made_up_set }
       let(:yesterday) { Time.now.yesterday }
-      let(:tomorrow) { Time.zone.now.tomorrow }
       let(:project) { make_node('my project', 'S0001', 1, 0, false, true) }
       let(:catalogue) { create(:catalogue) }
       let(:product) { create(:product, catalogue: catalogue) }
       let(:plan) do
         create :work_plan,
                owner_email: 'owner@here.com',
-               desired_date: tomorrow,
                project_id: project.id,
                product_id: product.id,
                comment: 'a comment'
@@ -80,12 +78,12 @@ RSpec.describe 'Api::V1::Jobs', type: :request do
           .to eq(order.dispatch_date.to_datetime.to_i)
         expect(obtained_job['data']['attributes']['requested-by']).to eq(plan.owner_email)
         expect(obtained_job['data']['attributes']['project']).to eq(project.name)
-        expect(obtained_job['data']['attributes']['desired-date']).to eq(plan.desired_date.to_s)
         expect(obtained_job['data']['attributes']['product']).to eq(plan.product.name)
         expect(obtained_job['data']['attributes']['process-modules']).to eq('')
         expect(obtained_job['data']['attributes']['process']).to eq(job.work_order.process.name)
         expect(obtained_job['data']['attributes']['batch-size']).to eq(0)
         expect(obtained_job['data']['attributes']['work-plan-comment']).to eq(plan.comment)
+        expect(obtained_job['data']['attributes']['priority']).to eq(plan.priority)
         expect(obtained_job['data']['attributes']['barcode']).to eq(container.barcode)
       end
     end
@@ -241,7 +239,7 @@ RSpec.describe 'Api::V1::Jobs', type: :request do
           allow(BillingFacadeClient).to receive(:send_event)
 
           mock_set_creation
-          
+
         end
         context 'when job is active' do
           before do

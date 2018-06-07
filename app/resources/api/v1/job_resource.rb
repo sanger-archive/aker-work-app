@@ -4,8 +4,8 @@ module Api
   module V1
     class JobResource < JSONAPI::Resource
       attributes :container_uuid, :work_order_id, :started, :completed, :cancelled, :broken,
-                 :date_requested, :requested_by, :project, :desired_date, :product,
-                 :process_modules, :batch_size, :work_plan_comment, :barcode, :process
+                 :date_requested, :requested_by, :project, :product,
+                 :process_modules, :batch_size, :work_plan_comment, :priority, :barcode, :process
 
       paginator :paged
 
@@ -61,8 +61,8 @@ module Api
         @model.work_order&.work_plan&.project&.name
       end
 
-      def desired_date
-        @model.work_order&.work_plan&.desired_date
+      def priority
+        @model.work_order&.work_plan&.priority
       end
 
       def product

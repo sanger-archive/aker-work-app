@@ -80,7 +80,7 @@ RSpec.describe 'EventMessage' do
       end
 
       let(:plan) do
-        pl = build(:work_plan, product: product, project_id: project.id, comment: first_comment, desired_date: Time.zone.today + 5, data_release_strategy_id: SecureRandom.uuid)
+        pl = build(:work_plan, product: product, project_id: project.id, comment: first_comment, data_release_strategy_id: SecureRandom.uuid)
         allow(pl).to receive(:project).and_return(project)
         pl
       end
@@ -172,7 +172,6 @@ RSpec.describe 'EventMessage' do
         it 'should have the correct work order id' do
           expect(metadata['work_order_id']).to eq(work_order.id)
         end
-
         it 'should have the correct quoted price' do
           expect(metadata['quoted_price']).to eq(work_order.total_cost)
         end
@@ -185,6 +184,7 @@ RSpec.describe 'EventMessage' do
         it 'should have the correct data release strategy uuid' do
           expect(metadata['data_release_strategy_uuid']).to eq(work_order.work_plan.data_release_strategy_id)
         end
+
       end
 
       context 'when work order is concluded' do

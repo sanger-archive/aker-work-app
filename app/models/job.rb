@@ -86,7 +86,7 @@ class Job < ApplicationRecord
   def set_materials_availability(flag)
     materials.result_set.each do |mat|
       mat.update_attributes(available: flag)
-    end    
+    end
   end
 
   def start!
@@ -180,6 +180,7 @@ class Job < ApplicationRecord
         process_uuid: work_order.process.uuid,
         modules: work_order.module_choices,
         comment: work_order.work_plan.comment,
+        priority: work_order.work_plan.priority,
 
         project_uuid: project.node_uuid,
         project_name: project.name,

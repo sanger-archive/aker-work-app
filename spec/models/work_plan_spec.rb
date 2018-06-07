@@ -489,4 +489,18 @@ RSpec.describe WorkPlan, type: :model do
     end
   end
 
+  describe 'priority' do
+    context 'default' do
+      it 'should be standard' do
+        plan = create(:work_plan)
+        expect(plan.priority).to eq 'standard'
+      end
+    end
+    context 'when it is set to high' do
+      it 'should be high' do
+        plan = create(:work_plan, priority: 'high')
+        expect(plan.priority).to eq 'high'
+      end
+    end
+  end
 end
