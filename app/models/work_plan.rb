@@ -133,6 +133,10 @@ class WorkPlan < ApplicationRecord
     status=='construction'
   end
 
+  def cancellable?
+    active? || in_construction?
+  end
+
   # cancelled - the plan has been cancelled
   # broken - one of the orders is broken
   # closed - all of the orders are complete or cancelled (in some combination)

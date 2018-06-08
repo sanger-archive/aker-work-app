@@ -313,6 +313,27 @@ RSpec.describe WorkPlan, type: :model do
     end
   end
 
+  describe '#cancellable?' do
+    let!(:processes) { make_processes(3) }
+    let(:plan) do
+      pl = create(:work_plan, product: product, project_id: project.id, original_set_uuid: set.uuid)
+      pl.create_orders(process_options, nil, modules_selected_values)
+      pl
+    end
+
+    context 'when a work plan is cancellable' do
+      it { expect(plan.cancellable?).to be true }
+    end
+
+    context 'when a work plan is not cancellable' do
+      before do
+        plan.work_orders.first.broken!
+        plan.reload
+      end
+      it { expect(plan.cancellable?).to be false }
+    end
+  end
+
   describe '#original_set' do
     context 'when the plan has no set uuid' do
       let(:plan) { build(:work_plan, original_set_uuid: nil) }
