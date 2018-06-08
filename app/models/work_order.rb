@@ -201,7 +201,10 @@ class WorkOrder < ApplicationRecord
 
   def send_to_lims
     create_jobs if jobs.empty?
-    jobs.each(&:send_to_lims)
+    body = jobs.map(&:lims_data)
+
+    lims_url = work_plan.product.catalogue.job_creation_url
+    LimsClient.post(lims_url, { data: body })
   end
 
   def all_results(result_set)
