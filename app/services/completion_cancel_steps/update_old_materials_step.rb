@@ -1,6 +1,6 @@
 class UpdateOldMaterialsStep
 
-  attr_reader :materials_before_changes
+  attr_reader :materials, :materials_before_changes
 
   def initialize(job, msg)
     @job = job
@@ -9,6 +9,7 @@ class UpdateOldMaterialsStep
 
   # Step 3 - Update old materials
   def up
+    @materials = []
     @materials_before_changes = []
     @msg[:job][:updated_materials].each do |updated_params|
       uuid = updated_params[:_id]
@@ -16,6 +17,7 @@ class UpdateOldMaterialsStep
       material = MatconClient::Material.find(uuid)
       previous_state = Hash[updated_params.map{ |k,v| [k, material.attributes[k]] }]
       material.update_attributes(updated_params)
+      @materials.push(material)
       materials_before_changes.push({id: uuid, attrs: previous_state})
      end
   end

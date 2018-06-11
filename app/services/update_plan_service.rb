@@ -263,6 +263,11 @@ private
   end
 
   def check_set_contents(set_uuid)
+    unless set_uuid
+      add_error("This work order has no selected set to work with")
+      return false
+    end
+
     begin
       mids = SetClient::Set.find_with_materials(set_uuid).first.materials.map{|m| m.id}
       if mids.empty?
