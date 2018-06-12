@@ -251,14 +251,14 @@ class WorkOrder < ApplicationRecord
     end
   end
 
-  def generate_submitted_event
+  def generate_dispatched_event
     begin
       if active?
-        message = WorkOrderEventMessage.new(work_order: self, status: 'submitted')
+        message = WorkOrderEventMessage.new(work_order: self, status: 'dispatched')
         BrokerHandle.publish(message)
-        BillingFacadeClient.send_event(self, 'submitted')
+        BillingFacadeClient.send_event(self, 'dispatched')
       else
-        Rails.logger.error("Submitted event cannot be generated from a work order that is not active.")
+        Rails.logger.error("dispatched event cannot be generated from a work order that is not active.")
       end
     rescue => e
       Rails.logger.error e

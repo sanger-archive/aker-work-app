@@ -153,8 +153,8 @@ RSpec.describe 'EventMessage' do
         end
       end
 
-      context 'when work order is submitted' do
-        let(:status) { 'submitted' }
+      context 'when work order is dispatched' do
+        let(:status) { 'dispatched' }
 
         it_behaves_like 'work order event message json'
 

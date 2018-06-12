@@ -72,7 +72,6 @@ class WorkOrderEventMessage < EventMessage
     @status = params.fetch(:status)
     @timestamp = Time.now.utc.iso8601
     @uuid = SecureRandom.uuid
-    @trace_id = ZipkinTracer::TraceContainer.current&.next_id&.trace_id&.to_s
   end
 
   # Generate the JSON for a Work Order event
@@ -125,21 +124,22 @@ class WorkOrderEventMessage < EventMessage
   end
 
   def metadata
-    if @status == 'submitted'
-      metadata_for_submitted
+    if @status == 'dispatched' || @status == 'queued'
+      metadata_for_dispatched
     else
       metadata_for_concluded
     end
   end
 
-  def metadata_for_submitted
+  def metadata_for_dispatched
     plan = @work_order.work_plan
     {
       'work_order_id' => @work_order.id,
+      'work_plan_id' => plan.id,
       'quoted_price' => @work_order.total_cost,
-      'zipkin_trace_id' => @trace_id,
       'num_materials' => num_materials,
-      'data_release_strategy_uuid' => @work_order.work_plan.data_release_strategy_id
+      'data_release_strategy_uuid' => @work_order.work_plan.data_release_strategy_id,
+      'cost_code' => plan.project.cost_code
     }
   end
 
@@ -152,12 +152,14 @@ class WorkOrderEventMessage < EventMessage
   end
 
   def metadata_for_concluded
+    plan = @work_order.work_plan
     {
       'work_order_id' => @work_order.id,
-      'zipkin_trace_id' => @trace_id,
+      'work_plan_id' => plan.id,
       'num_new_materials' => num_new_materials,
       'num_completed_jobs' => num_completed_jobs,
-      'num_cancelled_jobs' => num_cancelled_jobs
+      'num_cancelled_jobs' => num_cancelled_jobs,
+      'cost_code' => plan.project.cost_code
     }
   end
 
