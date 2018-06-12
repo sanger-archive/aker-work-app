@@ -1,6 +1,8 @@
 # Aker - Work App
 
 [![Build Status](https://travis-ci.org/sanger/aker-work-app.svg?branch=devel)](https://travis-ci.org/sanger/aker-work-app)
+[![Maintainability](https://api.codeclimate.com/v1/badges/d2721eface0c9cc74bb6/maintainability)](https://codeclimate.com/github/sanger/aker-work-app/maintainability)
+[![Test Coverage](https://api.codeclimate.com/v1/badges/d2721eface0c9cc74bb6/test_coverage)](https://codeclimate.com/github/sanger/aker-work-app/test_coverage)
 
 This application allows users to create and manage work orders.
 
