@@ -6,7 +6,7 @@ RSpec.describe WorkOrder, type: :model do
   include WorkOrdersHelper
 
   let(:catalogue) { create(:catalogue) }
-  let(:product) { create(:product, name: 'Solylent Green', product_version: 3, catalogue: catalogue) }
+  let(:product) { create(:product, name: 'Soylent Green', product_version: 3, catalogue: catalogue) }
   let(:process) do
     pro = create(:aker_process, name: 'Baking')
     create(:aker_product_process, product: product, aker_process: pro, stage: 0)
@@ -27,6 +27,7 @@ RSpec.describe WorkOrder, type: :model do
     bfc = double('BillingFacadeClient')
     stub_const("BillingFacadeClient", bfc)
     stub_const('BrokerHandle', class_double('BrokerHandle'))
+    allow(BrokerHandle).to receive(:publish)
     allow(bfc).to receive(:validate_process_module_name) do |name|
       !name.starts_with? 'x'
     end

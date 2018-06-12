@@ -102,6 +102,7 @@ RSpec.describe UpdatePlanService do
 
   def stub_broker_connection
     stub_const('BrokerHandle', class_double('BrokerHandle', working?: true))
+    allow(BrokerHandle).to receive(:publish)
   end
 
   describe 'selecting a project' do
