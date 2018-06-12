@@ -268,23 +268,23 @@ RSpec.describe WorkOrder, type: :model do
     end
   end
 
-  describe '#generate_submitted_event' do
+  describe '#generate_dispatched_event' do
     context 'if work order does not have status active' do
       it 'generates an event using the BrokerHandle' do
         wo = build(:work_order)
-        allow(BillingFacadeClient).to receive(:send_event).with(wo, 'submitted')
+        allow(BillingFacadeClient).to receive(:send_event).with(wo, 'dispatched')
         expect(BrokerHandle).not_to receive(:publish).with(an_instance_of(WorkOrderEventMessage))
-        expect(Rails.logger).to receive(:error).with('Submitted event cannot be generated from a work order that is not active.')
-        wo.generate_submitted_event
+        expect(Rails.logger).to receive(:error).with('dispatched event cannot be generated from a work order that is not active.')
+        wo.generate_dispatched_event
       end
     end
 
     context 'if work order does have status active' do
       it 'generates an event using the BrokerHandle' do
         wo = build(:work_order, status: 'active')
-        allow(BillingFacadeClient).to receive(:send_event).with(wo, 'submitted')
+        allow(BillingFacadeClient).to receive(:send_event).with(wo, 'dispatched')
         expect(BrokerHandle).to receive(:publish).with(an_instance_of(WorkOrderEventMessage))
-        wo.generate_submitted_event
+        wo.generate_dispatched_event
       end
     end
   end
