@@ -1,5 +1,7 @@
 # Aker - Work App
 
+[![Build Status](https://travis-ci.org/sanger/aker-work-app.svg?branch=devel)](https://travis-ci.org/sanger/aker-work-app)
+
 This application allows users to create and manage work orders.
 
 # Setup
