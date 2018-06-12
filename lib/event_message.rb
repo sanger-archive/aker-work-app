@@ -124,14 +124,14 @@ class WorkOrderEventMessage < EventMessage
   end
 
   def metadata
-    if @status == 'submitted' || @status == 'queued'
-      metadata_for_submitted
+    if @status == 'dispatched' || @status == 'queued'
+      metadata_for_dispatched
     else
       metadata_for_concluded
     end
   end
 
-  def metadata_for_submitted
+  def metadata_for_dispatched
     plan = @work_order.work_plan
     {
       'work_order_id' => @work_order.id,

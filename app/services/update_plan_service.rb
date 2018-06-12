@@ -131,7 +131,7 @@ class UpdatePlanService
 
       if dispatch_order_id
         return false unless send_order(dispatch_order_id)
-        generate_submitted_event(dispatch_order_id)
+        generate_dispatched_event(dispatch_order_id)
       end
     end
 
@@ -434,9 +434,9 @@ private
     return true
   end
 
-   def generate_submitted_event(order_id)
+   def generate_dispatched_event(order_id)
     order = WorkOrder.find(order_id)
-    order.generate_submitted_event
+    order.generate_dispatched_event
   end
 
   def validate_modules(module_ids)

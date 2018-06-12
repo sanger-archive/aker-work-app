@@ -852,7 +852,7 @@ RSpec.describe UpdatePlanService do
       @sent_event = false
       @finalised_set = false
       allow_any_instance_of(WorkOrder).to receive(:send_to_lims) { @sent_to_lims = true }
-      allow_any_instance_of(WorkOrder).to receive(:generate_submitted_event) { @sent_event = true }
+      allow_any_instance_of(WorkOrder).to receive(:generate_dispatched_event) { @sent_event = true }
       allow_any_instance_of(WorkOrder).to receive(:finalise_set) { @finalised_set = true }
       stub_project
       stub_stamps
@@ -1156,7 +1156,7 @@ RSpec.describe UpdatePlanService do
       @sent_to_lims = false
       @sent_event = false
       allow_any_instance_of(WorkOrder).to receive(:send_to_lims) { @sent_to_lims = true }
-      allow_any_instance_of(WorkOrder).to receive(:generate_submitted_event) { @sent_event = true }
+      allow_any_instance_of(WorkOrder).to receive(:generate_dispatched_event) { @sent_event = true }
       stub_project
       stub_stamps
       stub_broker_connection
