@@ -76,9 +76,9 @@ Rails.application.configure do
   config.jwt_secret_key = 'development'
 
   config.events = {
-    enabled: true,
+    enabled: false,
     broker_host: 'localhost',
-    broker_port: '32771',
+    broker_port: '5672',
     broker_username: 'work_orders',
     broker_password: 'password',
     vhost: 'aker',
@@ -108,7 +108,7 @@ Rails.application.configure do
                   projects: '',
                   work: '' }
 
-  config.sequencescape_url = 'http://dev.psd.sanger.ac.uk:6630'
+  config.sequencescape_url = 'http://localhost:3000'
 
   config.akerdev_email = ENV.fetch('USER', 'user') + '@sanger.ac.uk'
 end
