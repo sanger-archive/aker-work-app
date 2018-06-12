@@ -131,7 +131,7 @@ class UpdatePlanService
 
       if dispatch_order_id
         return false unless send_order(dispatch_order_id)
-        generate_submitted_event(dispatch_order_id)
+        generate_dispatched_event(dispatch_order_id)
       end
     end
 
@@ -152,13 +152,13 @@ private
 
   def ready_for_step
     unless @work_plan.original_set_uuid
-      if [:project_id, :product_id, :product_options, :comment, :desired_date, :order_id, :work_order_modules, :data_release_strategy_id ].any? { |field| @work_plan_params[field] }
+      if [:project_id, :product_id, :product_options, :comment, :priority, :order_id, :work_order_modules, :data_release_strategy_id ].any? { |field| @work_plan_params[field] }
         add_error("Please select a set in an earlier step.")
         return false
       end
     end
     unless @work_plan.project_id
-      if [:product_id, :product_options, :comment, :desired_date, :order_id, :work_order_modules, :data_release_strategy_id].any? { |field| @work_plan_params[field] }
+      if [:product_id, :product_options, :comment, :priority, :order_id, :work_order_modules, :data_release_strategy_id].any? { |field| @work_plan_params[field] }
         add_error("Please select a project in an earlier step.")
         return false
       end
@@ -218,7 +218,7 @@ private
       add_error("This work plan cannot be updated.")
       return false
     end
-    if [:original_set_uuid, :project_id, :product_id, :product_options, :comment, :desired_date].any? { |field| @work_plan_params[field] }
+    if [:original_set_uuid, :project_id, :product_id, :product_options, :comment, :priority].any? { |field| @work_plan_params[field] }
       add_error("That change cannot be made because this work plan is in progress.")
       return false
     end
@@ -420,9 +420,7 @@ private
     end
     order = WorkOrder.find(order_id)
     begin
-      ActiveRecord::Base.transaction do
-        order.send_to_lims
-      end
+      order.send_to_lims
     rescue => e
       Rails.logger.error "Failed to send work order"
       Rails.logger.error e
@@ -434,9 +432,9 @@ private
     return true
   end
 
-   def generate_submitted_event(order_id)
+   def generate_dispatched_event(order_id)
     order = WorkOrder.find(order_id)
-    order.generate_submitted_event
+    order.generate_dispatched_event
   end
 
   def validate_modules(module_ids)

@@ -31,7 +31,6 @@ RSpec.describe Job, type: :model do
            project_id: subproject.id,
            product: product,
            comment: 'hello',
-           desired_date: '2020-01-01',
            data_release_strategy_id: drs.id)
   end
 
@@ -169,18 +168,21 @@ RSpec.describe Job, type: :model do
     end
 
     it 'should return the lims_data' do
-      data = job.lims_data[:job]
+      expect(job.lims_data[:type]).to eq "jobs"
+      expect(job.lims_data[:id]).to eq job.id
+
+      data = job.lims_data[:attributes]
       expect(data[:job_id]).to eq(job.id)
       expect(data[:work_order_id]).to eq(job.work_order.id)
       expect(data[:process_name]).to eq(process.name)
       expect(data[:process_uuid]).to eq(process.uuid)
       expect(data[:work_order_id]).to eq(order.id)
       expect(data[:comment]).to eq(plan.comment)
+      expect(data[:priority]).to eq(plan.priority)
       expect(data[:project_uuid]).to eq(subproject.node_uuid)
       expect(data[:project_name]).to eq(subproject.name)
       expect(data[:data_release_uuid]).to eq(job.work_order.work_plan.data_release_strategy_id)
       expect(data[:cost_code]).to eq(subproject.cost_code)
-      expect(data).not_to have_key(:desired_date)
       expect(data[:modules]).to eq(%w[Module1 Module2])
       material_data = data[:materials]
       expect(material_data.length).to eq(@materials.length)

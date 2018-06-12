@@ -102,6 +102,7 @@ RSpec.describe UpdatePlanService do
 
   def stub_broker_connection
     stub_const('BrokerHandle', class_double('BrokerHandle', working?: true))
+    allow(BrokerHandle).to receive(:publish)
   end
 
   describe 'selecting a project' do
@@ -348,8 +349,6 @@ RSpec.describe UpdatePlanService do
     let(:params) do
       {
         product_id: product.id,
-        comment: 'commentary',
-        desired_date: Date.today,
         product_options: product_options.to_json,
       }
     end
@@ -371,12 +370,6 @@ RSpec.describe UpdatePlanService do
       it 'should not change the product in the plan' do
         expect(plan.product_id).to be_nil
       end
-      it 'should not set the comment' do
-        expect(plan.comment).to be_nil
-      end
-      it 'should not set the date' do
-        expect(plan.desired_date).to be_nil
-      end
       it 'should still be in construction' do
         expect(plan).to be_in_construction
       end
@@ -394,12 +387,6 @@ RSpec.describe UpdatePlanService do
       end
       it 'should set the product in the plan' do
         expect(plan.product_id).to eq(product.id)
-      end
-      it 'should set the comment' do
-        expect(plan.comment).to eq(params[:comment])
-      end
-      it 'should set the date' do
-        expect(plan.desired_date).to eq(params[:desired_date])
       end
       it 'should still be in construction' do
         expect(plan).to be_in_construction
@@ -433,12 +420,6 @@ RSpec.describe UpdatePlanService do
       it 'should not set the product in the plan' do
         expect(plan.product_id).to be_nil
       end
-      it 'should not set the comment' do
-        expect(plan.comment).to be_nil
-      end
-      it 'should not set the date' do
-        expect(plan.desired_date).to be_nil
-      end
       it 'should still be in construction' do
         expect(plan).to be_in_construction
       end
@@ -461,8 +442,6 @@ RSpec.describe UpdatePlanService do
       let(:params) do
         {
           product_id: product.id,
-          comment: 'commentary',
-          desired_date: Date.today,
           product_options: product_options.to_json,
           work_order_module: work_order_module
         }
@@ -495,12 +474,6 @@ RSpec.describe UpdatePlanService do
       it 'should not set the product in the plan' do
         expect(plan.product_id).to be_nil
       end
-      it 'should not set the comment' do
-        expect(plan.comment).to be_nil
-      end
-      it 'should not set the date' do
-        expect(plan.desired_date).to be_nil
-      end
       it 'should still be in construction' do
         expect(plan).to be_in_construction
       end
@@ -519,12 +492,6 @@ RSpec.describe UpdatePlanService do
       end
       it 'should not set the product in the plan' do
         expect(plan.product_id).to be_nil
-      end
-      it 'should not set the comment' do
-        expect(plan.comment).to be_nil
-      end
-      it 'should not set the date' do
-        expect(plan.desired_date).to be_nil
       end
       it 'should still be in construction' do
         expect(plan).to be_in_construction
@@ -555,12 +522,6 @@ RSpec.describe UpdatePlanService do
       end
       it 'should set the product in the plan' do
         expect(plan.product_id).to eq(product.id)
-      end
-      it 'should set the comment' do
-        expect(plan.comment).to eq(params[:comment])
-      end
-      it 'should set the date' do
-        expect(plan.desired_date).to eq(params[:desired_date])
       end
       it 'should still be in construction' do
         expect(plan).to be_in_construction
@@ -608,12 +569,6 @@ RSpec.describe UpdatePlanService do
       it 'should produce an error message' do
         expect(messages[:error]).to match /in progress/
       end
-      it 'should not set the comment' do
-        expect(plan.comment).to be_nil
-      end
-      it 'should not set the date' do
-        expect(plan.desired_date).to be_nil
-      end
       it 'should still be active' do
         expect(plan).to be_active
       end
@@ -630,8 +585,6 @@ RSpec.describe UpdatePlanService do
       let(:params) do
         {
           product_id: product.id,
-          comment: 'commentary',
-          desired_date: Date.today,
         }
       end
 
@@ -644,9 +597,6 @@ RSpec.describe UpdatePlanService do
       end
       it 'should not set the comment' do
         expect(plan.comment).to be_nil
-      end
-      it 'should not set the date' do
-        expect(plan.desired_date).to be_nil
       end
       it 'should still be in construction' do
         expect(plan).to be_in_construction
@@ -662,7 +612,6 @@ RSpec.describe UpdatePlanService do
       let(:params) do
         {
           comment: 'commentary',
-          desired_date: Date.today,
           product_options: product_options.to_json,
         }
       end
@@ -676,9 +625,6 @@ RSpec.describe UpdatePlanService do
       end
       it 'should not set the comment' do
         expect(plan.comment).to be_nil
-      end
-      it 'should not set the date' do
-        expect(plan.desired_date).to be_nil
       end
       it 'should still be in construction' do
         expect(plan).to be_in_construction
@@ -889,6 +835,8 @@ RSpec.describe UpdatePlanService do
     let(:orders) { plan.work_orders }
     let(:params) do
       {
+        comment: 'a comment',
+        priority: 'high',
         work_order_id: orders[0].id,
         work_order_modules: [processes[0].process_modules[1].id].to_json,
       }
@@ -905,7 +853,7 @@ RSpec.describe UpdatePlanService do
       @sent_event = false
       @finalised_set = false
       allow_any_instance_of(WorkOrder).to receive(:send_to_lims) { @sent_to_lims = true }
-      allow_any_instance_of(WorkOrder).to receive(:generate_submitted_event) { @sent_event = true }
+      allow_any_instance_of(WorkOrder).to receive(:generate_dispatched_event) { @sent_event = true }
       allow_any_instance_of(WorkOrder).to receive(:finalise_set) { @finalised_set = true }
       stub_project
       stub_stamps
@@ -947,6 +895,12 @@ RSpec.describe UpdatePlanService do
       it 'should have a dispatch date' do
         expect(orders[0].reload.dispatch_date).not_to be_nil
       end
+      it 'should have a comment' do
+        expect(plan.reload.comment).to eq 'a comment'
+      end
+      it 'should have a priority' do
+        expect(plan.reload.priority).to eq 'high'
+      end
     end
 
     context 'when the order is active' do
@@ -955,6 +909,12 @@ RSpec.describe UpdatePlanService do
         plan = make_plan_with_orders
         plan.work_orders[0].update_attributes(status: 'active', dispatch_date: old_date)
         plan
+      end
+      let(:params) do
+        {
+          work_order_id: orders[0].id,
+          work_order_modules: [processes[0].process_modules[1].id].to_json,
+        }
       end
 
       it { expect(@result).to be_falsey }
@@ -1197,7 +1157,7 @@ RSpec.describe UpdatePlanService do
       @sent_to_lims = false
       @sent_event = false
       allow_any_instance_of(WorkOrder).to receive(:send_to_lims) { @sent_to_lims = true }
-      allow_any_instance_of(WorkOrder).to receive(:generate_submitted_event) { @sent_event = true }
+      allow_any_instance_of(WorkOrder).to receive(:generate_dispatched_event) { @sent_event = true }
       stub_project
       stub_stamps
       stub_broker_connection

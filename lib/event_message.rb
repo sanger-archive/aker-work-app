@@ -125,18 +125,17 @@ class WorkOrderEventMessage < EventMessage
   end
 
   def metadata
-    if @status == 'submitted'
-      metadata_for_submitted
+    if @status == 'dispatched'
+      metadata_for_dispatched
     else
       metadata_for_concluded
     end
   end
 
-  def metadata_for_submitted
+  def metadata_for_dispatched
     plan = @work_order.work_plan
     {
       'work_order_id' => @work_order.id,
-      #'comment' => plan.comment,
       'quoted_price' => @work_order.total_cost,
       'zipkin_trace_id' => @trace_id,
       'num_materials' => num_materials,
@@ -155,7 +154,6 @@ class WorkOrderEventMessage < EventMessage
   def metadata_for_concluded
     {
       'work_order_id' => @work_order.id,
-      #'comment' => @work_order.close_comment,
       'zipkin_trace_id' => @trace_id,
       'num_new_materials' => num_new_materials,
       'num_completed_jobs' => num_completed_jobs,

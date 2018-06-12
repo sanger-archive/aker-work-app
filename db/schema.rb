@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180531084456) do
+ActiveRecord::Schema.define(version: 20180606105059) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -142,12 +142,12 @@ ActiveRecord::Schema.define(version: 20180531084456) do
     t.uuid "original_set_uuid"
     t.citext "owner_email", null: false
     t.string "comment"
-    t.date "desired_date"
     t.uuid "uuid", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.datetime "cancelled"
     t.uuid "data_release_strategy_id"
+    t.string "priority", default: "standard", null: false
     t.index ["data_release_strategy_id"], name: "index_work_plans_on_data_release_strategy_id"
     t.index ["owner_email"], name: "index_work_plans_on_owner_email"
     t.index ["product_id"], name: "index_work_plans_on_product_id"
