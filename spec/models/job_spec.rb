@@ -168,7 +168,10 @@ RSpec.describe Job, type: :model do
     end
 
     it 'should return the lims_data' do
-      data = job.lims_data[:job]
+      expect(job.lims_data[:type]).to eq "jobs"
+      expect(job.lims_data[:id]).to eq job.id
+
+      data = job.lims_data[:attributes]
       expect(data[:job_id]).to eq(job.id)
       expect(data[:work_order_id]).to eq(job.work_order.id)
       expect(data[:process_name]).to eq(process.name)

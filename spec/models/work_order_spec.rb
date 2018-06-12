@@ -509,4 +509,5 @@ RSpec.describe WorkOrder, type: :model do
       end
     end
   end
+
 end

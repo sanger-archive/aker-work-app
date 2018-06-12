@@ -420,9 +420,7 @@ private
     end
     order = WorkOrder.find(order_id)
     begin
-      ActiveRecord::Base.transaction do
-        order.send_to_lims
-      end
+      order.send_to_lims
     rescue => e
       Rails.logger.error "Failed to send work order"
       Rails.logger.error e

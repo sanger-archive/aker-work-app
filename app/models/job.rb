@@ -78,11 +78,6 @@ class Job < ApplicationRecord
     status == 'broken'
   end
 
-  def send_to_lims
-    lims_url = work_order.work_plan.product.catalogue.job_creation_url
-    LimsClient.post(lims_url, lims_data)
-  end
-
   def set_materials_availability(flag)
     materials.result_set.each do |mat|
       mat.update_attributes(available: flag)
@@ -145,7 +140,7 @@ class Job < ApplicationRecord
     end
   end
 
-  # This method returns a JSON description of the order that will be sent to a LIMS to order work.
+  # This method returns a JSON description of a job that will be sent to a LIMS.
   # It includes information that must be loaded from other services (study, set, etc.).
   def lims_data
     material_data = materials.map do |m|
@@ -171,7 +166,9 @@ class Job < ApplicationRecord
     data_release_strategy_id = work_order.work_plan.data_release_strategy_id
 
     {
-      job: {
+      type: "jobs",
+      id: id,
+      attributes: {
         job_id: id,
         work_order_id: work_order.id,
         aker_job_url: job_url,
