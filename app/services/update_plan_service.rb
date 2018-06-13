@@ -420,12 +420,17 @@ private
     end
     order = WorkOrder.find(order_id)
     begin
-      order.send_to_lims
-    rescue => e
+      ActiveRecord::Base.transaction do
+        order.send_to_lims
+      end
+    rescue StandardError => e
+      order.rollback_materials_availability
+
       Rails.logger.error "Failed to send work order"
       Rails.logger.error e
       Rails.logger.error e.backtrace
       add_error("The request to the LIMS failed. Description: #{e}")
+
       return false
     end
     order.update_attributes!(status: 'active', dispatch_date: Time.now)

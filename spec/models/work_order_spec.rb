@@ -462,10 +462,17 @@ RSpec.describe WorkOrder, type: :model do
         order.create_jobs
         expect(order.jobs.length).to eq(@num_of_containers)
       end
+
+      it 'adds the materials to rollback_materials attribute' do
+        @materials.each do |mat|
+          expect(mat).to receive(:update_attributes).with(available: false)
+        end
+        order.create_jobs
+        expect(order.rollback_materials.length).to eq(@materials.length)
+      end
     end
 
   end
-
 
   describe '#next_order' do
     let(:plan) { create(:work_plan) }
