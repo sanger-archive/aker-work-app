@@ -3,15 +3,45 @@
 <%= bootstrap_form_for work_plan, url: wizard_path, method: :put  do |f| %>
 
   <%= f.hidden_field :id %>
+  <br>
+  <div class="panel panel-primary">
+    <div class="panel-heading">Work Plan <%= work_plan.id %>
+      <span class="pull-right">Created: <%= work_plan.created_at.strftime('%d/%m/%y') %></span>
+    </div>
+    <div class="panel-body">
+      <div class="row">
+        <div class="col-md-3 col-sm-3 text-center">
+          <h6>Product</h6>
+          <span><%= work_plan.product.name %></span>
+        </div>
+        <div class="col-md-3 col-sm-3 text-center">
+          <h6>Project</h6>
+          <span><%= work_plan.project.name %></span>
+        </div>
+        <div class="col-md-3 col-sm-3 text-center">
+          <h6>Cost Code</h6>
+          <span><%= work_plan.project.cost_code %></span>
+        </div>
+        <div class="col-md-3 col-sm-3 text-center">
+          <h6>Data Release Strategy</h6>
+          <span><%= work_plan.data_release_strategy.name %></span>
+        </div>
+      </div>
+    </div>
+  </div>
 
-  <h2>Work Plan <%= work_plan.id %></h2>
-  <h5><%= work_plan.product.name %></h5>
-  <h6>Created: <%= work_plan.created_at.strftime('%d/%m/%y') %></h6>
-  <h6>Project: <%= work_plan.project.name %>
-  <p>
-  <%= f.check_box :priority, {label: 'High priority', disabled: !work_plan.in_construction?}, "high", "standard" %>
+  <div class="row">
+    <div class="col-md-10">
+      <h4>Comments</h4>
+      <%= f.text_field :comment, label: 'Enter any comments you wish to be visible to Scientifc Operations', disabled: !work_plan.in_construction? %>
+    </div>
+    <div class="col-md-2">
+      <h4>Priority</h4>
+      <%= f.check_box :priority, {label: 'High priority', disabled: !work_plan.in_construction?}, "high", "standard" %>
+    </div>
+  </div>
 
-  <%= f.text_field :comment, label: 'Comment', disabled: !work_plan.in_construction? %>
+
 
   <%= render 'products_accordion' %>
 
