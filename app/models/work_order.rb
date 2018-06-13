@@ -17,6 +17,8 @@ class WorkOrder < ApplicationRecord
 
   after_initialize :create_uuid
 
+  attr_accessor :rollback_materials
+
   def create_uuid
     self.work_order_uuid ||= SecureRandom.uuid
   end
@@ -191,10 +193,14 @@ class WorkOrder < ApplicationRecord
         }
     ).result_set).uniq
 
+    @rollback_materials = []
+
     ActiveRecord::Base.transaction do
       containers.each do |container|
         job = Job.create!(container_uuid: container.id, work_order: self)
         job.set_materials_availability(false)
+
+        @rollback_materials.concat(job.materials.result_set.to_a)
       end
     end
   end
@@ -205,6 +211,14 @@ class WorkOrder < ApplicationRecord
 
     lims_url = work_plan.product.catalogue.job_creation_url
     LimsClient.post(lims_url, { data: body })
+  end
+
+  def rollback_materials_availability
+    @rollback_materials.each do |mat|
+      # assuming that the material was available before the transaction failed
+      mat.update_attributes(available: true)
+    end
+    @rollback_materials = []
   end
 
   def all_results(result_set)

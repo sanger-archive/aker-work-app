@@ -1135,6 +1135,20 @@ RSpec.describe UpdatePlanService do
         expect(@sent_to_lims).to eq(false)
       end
     end
+
+    context 'when send_to_lims fails' do
+      let(:order) { orders[0] }
+      def extra_stubbing
+        super
+        allow(WorkOrder).to receive(:find).with(order.id).and_return(order)
+        allow(order).to receive(:send_to_lims).and_raise('error')
+        allow(order).to receive(:rollback_materials_availability)
+      end
+
+      it 'rollsback the materials availability' do
+        expect(order).to have_received(:rollback_materials_availability)
+      end
+    end
   end
 
   describe 'dispatching a subsequent order' do
