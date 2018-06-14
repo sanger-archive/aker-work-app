@@ -197,7 +197,7 @@ class WorkOrder < ApplicationRecord
 
     ActiveRecord::Base.transaction do
       containers.each do |container|
-        job = Job.create!(container_uuid: container.id, work_order: self)
+        job = Job.create!(container_uuid: container.id, work_order: self, uuid: SecureRandom.uuid)
         job.set_materials_availability(false)
 
         @rollback_materials.concat(job.materials.result_set.to_a)

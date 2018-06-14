@@ -3,7 +3,7 @@
 module Api
   module V1
     class JobResource < JSONAPI::Resource
-      attributes :container_uuid, :work_order_id, :started, :completed, :cancelled, :broken,
+      attributes :uuid, :container_uuid, :work_order_id, :started, :completed, :cancelled, :broken,
                  :date_requested, :requested_by, :project, :product,
                  :process_modules, :batch_size, :work_plan_comment, :priority, :barcode, :process
 
