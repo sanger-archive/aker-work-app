@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180606105059) do
+ActiveRecord::Schema.define(version: 20180614131014) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -79,6 +79,7 @@ ActiveRecord::Schema.define(version: 20180606105059) do
     t.bigint "work_order_id", null: false
     t.string "close_comment"
     t.uuid "set_uuid"
+    t.uuid "uuid", default: -> { "uuid_generate_v4()" }, null: false
     t.index ["work_order_id"], name: "index_jobs_on_work_order_id"
   end
 
