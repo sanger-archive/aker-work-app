@@ -68,6 +68,8 @@ RSpec.describe 'Api::V1::Jobs', type: :request do
       it 'returns the info for the job' do
         obtained_job = JSON.parse(response.body)
         expect(obtained_job['data']['id']).to eq(job.id.to_s)
+        expect(obtained_job['data']['attributes'].length).to eq(17)
+        expect(obtained_job['data']['attributes']['uuid']).to eq(job.uuid)
         expect(obtained_job['data']['attributes']['work-order-id']).to eq(job.work_order_id)
         expect(obtained_job['data']['attributes']['container-uuid']).to eq(container.id)
         expect(obtained_job['data']['attributes']['started']).to eq(nil)

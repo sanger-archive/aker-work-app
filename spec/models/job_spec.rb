@@ -39,13 +39,23 @@ RSpec.describe Job, type: :model do
       expect(build(:job, work_order: nil)).not_to be_valid
     end
 
-    it 'is valid with a work order' do
+    it 'is not valid without a uuid' do
+      expect(build(:job, uuid: nil)).not_to be_valid
+    end
+
+    it 'is valid with a work order and uuid' do
       expect(build(:job)).to be_valid
     end
 
     it 'fails to create a job if there is no work order specified' do
       expect { create :job, work_order: nil }.to raise_exception ActiveRecord::RecordInvalid
     end
+
+    it 'fails to create a job if there is no uuid specified' do
+      expect { create :job, uuid: nil }.to raise_exception ActiveRecord::RecordInvalid
+    end
+
+
   end
 
   context '#status' do
