@@ -79,7 +79,7 @@ RSpec.describe 'Api::V1::Jobs', type: :request do
         expect(obtained_job['data']['attributes']['date-requested'].to_datetime.to_i)
           .to eq(order.dispatch_date.to_datetime.to_i)
         expect(obtained_job['data']['attributes']['requested-by']).to eq(plan.owner_email)
-        expect(obtained_job['data']['attributes']['project']).to eq(project.name)
+        expect(obtained_job['data']['attributes']['project-and-costcode']).to eq(project.name + " (#{project.cost_code})")
         expect(obtained_job['data']['attributes']['product']).to eq(plan.product.name)
         expect(obtained_job['data']['attributes']['process-modules']).to eq('')
         expect(obtained_job['data']['attributes']['process']).to eq(job.work_order.process.name)
