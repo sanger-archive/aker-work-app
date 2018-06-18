@@ -159,10 +159,12 @@ export class ProductDescription extends React.Component {
     if (this.state.showProductInfo && this.state.productInfo) {
       productOptionComponents = (
         <Fragment>
+          <h4>Processes</h4>
           <Processes productProcesses={this.state.selectedProductProcesses} onChange={this.onProductOptionsSelectChange} enabled={this.state.enabled}/>
-
-          <ProductInformation data={this.state.productInfo} />
-          <CostInformation numSamples={this.state.numSamples} unitPrice={this.state.pricing.unitPrice} errors={this.state.pricing.errors} />
+          <div className="row">
+            <ProductInformation data={this.state.productInfo} />
+            <CostInformation numSamples={this.state.numSamples} unitPrice={this.state.pricing.unitPrice} errors={this.state.pricing.errors} />
+          </div>
         </Fragment>
       );
     }
@@ -180,8 +182,9 @@ export class ProductDescription extends React.Component {
           <input type='hidden' id="product_options" name='work_plan[product_options]' value={this.serializedProductOptions()} />
         }
 
-        <ProductLabel />
+        <h4>Products</h4>
         <ProductSelectElement catalogueList={this.props.data} onChange={this.onProductSelectChange} selectedProductId={productId} enabled={this.state.enabled}/>
+        <br/>
         { productOptionComponents }
       </div>
     );
@@ -200,17 +203,6 @@ class ErrorConsole extends React.Component {
   }
 }
 
-class ProductLabel extends React.Component {
-  render() {
-    return (
-      <Fragment>
-        <label>Choose a product:</label>
-        <br />
-      </Fragment>
-    );
-  }
-}
-
 class ProductSelectElement extends React.Component {
   render() {
     const productId = this.props.selectedProductId;
@@ -220,19 +212,11 @@ class ProductSelectElement extends React.Component {
       </Fragment>
     );
 
-    if (this.props.enabled) {
-      return (
-        <select className="form-control" onChange={this.props.onChange}>
-          {optionGroups}
-        </select>
-      );
-    } else {
-      return (
-        <select className="form-control" onChange={this.props.onChange} disabled>
-          {optionGroups}
-        </select>
-      );
-    }
+    return (
+      <select className="form-control" onChange={this.props.onChange} disabled={!this.props.enabled}>
+        {optionGroups}
+      </select>
+    );
   }
 }
 
@@ -313,30 +297,38 @@ class Process extends React.Component {
 
   render() {
     const {pro, index, onChange} = this.props;
+    let element;
 
-    let fields = null;
-    if (pro.process_class != null) {
-      fields = (
-        <Fragment>
-          Process class: {pro.process_class}<br/>
-          TAT: {tatString(pro.tat)}
-        </Fragment>
+    if (pro.name != null) {
+      element = (
+        <div className="panel panel-default">
+          <div className="panel-heading">
+            <div className="panel-title">
+              {pro.name}
+            </div>
+          </div>
+          <div className="panel-body">
+            <span className="label label-success" style={{"fontSize": "12px", "marginRight": "5px"}}>{tatString(pro.tat)} turnaround</span>
+            <span className="label label-primary" style={{"fontSize": "12px"}}>Process Class: {pro.process_class}</span>
+            <div id={index}>
+              <h5>Process Modules</h5>
+              <ProcessModulesSelectDropdowns processStageId={index} links={pro.links} path={pro.path} onChange={onChange} enabled={pro.enabled}/>
+            </div>
+          </div>
+        </div>
       );
-    } else if (pro.tat != null) {
-      fields = (
-        <Fragment>
-          TAT: {tatString(pro.tat)}
-        </Fragment>
+    } else {
+      element = (
+        <div id={index}>
+          <h5>Process Modules</h5>
+          <ProcessModulesSelectDropdowns processStageId={index} links={pro.links} path={pro.path} onChange={onChange} enabled={pro.enabled}/>
+        </div>
       );
-    };
+    }
 
     return (
       <Fragment>
-        <ProcessNameLabel name={pro.name}/>
-        {fields}
-        <div id={index} className="col-md-12">
-          <ProcessModulesSelectDropdowns processStageId={index} links={pro.links} path={pro.path} onChange={onChange} enabled={pro.enabled}/>
-        </div>
+        { element }
       </Fragment>
     )
   }
@@ -407,20 +399,6 @@ export class WorkOrderProcess extends React.Component {
   }
 }
 
-class ProcessNameLabel extends React.Component {
-  render() {
-    const text = (this.props.name ? <h5>{this.props.name}</h5> : <b>Modules:</b>);
-
-    return (
-      <Fragment>
-        <br />
-        <label>{text}</label>
-        <br />
-      </Fragment>
-    );
-  }
-}
-
 class ProcessModulesSelectDropdowns extends React.Component {
   render() {
     const select_dropdowns = [];
@@ -473,7 +451,7 @@ export class ProcessModuleParameters extends React.Component {
     this.setState({selectedValue: e.target.value})
   }
   classes() {
-    let list = ["col-md-3"]
+    let list = []
 
     if (this.state.selectedValue && this.state.selectedValue.toString().length > 0) {
       if (this.validValue()) {
@@ -519,19 +497,11 @@ class ProcessModuleSelectElement extends React.Component {
     this.renderSelect = this.renderSelect.bind(this)
   }
   renderSelect(select_options, selection) {
-    if (this.props.enabled) {
-      return(
-        <select className="form-control" value={selection} onChange={this.props.onChange} id={this.props.id}>
-          { select_options }
-        </select>
-      )
-    } else {
-      return(
-        <select className="form-control" value={selection} onChange={this.props.onChange} id={this.props.id} disabled>
-          { select_options }
-        </select>
-      )
-    }
+    return(
+      <select className="form-control" value={selection} onChange={this.props.onChange} id={this.props.id} disabled={!this.props.enabled}>
+        { select_options }
+      </select>
+    )
   }
   render() {
     const select_options = [];
@@ -546,7 +516,9 @@ class ProcessModuleSelectElement extends React.Component {
         <div className="col-md-6" id={this.props.processStageId}>
           { this.renderSelect(select_options, selection) }
         </div>
-        <ProcessModuleParameters selectedOption={selectedOption} selectedValueForChoice={this.props.selectedValueForChoice} />
+        <div className="col-md-3">
+          <ProcessModuleParameters selectedOption={selectedOption} selectedValueForChoice={this.props.selectedValueForChoice} />
+        </div>
       </div>
     )
   }
@@ -568,13 +540,14 @@ class ProductInformation extends React.Component {
     const data = this.props.data;
     return (
       <Fragment>
-        <br/>
-        <h5>Product info</h5>
+        <div className="col-md-6">
+        <h5>Product Information</h5>
         <pre>{`Requested biomaterial type: ${data.requested_biomaterial_type}
 Product version: ${data.product_version}
-TAT: ${tatString(data.total_tat)}
+Total turn around time: ${tatString(data.total_tat)}
 Description: ${data.description}
 Availability: ${data.availability ? 'available' : 'suspended'}`}</pre>
+        </div>
       </Fragment>
     );
   }
@@ -609,12 +582,15 @@ ${errorText}`}</pre>
 
     return (
       <Fragment>
-        <pre>{`Number of samples: ${numSamples}
+      <div className="col-md-6">
+        <h5>Cost Information</h5>
+          <pre>{`Number of samples: ${numSamples}
 Estimated cost per sample: ${convertToCurrency(costPerSample)}
 Total: ${convertToCurrency(total)}
-`}
-          <span style={{color: 'red'}}> &#9888; These values come from mock UBW.</span>
-        </pre>
+  `}
+<span style={{color: 'red'}}> &#9888; These values come from mock UBW.</span>
+          </pre>
+        </div>
       </Fragment>
     );
   }

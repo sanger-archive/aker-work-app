@@ -4,7 +4,7 @@ module Api
   module V1
     class JobResource < JSONAPI::Resource
       attributes :uuid, :container_uuid, :work_order_id, :started, :completed, :cancelled, :broken,
-                 :date_requested, :requested_by, :project, :product,
+                 :date_requested, :requested_by, :project_and_costcode, :product,
                  :process_modules, :batch_size, :work_plan_comment, :priority, :barcode, :process
 
       paginator :paged
@@ -59,6 +59,14 @@ module Api
 
       def project
         @model.work_order&.work_plan&.project&.name
+      end
+
+      def costcode
+        @model.work_order&.work_plan&.project&.cost_code
+      end
+
+      def project_and_costcode
+        project + " (#{costcode})" if project
       end
 
       def priority
