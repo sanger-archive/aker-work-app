@@ -1,5 +1,4 @@
 # https://rubocop.readthedocs.io/en/latest/configuration/
-# inherit_from: .rubocop_todo.yml
 
 AllCops:
   Include:
@@ -15,4 +14,4 @@ Rails:
   Enabled: true
 
 Metrics/LineLength:
-  Max: 99
+  Max: 100

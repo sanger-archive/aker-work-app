@@ -83,6 +83,7 @@ class WorkPlan < ApplicationRecord
         module_ids.each_with_index do |mid, j|
           WorkOrderModuleChoice.create!(work_order_id: wo.id, aker_process_modules_id: mid, position: j, selected_value: product_options_selected_values[i][j])
         end
+        BrokerHandle.publish(WorkOrderEventMessage.new(work_order: wo, status: 'queued'))
       end
     end
     work_orders.reload
@@ -131,6 +132,10 @@ class WorkPlan < ApplicationRecord
 
   def in_construction?
     status=='construction'
+  end
+
+  def cancellable?
+    active? || in_construction?
   end
 
   # cancelled - the plan has been cancelled

@@ -14,4 +14,4 @@ development:
 # Do not set this db to the same as development or production.
 test: &test
   <<: *default
-  database: work-orders_test
+  database: work_app_test
