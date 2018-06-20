@@ -183,7 +183,7 @@ class WorkOrderEventMessage < EventMessage
     plan = @work_order.work_plan
     {
       'work_plan_id' => plan.id,
-      'data_release_strategy_study_code' => plan.data_release_strategy.study_code
+      'drs_study_code' => plan.data_release_strategy.study_code
     }
   end
 end
