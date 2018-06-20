@@ -79,9 +79,12 @@ RSpec.describe 'EventMessage' do
         }
       end
 
+      let(:drs) { double(:project, uuid: SecureRandom.uuid, study_code: 1996, name: 'test project') }
+
       let(:plan) do
-        pl = build(:work_plan, product: product, project_id: project.id, comment: first_comment, data_release_strategy_id: SecureRandom.uuid)
+        pl = build(:work_plan, product: product, project_id: project.id, comment: first_comment, data_release_strategy_id: drs.uuid)
         allow(pl).to receive(:project).and_return(project)
+        allow(pl).to receive(:data_release_strategy).and_return(drs)
         pl
       end
 
