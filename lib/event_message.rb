@@ -181,9 +181,15 @@ class WorkOrderEventMessage < EventMessage
   # events consumer and avoid being saved to the events warehouse
   def notifier_info
     plan = @work_order.work_plan
-    {
-      'work_plan_id' => plan.id,
-      'drs_study_code' => plan.data_release_strategy.study_code
-    }
+    if @status == 'queued'
+      {
+        'work_plan_id' => plan.id
+      }
+    else
+      {
+        'work_plan_id' => plan.id,
+        'drs_study_code' => plan.data_release_strategy.study_code
+      }
+    end
   end
 end
