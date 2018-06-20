@@ -34,4 +34,10 @@ $(document).on("turbolinks:load", function() {
       $(':radio', this).prop("checked", true);
     }
   })
+
+  $('#data-release-list-table tr').click(function (event) {
+    if (event.target.type !== 'radio') {
+      $(':radio', this).prop("checked", true);
+    }
+  })
 });
