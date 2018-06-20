@@ -28,14 +28,9 @@ $(document).on("turbolinks:load", function() {
   });
 
   // Used when selecting a set (create work order step 1) to allow a radio button
-  // to be checked by clicking the row, instead of just the radio button
-  $('#set-list-table tr').click(function (event) {
-    if (event.target.type !== 'radio') {
-      $(':radio', this).prop("checked", true);
-    }
-  })
-
-  $('#data-release-list-table tr').click(function (event) {
+  // to be checked by clicking the row, instead of just the radio button.
+  // Also used on the "Select Data Release" step
+  $('.radio-table tr').click(function (event) {
     if (event.target.type !== 'radio') {
       $(':radio', this).prop("checked", true);
     }
