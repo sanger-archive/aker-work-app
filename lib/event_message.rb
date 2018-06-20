@@ -139,7 +139,7 @@ class WorkOrderEventMessage < EventMessage
       'quoted_price' => @work_order.total_cost,
       'zipkin_trace_id' => @trace_id,
       'num_materials' => num_materials,
-      'data_release_strategy_uuid' => @work_order.work_plan.data_release_strategy_id
+      'data_release_strategy_uuid' => plan.data_release_strategy_id
     }
   end
 
@@ -180,8 +180,10 @@ class WorkOrderEventMessage < EventMessage
   # Information only required by the notifier can be added here which should be ignored by the
   # events consumer and avoid being saved to the events warehouse
   def notifier_info
+    plan = @work_order.work_plan
     {
-      'work_plan_id' => @work_order.work_plan.id
+      'work_plan_id' => plan.id,
+      'drs_study_code' => plan.data_release_strategy.study_code
     }
   end
 end
