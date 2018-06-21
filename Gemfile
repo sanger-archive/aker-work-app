@@ -43,7 +43,7 @@ gem 'uuid'
 gem 'webpacker', '~> 3.2'
 gem 'webpacker-react', '~> 0.3.2'
 gem 'wicked'
-gem 'zipkin-tracer'
+gem 'health_check'
 
 ###
 # Sanger gems

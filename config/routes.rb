@@ -4,6 +4,8 @@ Rails.application.routes.draw do
   mount Rswag::Api::Engine => '/api-docs'
   root 'work_plans#index'
 
+  health_check_routes
+
   get '/sets/:set_name', to: 'work_orders#set_search'
 
   scope '/api/v1' do
