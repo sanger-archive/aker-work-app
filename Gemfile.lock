@@ -186,8 +186,6 @@ GEM
     faraday_middleware (0.12.2)
       faraday (>= 0.7.4, < 1.0)
     ffi (1.9.25)
-    finagle-thrift (1.4.2)
-      thrift (~> 0.9.3)
     flay (2.12.0)
       erubis (~> 2.7.0)
       path_expander (~> 1.0)
@@ -202,6 +200,8 @@ GEM
     globalid (0.4.1)
       activesupport (>= 4.2.0)
     hashdiff (0.3.7)
+    health_check (3.0.0)
+      railties (>= 5.0)
     i18n (1.0.1)
       concurrent-ruby (~> 1.0)
     ice_nine (0.11.2)
@@ -406,8 +406,6 @@ GEM
       actionpack (>= 4.0)
       activesupport (>= 4.0)
       sprockets (>= 3.0.0)
-    sucker_punch (2.0.4)
-      concurrent-ruby (~> 1.0.0)
     swagger-ui_rails (0.1.7)
     systemu (2.6.5)
     therubyracer (0.12.3)
@@ -415,7 +413,6 @@ GEM
       ref
     thor (0.20.0)
     thread_safe (0.3.6)
-    thrift (0.9.3.0)
     tilt (2.0.8)
     timecop (0.9.1)
     tty-which (0.3.0)
@@ -456,11 +453,6 @@ GEM
       railties (>= 3.0.7)
     xpath (3.1.0)
       nokogiri (~> 1.8)
-    zipkin-tracer (0.28.0)
-      faraday (~> 0.8)
-      finagle-thrift (~> 1.4.2)
-      rack (>= 1.0)
-      sucker_punch (~> 2.0)
 
 PLATFORMS
   ruby
@@ -485,6 +477,7 @@ DEPENDENCIES
   factory_bot_rails
   faraday
   font-awesome-sass
+  health_check
   jbuilder (~> 2.5)
   jquery-rails
   js-routes
@@ -531,7 +524,6 @@ DEPENDENCIES
   webpacker (~> 3.2)
   webpacker-react (~> 0.3.2)
   wicked
-  zipkin-tracer
 
 BUNDLED WITH
    1.16.2
