@@ -208,4 +208,12 @@ class Job < ApplicationRecord
     @set = SetClient::Set.find(set_uuid).first
   end
 
+  def work_plan
+    work_order.work_plan
+  end
+
+  def work_plan_id
+    work_order.work_plan.id
+  end
+
 end
