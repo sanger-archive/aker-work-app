@@ -9,6 +9,9 @@ module Api
 
       paginator :paged
 
+      belongs_to :work_order
+      belongs_to :work_plan
+
       # We may want to filter jobs by both status and pipeline
       # e.g. /api/v1/jobs?filter[status]=concluded&filter[pipeline]=xxx
       filter :status,
@@ -48,6 +51,10 @@ module Api
                   .where(catalogues: { lims_id: values })
                   .all
              end)
+
+      def self.sortable_fields(context)
+        super + [:"work_order.dispatch_date", :"work_order.id"]
+      end
 
       def date_requested
         @model.work_order&.dispatch_date
@@ -96,7 +103,6 @@ module Api
       def barcode
         @model.container.barcode
       end
-
     end
   end
 end
