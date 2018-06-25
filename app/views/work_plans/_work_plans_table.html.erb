@@ -5,6 +5,9 @@
     <tr>
       <th>ID</th>
       <th>Product</th>
+      <% if group != 'construction' %>
+        <th>Work Orders</th>
+      <% end %>
 
       <% if group=='active' %>
         <th>Status</th>
