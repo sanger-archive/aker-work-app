@@ -7,10 +7,8 @@ RSpec.describe 'EventMessage' do
   include TestServicesHelper
 
   let(:fake_uuid) { 'my_fake_uuid' }
-  let(:fake_trace) { 'my_trace_id' }
   before do
     allow(SecureRandom).to receive(:uuid).and_return(fake_uuid)
-    allow(ZipkinTracer::TraceContainer).to receive(:current).and_return double('tracecontainer', next_id: double('trace', trace_id: fake_trace))
   end
 
   describe 'WorkOrderEventMessage' do
@@ -79,9 +77,12 @@ RSpec.describe 'EventMessage' do
         }
       end
 
+      let(:drs) { double(:project, uuid: SecureRandom.uuid, study_code: 1996, name: 'test project') }
+
       let(:plan) do
-        pl = build(:work_plan, product: product, project_id: project.id, comment: first_comment, data_release_strategy_id: SecureRandom.uuid)
+        pl = build(:work_plan, product: product, project_id: project.id, comment: first_comment, data_release_strategy_id: drs.uuid)
         allow(pl).to receive(:project).and_return(project)
+        allow(pl).to receive(:data_release_strategy).and_return(drs)
         pl
       end
 
@@ -167,16 +168,13 @@ RSpec.describe 'EventMessage' do
 
         # Metadata
         it 'should have the correct amount of metadata' do
-          expect(metadata.length).to eq(5)
+          expect(metadata.length).to eq(4)
         end
         it 'should have the correct work order id' do
           expect(metadata['work_order_id']).to eq(work_order.id)
         end
         it 'should have the correct quoted price' do
           expect(metadata['quoted_price']).to eq(work_order.total_cost)
-        end
-        it 'should have the correct trace id' do
-          expect(metadata['zipkin_trace_id']).to eq(fake_trace)
         end
         it 'should have the correct num materials' do
           expect(metadata['num_materials']).to eq(set.meta['size'])
@@ -205,12 +203,9 @@ RSpec.describe 'EventMessage' do
         end
 
         it 'should have the correct amount of metadata' do
-          expect(metadata.length).to eq(5)
+          expect(metadata.length).to eq(4)
         end
 
-        it 'should have the correct trace id' do
-          expect(metadata['zipkin_trace_id']).to eq(fake_trace)
-        end
         it 'should have the correct num new materials' do
           expect(metadata['num_new_materials']).to eq(finished_set.meta['size'])
         end

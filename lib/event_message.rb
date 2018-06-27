@@ -72,7 +72,6 @@ class WorkOrderEventMessage < EventMessage
     @status = params.fetch(:status)
     @timestamp = Time.now.utc.iso8601
     @uuid = SecureRandom.uuid
-    @trace_id = ZipkinTracer::TraceContainer.current&.next_id&.trace_id&.to_s
   end
 
   # Generate the JSON for a Work Order event
@@ -137,9 +136,8 @@ class WorkOrderEventMessage < EventMessage
     {
       'work_order_id' => @work_order.id,
       'quoted_price' => @work_order.total_cost,
-      'zipkin_trace_id' => @trace_id,
       'num_materials' => num_materials,
-      'data_release_strategy_uuid' => @work_order.work_plan.data_release_strategy_id
+      'data_release_strategy_uuid' => plan.data_release_strategy_id
     }
   end
 
@@ -154,7 +152,6 @@ class WorkOrderEventMessage < EventMessage
   def metadata_for_concluded
     {
       'work_order_id' => @work_order.id,
-      'zipkin_trace_id' => @trace_id,
       'num_new_materials' => num_new_materials,
       'num_completed_jobs' => num_completed_jobs,
       'num_cancelled_jobs' => num_cancelled_jobs
@@ -180,8 +177,16 @@ class WorkOrderEventMessage < EventMessage
   # Information only required by the notifier can be added here which should be ignored by the
   # events consumer and avoid being saved to the events warehouse
   def notifier_info
-    {
-      'work_plan_id' => @work_order.work_plan.id
-    }
+    plan = @work_order.work_plan
+    if @status == 'queued'
+      {
+        'work_plan_id' => plan.id
+      }
+    else
+      {
+        'work_plan_id' => plan.id,
+        'drs_study_code' => plan.data_release_strategy.study_code
+      }
+    end
   end
 end
