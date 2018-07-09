@@ -8,7 +8,11 @@ module Api
         :work_order_uuid, :work_plan_id, :process_id
 
       has_many :jobs
-      belongs_to :work_plan
+      has_one :work_plan
+
+      def self.sortable_fields(context)
+        super + [:"work_plan.priority"]
+      end
     end
   end
 end

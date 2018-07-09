@@ -32,6 +32,9 @@ class Job < ApplicationRecord
 
   validate :status_ready_for_update
 
+  # Orders Jobs by the Work Plan's priority
+  scope :prioritised, -> (order = 'asc') { joins(work_order: :work_plan).order("work_plans.priority #{order}") }
+
   # Before modifying the state for an object, it checks that the pre-conditions for each step have
   # been met
   def status_ready_for_update
