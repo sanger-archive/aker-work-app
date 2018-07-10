@@ -52,7 +52,7 @@ module Api
              end)
 
       def self.sortable_fields(context)
-        super + [:"work_order.dispatch_date", :"work_order.id", :"work_plan.priority"]
+        super + [:"work_order.dispatch-date", :"work_order.id", :"work_plan.priority"]
       end
 
       def self.apply_sort(records, order_options, context = {})
