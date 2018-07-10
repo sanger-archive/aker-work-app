@@ -518,5 +518,41 @@ RSpec.describe 'Api::V1::Jobs', type: :request do
         end
       end
     end
+
+    describe '#sort[work_plan.priority]' do
+      let(:catalogue) { create(:catalogue) }
+      let(:product) { create(:product, catalogue: catalogue) }
+
+      let(:project) { make_node('my project', 'S0001', 1, 0, false, true) }
+      let(:std_priority_work_plan) { create(:work_plan, product: product, project_id: project.id, priority: "standard") }
+      let(:high_priority_work_plan) { create(:work_plan, product: product, project_id: project.id, priority: "high") }
+
+      let(:std_work_order) { create(:work_order, set_uuid: made_up_set.id, work_plan: std_priority_work_plan) }
+      let(:high_work_order) { create(:work_order, set_uuid: made_up_set.id, work_plan: high_priority_work_plan) }
+      let(:std_work_order2) { create(:work_order, set_uuid: made_up_set.id, work_plan: std_priority_work_plan) }
+      let(:high_work_order2) { create(:work_order, set_uuid: made_up_set.id, work_plan: high_priority_work_plan) }
+
+      let(:container) { make_container }
+      let(:started_time) { Time.zone.now }
+
+      before do
+        create_list(:job, 1, work_order: std_work_order, container_uuid: container.id)
+        create_list(:job, 2, work_order: high_work_order, container_uuid: container.id)
+        create_list(:job, 3, work_order: std_work_order2, container_uuid: container.id)
+        create_list(:job, 4, work_order: high_work_order2, container_uuid: container.id)
+        get api_v1_jobs_path, headers: headers, params: { sort: 'work_plan.priority' }
+      end
+
+      it 'has an HTTP status of 200' do
+        expect(response).to have_http_status(:ok)
+      end
+
+      it 'returns the Jobs of a high priority Work Plan first' do
+        body = JSON.parse(response.body)
+        priorities = body["data"].map { |job| job["attributes"]["priority"] }
+        expect(priorities[0..5]).to all eq('high')
+        expect(priorities[6..9]).to all eq('standard')
+      end
+    end
   end
 end

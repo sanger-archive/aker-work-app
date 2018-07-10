@@ -7,6 +7,7 @@ class WorkPlan < ApplicationRecord
   belongs_to :data_release_strategy, optional: true
 
   has_many :work_orders, -> { order(:order_index) }, dependent: :destroy
+
   after_initialize :create_uuid
   before_validation :sanitise_owner
   before_save :sanitise_owner
