@@ -24,6 +24,7 @@
 class Job < ApplicationRecord
   belongs_to :work_order
   has_one :process, through: :work_order
+  has_one :work_plan, through: :work_order
 
   has_many :work_order_module_choices, through: :work_order
 
@@ -209,14 +210,6 @@ class Job < ApplicationRecord
     return nil unless set_uuid
     return @set if @set&.uuid==set_uuid
     @set = SetClient::Set.find(set_uuid).first
-  end
-
-  def work_plan
-    work_order.work_plan
-  end
-
-  def work_plan_id
-    work_order.work_plan.id
   end
 
 end
