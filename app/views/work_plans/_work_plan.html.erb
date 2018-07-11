@@ -17,7 +17,7 @@
   <td align="right">
     <% if work_plan.in_construction? %>
       <%= link_to 'Continue', work_plan_build_path(id: work_plan.wizard_step, work_plan_id: work_plan.id),
-            class: 'btn btn-primary', style: "margin-left: 10px; margin-bottom: 5px" %>
+            class: 'btn btn-primary' %>
       <%= link_to 'Delete', work_plan,
             method: :delete,
             class: 'btn btn-danger',
