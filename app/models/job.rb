@@ -24,6 +24,7 @@
 class Job < ApplicationRecord
   belongs_to :work_order
   has_one :process, through: :work_order
+  has_one :work_plan, through: :work_order
 
   has_many :work_order_module_choices, through: :work_order
 
@@ -31,6 +32,9 @@ class Job < ApplicationRecord
   validates :uuid, presence: true
 
   validate :status_ready_for_update
+
+  # Orders Jobs by the Work Plan's priority
+  scope :prioritised, -> (order = 'asc') { joins(work_order: :work_plan).order("work_plans.priority #{order}") }
 
   # Before modifying the state for an object, it checks that the pre-conditions for each step have
   # been met
