@@ -19,7 +19,7 @@
   <div class="row">
     <div id="set-for-<%=work_order.id%>" class="col-md-6">
       <% if input_set %>
-        Input Set: <%= view_set_link(input_set) %>
+        Input Set: <%= view_set_link_with_size(input_set) %>
         <% if show_create_set_link %>
           <% url = create_editable_set_url(work_order.id) %>
           <input type="button" value="Create editable set" class="btn btn-xs create_editable_set_button"
@@ -28,13 +28,13 @@
       <% end %>
     </div>
     <% if output_set %>
-      <div class="col-md-6">Output Set: <%= view_set_link(output_set) %></div>
+      <div class="col-md-6">Output Set: <%= view_set_link_with_size(output_set) %></div>
     <% end %>
   </div>
   <div class="row">
     <div id="original-set-for-<%=work_order.id%>" class="col-md-6">
       <% if original_set %>
-        Based on original set: <%= view_set_link(original_set) %>
+        Based on original set: <%= view_set_link_with_size(original_set) %>
       <% end %>
     </div>
     <div class="col-md-6">
