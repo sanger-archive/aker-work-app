@@ -19,7 +19,6 @@ RSpec.describe WorkOrder, type: :model do
   end
   let(:project) { make_node('Operation Wolf', 'S1001', 41, 40, false, true) }
   let(:subproject) { make_node('Operation Thunderbolt', 'S1001-0', 42, project.id, true, false) }
-
   let(:plan) { create(:work_plan, project_id: subproject.id, product: product, comment: 'hello') }
 
   before do
@@ -473,7 +472,7 @@ RSpec.describe WorkOrder, type: :model do
     end
 
   end
-
+  
   describe '#next_order' do
     let(:plan) { create(:work_plan) }
     let(:work_order) { create(:work_order, order_index: 0, work_plan: plan) }

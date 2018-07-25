@@ -44,6 +44,5 @@ class LockSetStep
 
     @job.set_materials_availability(false)
     @job.update_attributes(set_uuid: nil)
-
   end
 end

@@ -7,7 +7,6 @@ RSpec.describe JobValidatorService do
   let(:process) { create(:process, name: 'myprocess') }
   let(:order) do
     wo = create(:work_order, status: 'active', work_plan: plan, process: process)
-
     wo
   end
   let(:job) do

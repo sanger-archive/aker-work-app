@@ -82,7 +82,7 @@ class Job < ApplicationRecord
   def broken?
     status == 'broken'
   end
-
+  
   def set_materials_availability(flag)
     materials.result_set.each do |mat|
       mat.update_attributes(available: flag)
@@ -178,13 +178,11 @@ class Job < ApplicationRecord
         job_uuid: uuid,
         work_order_id: work_order.id,
         aker_job_url: job_url,
-
         process_name: work_order.process.name,
         process_uuid: work_order.process.uuid,
         modules: work_order.module_choices,
         comment: work_order.work_plan.comment,
         priority: work_order.work_plan.priority,
-
         project_uuid: project.node_uuid,
         project_name: project.name,
         data_release_uuid: data_release_strategy_id,
@@ -211,5 +209,4 @@ class Job < ApplicationRecord
     return @set if @set&.uuid==set_uuid
     @set = SetClient::Set.find(set_uuid).first
   end
-
 end

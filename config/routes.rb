@@ -33,6 +33,18 @@ Rails.application.routes.draw do
     end
   end
 
+  namespace :api do
+    namespace :v1 do
+      jsonapi_resources :jobs, only: [:show, :update] do
+        put 'start', to: 'jobs#start'        
+        put 'complete', to: 'jobs#complete'
+        put 'cancel', to: 'jobs#cancel'
+      end
+    end
+  end
+
+
+
   resources :work_orders
 
   resources :work_plans do

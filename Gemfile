@@ -45,6 +45,8 @@ gem 'webpacker-react', '~> 0.3.2'
 gem 'wicked'
 gem 'health_check'
 
+gem 'jsonapi-resources'
+
 ###
 # Sanger gems
 ###

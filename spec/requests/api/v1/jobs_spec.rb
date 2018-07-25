@@ -53,7 +53,7 @@ RSpec.describe 'Api::V1::Jobs', type: :request do
       end
       let(:container) { make_container }
       let(:job) { create :job, work_order: order, container_uuid: container.id }
-
+      
       before do
         get api_v1_job_path(job), headers: headers
       end
@@ -239,9 +239,7 @@ RSpec.describe 'Api::V1::Jobs', type: :request do
       describe '#cancel' do
         before do
           allow(BillingFacadeClient).to receive(:send_event)
-
           mock_set_creation
-
         end
         context 'when job is active' do
           before do

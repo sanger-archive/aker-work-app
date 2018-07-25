@@ -23,7 +23,6 @@ module WorkOrdersHelper
                         slots: slots)
 
     allow(MatconClient::Container).to receive(:find).with(@container.id).and_return(@container)
-
     allow(MatconClient::Container).to receive(:where) do |args|
       material_ids = args['slots.material']['$in']
       containers = []
