@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180409145654) do
+ActiveRecord::Schema.define(version: 20180614131014) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -31,6 +31,8 @@ ActiveRecord::Schema.define(version: 20180409145654) do
   create_table "aker_process_modules", id: :serial, force: :cascade do |t|
     t.string "name", null: false
     t.integer "aker_process_id"
+    t.integer "min_value"
+    t.integer "max_value"
     t.index ["aker_process_id", "name"], name: "index_aker_process_modules_on_aker_process_id_and_name", unique: true
     t.index ["aker_process_id"], name: "index_aker_process_modules_on_aker_process_id"
   end
@@ -60,6 +62,14 @@ ActiveRecord::Schema.define(version: 20180409145654) do
     t.index ["lims_id"], name: "index_catalogues_on_lims_id"
   end
 
+  create_table "data_release_strategies", id: :uuid, default: -> { "uuid_generate_v4()" }, force: :cascade do |t|
+    t.string "name"
+    t.string "study_code"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["id"], name: "index_data_release_strategies_on_id", unique: true
+  end
+
   create_table "jobs", id: :serial, force: :cascade do |t|
     t.uuid "container_uuid"
     t.datetime "started"
@@ -68,6 +78,8 @@ ActiveRecord::Schema.define(version: 20180409145654) do
     t.datetime "broken"
     t.bigint "work_order_id", null: false
     t.string "close_comment"
+    t.uuid "set_uuid"
+    t.uuid "uuid", default: -> { "uuid_generate_v4()" }, null: false
     t.index ["work_order_id"], name: "index_jobs_on_work_order_id"
   end
 
@@ -100,6 +112,7 @@ ActiveRecord::Schema.define(version: 20180409145654) do
     t.integer "work_order_id"
     t.integer "aker_process_modules_id"
     t.integer "position"
+    t.integer "selected_value"
     t.index ["aker_process_modules_id"], name: "index_work_order_module_choices_on_aker_process_modules_id"
     t.index ["work_order_id"], name: "index_work_order_module_choices_on_work_order_id"
   end
@@ -112,8 +125,8 @@ ActiveRecord::Schema.define(version: 20180409145654) do
     t.decimal "cost_per_sample", precision: 8, scale: 2
     t.boolean "material_updated", default: false, null: false
     t.integer "order_index", null: false
-    t.date "dispatch_date"
-    t.date "completion_date"
+    t.datetime "dispatch_date"
+    t.datetime "completion_date"
     t.uuid "original_set_uuid"
     t.uuid "set_uuid"
     t.uuid "finished_set_uuid"
@@ -130,11 +143,13 @@ ActiveRecord::Schema.define(version: 20180409145654) do
     t.uuid "original_set_uuid"
     t.citext "owner_email", null: false
     t.string "comment"
-    t.date "desired_date"
     t.uuid "uuid", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.datetime "cancelled"
+    t.uuid "data_release_strategy_id"
+    t.string "priority", default: "standard", null: false
+    t.index ["data_release_strategy_id"], name: "index_work_plans_on_data_release_strategy_id"
     t.index ["owner_email"], name: "index_work_plans_on_owner_email"
     t.index ["product_id"], name: "index_work_plans_on_product_id"
   end
@@ -148,5 +163,6 @@ ActiveRecord::Schema.define(version: 20180409145654) do
   add_foreign_key "work_order_module_choices", "work_orders"
   add_foreign_key "work_orders", "aker_processes", column: "process_id"
   add_foreign_key "work_orders", "work_plans"
+  add_foreign_key "work_plans", "data_release_strategies"
   add_foreign_key "work_plans", "products"
 end

@@ -2,6 +2,7 @@
 require 'billing_facade_client'
 require 'set'
 require 'broker'
+require 'uuid'
 
 class UpdatePlanService
 
@@ -33,6 +34,13 @@ class UpdatePlanService
     # Requesting to set the modules for all orders in the plan
     if @work_plan_params[:product_options].present? && @work_plan_params[:product_id].present?
       product_options = JSON.parse(@work_plan_params[:product_options])
+      product_options_selected_values = product_options.map do |list|
+        list.map do |module_id|
+          if @work_plan_params[:work_order_module] && @work_plan_params[:work_order_module][module_id.to_s]
+            @work_plan_params[:work_order_module][module_id.to_s][:selected_value]
+          end
+        end
+      end
       product = Product.find(@work_plan_params[:product_id])
       return false unless validate_modules(product_options.flatten)
       return false unless check_product_module_ids(product_options, product)
@@ -46,14 +54,20 @@ class UpdatePlanService
       return false unless validate_project_selection(@work_plan_params[:project_id])
     end
 
+    if @work_plan_params[:data_release_strategy_id]
+      return false unless validate_data_release_strategy_selection(@work_plan_params[:data_release_strategy_id])
+    end
+
     update_order = nil
 
     # Requesting to update the modules in one order
     if @work_plan_params[:work_order_id] && @work_plan_params[:work_order_modules]
       module_ids = JSON.parse(@work_plan_params[:work_order_modules])
+      modules_selected_values = modules_selected_value_from_module_ids(module_ids)
       update_order = {
         order_id: @work_plan_params[:work_order_id],
         modules: module_ids,
+        modules_selected_value: modules_selected_values
       }
       return false unless validate_modules(module_ids)
       order = WorkOrder.find(update_order[:order_id])
@@ -73,27 +87,39 @@ class UpdatePlanService
       return false
     end
 
+    @work_plan_params = @work_plan_params.except(:work_order_module)
+
     if @work_plan.update_attributes(@work_plan_params)
       locked_set_uuid = nil
+      begin
+        ActiveRecord::Base.transaction do
+          if (@work_plan_params[:product_id] || product_options) && !@work_plan.work_orders.empty?
+            # User is changing their product or options - delete the incorrect work orders
+            locked_set_uuid = @work_plan.work_orders.first.set_uuid
+            work_order_ids = @work_plan.work_orders.map(&:id)
+            WorkOrderModuleChoice.where(work_order_id: work_order_ids).each(&:destroy)
+            @work_plan.work_orders.destroy_all
+          end
 
-      if (@work_plan_params[:product_id] || product_options) && !@work_plan.work_orders.empty?
-        # User is changing their product or options - delete the incorrect work orders
-        locked_set_uuid = @work_plan.work_orders.first.set_uuid
-        work_order_ids = @work_plan.work_orders.map(&:id)
-        WorkOrderModuleChoice.where(work_order_id: work_order_ids).each(&:destroy)
-        @work_plan.work_orders.destroy_all
-      end
-
-      if update_order
-        WorkOrderModuleChoice.where(work_order_id: update_order[:order_id]).each(&:destroy)
-        update_order[:modules].each_with_index do |mid, i|
-          WorkOrderModuleChoice.create!(work_order_id: update_order[:order_id], aker_process_modules_id: mid, position: i)
+          if update_order
+            WorkOrderModuleChoice.where(work_order_id: update_order[:order_id]).each(&:destroy)
+            update_order[:modules].each_with_index do |mid, i|
+              WorkOrderModuleChoice.create!(work_order_id: update_order[:order_id], aker_process_modules_id: mid, position: i,
+                selected_value: update_order[:modules_selected_value][i].to_i)
+            end
+          end
         end
+      rescue => e
+        Rails.logger.error("Failed to update work orders")
+        Rails.logger.error e
+        Rails.logger.error e.backtrace
+        add_error("Update of work orders failed")
+        return false
       end
 
       if product_options && @work_plan.work_orders.empty?
         begin
-          @work_plan.create_orders(product_options, locked_set_uuid)
+          @work_plan.create_orders(product_options, locked_set_uuid, product_options_selected_values)
         rescue => e
           Rails.logger.error("Failed to create work orders")
           Rails.logger.error e
@@ -105,7 +131,7 @@ class UpdatePlanService
 
       if dispatch_order_id
         return false unless send_order(dispatch_order_id)
-        generate_submitted_event(dispatch_order_id)
+        generate_dispatched_event(dispatch_order_id)
       end
     end
 
@@ -114,16 +140,32 @@ class UpdatePlanService
 
 private
 
+  def modules_selected_value_from_module_ids(module_ids)
+    module_ids.map do |id|
+      if @work_plan_params[:work_order_module] && @work_plan_params[:work_order_module][id.to_s]
+        @work_plan_params[:work_order_module][id.to_s][:selected_value]
+      else
+        nil
+      end
+    end
+  end
+
   def ready_for_step
     unless @work_plan.original_set_uuid
-      if [:project_id, :product_id, :product_options, :comment, :desired_date, :order_id, :work_order_modules].any? { |field| @work_plan_params[field] }
+      if [:project_id, :product_id, :product_options, :comment, :priority, :order_id, :work_order_modules, :data_release_strategy_id ].any? { |field| @work_plan_params[field] }
         add_error("Please select a set in an earlier step.")
         return false
       end
     end
     unless @work_plan.project_id
-      if [:product_id, :product_options, :comment, :desired_date, :order_id, :work_order_modules].any? { |field| @work_plan_params[field] }
+      if [:product_id, :product_options, :comment, :priority, :order_id, :work_order_modules, :data_release_strategy_id].any? { |field| @work_plan_params[field] }
         add_error("Please select a project in an earlier step.")
+        return false
+      end
+    end
+    unless @work_plan.product_id
+      if [:data_release_strategy_id].any? { |field| @work_plan_params[field] }
+        add_error("Please select a product in an earlier step.")
         return false
       end
     end
@@ -146,7 +188,7 @@ private
   end
 
   def check_broker
-    return true if BrokerHandle.working?
+    return true if BrokerHandle.working? || BrokerHandle.events_disabled?
     add_error("Could not connect to message exchange.")
     return false
   end
@@ -176,7 +218,7 @@ private
       add_error("This work plan cannot be updated.")
       return false
     end
-    if [:original_set_uuid, :project_id, :product_id, :product_options, :comment, :desired_date].any? { |field| @work_plan_params[field] }
+    if [:original_set_uuid, :project_id, :product_id, :product_options, :comment, :priority].any? { |field| @work_plan_params[field] }
       add_error("That change cannot be made because this work plan is in progress.")
       return false
     end
@@ -205,6 +247,7 @@ private
     end
 
     return false unless authorize_project(@work_plan.project_id)
+    return false unless validate_data_release_strategy_selection(@work_plan.data_release_strategy_id)
 
     unless order.original_set_uuid
       previous_order = orders.reverse.find(&:closed?)
@@ -220,6 +263,11 @@ private
   end
 
   def check_set_contents(set_uuid)
+    unless set_uuid
+      add_error("This work order has no selected set to work with")
+      return false
+    end
+
     begin
       mids = SetClient::Set.find_with_materials(set_uuid).first.materials.map{|m| m.id}
       if mids.empty?
@@ -315,6 +363,44 @@ private
     end
   end
 
+  def validate_data_release_strategy_selection(data_release_strategy_id)
+    return true unless @work_plan.is_product_from_sequencescape?
+
+    if data_release_strategy_id.nil?
+      add_error("Please select a data release strategy in an earlier step.")
+      return false
+    end
+
+    strategy = DataReleaseStrategyClient.find_strategy_by_uuid(data_release_strategy_id)
+
+    unless strategy
+      add_error("No data release strategy could be found with uuid #{data_release_strategy_id}")
+      return false
+    end
+
+    unless UUID.validate(data_release_strategy_id)
+      add_error('The value for data release strategy selected is not a UUID')
+      return false
+    end
+
+    value = nil
+    begin
+      value = DataReleaseStrategyClient.find_strategies_by_user(@work_plan.owner_email).any? do |strategy|
+        strategy.id == data_release_strategy_id
+      end
+    rescue Faraday::ConnectionFailed => e
+      value = nil
+      add_error('There is no connection with the Data release service. Please contact with the administrator')
+      return false
+    end
+
+    unless value
+      add_error('The current user cannot select the Data release strategy provided.')
+      return false
+    end
+    return true
+  end
+
   def create_work_order_module_choices(product_options)
     work_order_id = @work_plan.id
 
@@ -334,21 +420,26 @@ private
     end
     order = WorkOrder.find(order_id)
     begin
-      order.send_to_lims
-    rescue => e
+      ActiveRecord::Base.transaction do
+        order.send_to_lims
+      end
+    rescue StandardError => e
+      order.rollback_materials_availability
+
       Rails.logger.error "Failed to send work order"
       Rails.logger.error e
       Rails.logger.error e.backtrace
-      add_error("The request to the LIMS failed.")
+      add_error("The request to the LIMS failed. Description: #{e}")
+
       return false
     end
-    order.update_attributes!(status: 'active', dispatch_date: Date.today)
+    order.update_attributes!(status: 'active', dispatch_date: Time.now)
     return true
   end
 
-   def generate_submitted_event(order_id)
+   def generate_dispatched_event(order_id)
     order = WorkOrder.find(order_id)
-    order.generate_submitted_event
+    order.generate_dispatched_event
   end
 
   def validate_modules(module_ids)

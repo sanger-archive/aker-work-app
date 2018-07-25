@@ -5,12 +5,14 @@ require 'completion_cancel_steps/lock_set_step'
 require 'completion_cancel_steps/update_work_order_step'
 require 'completion_cancel_steps/fail_step'
 require 'completion_cancel_steps/update_job_step'
+require 'completion_cancel_steps/create_master_set_step'
 
 module Api
   module V1
     class JobsController < JSONAPI::ResourceController
       before_action :job, only: [:show, :complete, :cancel, :start]
       before_action :check_start, only: [:start]
+      before_action :remove_submitter, only: [:complete, :cancel]
 
       def complete
         finish('complete')
@@ -27,7 +29,7 @@ module Api
       end
 
       def finish(finish_status)
-        if BrokerHandle.working?
+        if BrokerHandle.working? || BrokerHandle.events_disabled?
           RequestStore.store[:x_authorisation] = { email: @job.work_order.owner_email, groups: ['world'] }
           validator = JobValidatorService.new(@job, params_for_completion)
           valid = validator.validate?
@@ -48,12 +50,12 @@ module Api
 
       private
 
-      def error_filter
-        head :unprocessable_entity
+      def error_started
+        render json: {"msg": "This job has already been started."}, status: :unprocessable_entity
       end
 
       def check_start
-        error_filter unless @job.queued?
+        error_started unless @job.queued?
         true
       end
 
@@ -84,15 +86,17 @@ module Api
         cleanup = false
         params = params_for_completion
         begin
-          material_step = CreateNewMaterialsStep.new(@job, params)
+          new_material_step = CreateNewMaterialsStep.new(@job, params)
+          updated_material_step = UpdateOldMaterialsStep.new(@job, params)
 
           success = DispatchService.new.process([
             CreateContainersStep.new(@job, params),
-            material_step,
-            UpdateOldMaterialsStep.new(@job, params),
+            new_material_step,
+            updated_material_step,
             UpdateJobStep.new(@job, params, finish_status),
             UpdateWorkOrderStep.new(@job),
-            LockSetStep.new(@job, params, material_step)
+            LockSetStep.new(@job, params, new_material_step, updated_material_step),
+            CreateMasterSetStep.new(@job)
           ])
 
           cleanup = !success
@@ -135,6 +139,14 @@ module Api
         @job.work_order.generate_concluded_event
       end
 
+      # Ignore the submitter_id in material metadata
+      # TODO: Move this to CreateNewMaterialsStep and UpdateOldMaterialsStep
+      def remove_submitter
+        updated_materials = params.fetch(:job).dig("updated_materials")
+        new_materials = params.fetch(:job).dig("new_materials")
+        params["job"]["updated_materials"].each { |m| m.delete(:submitter_id) } if updated_materials
+        params["job"]["new_materials"].each { |m| m.delete(:submitter_id) } if new_materials
+      end
     end
   end
 end

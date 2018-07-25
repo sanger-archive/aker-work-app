@@ -13,7 +13,7 @@ Rails.application.configure do
   config.eager_load = false
 
   # Configure public file server for tests with Cache-Control for performance.
-  config.public_file_server.enabled = true
+  config.public_file_server.enabled = false
   config.public_file_server.headers = {
     'Cache-Control' => 'public, max-age=3600'
   }
@@ -66,12 +66,15 @@ Rails.application.configure do
   config.login_url = config.auth_service_url + '/login'
   config.logout_url = config.auth_service_url + '/logout'
 
-  config.urls = { submission: '',
+  config.urls = { reception: '',
                   permissions: '',
                   sets: 'http://external-server:3002',
                   projects: '',
-                  work_orders: '' }
+                  work: '' }
 
   config.akerdev_email = ENV.fetch('USER', 'user') + '@sanger.ac.uk'
+
+  config.sequencescape_url = 'http://localhost:3000'
+
 
 end

@@ -12,7 +12,7 @@
               style: "margin-right: 10px;" %>
       <% end %>
 
-      <% unless work_plan.cancelled? %>
+      <% if work_plan.cancellable? %>
         <%= link_to 'Cancel work plan', work_plan,
               method: :delete,
               class: 'btn btn-danger',

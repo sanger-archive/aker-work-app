@@ -1,6 +1,8 @@
-#
+# frozen_string_literal: true
+
 # This class represents a unit of job performed inside a work order for a set of biomaterial
-# inside a container. Any instance could take one of the following status depending on the situation:
+# inside a container. Any instance could take one of the following status depending on the
+# situation:
 #
 # - queued    : The job is created, but not sent to a LIMS to start its work
 # - active    : The job has started
@@ -21,33 +23,44 @@
 #
 class Job < ApplicationRecord
   belongs_to :work_order
+  has_one :process, through: :work_order
+  has_one :work_plan, through: :work_order
+
+  has_many :work_order_module_choices, through: :work_order
 
   validates :work_order, presence: true
+  validates :uuid, presence: true
 
   validate :status_ready_for_update
 
-  # Before modifying the state for an object, it checks that the preconditions for each step have been met
+  # Orders Jobs by the Work Plan's priority
+  scope :prioritised, -> (order = 'asc') { joins(work_order: :work_plan).order("work_plans.priority #{order}") }
+
+  # Before modifying the state for an object, it checks that the pre-conditions for each step have
+  # been met
   def status_ready_for_update
     # No broken job can be modified
-    if broken_was
-      errors.add(:base, 'cannot update, job is broken')
-    end
+    broken_was && errors.add(:base, 'cannot update, job is broken')
+
     # A job is either completed or cancelled
-    if (started && cancelled && completed)
+    if started && cancelled && completed
       errors.add(:base, 'cannot be started, cancelled and completed at same time')
     end
+
     # A job cannot be cancelled or completed before being started
-    if (cancelled || completed) && (!started)
+    if (cancelled || completed) && !started
       errors.add(:base, 'cannot be finished without starting')
     end
+
     # Once a job is in a status, it cannot be set again into the same status
-    if id
-      previous_object = Job.find(id)      
-      columns_to_check = [:started, :cancelled, :completed].select{|s| !previous_object.send(s).nil?}
-      if ((columns_to_check & changed_attributes.keys).length > 0)
-        errors.add(:base, 'cannot use the same operation twice to change the status')
-      end      
-    end
+    return unless id
+
+    previous_object = Job.find(id)
+    columns_to_check = %i[started cancelled completed].reject { |s| previous_object.send(s).nil? }
+
+    return unless (columns_to_check & changed_attributes.keys).length.positive?
+
+    errors.add(:base, 'cannot use the same operation twice to change the status')
   end
 
   def queued?
@@ -69,27 +82,29 @@ class Job < ApplicationRecord
   def broken?
     status == 'broken'
   end
-
-  def send_to_lims
-    lims_url = work_order.work_plan.product.catalogue.url
-    LimsClient::post(lims_url, lims_data)
+  
+  def set_materials_availability(flag)
+    materials.result_set.each do |mat|
+      mat.update_attributes(available: flag)
+    end
   end
 
   def start!
-    update_attributes!(started: Time.now)
+    update!(started: Time.zone.now)
   end
 
   def cancel!
-    update_attributes!(cancelled: Time.now)
+    update!(cancelled: Time.zone.now)
   end
 
   def complete!
-    update_attributes!(completed: Time.now)
+    update!(completed: Time.zone.now)
   end
 
   def broken!
-    update_attributes!(broken: Time.now)
-    # update the work order to be broken too, jobs can still be concluded but work plan cannot progress
+    update!(broken: Time.zone.now)
+    # update the work order to be broken too, jobs can still be concluded but work plan cannot
+    # progress
     work_order.broken!
   end
 
@@ -98,7 +113,7 @@ class Job < ApplicationRecord
     return 'cancelled' if cancelled
     return 'completed' if completed
     return 'active' if started
-    return 'queued'
+    'queued'
   end
 
   def container
@@ -114,14 +129,14 @@ class Job < ApplicationRecord
   end
 
   def materials
-    @materials ||= MatconClient::Material.where("_id" => {"$in" => material_ids })
+    @materials ||= MatconClient::Material.where('_id' => { '$in' => material_ids })
   end
 
   def address_for_material(container, material)
-    container.slots.select{|slot| slot.material_id == material.id}.first.address
+    container.slots.select { |slot| slot.material_id == material.id }.first.address
   end
 
-  def has_materials?(uuids)
+  def materials?(uuids)
     return true if uuids.empty?
     uuids_from_job = materials.map(&:id)
     return false if uuids_from_job.empty?
@@ -130,7 +145,7 @@ class Job < ApplicationRecord
     end
   end
 
-  # This method returns a JSON description of the order that will be sent to a LIMS to order work.
+  # This method returns a JSON description of a job that will be sent to a LIMS.
   # It includes information that must be loaded from other services (study, set, etc.).
   def lims_data
     material_data = materials.map do |m|
@@ -153,22 +168,24 @@ class Job < ApplicationRecord
     end
 
     project = work_order.work_plan.project
-    cost_code = project.cost_code
-
+    data_release_strategy_id = work_order.work_plan.data_release_strategy_id
 
     {
-      job: {
+      type: "jobs",
+      id: id,
+      attributes: {
         job_id: id,
+        job_uuid: uuid,
         work_order_id: work_order.id,
-
+        aker_job_url: job_url,
         process_name: work_order.process.name,
         process_uuid: work_order.process.uuid,
         modules: work_order.module_choices,
         comment: work_order.work_plan.comment,
-
+        priority: work_order.work_plan.priority,
         project_uuid: project.node_uuid,
         project_name: project.name,
-        data_release_uuid: project.data_release_uuid,
+        data_release_uuid: data_release_strategy_id,
         cost_code: project.cost_code,
 
         materials: material_data,
@@ -178,9 +195,18 @@ class Job < ApplicationRecord
           barcode: container.barcode,
           num_of_rows: container.num_of_rows,
           num_of_cols: container.num_of_cols
-        },
+        }
       }
     }
   end
 
+  def job_url
+    Rails.application.config.urls[:work]+'/api/v1/jobs/'+self.id.to_s
+  end
+
+  def set
+    return nil unless set_uuid
+    return @set if @set&.uuid==set_uuid
+    @set = SetClient::Set.find(set_uuid).first
+  end
 end

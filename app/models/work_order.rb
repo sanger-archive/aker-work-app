@@ -17,6 +17,8 @@ class WorkOrder < ApplicationRecord
 
   after_initialize :create_uuid
 
+  attr_accessor :rollback_materials
+
   def create_uuid
     self.work_order_uuid ||= SecureRandom.uuid
   end
@@ -191,16 +193,32 @@ class WorkOrder < ApplicationRecord
         }
     ).result_set).uniq
 
+    @rollback_materials = []
+
     ActiveRecord::Base.transaction do
       containers.each do |container|
-        Job.create!(container_uuid: container.id, work_order: self)
+        job = Job.create!(container_uuid: container.id, work_order: self, uuid: SecureRandom.uuid)
+        job.set_materials_availability(false)
+
+        @rollback_materials.concat(job.materials.result_set.to_a)
       end
     end
   end
 
   def send_to_lims
-    create_jobs
-    jobs.each(&:send_to_lims)
+    create_jobs if jobs.empty?
+    body = jobs.map(&:lims_data)
+
+    lims_url = work_plan.product.catalogue.job_creation_url
+    LimsClient.post(lims_url, { data: body })
+  end
+
+  def rollback_materials_availability
+    @rollback_materials.each do |mat|
+      # assuming that the material was available before the transaction failed
+      mat.update_attributes(available: true)
+    end
+    @rollback_materials = []
   end
 
   def all_results(result_set)
@@ -225,7 +243,7 @@ class WorkOrder < ApplicationRecord
     module_choices = WorkOrderModuleChoice.where(work_order_id: id)
     module_choices.each do |c|
       mod = Aker::ProcessModule.find(c.aker_process_modules_id)
-      path.push({name: mod.name, id: mod.id})
+      path.push({name: mod.name, id: mod.id, selected_value: c.selected_value})
     end
     path
   end
@@ -250,14 +268,14 @@ class WorkOrder < ApplicationRecord
     end
   end
 
-  def generate_submitted_event
+  def generate_dispatched_event
     begin
       if active?
-        message = WorkOrderEventMessage.new(work_order: self, status: 'submitted')
+        message = WorkOrderEventMessage.new(work_order: self, status: 'dispatched')
         BrokerHandle.publish(message)
-        BillingFacadeClient.send_event(self, 'submitted')
+        BillingFacadeClient.send_event(self, 'dispatched')
       else
-        Rails.logger.error("Submitted event cannot be generated from a work order that is not active.")
+        Rails.logger.error("dispatched event cannot be generated from a work order that is not active.")
       end
     rescue => e
       Rails.logger.error e
@@ -289,5 +307,4 @@ class WorkOrder < ApplicationRecord
   def next_order
     WorkOrder.where(work_plan_id: work_plan_id, order_index: order_index+1).first
   end
-
 end

@@ -1,19 +1,12 @@
-# Messages
-The following is a list of messages which can be used in Work Orders, mainly for testing purposes.
-
-## New catalogue
-The following message can be used to create a new catalogue but currently process names have to be
-unique so adjust the message as required.
-```json
 {
    "catalogue":{
       "pipeline":"WGS",
-      "url":"http://localhost:3400",
+      "url":"http://localhost:3100",
       "lims_id":"mylims",
       "processes":[
          {
-            "uuid":"51c4c8c7-2e7a-41dd-a36a-3f44963a00b9",
-            "name":"QC",
+            "uuid":"0d5178cf-f1d5-406e-a495-b543869e1add",
+            "name":"Quality Control (GBS)",
             "TAT":5,
             "process_class":"genotyping",
             "process_module_pairings":[
@@ -75,10 +68,11 @@ unique so adjust the message as required.
             ]
          },
          {
-            "uuid":"81fa3b15-1598-45f9-8c89-45e4a651fe13",
-            "name":"Library 30x Human Whole Genome",
-            "TAT":8,
-            "process_class":"dna_sequencing",
+            "uuid": "a2c0ecea-cc1a-4329-a175-42588199f742",
+            "name": "30x Human Whole Genome Library & Sequencing (HWGS)",
+            "TAT": 42,
+            "process_class": "dna_sequencing",
+            "module_parameters": [{"name": "Multiplex Pooling (m=2..96)", "min_value": 2, "max_value" : 96 }],
             "process_module_pairings":[
                {
                   "from_step":null,
@@ -97,41 +91,40 @@ unique so adjust the message as required.
                },
                {
                   "from_step":"PCR FREE",
-                  "to_step":null,
-                  "default_path":false
-               },
-               {
-                  "from_step":"8 PCR Cycles",
-                  "to_step":null,
-                  "default_path":false
-               },
-               {
-                  "from_step":"6 PCR Cycles",
-                  "to_step":null,
-                  "default_path":true
-               }
-            ]
-         },
-         {
-            "uuid":"0bc48d2f-dcf6-448a-82d0-75665e9069d1",
-            "name":"30x Human Whole Genome Sequencing",
-            "TAT":8,
-            "process_class":"dna_sequencing",
-            "process_module_pairings":[
-               {
-                  "from_step":null,
-                  "to_step":"NovaSeq",
-                  "default_path":false
-               },
-               {
-                  "from_step":null,
                   "to_step":"Single Plex Pooling (m=1)",
                   "default_path":false
                },
                {
-                  "from_step":null,
+                  "from_step":"PCR FREE",
+                  "to_step":"Multiplex Pooling (m=2..96)",
+                  "default_path":false
+               },
+
+               {
+                  "from_step":"8 PCR Cycles",
+                  "to_step":"Single Plex Pooling (m=1)",
+                  "default_path":false
+               },
+               {
+                  "from_step":"8 PCR Cycles",
+                  "to_step":"Multiplex Pooling (m=2..96)",
+                  "default_path":false
+               },
+
+               {
+                  "from_step":"6 PCR Cycles",
+                  "to_step":"Single Plex Pooling (m=1)",
+                  "default_path":false
+               },
+               {
+                  "from_step":"6 PCR Cycles",
                   "to_step":"Multiplex Pooling (m=2..96)",
                   "default_path":true
+               },
+               {
+                  "from_step":"Multiplex Pooling (m=2..96)",
+                  "to_step":"NovaSeq",
+                  "default_path":false
                },
                {
                   "from_step":"NovaSeq",
@@ -158,19 +151,39 @@ unique so adjust the message as required.
       ],
       "products":[
          {
-            "uuid":"fedd99f6-a028-471b-9790-90bf46f9b445",
-            "name":"30x Human Whole Genome Sequencing",
-            "description":"Quality Control",
+            "uuid": "625c5698-d034-4871-bfc9-a8064b63e0f7",
+            "name": "Quality Control (GBS) only",
+            "description": "Quality Control",
+            "product_version": 1,
+            "availability": 1,
+            "requested_biomaterial_type":"blood",
+            "process_uuids": [
+               "0d5178cf-f1d5-406e-a495-b543869e1add"
+            ]
+         },
+         {
+            "uuid": "d5114679-acdf-48fb-9833-689323902b6c",
+            "name": "30x Human Whole Genome Library & Sequencing only (HWGS)",
+            "description": "30x Human Whole Genome Library & Sequencing only",
+            "product_version": 1,
+            "availability": 1,
+            "requested_biomaterial_type":"blood",
+            "process_uuids": [
+               "a2c0ecea-cc1a-4329-a175-42588199f742"
+            ]
+         },
+         {
+            "uuid":"759b1bac-d776-45d9-83bb-67caa896f2f7",
+            "name":"30x Human Whole Genome Sequencing (HWGS)",
+            "description":"30x Human Whole Genome Sequencing",
             "product_version":1,
             "availability":1,
             "requested_biomaterial_type":"blood",
             "process_uuids":[
-               "51c4c8c7-2e7a-41dd-a36a-3f44963a00b9",
-               "81fa3b15-1598-45f9-8c89-45e4a651fe13",
-               "0bc48d2f-dcf6-448a-82d0-75665e9069d1"
+               "0d5178cf-f1d5-406e-a495-b543869e1add",
+               "a2c0ecea-cc1a-4329-a175-42588199f742"
             ]
          }
       ]
    }
 }
-```

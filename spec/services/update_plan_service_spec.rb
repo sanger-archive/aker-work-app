@@ -7,21 +7,26 @@ RSpec.describe UpdatePlanService do
   let(:params) { }
   let(:user_and_groups) { ['user@here', 'all'] }
   let(:service) { UpdatePlanService.new(params, plan, dispatch, user_and_groups, messages) }
-  let(:catalogue) { create(:catalogue) }
+  let(:catalogue) { create(:catalogue, lims_id: 'SQSC' ) }
   let(:product) { create(:product, catalogue: catalogue) }
   let(:project) { make_project(18, 'S1234-0') }
   let(:set) { make_set(false, true, locked_set) }
   let(:locked_set) { make_set(false, true) }
   let(:processes) { create_processes(product) }
+  let(:drs) { create(:data_release_strategy) }
 
   before(:each) do
     stub_billing_facade
     extra_stubbing
-
+    stub_data_release_strategy
     @result = service.perform
   end
 
   def extra_stubbing
+  end
+
+  def stub_data_release_strategy
+    allow(DataReleaseStrategyClient).to receive(:find_strategies_by_user).and_return([drs])
   end
 
   def stub_billing_facade
@@ -73,9 +78,10 @@ RSpec.describe UpdatePlanService do
   end
 
   def make_plan_with_orders
-    plan = create(:work_plan, original_set_uuid: set.uuid, project_id: project.id, product: product)
+    plan = create(:work_plan, original_set_uuid: set.uuid, project_id: project.id, product: product, data_release_strategy_id: drs.id)
     module_choices = processes.map { |pro| [pro.process_modules.first.id] }
-    wo = plan.create_orders(module_choices, set.id)
+    product_options_selected_values = module_choices.map{|c| [nil]}
+    wo = plan.create_orders(module_choices, set.id, product_options_selected_values)
     plan.reload
   end
 
@@ -96,6 +102,7 @@ RSpec.describe UpdatePlanService do
 
   def stub_broker_connection
     stub_const('BrokerHandle', class_double('BrokerHandle', working?: true))
+    allow(BrokerHandle).to receive(:publish)
   end
 
   describe 'selecting a project' do
@@ -342,8 +349,6 @@ RSpec.describe UpdatePlanService do
     let(:params) do
       {
         product_id: product.id,
-        comment: 'commentary',
-        desired_date: Date.today,
         product_options: product_options.to_json,
       }
     end
@@ -365,12 +370,6 @@ RSpec.describe UpdatePlanService do
       it 'should not change the product in the plan' do
         expect(plan.product_id).to be_nil
       end
-      it 'should not set the comment' do
-        expect(plan.comment).to be_nil
-      end
-      it 'should not set the date' do
-        expect(plan.desired_date).to be_nil
-      end
       it 'should still be in construction' do
         expect(plan).to be_in_construction
       end
@@ -388,12 +387,6 @@ RSpec.describe UpdatePlanService do
       end
       it 'should set the product in the plan' do
         expect(plan.product_id).to eq(product.id)
-      end
-      it 'should set the comment' do
-        expect(plan.comment).to eq(params[:comment])
-      end
-      it 'should set the date' do
-        expect(plan.desired_date).to eq(params[:desired_date])
       end
       it 'should still be in construction' do
         expect(plan).to be_in_construction
@@ -427,12 +420,6 @@ RSpec.describe UpdatePlanService do
       it 'should not set the product in the plan' do
         expect(plan.product_id).to be_nil
       end
-      it 'should not set the comment' do
-        expect(plan.comment).to be_nil
-      end
-      it 'should not set the date' do
-        expect(plan.desired_date).to be_nil
-      end
       it 'should still be in construction' do
         expect(plan).to be_in_construction
       end
@@ -441,6 +428,37 @@ RSpec.describe UpdatePlanService do
       end
     end
 
+    context 'when there is a selected value' do
+      def work_order_module
+        processes.map(&:process_modules).flatten.reduce({}) do |memo, mod|
+          mod.update_attributes(min_value:1, max_value: 5)
+          memo[mod.id.to_s] = {
+            selected_value: selected_value
+          }
+          memo
+        end
+      end
+      let(:plan) { create(:work_plan, original_set_uuid: set.uuid, project_id: project.id) }
+      let(:params) do
+        {
+          product_id: product.id,
+          product_options: product_options.to_json,
+          work_order_module: work_order_module
+        }
+      end
+      context 'when the module selected values are not valid' do
+        let(:selected_value) { 7 }
+        it { expect(@result).to be_falsey }
+        it 'should produce an error message' do
+          expect(messages[:error]).to match Regexp.new('Creating.*failed.*')
+        end
+      end
+      context 'when the module selected values are valid' do
+        let(:selected_value) { 3 }
+        it { expect(@result).to be_truthy }
+      end
+
+    end
     context 'when the module ids are not a valid path for a process' do
       let(:plan) { create(:work_plan, original_set_uuid: set.uuid, project_id: project.id) }
       let(:product_options) do
@@ -455,12 +473,6 @@ RSpec.describe UpdatePlanService do
       end
       it 'should not set the product in the plan' do
         expect(plan.product_id).to be_nil
-      end
-      it 'should not set the comment' do
-        expect(plan.comment).to be_nil
-      end
-      it 'should not set the date' do
-        expect(plan.desired_date).to be_nil
       end
       it 'should still be in construction' do
         expect(plan).to be_in_construction
@@ -480,12 +492,6 @@ RSpec.describe UpdatePlanService do
       end
       it 'should not set the product in the plan' do
         expect(plan.product_id).to be_nil
-      end
-      it 'should not set the comment' do
-        expect(plan.comment).to be_nil
-      end
-      it 'should not set the date' do
-        expect(plan.desired_date).to be_nil
       end
       it 'should still be in construction' do
         expect(plan).to be_in_construction
@@ -516,12 +522,6 @@ RSpec.describe UpdatePlanService do
       end
       it 'should set the product in the plan' do
         expect(plan.product_id).to eq(product.id)
-      end
-      it 'should set the comment' do
-        expect(plan.comment).to eq(params[:comment])
-      end
-      it 'should set the date' do
-        expect(plan.desired_date).to eq(params[:desired_date])
       end
       it 'should still be in construction' do
         expect(plan).to be_in_construction
@@ -569,12 +569,6 @@ RSpec.describe UpdatePlanService do
       it 'should produce an error message' do
         expect(messages[:error]).to match /in progress/
       end
-      it 'should not set the comment' do
-        expect(plan.comment).to be_nil
-      end
-      it 'should not set the date' do
-        expect(plan.desired_date).to be_nil
-      end
       it 'should still be active' do
         expect(plan).to be_active
       end
@@ -591,8 +585,6 @@ RSpec.describe UpdatePlanService do
       let(:params) do
         {
           product_id: product.id,
-          comment: 'commentary',
-          desired_date: Date.today,
         }
       end
 
@@ -605,9 +597,6 @@ RSpec.describe UpdatePlanService do
       end
       it 'should not set the comment' do
         expect(plan.comment).to be_nil
-      end
-      it 'should not set the date' do
-        expect(plan.desired_date).to be_nil
       end
       it 'should still be in construction' do
         expect(plan).to be_in_construction
@@ -623,7 +612,6 @@ RSpec.describe UpdatePlanService do
       let(:params) do
         {
           comment: 'commentary',
-          desired_date: Date.today,
           product_options: product_options.to_json,
         }
       end
@@ -638,14 +626,53 @@ RSpec.describe UpdatePlanService do
       it 'should not set the comment' do
         expect(plan.comment).to be_nil
       end
-      it 'should not set the date' do
-        expect(plan.desired_date).to be_nil
-      end
       it 'should still be in construction' do
         expect(plan).to be_in_construction
       end
       it 'should not have orders' do
         expect(plan.work_orders).to be_empty
+      end
+    end
+  end
+
+  describe 'selecting a data release strategy' do
+    context 'when a data release strategy is know' do
+      let(:plan) do
+        plan = make_plan_with_orders
+        plan.update_attributes!(data_release_strategy_id: nil)
+        plan
+      end
+      let(:params) do { data_release_strategy_id: drs.id } end
+
+      it { expect(@result).to be_truthy }
+      it 'should produce no error messages' do
+        expect(messages).to be_empty
+      end
+      it 'should set the data release strategy in the plan' do
+        expect(plan.data_release_strategy_id).to eq(drs.id)
+      end
+      it 'should still be in construction' do
+        expect(plan).to be_in_construction
+      end
+    end
+    context 'when a data release strategy is not known' do
+      let(:plan) do
+        plan = make_plan_with_orders
+        plan.update_attributes!(data_release_strategy_id: nil)
+        plan
+      end
+      let(:params) do { data_release_strategy_id: SecureRandom.uuid } end
+
+      it { expect(@result).to be_falsey }
+      it 'should produce error messages' do
+        expect(messages[:error]).to match /No data release strategy could be found with uuid*/i
+      end
+      it 'should not set the data release strategy in the plan' do
+        plan.reload
+        expect(plan.data_release_strategy_id).to eq(nil)
+      end
+      it 'should still be in construction' do
+        expect(plan).to be_in_construction
       end
     end
   end
@@ -770,6 +797,37 @@ RSpec.describe UpdatePlanService do
         expect(modules[1]).to eq([processes[1].process_modules[0].id])
       end
     end
+    context 'when there is a selected value' do
+      def work_order_module
+        processes.map(&:process_modules).flatten.reduce({}) do |memo, mod|
+          mod.update_attributes(min_value:1, max_value: 5)
+          memo[mod.id.to_s] = {
+            selected_value: selected_value
+          }
+          memo
+        end
+      end
+      let(:params) do
+        {
+          work_order_id: old_orders[1].id,
+          work_order_modules: module_ids.to_json,
+          work_order_module: work_order_module
+        }
+      end
+      context 'when the module selected values are not valid' do
+        let(:selected_value) { 7 }
+        it { expect(@result).to be_falsey }
+        it 'should produce an error message' do
+          expect(messages[:error]).to match Regexp.new('Update.*failed.*')
+        end
+      end
+      context 'when the module selected values are valid' do
+        let(:selected_value) { 3 }
+        it { expect(@result).to be_truthy }
+      end
+
+    end
+
   end
 
   describe 'dispatching the first order' do
@@ -777,6 +835,8 @@ RSpec.describe UpdatePlanService do
     let(:orders) { plan.work_orders }
     let(:params) do
       {
+        comment: 'a comment',
+        priority: 'high',
         work_order_id: orders[0].id,
         work_order_modules: [processes[0].process_modules[1].id].to_json,
       }
@@ -793,11 +853,12 @@ RSpec.describe UpdatePlanService do
       @sent_event = false
       @finalised_set = false
       allow_any_instance_of(WorkOrder).to receive(:send_to_lims) { @sent_to_lims = true }
-      allow_any_instance_of(WorkOrder).to receive(:generate_submitted_event) { @sent_event = true }
+      allow_any_instance_of(WorkOrder).to receive(:generate_dispatched_event) { @sent_event = true }
       allow_any_instance_of(WorkOrder).to receive(:finalise_set) { @finalised_set = true }
       stub_project
       stub_stamps
       stub_broker_connection
+      stub_data_release_strategy
     end
 
     context 'when the order is queued' do
@@ -834,14 +895,26 @@ RSpec.describe UpdatePlanService do
       it 'should have a dispatch date' do
         expect(orders[0].reload.dispatch_date).not_to be_nil
       end
+      it 'should have a comment' do
+        expect(plan.reload.comment).to eq 'a comment'
+      end
+      it 'should have a priority' do
+        expect(plan.reload.priority).to eq 'high'
+      end
     end
 
     context 'when the order is active' do
-      let(:old_date) { Date.yesterday }
+      let(:old_date) { Time.now.yesterday }
       let(:plan) do
         plan = make_plan_with_orders
         plan.work_orders[0].update_attributes(status: 'active', dispatch_date: old_date)
         plan
+      end
+      let(:params) do
+        {
+          work_order_id: orders[0].id,
+          work_order_modules: [processes[0].process_modules[1].id].to_json,
+        }
       end
 
       it { expect(@result).to be_falsey }
@@ -875,7 +948,7 @@ RSpec.describe UpdatePlanService do
         expect(orders[0].reload).to be_active
       end
       it 'should not have changed the dispatch date' do
-        expect(orders[0].reload.dispatch_date).to eq(old_date)
+        expect(orders[0].reload.dispatch_date.to_i).to eq(old_date.to_i)
       end
     end
 
@@ -1048,6 +1121,34 @@ RSpec.describe UpdatePlanService do
         expect(orders[0].reload.dispatch_date).to be_nil
       end
     end
+    context 'when the data release strategy is not valid' do
+      def stub_data_release_strategy
+        allow(DataReleaseStrategyClient).to receive(:find_strategies_by_user).and_return([])
+      end
+      it "should return false" do
+        expect(@result).to be_falsey
+      end
+      it 'should produce an error message' do
+        expect(messages[:error]).to match /The current user cannot select the Data release strategy provided./i
+      end
+      it 'should not have sent the order' do
+        expect(@sent_to_lims).to eq(false)
+      end
+    end
+
+    context 'when send_to_lims fails' do
+      let(:order) { orders[0] }
+      def extra_stubbing
+        super
+        allow(WorkOrder).to receive(:find).with(order.id).and_return(order)
+        allow(order).to receive(:send_to_lims).and_raise('error')
+        allow(order).to receive(:rollback_materials_availability)
+      end
+
+      it 'rollsback the materials availability' do
+        expect(order).to have_received(:rollback_materials_availability)
+      end
+    end
   end
 
   describe 'dispatching a subsequent order' do
@@ -1070,7 +1171,7 @@ RSpec.describe UpdatePlanService do
       @sent_to_lims = false
       @sent_event = false
       allow_any_instance_of(WorkOrder).to receive(:send_to_lims) { @sent_to_lims = true }
-      allow_any_instance_of(WorkOrder).to receive(:generate_submitted_event) { @sent_event = true }
+      allow_any_instance_of(WorkOrder).to receive(:generate_dispatched_event) { @sent_event = true }
       stub_project
       stub_stamps
       stub_broker_connection

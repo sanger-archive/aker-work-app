@@ -20,14 +20,16 @@ gem 'jbuilder', '~> 2.5' # Build JSON APIs with ease. Read more: https://github.
 gem 'jquery-rails' # Use jquery as the JavaScript library
 gem 'js-routes'
 gem 'json-schema'
+gem 'jsonapi-resources'
 gem 'lograge'
 gem 'logstash-event'
 gem 'logstash-logger'
 gem 'net-ldap' # Pure Ruby LDAP library. Read more: https://github.com/ruby-ldap/ruby-net-ldap
-gem 'pg', '< 1.0' # https://bitbucket.org/ged/ruby-pg/issues/270/pg-100-x64-mingw32-rails-server-not-start
+gem 'pg', '~> 1.0' # https://bitbucket.org/ged/ruby-pg/issues/270/pg-100-x64-mingw32-rails-server-not-start
 gem 'pry'
 gem 'puma', '~> 3.0' # Use Puma as the app server
-gem 'rails', '~> 5.1' # Bundle edge Rails instead: gem 'rails', github: 'rails/rails'
+gem 'rack-cors'
+gem 'rails', '~> 5.1.0' # Bundle edge Rails instead: gem 'rails', github: 'rails/rails'
 gem 'react-rails'
 gem 'request_store'
 gem 'rswag-api'
@@ -37,10 +39,11 @@ gem 'swagger-ui_rails'
 gem 'therubyracer', platforms: :ruby # See https://github.com/rails /execjs#readme for more
 gem 'turbolinks', '~> 5' # Turbolinks makes navigating your web application faster.
 gem 'uglifier', '~> 3.2' # Use Uglifier as compressor for JavaScript assets
+gem 'uuid'
 gem 'webpacker', '~> 3.2'
 gem 'webpacker-react', '~> 0.3.2'
 gem 'wicked'
-gem 'zipkin-tracer'
+gem 'health_check'
 
 gem 'jsonapi-resources'
 
@@ -52,7 +55,7 @@ gem 'aker_credentials_gem', github: 'sanger/aker-credentials'
 gem 'aker_permission_gem', github: 'sanger/aker-permission'
 gem 'aker-set-client', github: 'sanger/aker-set-client'
 gem 'aker_stamp_client', github: 'sanger/aker-stamp-client'
-gem 'aker-study-client', '>= 0.2.3', github: 'sanger/aker-study-client'
+gem 'aker-study-client', github: 'sanger/aker-projects-client-gem'
 gem 'aker_shared_navbar', github: 'sanger/aker-shared-navbar'
 gem 'bootstrap-sass', '~> 3.3.6', github: 'sanger/bootstrap-sass'
 gem 'json_api_client', github: 'sanger/json_api_client'

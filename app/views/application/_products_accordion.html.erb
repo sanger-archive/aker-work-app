@@ -1,18 +1,44 @@
 <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
+  <h3>Work Orders</h3>
+  <div class="row">
+    <div class="col-md-6">
+      <p>A work order has been created for each of the processes from your selected product.
+      You can dispatch them to Scientific Operations sequentially, i.e the first
+      must be completed before you can dispatch the second. Changes can be made to
+      the process modules within a work order at any point before you dispatch it.</p>
+    </div>
+    <div class="col-md-6">
+      Status Meanings:
+      <ul>
+        <li>Ready for Dispatch: You can dispatch the work order</li>
+        <li>Queued: This can be dispatched once those before it are concluded</li>
+        <li>Active: It has been sent to the LIMS for processing</li>
+        <li>Concluded: The work order has been completed or cancelled by the SSRs</li>
+      </ul>
+    </div>
+  </div>
+
   <% work_plan.work_orders.each_with_index do |work_order, i| %>
     <div class="panel panel-default">
       <div class="panel-heading" role="tab" id="heading<%=i%>">
         <h4 class="panel-title">
-          <a class="collapsed" data-toggle="collapse" data-parent="#accordion" href="#collapse<%=i%>" aria-expanded="false" aria-controls="collapse<%=i%>">
-            <%= work_order.process.name %> (<%= work_order.status %>)
-          </a>
+          <%= work_order.process.name %>
+          <span class="pull-right">
+            Work Order <%= " #{work_order.id}" %>
+            <span class="label label-primary">
+            <% if work_order.can_be_dispatched? %>
+              READY FOR DISPATCH
+            <% elsif %>
+              <%= work_order.status.upcase %>
+            <% end %>
+            </span>
+          </span>
         </h4>
       </div>
-      <div id="collapse<%=i%>" class="collapse" role="tabpanel" aria-labelledby="heading<%=i%>">
          <div class="panel-body">
             <%= render 'accordion_body', work_order: work_order, index: i %>
          </div>
-      </div>
     </div>
+    <br>
   <% end %>
  </div>

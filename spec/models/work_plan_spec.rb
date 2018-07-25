@@ -4,15 +4,15 @@ require 'ostruct'
 RSpec.describe WorkPlan, type: :model do
   let(:catalogue) { create(:catalogue) }
   let(:product) { create(:product, catalogue: catalogue) }
-  let(:project) do
-    proj = double(:project, id: 12)
-    allow(StudyClient::Node).to receive(:find).with(proj.id).and_return([proj])
-    proj
-  end
+  let(:project) { make_project(12) }
   let(:process_options) do
     product.processes.map do |pro|
       pro.process_modules.map(&:id)
     end
+  end
+
+  let(:modules_selected_values) do
+    process_options.map {|list| list.map{ nil }}
   end
 
   let(:set) do
@@ -43,6 +43,12 @@ RSpec.describe WorkPlan, type: :model do
     pros
   end
 
+  def make_project(id)
+    proj = double(:project, id: id)
+    allow(StudyClient::Node).to receive(:find).with(id).and_return([proj])
+    proj
+  end
+
   describe '#uuid' do
     context 'when a new plan is made' do
       it 'is given a uuid' do
@@ -71,8 +77,17 @@ RSpec.describe WorkPlan, type: :model do
     end
 
     context 'when the plan has a project id' do
-      let(:plan) { build(:work_plan, project_id: project.id) }
-      it { expect(plan.project).to eq(project) }
+      context 'when the project does exist' do
+        let(:plan) { build(:work_plan, project_id: project.id) }
+        it { expect(plan.project).to eq(project) }
+      end
+      context 'when the project does not exist' do
+        let(:plan) { build(:work_plan, project_id: 'not exist') }
+        before do
+          allow(StudyClient::Node).to receive(:find).with(plan.project_id).and_raise(JsonApiClient::Errors::NotFound, "")
+        end
+        it { expect(plan.project).to eq(nil) }
+      end
     end
 
     context 'when the plan has a @project with a different project_id' do
@@ -98,6 +113,23 @@ RSpec.describe WorkPlan, type: :model do
     end
   end
 
+  describe '#data_release_strategy' do
+    context 'when the plan has a data_release_strategy' do
+      let(:drs) { create(:data_release_strategy) }
+      let(:plan) do
+        pl = create(:work_plan, data_release_strategy_id: drs.id)
+        allow(pl).to receive(:data_release_strategy).and_return drs
+        pl
+      end
+      it 'has a data release strategy' do
+        expect(plan.data_release_strategy).to eq(drs)
+      end
+    end
+    context 'when the plan has no data_release_strategy' do
+      let(:plan) { build(:work_plan) }
+      it { expect(plan.data_release_strategy).to eq(nil) }
+    end
+  end
 
   describe '#owner_email' do
     it 'should be sanitised' do
@@ -110,7 +142,7 @@ RSpec.describe WorkPlan, type: :model do
     context 'when no product is selected' do
       let(:plan) { create(:work_plan, original_set_uuid: set.uuid) }
 
-      it { expect { plan.create_orders(process_options, nil) }.to raise_error("No product is selected") }
+      it { expect { plan.create_orders(process_options, nil, modules_selected_values) }.to raise_error("No product is selected") }
     end
 
     context 'when work orders already exist' do
@@ -122,14 +154,14 @@ RSpec.describe WorkPlan, type: :model do
       end
 
       it 'should return the existing orders' do
-        expect(plan.create_orders(process_options, nil)).to eq(existing_orders)
+        expect(plan.create_orders(process_options, nil, modules_selected_values)).to eq(existing_orders)
       end
     end
 
     context 'when work orders need to be created' do
       let!(:processes) { make_processes(3) }
       let(:plan) { create(:work_plan, product: product, original_set_uuid: set.uuid) }
-      let(:orders) { plan.create_orders(process_options, nil) }
+      let(:orders) { plan.create_orders(process_options, nil, modules_selected_values) }
 
       it 'should create an order for each process' do
         expect(orders.length).to eq(processes.length)
@@ -168,7 +200,7 @@ RSpec.describe WorkPlan, type: :model do
       let(:locked_set_uuid) { SecureRandom.uuid }
       let!(:processes) { make_processes(3) }
       let(:plan) { create(:work_plan, product: product, original_set_uuid: set.uuid) }
-      let(:orders) { plan.create_orders(process_options, locked_set_uuid) }
+      let(:orders) { plan.create_orders(process_options, locked_set_uuid, modules_selected_values) }
 
       it 'should set the sets correctly' do
         expect(orders.first.original_set_uuid).to eq(plan.original_set_uuid)
@@ -189,7 +221,7 @@ RSpec.describe WorkPlan, type: :model do
 
     # Check that the order is definitely controlled by the order_index field
     it 'should be kept in order according to order_index' do
-      expect(plan.create_orders(process_options, nil).map(&:order_index)).to eq([0,1,2])
+      expect(plan.create_orders(process_options, nil, modules_selected_values).map(&:order_index)).to eq([0,1,2])
       plan.work_orders[1].update_attributes(order_index: 5)
       expect(plan.work_orders.reload.map(&:order_index)).to eq([0,2,5])
       plan.work_orders[0].update_attributes(order_index: 4)
@@ -222,7 +254,15 @@ RSpec.describe WorkPlan, type: :model do
     context 'when the product has also been selected' do
       before do
         plan.update_attributes!(product: product, project_id: project.id, original_set_uuid: set.uuid)
-        plan.create_orders(process_options, nil).first.update_attributes!(set_uuid: set.uuid)
+        plan.create_orders(process_options, nil, modules_selected_values).first.update_attributes!(set_uuid: set.uuid)
+      end
+      it { expect(plan.wizard_step).to eq('data_release_strategy') }
+    end
+    context 'when the data release strategy has also been selected' do
+      let(:drs) { create(:data_release_strategy) }
+      before do
+        plan.update_attributes!(product: product, project_id: project.id, original_set_uuid: set.uuid, data_release_strategy_id: drs.id)
+        plan.create_orders(process_options, nil, modules_selected_values).first.update_attributes!(set_uuid: set.uuid)
       end
       it { expect(plan.wizard_step).to eq('dispatch') }
     end
@@ -232,7 +272,7 @@ RSpec.describe WorkPlan, type: :model do
     let!(:processes) { make_processes(3) }
     let(:plan) do
       pl = create(:work_plan, product: product, project_id: project.id, original_set_uuid: set.uuid)
-      pl.create_orders(process_options, nil).first.update_attributes!(set_uuid: set.uuid)
+      pl.create_orders(process_options, nil, modules_selected_values).first.update_attributes!(set_uuid: set.uuid)
       pl
     end
 
@@ -270,6 +310,27 @@ RSpec.describe WorkPlan, type: :model do
         plan.reload
       end
       it { expect(plan.status).to eq('cancelled') }
+    end
+  end
+
+  describe '#cancellable?' do
+    let!(:processes) { make_processes(3) }
+    let(:plan) do
+      pl = create(:work_plan, product: product, project_id: project.id, original_set_uuid: set.uuid)
+      pl.create_orders(process_options, nil, modules_selected_values)
+      pl
+    end
+
+    context 'when a work plan is cancellable' do
+      it { expect(plan.cancellable?).to be true }
+    end
+
+    context 'when a work plan is not cancellable' do
+      before do
+        plan.work_orders.first.broken!
+        plan.reload
+      end
+      it { expect(plan.cancellable?).to be false }
     end
   end
 
@@ -364,7 +425,7 @@ RSpec.describe WorkPlan, type: :model do
   describe '#active_status' do
     let(:plan) do
       pl = create(:work_plan, product: product, project_id: project.id, original_set_uuid: set.id)
-      pl.create_orders(process_options, nil)
+      pl.create_orders(process_options, nil, modules_selected_values)
       pl.work_orders.reload
       pl
     end
@@ -432,4 +493,35 @@ RSpec.describe WorkPlan, type: :model do
     end
   end
 
+  describe '#is_product_from_sequencescape?' do
+    context 'when the plans product catalogue url is not sequencescape' do
+      it 'should return false' do
+        catalogue.update_attributes!(lims_id: 'not_SQSC')
+        plan = create(:work_plan, product: product)
+        expect(plan.is_product_from_sequencescape?).to eq false
+      end
+    end
+    context 'when the plans product catalogue url is sequencescape' do
+      it 'should return true' do
+        catalogue.update_attributes!(lims_id: 'SQSC')
+        plan = create(:work_plan, product: product)
+        expect(plan.is_product_from_sequencescape?).to eq true
+      end
+    end
+  end
+
+  describe 'priority' do
+    context 'default' do
+      it 'should be standard' do
+        plan = create(:work_plan)
+        expect(plan.priority).to eq 'standard'
+      end
+    end
+    context 'when it is set to high' do
+      it 'should be high' do
+        plan = create(:work_plan, priority: 'high')
+        expect(plan.priority).to eq 'high'
+      end
+    end
+  end
 end

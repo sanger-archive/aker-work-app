@@ -1,9 +1,13 @@
-class Aker::ProcessModule < ApplicationRecord
-  validates :name, presence: true
+# frozen_string_literal: true
 
-  belongs_to :aker_process, class_name: "Aker::Process", required: true
+module Aker
+  class ProcessModule < ApplicationRecord
+    validates :name, presence: true
 
-  def to_custom_hash
-    {name: name, id: id}
+    belongs_to :aker_process, class_name: 'Aker::Process', required: true
+
+    def to_custom_hash
+      { name: name, id: id, min_value: min_value, max_value: max_value }
+    end
   end
 end

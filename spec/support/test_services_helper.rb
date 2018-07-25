@@ -120,6 +120,7 @@ module TestServicesHelper
                                 id: made_up_uuid)
     allow(container).to receive(:material_id=)
     allow(container).to receive(:save)
+    allow(MatconClient::Container).to receive(:find).with(container.id).and_return(container)
     container
   end
 
@@ -130,8 +131,7 @@ module TestServicesHelper
                        parent_id: parent_id,
                        subproject?: is_sub,
                        project?: is_proj,
-                       node_uuid: SecureRandom.uuid,
-                       data_release_uuid: nil)
+                       node_uuid: SecureRandom.uuid)
     allow(StudyClient::Node).to receive(:find).with(n.id).and_return([n])
     n
   end
