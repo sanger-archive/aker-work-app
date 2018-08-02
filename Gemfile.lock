@@ -46,6 +46,12 @@ GIT
     aker-set-client (0.2.1)
 
 GIT
+  remote: https://github.com/sanger/aker-shared-navbar.git
+  revision: 799969a1cebd2d27da912c03249b80b631a66061
+  specs:
+    aker_shared_navbar (0.1.9)
+
+GIT
   remote: https://github.com/sanger/aker-stamp-client.git
   revision: 05e6fbe78ec9bb0fa36a898339cb2ca26d853048
   specs:
@@ -69,11 +75,6 @@ GIT
       addressable (~> 2.2)
       faraday (~> 0.9)
       faraday_middleware (~> 0.9)
-
-PATH
-  remote: ../gems/aker-navbar-gem
-  specs:
-    aker_shared_navbar (0.1.9)
 
 GEM
   remote: https://rubygems.org/
