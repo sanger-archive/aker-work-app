@@ -121,7 +121,7 @@ GEM
     amq-protocol (2.3.0)
     arel (8.0.0)
     ast (2.4.0)
-    autoprefixer-rails (9.0.2)
+    autoprefixer-rails (9.1.0)
       execjs
     axiom-types (0.1.1)
       descendants_tracker (~> 0.0.4)
@@ -306,7 +306,7 @@ GEM
     rb-fsevent (0.10.3)
     rb-inotify (0.9.10)
       ffi (>= 0.5.0, < 2)
-    react-rails (2.4.6)
+    react-rails (2.4.7)
       babel-transpiler (>= 0.7.0)
       connection_pool
       execjs
@@ -382,7 +382,7 @@ GEM
     sassc (1.12.1)
       ffi (~> 1.9.6)
       sass (>= 3.3.0)
-    selenium-webdriver (3.13.1)
+    selenium-webdriver (3.14.0)
       childprocess (~> 0.5)
       rubyzip (~> 1.2)
     sexp_processor (4.11.0)
