@@ -2,10 +2,12 @@
 
 module Api
   module V1
+    # JSONAPI resource defining a job
     class JobResource < JSONAPI::Resource
       attributes :uuid, :container_uuid, :work_order_id, :started, :completed, :cancelled, :broken,
                  :date_requested, :requested_by, :project_and_costcode, :product,
-                 :process_modules, :batch_size, :work_plan_comment, :priority, :barcode, :process
+                 :process_modules, :batch_size, :work_plan_comment, :priority, :barcode, :process,
+                 :set
 
       paginator :paged
 
@@ -52,13 +54,13 @@ module Api
              end)
 
       def self.sortable_fields(context)
-        super + [:"work_order.dispatch_date", :"work_order.id", :"work_plan.priority"]
+        super + %i[work_order.dispatch_date work_order.id work_plan.priority]
       end
 
       def self.apply_sort(records, order_options, context = {})
-        if order_options.has_key?("work_plan.priority")
-          records = records.prioritised(order_options["work_plan.priority"])
-          order_options.delete("work_plan.priority")
+        if order_options.key?('work_plan.priority')
+          records = records.prioritised(order_options['work_plan.priority'])
+          order_options.delete('work_plan.priority')
         end
         super(records, order_options, context)
       end
@@ -109,6 +111,10 @@ module Api
 
       def barcode
         @model.container.barcode
+      end
+
+      def set
+        @model&.set
       end
     end
   end
