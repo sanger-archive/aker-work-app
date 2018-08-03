@@ -68,7 +68,7 @@ RSpec.describe 'Api::V1::Jobs', type: :request do
       it 'returns the info for the job' do
         obtained_job = JSON.parse(response.body)
         expect(obtained_job['data']['id']).to eq(job.id.to_s)
-        expect(obtained_job['data']['attributes'].length).to eq(17)
+        expect(obtained_job['data']['attributes'].length).to eq(18)
         expect(obtained_job['data']['attributes']['uuid']).to eq(job.uuid)
         expect(obtained_job['data']['attributes']['work-order-id']).to eq(job.work_order_id)
         expect(obtained_job['data']['attributes']['container-uuid']).to eq(container.id)
@@ -79,7 +79,8 @@ RSpec.describe 'Api::V1::Jobs', type: :request do
         expect(obtained_job['data']['attributes']['date-requested'].to_datetime.to_i)
           .to eq(order.dispatch_date.to_datetime.to_i)
         expect(obtained_job['data']['attributes']['requested-by']).to eq(plan.owner_email)
-        expect(obtained_job['data']['attributes']['project-and-costcode']).to eq(project.name + " (#{project.cost_code})")
+        expect(obtained_job['data']['attributes']['project-and-costcode'])
+          .to eq(project.name + " (#{project.cost_code})")
         expect(obtained_job['data']['attributes']['product']).to eq(plan.product.name)
         expect(obtained_job['data']['attributes']['process-modules']).to eq('')
         expect(obtained_job['data']['attributes']['process']).to eq(job.work_order.process.name)
@@ -87,6 +88,7 @@ RSpec.describe 'Api::V1::Jobs', type: :request do
         expect(obtained_job['data']['attributes']['work-plan-comment']).to eq(plan.comment)
         expect(obtained_job['data']['attributes']['priority']).to eq(plan.priority)
         expect(obtained_job['data']['attributes']['barcode']).to eq(container.barcode)
+        expect(obtained_job['data']['attributes']['set']).to eq(job.set_uuid)
       end
     end
 
