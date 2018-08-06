@@ -203,7 +203,7 @@ class Job < ApplicationRecord
   end
 
   def job_url
-    Rails.application.config.urls[:work] + '/api/v1/jobs/' + self.id.to_s
+    Rails.application.config.urls[:work] + '/api/v1/jobs/' + id.to_s
   end
 
   def set
