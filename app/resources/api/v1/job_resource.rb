@@ -114,7 +114,7 @@ module Api
       end
 
       def set_uuid
-        @model.set&.uuid
+        @model&.set_uuid
       end
     end
   end
