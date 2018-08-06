@@ -88,7 +88,7 @@ RSpec.describe 'Api::V1::Jobs', type: :request do
         expect(obtained_job['data']['attributes']['work-plan-comment']).to eq(plan.comment)
         expect(obtained_job['data']['attributes']['priority']).to eq(plan.priority)
         expect(obtained_job['data']['attributes']['barcode']).to eq(container.barcode)
-        expect(obtained_job['data']['attributes']['set']).to eq(job.set_uuid)
+        expect(obtained_job['data']['attributes']['set_uuid']).to eq(job.set_uuid)
       end
     end
 
