@@ -7,7 +7,7 @@ module Api
       attributes :uuid, :container_uuid, :work_order_id, :started, :completed, :cancelled, :broken,
                  :date_requested, :requested_by, :project_and_costcode, :product,
                  :process_modules, :batch_size, :work_plan_comment, :priority, :barcode, :process,
-                 :set
+                 :set_uuid
 
       paginator :paged
 
@@ -113,8 +113,8 @@ module Api
         @model.container.barcode
       end
 
-      def set
-        @model&.set
+      def set_uuid
+        @model.set&.uuid
       end
     end
   end
