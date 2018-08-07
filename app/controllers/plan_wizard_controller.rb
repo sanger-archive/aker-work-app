@@ -41,7 +41,7 @@ class PlanWizardController < ApplicationController
   end
 
   def project
-    work_plan&.project
+    work_plan.decorate.project
   end
 
   def get_spendable_projects
@@ -88,14 +88,14 @@ class PlanWizardController < ApplicationController
       flash[:error] = "Please select an option to proceed"
       render_wizard
     elsif perform_step
-      render_wizard work_plan
+      render_wizard work_plan.decorate
     else
       render_wizard
     end
   end
 
   def nothing_to_update
-    @work_plan.in_construction? && !params[:work_plan]
+    work_plan.in_construction? && !params[:work_plan]
   end
 
   def perform_step

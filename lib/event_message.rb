@@ -68,7 +68,7 @@ end
 class WorkOrderEventMessage < EventMessage
   def initialize(params)
     # For Work Order message
-    @work_order = params.fetch(:work_order)
+    @work_order = params.fetch(:work_order).decorate
     @status = params.fetch(:status)
     @timestamp = Time.now.utc.iso8601
     @uuid = SecureRandom.uuid
@@ -76,7 +76,7 @@ class WorkOrderEventMessage < EventMessage
 
   # Generate the JSON for a Work Order event
   def generate_json
-    plan = @work_order.work_plan
+    plan = @work_order.work_plan.decorate
     project = plan.project
     product = plan.product
     process = @work_order.process
@@ -142,11 +142,7 @@ class WorkOrderEventMessage < EventMessage
   end
 
   def num_materials
-    if @work_order.set&.meta && @work_order.set.meta['size']
-      @work_order.set.meta['size']
-    else
-      0
-    end
+    @work_order.set_size || 0
   end
 
   def metadata_for_concluded
@@ -159,19 +155,15 @@ class WorkOrderEventMessage < EventMessage
   end
 
   def num_new_materials
-    if @work_order.finished_set&.meta && @work_order.finished_set.meta['size']
-      @work_order.finished_set.meta['size']
-    else
-      0
-    end
+    @work_order.finished_set_size || 0
   end
 
   def num_completed_jobs
-    @work_order.jobs.where.not(completed: nil).length
+    @work_order.jobs.object.completed.length
   end
 
   def num_cancelled_jobs
-    @work_order.jobs.where.not(cancelled: nil).length
+    @work_order.jobs.object.cancelled.length
   end
 
   # Information only required by the notifier can be added here which should be ignored by the

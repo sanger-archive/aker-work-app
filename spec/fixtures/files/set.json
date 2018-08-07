@@ -1,0 +1,15 @@
+{
+  "data": {
+    "id": "5c552c96-aa91-494c-a6cb-39d7fa168ad0",
+    "type": "sets",
+    "links": {
+      "self": "https://wip.aker.sanger.ac.uk/api/v1/sets/5c552c96-aa91-494c-a6cb-39d7fa168ad0"
+    },
+    "attributes": {
+      "name": "",
+      "owner_id": "rl15@sanger.ac.uk",
+      "created_at": "2018-08-07T09:06:28.961Z",
+      "locked": true
+    }
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "data": {
+    "id": "1",
+    "type": "nodes",
+    "links": {
+      "self": "https://wip.aker.sanger.ac.uk/api/v1/nodes/1"
+    },
+    "attributes": {
+      "name": "Institute Research QQ 2017-2021",
+      "cost-code": "S1234-1",
+      "description": null,
+      "node-uuid": "4e05ab57-2548-4479-a76a-59d45b47637c",
+      "writable": null,
+      "updated-at": "2018-07-18T09:47:29.392+01:00",
+      "created-at": "2018-07-18T09:47:29.392+01:00",
+      "owned-by-current-user": null,
+      "editable-by-current-user": false,
+      "is-project-node": false,
+      "is-sub-project-node": false,
+      "parent-id": null,
+      "spendable-by-current-user": false
+    },
+    "relationships": {
+      "nodes": {
+        "links": {
+          "self": "https://wip.aker.sanger.ac.uk/api/v1/nodes/1/relationships/nodes",
+          "related": "https://wip.aker.sanger.ac.uk/api/v1/nodes/1/nodes"
+        }
+      },
+      "permissions": {
+        "links": {
+          "self": "https://wip.aker.sanger.ac.uk/api/v1/nodes/1/relationships/permissions",
+          "related": "https://wip.aker.sanger.ac.uk/api/v1/nodes/1/permissions"
+        }
+      },
+      "parent": {
+        "links": {
+          "self": "https://wip.aker.sanger.ac.uk/api/v1/nodes/1/relationships/parent",
+          "related": "https://wip.aker.sanger.ac.uk/api/v1/nodes/1/parent"
+        }
+      }
+    },
+    "meta": {
+      "active": true
+    }
+  }
+}

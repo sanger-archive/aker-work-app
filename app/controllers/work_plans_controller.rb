@@ -35,6 +35,8 @@ class WorkPlansController < ApplicationController
     redirect_to work_plans_path
   end
 
+private
+
   def work_plan
     @work_plan ||= WorkPlan.find(params[:id])
   end
