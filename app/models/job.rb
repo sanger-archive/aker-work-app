@@ -171,7 +171,7 @@ class Job < ApplicationRecord
     data_release_strategy_id = work_order.work_plan.data_release_strategy_id
 
     {
-      type: "jobs",
+      type: 'jobs',
       id: id,
       attributes: {
         job_id: id,
@@ -201,12 +201,12 @@ class Job < ApplicationRecord
   end
 
   def job_url
-    Rails.application.config.urls[:work]+'/api/v1/jobs/'+self.id.to_s
+    Rails.application.config.urls[:work] + '/api/v1/jobs/' + id.to_s
   end
 
   def set
     return nil unless set_uuid
-    return @set if @set&.uuid==set_uuid
+    return @set if @set&.uuid == set_uuid
     @set = SetClient::Set.find(set_uuid).first
   end
 end
