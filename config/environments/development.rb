@@ -66,8 +66,8 @@ Rails.application.configure do
   config.study_url = 'http://localhost:3300/api/v1'
   config.study_url_default_proxy = 'http://localhost:3300'
 
-  config.set_url = 'http://localhost:3001/api/v1'
-  config.set_url_default_proxy = 'http://localhost:3001'
+  config.set_url = 'http://localhost:3000/api/v1'
+  config.set_url_default_proxy = 'http://localhost:3000'
 
   config.material_url = 'http://localhost:5000'
 
@@ -108,7 +108,7 @@ Rails.application.configure do
                   projects: '',
                   work: '' }
 
-  config.sequencescape_url = 'http://localhost:3000'
+  config.sequencescape_url = 'http://dev.psd.sanger.ac.uk:6630'
 
   config.akerdev_email = ENV.fetch('USER', 'user') + '@sanger.ac.uk'
 end
