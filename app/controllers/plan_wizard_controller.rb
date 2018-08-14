@@ -33,7 +33,7 @@ class PlanWizardController < ApplicationController
   end
 
   def work_plan
-    @work_plan ||= WorkPlan.find(params[:work_plan_id])
+    @work_plan ||= WorkPlan.find(params[:work_plan_id]).decorate
   end
 
   def get_my_sets
@@ -41,7 +41,7 @@ class PlanWizardController < ApplicationController
   end
 
   def project
-    work_plan.decorate.project
+    work_plan.project
   end
 
   def get_spendable_projects
@@ -88,7 +88,7 @@ class PlanWizardController < ApplicationController
       flash[:error] = "Please select an option to proceed"
       render_wizard
     elsif perform_step
-      render_wizard work_plan.decorate
+      render_wizard work_plan
     else
       render_wizard
     end
