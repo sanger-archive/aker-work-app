@@ -3,7 +3,6 @@
 FactoryBot.define do
   factory :job do
     work_order
-    uuid { SecureRandom.uuid }
 
     trait :started do
       started 2.weeks.ago
