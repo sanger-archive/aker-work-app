@@ -115,12 +115,4 @@ class Job < ApplicationRecord
     'queued'
   end
 
-  def materials?(uuids)
-    return true if uuids.empty?
-    uuids_from_job = materials.map(&:id)
-    return false if uuids_from_job.empty?
-    uuids.all? do |uuid|
-      uuids_from_job.include?(uuid)
-    end
-  end
 end
