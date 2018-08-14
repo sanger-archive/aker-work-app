@@ -110,7 +110,7 @@ module Api
       end
 
       def barcode
-        model.container.barcode
+        model&.container&.barcode
       end
 
       def input_set_uuid

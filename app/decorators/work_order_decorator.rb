@@ -41,9 +41,9 @@ class WorkOrderDecorator < Draper::Decorator
   def create_editable_set
     raise "Work order already has input set" if set_uuid?
     raise "Work order has no original set" unless original_set_uuid?
-    set = original_set.create_unlocked_clone(name)
+    self.set = original_set.create_unlocked_clone(name)
     save!
-    set
+    self.set
   end
 
 end
