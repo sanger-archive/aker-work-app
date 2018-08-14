@@ -65,6 +65,10 @@ RSpec.describe 'WorkOrderSplitter' do
       expect(work_order.jobs.second.input_set_uuid).to eql("28d7c0e2-9935-41b1-a806-e9b22324d42d")
     end
 
+    it 'returns the Work Order' do
+      expect(splitter.split(work_order)).to be work_order
+    end
+
     context 'when it fails half way through' do
 
       before :each do

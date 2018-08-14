@@ -42,7 +42,7 @@ module WorkOrderSplitter
         return false
       end
 
-      return true
+      return work_order
     end
 
   protected
