@@ -2,13 +2,14 @@ require 'spec_helper'
 
 RSpec.shared_examples "linkable_to_projects" do |attributes|
 
+  let(:project) { double("StudyClient::Node", id: 1) }
   let(:model) { create(model_name) }
   let(:decorated_model) { model.decorate }
 
   # For the test descriptions, assume the attribute is "project_id"
   attributes.each do |attribute|
 
-    describe "Link #{attribute} to Container" do
+    describe "Link #{attribute} to Project" do
 
       before do
         @stripped_attribute = attribute.to_s.sub(/_id/, '')
@@ -32,6 +33,22 @@ RSpec.shared_examples "linkable_to_projects" do |attributes|
           it 'returns a StudyClient::Node' do
             expect(decorated_model.send(@stripped_attribute)).to be_instance_of(StudyClient::Node)
           end
+        end
+
+      end
+
+      describe '#project=' do
+
+        before do
+          decorated_model.send("#{@stripped_attribute}=", project)
+        end
+
+        it 'sets project_id to project.id' do
+          expect(decorated_model.send(attribute)).to eql(project.id)
+        end
+
+        it 'sets the @project instance variable' do
+          expect(decorated_model.send(@stripped_attribute)).to eq(project)
         end
 
       end
