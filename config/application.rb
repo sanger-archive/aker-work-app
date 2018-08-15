@@ -8,6 +8,9 @@ Bundler.require(*Rails.groups)
 
 module WorkOrders
   class Application < Rails::Application
+
+    config.load_defaults 5.0
+
     config.generators do |g|
       g.test_framework :rspec,
                        fixtures: true,

@@ -1,0 +1,68 @@
+{
+  "properties": {
+    "barcode": {
+      "minlength": 6,
+      "non_aker_barcode": true,
+      "type": "string",
+      "unique": true
+    },
+    "col_is_alpha": {
+      "required": true,
+      "type": "boolean"
+    },
+    "num_of_cols": {
+      "col_alpha_range": true,
+      "max": 9999,
+      "min": 1,
+      "required": true,
+      "type": "integer"
+    },
+    "num_of_rows": {
+      "max": 9999,
+      "min": 1,
+      "required": true,
+      "row_alpha_range": true,
+      "type": "integer"
+    },
+    "print_count": {
+      "max": 9999,
+      "min": 0,
+      "required": false,
+      "type": "integer"
+    },
+    "row_is_alpha": {
+      "required": true,
+      "type": "boolean"
+    },
+    "slots": {
+      "schema": {
+        "schema": {
+          "address": {
+            "address": true,
+            "type": "string"
+          },
+          "material": {
+            "data_relation": {
+              "embeddable": true,
+              "field": "_id",
+              "resource": "materials"
+            },
+            "type": "uuid"
+          }
+        },
+        "type": "dict"
+      },
+      "type": "list",
+      "uniqueaddresses": true
+    }
+  },
+  "required": [
+    "num_of_cols",
+    "num_of_rows",
+    "col_is_alpha",
+    "row_is_alpha"
+  ],
+  "searchable": [],
+  "show_on_form": [],
+  "type": "object"
+}

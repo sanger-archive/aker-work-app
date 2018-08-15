@@ -79,39 +79,47 @@ GIT
 GEM
   remote: https://rubygems.org/
   specs:
-    actioncable (5.1.6)
-      actionpack (= 5.1.6)
+    actioncable (5.2.0)
+      actionpack (= 5.2.0)
       nio4r (~> 2.0)
-      websocket-driver (~> 0.6.1)
-    actionmailer (5.1.6)
-      actionpack (= 5.1.6)
-      actionview (= 5.1.6)
-      activejob (= 5.1.6)
+      websocket-driver (>= 0.6.1)
+    actionmailer (5.2.0)
+      actionpack (= 5.2.0)
+      actionview (= 5.2.0)
+      activejob (= 5.2.0)
       mail (~> 2.5, >= 2.5.4)
       rails-dom-testing (~> 2.0)
-    actionpack (5.1.6)
-      actionview (= 5.1.6)
-      activesupport (= 5.1.6)
+    actionpack (5.2.0)
+      actionview (= 5.2.0)
+      activesupport (= 5.2.0)
       rack (~> 2.0)
       rack-test (>= 0.6.3)
       rails-dom-testing (~> 2.0)
       rails-html-sanitizer (~> 1.0, >= 1.0.2)
-    actionview (5.1.6)
-      activesupport (= 5.1.6)
+    actionview (5.2.0)
+      activesupport (= 5.2.0)
       builder (~> 3.1)
       erubi (~> 1.4)
       rails-dom-testing (~> 2.0)
       rails-html-sanitizer (~> 1.0, >= 1.0.3)
-    activejob (5.1.6)
-      activesupport (= 5.1.6)
+    activejob (5.2.0)
+      activesupport (= 5.2.0)
       globalid (>= 0.3.6)
-    activemodel (5.1.6)
-      activesupport (= 5.1.6)
-    activerecord (5.1.6)
-      activemodel (= 5.1.6)
-      activesupport (= 5.1.6)
-      arel (~> 8.0)
-    activesupport (5.1.6)
+    activemodel (5.2.0)
+      activesupport (= 5.2.0)
+    activemodel-serializers-xml (1.0.2)
+      activemodel (> 5.x)
+      activesupport (> 5.x)
+      builder (~> 3.1)
+    activerecord (5.2.0)
+      activemodel (= 5.2.0)
+      activesupport (= 5.2.0)
+      arel (>= 9.0)
+    activestorage (5.2.0)
+      actionpack (= 5.2.0)
+      activerecord (= 5.2.0)
+      marcel (~> 0.3.1)
+    activesupport (5.2.0)
       concurrent-ruby (~> 1.0, >= 1.0.2)
       i18n (>= 0.7, < 2)
       minitest (~> 5.1)
@@ -119,7 +127,7 @@ GEM
     addressable (2.5.2)
       public_suffix (>= 2.0.2, < 4.0)
     amq-protocol (2.3.0)
-    arel (8.0.0)
+    arel (9.0.0)
     ast (2.4.0)
     autoprefixer-rails (9.1.0)
       execjs
@@ -132,6 +140,8 @@ GEM
       babel-source (>= 4.0, < 6)
       execjs (~> 2.0)
     bindex (0.5.0)
+    bootsnap (1.3.1)
+      msgpack (~> 1.0)
     bootstrap_form (2.7.0)
     brakeman (4.3.1)
     builder (3.2.3)
@@ -171,6 +181,12 @@ GEM
       thread_safe (~> 0.3, >= 0.3.1)
     diff-lcs (1.3)
     docile (1.3.1)
+    draper (3.0.1)
+      actionpack (~> 5.0)
+      activemodel (~> 5.0)
+      activemodel-serializers-xml (~> 1.0)
+      activesupport (~> 5.0)
+      request_store (~> 1.0)
     ejs (1.1.1)
     equalizer (0.0.11)
     erubi (1.7.1)
@@ -244,10 +260,14 @@ GEM
       systemu (~> 2.6.2)
     mail (2.7.0)
       mini_mime (>= 0.1.1)
+    marcel (0.3.2)
+      mimemagic (~> 0.3.2)
     method_source (0.9.0)
+    mimemagic (0.3.2)
     mini_mime (1.0.0)
     mini_portile2 (2.3.0)
     minitest (5.11.3)
+    msgpack (1.2.4)
     multi_json (1.13.1)
     multipart-post (2.0.0)
     net-ldap (0.16.1)
@@ -277,26 +297,27 @@ GEM
       rack
     rack-test (1.1.0)
       rack (>= 1.0, < 3)
-    rails (5.1.6)
-      actioncable (= 5.1.6)
-      actionmailer (= 5.1.6)
-      actionpack (= 5.1.6)
-      actionview (= 5.1.6)
-      activejob (= 5.1.6)
-      activemodel (= 5.1.6)
-      activerecord (= 5.1.6)
-      activesupport (= 5.1.6)
+    rails (5.2.0)
+      actioncable (= 5.2.0)
+      actionmailer (= 5.2.0)
+      actionpack (= 5.2.0)
+      actionview (= 5.2.0)
+      activejob (= 5.2.0)
+      activemodel (= 5.2.0)
+      activerecord (= 5.2.0)
+      activestorage (= 5.2.0)
+      activesupport (= 5.2.0)
       bundler (>= 1.3.0)
-      railties (= 5.1.6)
+      railties (= 5.2.0)
       sprockets-rails (>= 2.0.0)
     rails-dom-testing (2.0.3)
       activesupport (>= 4.2.0)
       nokogiri (>= 1.6)
     rails-html-sanitizer (1.0.4)
       loofah (~> 2.2, >= 2.2.2)
-    railties (5.1.6)
-      actionpack (= 5.1.6)
-      activesupport (= 5.1.6)
+    railties (5.2.0)
+      actionpack (= 5.2.0)
+      activesupport (= 5.2.0)
       method_source
       rake (>= 0.8.7)
       thor (>= 0.18.1, < 2.0)
@@ -321,7 +342,7 @@ GEM
       rack (>= 1.4)
     rspec-core (3.8.0)
       rspec-support (~> 3.8.0)
-    rspec-expectations (3.8.0)
+    rspec-expectations (3.8.1)
       diff-lcs (>= 1.2.0, < 2.0)
       rspec-support (~> 3.8.0)
     rspec-json_expectations (2.1.0)
@@ -445,7 +466,7 @@ GEM
       railties (>= 4.2)
     webpacker-react (0.3.2)
       webpacker
-    websocket-driver (0.6.5)
+    websocket-driver (0.7.0)
       websocket-extensions (>= 0.1.0)
     websocket-extensions (0.1.3)
     wicked (1.3.3)
@@ -464,6 +485,7 @@ DEPENDENCIES
   aker_permission_gem!
   aker_shared_navbar!
   aker_stamp_client!
+  bootsnap
   bootstrap-sass (~> 3.3.6)!
   bootstrap_form
   brakeman
@@ -472,6 +494,7 @@ DEPENDENCIES
   capybara
   coffee-rails (~> 4.2)
   database_cleaner
+  draper
   ejs
   factory_bot_rails
   faraday
@@ -496,7 +519,7 @@ DEPENDENCIES
   pry-rails (~> 0.3.6)
   puma (~> 3.0)
   rack-cors
-  rails (~> 5.1.0)
+  rails (~> 5.2)
   react-rails
   request_store
   rspec-json_expectations
@@ -525,4 +548,4 @@ DEPENDENCIES
   wicked
 
 BUNDLED WITH
-   1.16.2
+   1.16.3

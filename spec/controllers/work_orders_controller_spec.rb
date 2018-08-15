@@ -84,7 +84,7 @@ RSpec.describe WorkOrdersController, type: :controller do
 
     context 'when the new set cannot be created' do
       def setup
-        allow_any_instance_of(WorkOrder).to receive(:create_editable_set).and_raise("Kaboom")
+        allow_any_instance_of(WorkOrderDecorator).to receive(:create_editable_set).and_raise("Kaboom")
       end
       it 'should produce an error' do
         expect(data[:error]).to eq("The new set could not be created.")
@@ -98,8 +98,9 @@ RSpec.describe WorkOrdersController, type: :controller do
       end
 
       def setup
-        allow_any_instance_of(WorkOrder).to receive(:create_editable_set).and_return(new_set)
+        allow_any_instance_of(WorkOrderDecorator).to receive(:create_editable_set).and_return(new_set)
       end
+
       it 'should not produce an error' do
         expect(data[:error]).to be_nil
       end

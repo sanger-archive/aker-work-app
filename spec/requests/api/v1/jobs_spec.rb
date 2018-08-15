@@ -17,6 +17,7 @@ RSpec.describe 'Api::V1::Jobs', type: :request do
       }
     }.to_json
   end
+  let(:input_set) { double(SetClient::Set, uuid: SecureRandom.uuid, meta: { size: 10 })}
 
   def mock_set_creation
     mocked_set = double('set', id: 'some_id')
@@ -52,9 +53,11 @@ RSpec.describe 'Api::V1::Jobs', type: :request do
                work_plan_id: plan.id
       end
       let(:container) { make_container }
-      let(:job) { create :job, work_order: order, container_uuid: container.id }
+      let(:job_model) { create :job, work_order: order, container_uuid: container.id, input_set_uuid: input_set.uuid }
+      let(:job) { job_model.decorate }
 
       before do
+        allow_any_instance_of(JobDecorator).to receive(:input_set_size).and_return(10)
         get api_v1_job_path(job), headers: headers
       end
       it 'returns a 200' do
@@ -68,7 +71,6 @@ RSpec.describe 'Api::V1::Jobs', type: :request do
       it 'returns the info for the job' do
         obtained_job = JSON.parse(response.body)
         expect(obtained_job['data']['id']).to eq(job.id.to_s)
-        expect(obtained_job['data']['attributes'].length).to eq(18)
         expect(obtained_job['data']['attributes']['uuid']).to eq(job.uuid)
         expect(obtained_job['data']['attributes']['work-order-id']).to eq(job.work_order_id)
         expect(obtained_job['data']['attributes']['container-uuid']).to eq(container.id)
@@ -84,11 +86,12 @@ RSpec.describe 'Api::V1::Jobs', type: :request do
         expect(obtained_job['data']['attributes']['product']).to eq(plan.product.name)
         expect(obtained_job['data']['attributes']['process-modules']).to eq('')
         expect(obtained_job['data']['attributes']['process']).to eq(job.work_order.process.name)
-        expect(obtained_job['data']['attributes']['batch-size']).to eq(0)
+        expect(obtained_job['data']['attributes']['batch-size']).to eq(10)
         expect(obtained_job['data']['attributes']['work-plan-comment']).to eq(plan.comment)
         expect(obtained_job['data']['attributes']['priority']).to eq(plan.priority)
         expect(obtained_job['data']['attributes']['barcode']).to eq(container.barcode)
         expect(obtained_job['data']['attributes']['set_uuid']).to eq(job.set_uuid)
+        expect(obtained_job['data']['attributes']['input-set-uuid']).to eq(job.input_set_uuid)
       end
     end
 

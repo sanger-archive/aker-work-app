@@ -852,9 +852,10 @@ RSpec.describe UpdatePlanService do
       @sent_to_lims = false
       @sent_event = false
       @finalised_set = false
-      allow_any_instance_of(WorkOrder).to receive(:send_to_lims) { @sent_to_lims = true }
+      allow_any_instance_of(WorkOrderDispatcher).to receive(:dispatch) { @sent_to_lims = true }
       allow_any_instance_of(WorkOrder).to receive(:generate_dispatched_event) { @sent_event = true }
-      allow_any_instance_of(WorkOrder).to receive(:finalise_set) { @finalised_set = true }
+      allow_any_instance_of(WorkOrderDecorator).to receive(:finalise_set) { @finalised_set = true }
+      allow_any_instance_of(WorkOrderSplitter::ByContainer).to receive(:split).with(plan.work_orders.first)
       stub_project
       stub_stamps
       stub_broker_connection
@@ -877,9 +878,6 @@ RSpec.describe UpdatePlanService do
         expect(modules[0]).to eq([processes[0].process_modules[1].id])
         expect(modules[1]).to eq([processes[1].process_modules[0].id])
       end
-      it 'should be active' do
-        expect(plan.reload).to be_active
-      end
       it 'should have finalised the set' do
         expect(@finalised_set).to eq(true)
       end
@@ -888,12 +886,6 @@ RSpec.describe UpdatePlanService do
       end
       it 'should have generated an event' do
         expect(@sent_event).to eq(true)
-      end
-      it 'should have made the order active' do
-        expect(orders[0].reload).to be_active
-      end
-      it 'should have a dispatch date' do
-        expect(orders[0].reload.dispatch_date).not_to be_nil
       end
       it 'should have a comment' do
         expect(plan.reload.comment).to eq 'a comment'
@@ -1135,20 +1127,6 @@ RSpec.describe UpdatePlanService do
         expect(@sent_to_lims).to eq(false)
       end
     end
-
-    context 'when send_to_lims fails' do
-      let(:order) { orders[0] }
-      def extra_stubbing
-        super
-        allow(WorkOrder).to receive(:find).with(order.id).and_return(order)
-        allow(order).to receive(:send_to_lims).and_raise('error')
-        allow(order).to receive(:rollback_materials_availability)
-      end
-
-      it 'rollsback the materials availability' do
-        expect(order).to have_received(:rollback_materials_availability)
-      end
-    end
   end
 
   describe 'dispatching a subsequent order' do
@@ -1170,7 +1148,8 @@ RSpec.describe UpdatePlanService do
     def extra_stubbing
       @sent_to_lims = false
       @sent_event = false
-      allow_any_instance_of(WorkOrder).to receive(:send_to_lims) { @sent_to_lims = true }
+      allow_any_instance_of(WorkOrderDispatcher).to receive(:dispatch) { @sent_to_lims = true }
+      allow_any_instance_of(WorkOrderSplitter::ByContainer).to receive(:split).with(plan.work_orders.second)
       allow_any_instance_of(WorkOrder).to receive(:generate_dispatched_event) { @sent_event = true }
       stub_project
       stub_stamps
@@ -1431,13 +1410,6 @@ RSpec.describe UpdatePlanService do
       it 'should have generated an event' do
         expect(@sent_event).to eq(true)
       end
-      it 'should have changed the order status' do
-        expect(orders[1].reload).to be_active
-      end
-      it 'should have changed the dispatch date' do
-        expect(orders[1].reload.dispatch_date).not_to be_nil
-      end
-
     end
   end
 end
