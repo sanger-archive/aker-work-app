@@ -121,8 +121,6 @@ module ExternalRequests
     end
     module_function :create_set
 
-    private
-
     def set_client
       SetClient::Set
     end
@@ -134,7 +132,7 @@ module ExternalRequests
     module_function :material_client
 
     def container_client
-      MatconClient::Container
+      ExternalRequests::Containers.container_client
     end
     module_function :container_client
 

@@ -47,10 +47,10 @@ RSpec.describe 'WorkOrderSplitter::ByContainer' do
     @bc = WorkOrderSplitter::ByContainer.new
   end
 
-  describe '#splits' do
+  describe '#with_each_split' do
 
     it 'yields materials by container' do
-      expect { |b| @bc.splits(work_order.decorate, &b) }.to yield_successive_args(first_container_uuids, second_container_uuids)
+      expect { |b| @bc.with_each_split(work_order.decorate, &b) }.to yield_successive_args(first_container_uuids, second_container_uuids)
     end
 
   end

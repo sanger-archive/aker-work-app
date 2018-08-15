@@ -5,7 +5,7 @@ module WorkOrderSplitter
 
     attr_reader :container
 
-    def splits(work_order)
+    def with_each_split(work_order)
       work_order.set_containers.uniq.each do |container|
         @container = container
         yield container.material_ids & work_order.set_material_ids

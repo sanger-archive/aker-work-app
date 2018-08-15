@@ -16,7 +16,7 @@ module WorkOrderSplitter
     def split(work_order)
       begin
         ActiveRecord::Base.transaction do
-          splits(work_order.decorate) do |material_ids|
+          with_each_split(work_order.decorate) do |material_ids|
             # Create the job
             job = work_order.jobs.create!
             job = job.decorate
@@ -48,7 +48,7 @@ module WorkOrderSplitter
   protected
 
     # Expects template method to yield a list of material ids
-    def splits(work_order)
+    def with_each_split(work_order)
       raise NotImplementedError
     end
 

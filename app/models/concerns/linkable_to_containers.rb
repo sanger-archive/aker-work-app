@@ -42,12 +42,10 @@ end
 module ExternalRequests
   module Containers
 
-    def find_container(container)
-      container_client.find(container)
+    def find_container(container_uuid)
+      container_client.find(container_uuid)
     end
     module_function :find_container
-
-    private
 
     def container_client
       MatconClient::Container

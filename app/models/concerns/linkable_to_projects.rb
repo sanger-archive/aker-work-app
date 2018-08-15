@@ -44,8 +44,6 @@ module ExternalRequests
     end
     module_function :find_project
 
-    private
-
     def study_client
       StudyClient::Node
     end
