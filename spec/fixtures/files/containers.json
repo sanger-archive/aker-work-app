@@ -1,0 +1,407 @@
+{
+    "_items": [
+        {
+            "_updated": "Tue, 07 Aug 2018 09:02:08 GMT",
+            "num_of_cols": 12,
+            "barcode": "AKER-717",
+            "num_of_rows": 8,
+            "col_is_alpha": false,
+            "print_count": 0,
+            "_created": "Tue, 07 Aug 2018 09:02:08 GMT",
+            "row_is_alpha": true,
+            "_id": "81ed8fa3-6bcd-484d-ace8-e5aaf83b7d4c",
+            "slots": [
+                {
+                    "material": "c1c5783a-372d-46ce-89a7-535d032f6b92",
+                    "address": "A:1"
+                },
+                {
+                    "material": "5361dba4-8806-4159-8764-fcc880da0116",
+                    "address": "A:2"
+                },
+                {
+                    "material": "06816dc3-f68e-4491-9b24-36a00e79133e",
+                    "address": "A:3"
+                },
+                {
+                    "material": "28f7ceec-dd35-4628-ad7b-fa245d58a1fa",
+                    "address": "A:4"
+                },
+                {
+                    "material": "44471166-f508-48fc-bd54-5f637d9e698d",
+                    "address": "A:5"
+                },
+                {
+                    "material": "fe74358f-7e56-4aec-907e-3740c6680daa",
+                    "address": "A:6"
+                },
+                {
+                    "material": "e2c08bdc-6b8b-4960-8fc2-05f26b1ee061",
+                    "address": "A:7"
+                },
+                {
+                    "material": "2a02ba59-941d-45ce-8b2c-0a200efb401f",
+                    "address": "A:8"
+                },
+                {
+                    "material": "c916a837-cc1f-4b58-8572-ebbd00f55096",
+                    "address": "A:9"
+                },
+                {
+                    "material": "2986420b-b2c9-49d0-b872-b66dcb062ebc",
+                    "address": "A:10"
+                },
+                {
+                    "material": "afb1d1c8-ac3f-4c38-b8bd-e694a9733f49",
+                    "address": "A:11"
+                },
+                {
+                    "material": "df6b542c-4623-42b3-821e-b618fba5dc26",
+                    "address": "A:12"
+                },
+                {
+                    "material": "d2c01fb6-689e-4717-b55e-ef7640dec797",
+                    "address": "B:1"
+                },
+                {
+                    "material": "5c629d33-f7ff-4469-ab4a-123ed99c956b",
+                    "address": "B:2"
+                },
+                {
+                    "material": "fa3b6d97-8cbf-4e56-8dde-a5c9e9e892eb",
+                    "address": "B:3"
+                },
+                {
+                    "material": "922fbcdb-ab59-4e4a-bb6f-6261faaa0323",
+                    "address": "B:4"
+                },
+                {
+                    "material": "d737b583-af66-4f0c-bc52-ab1093ea7b3d",
+                    "address": "B:5"
+                },
+                {
+                    "material": "707b5568-07cc-474b-9b79-2b00ccae973b",
+                    "address": "B:6"
+                },
+                {
+                    "material": "46bec02d-ad8c-49d9-ac49-9fb7b054677d",
+                    "address": "B:7"
+                },
+                {
+                    "material": "1fb9e304-6a75-4e76-8f76-18c113fe98a4",
+                    "address": "B:8"
+                },
+                {
+                    "material": "6504b860-aac0-4e87-a213-3142dc60a8f2",
+                    "address": "B:9"
+                },
+                {
+                    "material": "18a4f830-1a9a-4fa5-bca1-d9540a39fa67",
+                    "address": "B:10"
+                },
+                {
+                    "material": "8dcfbadb-05d5-4ea1-8293-85d28cd308fd",
+                    "address": "B:11"
+                },
+                {
+                    "material": "57b6351c-148a-41c0-893e-4d77ddbe46ca",
+                    "address": "B:12"
+                },
+                {
+                    "material": "60bec09f-e1bf-44c5-b36e-13633bf193d4",
+                    "address": "C:1"
+                },
+                {
+                    "material": "e9e2ac13-d8bf-4a6a-a051-5bf0d23c0a6f",
+                    "address": "C:2"
+                },
+                {
+                    "material": "8681c8d2-84e3-46d8-9e9f-1e9affca2a72",
+                    "address": "C:3"
+                },
+                {
+                    "material": "db0f4348-f745-4140-a0b4-581e71260277",
+                    "address": "C:4"
+                },
+                {
+                    "material": "030a06d1-0309-4fb0-8c7f-571d5c8dcebc",
+                    "address": "C:5"
+                },
+                {
+                    "material": "b4ac6051-3309-4422-b943-692679dd81d1",
+                    "address": "C:6"
+                },
+                {
+                    "material": "d0ddff9e-e83c-491b-8312-a83ee42bd6a2",
+                    "address": "C:7"
+                },
+                {
+                    "material": "cb9131f3-7a17-458a-aac7-099e3c79407e",
+                    "address": "C:8"
+                },
+                {
+                    "material": "98c01211-4186-4702-9d63-15970dfce203",
+                    "address": "C:9"
+                },
+                {
+                    "material": "cab7ae36-baf6-4864-a76f-861a38a402d4",
+                    "address": "C:10"
+                },
+                {
+                    "material": "5244eaf8-05f0-430f-94d5-768b258a681b",
+                    "address": "C:11"
+                },
+                {
+                    "material": "18852206-ec89-4124-a962-5c3817ab3a6b",
+                    "address": "C:12"
+                },
+                {
+                    "material": "a3f21ee1-c9b4-44b6-b90a-f6749f46c565",
+                    "address": "D:1"
+                },
+                {
+                    "material": "9cbdd137-1975-4f24-984d-0268f32e06de",
+                    "address": "D:2"
+                },
+                {
+                    "material": "dccbd041-4e7a-440a-aba2-2f57e1f2ccf1",
+                    "address": "D:3"
+                },
+                {
+                    "material": "78320a5f-e5e7-4866-bd63-7dbf67df6f2c",
+                    "address": "D:4"
+                },
+                {
+                    "material": "b95dcc22-e0e9-45d4-ac2d-788095475a57",
+                    "address": "D:5"
+                },
+                {
+                    "material": "80664f54-294c-47dd-869c-5dd372fdf61c",
+                    "address": "D:6"
+                },
+                {
+                    "material": "60b6c18c-20eb-43c7-bc8b-4d8370b4c63a",
+                    "address": "D:7"
+                },
+                {
+                    "material": "c36c2440-b2a6-4ebe-8561-32d7de9c24a4",
+                    "address": "D:8"
+                },
+                {
+                    "material": "14520f07-589b-4faf-baf1-fa87869e5721",
+                    "address": "D:9"
+                },
+                {
+                    "material": "3c342347-d6ee-430c-ac22-2d4ce66aee0e",
+                    "address": "D:10"
+                },
+                {
+                    "material": "56e1c344-946c-438e-b31a-e486a53a75bb",
+                    "address": "D:11"
+                },
+                {
+                    "material": "614e5bef-a72d-4444-83e0-2f1c467d0336",
+                    "address": "D:12"
+                },
+                {
+                    "material": "3d025164-da32-471d-89e8-d3335803de56",
+                    "address": "E:1"
+                },
+                {
+                    "material": "ffb4f157-8caa-448c-803d-e27a6efd66f3",
+                    "address": "E:2"
+                },
+                {
+                    "material": "0da6e13f-688a-459c-bf40-a341788662b4",
+                    "address": "E:3"
+                },
+                {
+                    "material": "ae84ef8d-6167-43c8-b9d9-a8922952ffd4",
+                    "address": "E:4"
+                },
+                {
+                    "material": "f83808dd-af5a-4557-963b-ac10dd6cd390",
+                    "address": "E:5"
+                },
+                {
+                    "material": "843ec3c9-1e63-4cda-abf6-32bac1189888",
+                    "address": "E:6"
+                },
+                {
+                    "material": "c196721b-9d89-44aa-9aaa-c176cdc8c262",
+                    "address": "E:7"
+                },
+                {
+                    "material": "31cd7b41-eb88-45cc-8288-8b63e8e0cc99",
+                    "address": "E:8"
+                },
+                {
+                    "material": "262dbeea-a139-44bf-8daa-3a6d4b342f02",
+                    "address": "E:9"
+                },
+                {
+                    "material": "7d6a8a95-6890-43c7-b4e3-6bd475c63fe3",
+                    "address": "E:10"
+                },
+                {
+                    "material": "d77d883b-5cd1-4d1b-b0de-e5ec58233692",
+                    "address": "E:11"
+                },
+                {
+                    "material": "95dfe459-f042-4890-8dcc-8282dcd1433f",
+                    "address": "E:12"
+                },
+                {
+                    "material": "d2737274-f8a2-4c3c-81b5-cbc72b186648",
+                    "address": "F:1"
+                },
+                {
+                    "material": "d8ba0758-1ee8-4aaf-81ee-7e8f0a6c7260",
+                    "address": "F:2"
+                },
+                {
+                    "material": "c786809f-36d7-47c2-bf62-274533c1f453",
+                    "address": "F:3"
+                },
+                {
+                    "material": "1341c67e-a88e-4476-9b7b-d53b1e5fb0ec",
+                    "address": "F:4"
+                },
+                {
+                    "material": "5c7e534a-e069-4c0d-b9e0-80f1a8a9fa35",
+                    "address": "F:5"
+                },
+                {
+                    "material": "1a32ba27-1b96-4d2c-96dc-288eff0cf87d",
+                    "address": "F:6"
+                },
+                {
+                    "material": "ac77afeb-37ed-42b4-8e11-fd7b51f420f8",
+                    "address": "F:7"
+                },
+                {
+                    "material": "0a11302b-2ad6-469a-82c0-78b9c085f9f0",
+                    "address": "F:8"
+                },
+                {
+                    "material": "5d3d41de-35e5-4338-aad1-57ead35c1a43",
+                    "address": "F:9"
+                },
+                {
+                    "material": "708f255e-c75f-486e-8ecc-7c56459f8c76",
+                    "address": "F:10"
+                },
+                {
+                    "material": "2ff60e23-c404-49c2-a1ae-aeac71bbebf5",
+                    "address": "F:11"
+                },
+                {
+                    "material": "13449bb3-1a82-4ddc-9969-db6de5f20b9e",
+                    "address": "F:12"
+                },
+                {
+                    "material": "979087be-331a-43b2-9450-302665bbe39e",
+                    "address": "G:1"
+                },
+                {
+                    "material": "056ee9c0-0a9d-4213-bb68-0aacbc53653b",
+                    "address": "G:2"
+                },
+                {
+                    "material": "086a5a64-4444-4e59-a80f-e3f4c4d42ded",
+                    "address": "G:3"
+                },
+                {
+                    "material": "7364562a-fcf7-4144-92d8-09172150d381",
+                    "address": "G:4"
+                },
+                {
+                    "material": "3b598a1d-5bb6-45e5-b7f0-f5e0364c2df0",
+                    "address": "G:5"
+                },
+                {
+                    "material": "3d7e2d91-0459-4e6b-9411-343b3e1940ec",
+                    "address": "G:6"
+                },
+                {
+                    "material": "88b0b19c-e2cc-4666-a6bf-a6af6ca6ead4",
+                    "address": "G:7"
+                },
+                {
+                    "material": "9dce57a5-67a8-4796-a51e-fff244734c30",
+                    "address": "G:8"
+                },
+                {
+                    "material": "1ca42984-3e9d-4610-b693-87c2dccac30f",
+                    "address": "G:9"
+                },
+                {
+                    "material": "e0ad18a2-ca8f-43dd-b62f-1fa51707a0a1",
+                    "address": "G:10"
+                },
+                {
+                    "material": "2e9b1800-9294-4246-bcd4-5027b0b27cf9",
+                    "address": "G:11"
+                },
+                {
+                    "material": "38836274-148c-4ae4-a8f6-ba08fa02bf30",
+                    "address": "G:12"
+                },
+                {
+                    "material": "41c86717-93fb-4e55-abf7-a793a0e8ef3e",
+                    "address": "H:1"
+                },
+                {
+                    "material": "01cb5442-f7f1-4247-813e-8e7693b0b17d",
+                    "address": "H:2"
+                },
+                {
+                    "material": "21c4dbf7-874f-45c0-bb72-3c1069ffab61",
+                    "address": "H:3"
+                },
+                {
+                    "material": "a7d3b937-ec24-449b-8552-42bca87ab44a",
+                    "address": "H:4"
+                },
+                {
+                    "material": "8cda4997-44a6-4506-87e8-a737d8f03b08",
+                    "address": "H:5"
+                },
+                {
+                    "material": "493c6b92-72c4-4e61-8a0e-e6c9c647224c",
+                    "address": "H:6"
+                },
+                {
+                    "material": "bce3f7f2-c63c-4abe-8b8d-870dc7d87743",
+                    "address": "H:7"
+                },
+                {
+                    "material": "cbd8e889-13d9-4862-97bb-cb3dccb93e60",
+                    "address": "H:8"
+                },
+                {
+                    "material": "d4e48586-8367-44ab-a3b3-025112d317a8",
+                    "address": "H:9"
+                },
+                {
+                    "material": "c3a97280-d193-4670-9556-645062e10a11",
+                    "address": "H:10"
+                },
+                {
+                    "material": "082828d2-9635-4b7d-ba4c-46bddcb6692c",
+                    "address": "H:11"
+                },
+                {
+                    "material": "fe3d844f-b972-4c3b-970c-1cbc6f59f981",
+                    "address": "H:12"
+                }
+            ]
+        }
+    ],
+    "_links": {},
+    "_meta": {
+        "max_results": 0,
+        "total": 1,
+        "page": 1
+    }
+}

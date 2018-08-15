@@ -17,36 +17,6 @@ class WorkPlan < ApplicationRecord
     self.uuid ||= SecureRandom.uuid
   end
 
-  def project
-    return nil unless project_id
-    return @project if @project&.id==project_id
-    Rails.logger.debug "Loading project for work plan"
-    begin
-      @project = StudyClient::Node.find(project_id).first
-    rescue JsonApiClient::Errors::NotFound => e
-      Rails.logger.error "Loading project for work plan does not exist #{project_id}"
-      return nil
-    end
-  end
-
-  # This is the set chosen by the user that will be the "original set" for the first
-  #  work order (when that is created)
-  def original_set
-    return nil unless original_set_uuid
-    return @original_set if @original_set&.uuid==original_set_uuid
-    Rails.logger.debug "Loading original set for work plan"
-    begin
-      @original_set = SetClient::Set.find(original_set_uuid).first
-    rescue JsonApiClient::Errors::NotFound => e
-      Rails.logger.error "Loading set for work plan does not exist #{original_set_uuid}"
-      return nil
-    end
-  end
-
-  def num_original_samples
-    original_set && original_set.meta['size']
-  end
-
   # Convert owner email to lower case with no surrounding whitespace
   def sanitise_owner
     if owner_email

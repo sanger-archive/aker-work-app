@@ -60,7 +60,8 @@ class WorkOrdersController < ApplicationController
 private
 
   def work_order
-    @work_order ||= WorkOrder.find(params[:id])
+    wo = WorkOrder.find(params[:id])
+    @work_order ||= wo.decorate
   end
 
   helper_method :work_order
