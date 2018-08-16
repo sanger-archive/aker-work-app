@@ -99,8 +99,12 @@ class UpdatePlanService
             work_order_ids = @work_plan.work_orders.map(&:id)
             WorkOrderModuleChoice.where(work_order_id: work_order_ids).each(&:destroy)
             @work_plan.work_orders.each(&:destroy) # use individual destroy to trigger proper cleanup (e.g. permissions)
-            @work_plan.work_orders.object.reload
-            @work_plan.work_orders.clear # draper collectiondecorator does not refresh
+            if @work_plan.work_orders.respond_to? :reload
+              @work_plan.work_orders.reload
+            else
+              @work_plan.work_orders.object.reload
+              @work_plan.work_orders.clear # draper collectiondecorator does not refresh
+            end
           end
 
           if update_order

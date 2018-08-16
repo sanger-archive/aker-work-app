@@ -66,6 +66,8 @@ end
 
 # A message specific to a work order
 class WorkOrderEventMessage < EventMessage
+  attr_reader :status
+
   def initialize(params)
     # For Work Order message
     @work_order = params.fetch(:work_order).decorate
