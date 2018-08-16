@@ -44,6 +44,7 @@ module WorkOrderSplitter
         return false
       end
 
+      work_order.reload
       return true
     end
 
