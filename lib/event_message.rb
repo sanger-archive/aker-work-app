@@ -177,7 +177,7 @@ class WorkOrderEventMessage < EventMessage
     else
       {
         'work_plan_id' => plan.id,
-        'drs_study_code' => plan.data_release_strategy.study_code
+        'drs_study_code' => plan.data_release_strategy&.study_code
       }
     end
   end
