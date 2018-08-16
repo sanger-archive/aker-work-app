@@ -31,6 +31,8 @@ module WorkOrderSplitter
 
             after_create(job)
 
+            job.save!
+
             jobs << job
           end
 
@@ -43,7 +45,6 @@ module WorkOrderSplitter
         rollback
         return false
       end
-
       work_order.reload
       return true
     end
