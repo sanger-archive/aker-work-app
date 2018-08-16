@@ -98,7 +98,9 @@ class UpdatePlanService
             locked_set_uuid = @work_plan.work_orders.first.set_uuid
             work_order_ids = @work_plan.work_orders.map(&:id)
             WorkOrderModuleChoice.where(work_order_id: work_order_ids).each(&:destroy)
-            @work_plan.work_orders.destroy_all
+            @work_plan.work_orders.each(&:destroy) # use individual destroy to trigger proper cleanup (e.g. permissions)
+            @work_plan.work_orders.object.reload
+            @work_plan.work_orders.clear # draper collectiondecorator does not refresh
           end
 
           if update_order
