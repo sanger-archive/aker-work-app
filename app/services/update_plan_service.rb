@@ -133,6 +133,11 @@ class UpdatePlanService
 
       if dispatch_order_id
         return false unless send_order(dispatch_order_id)
+        # Now the order is final, we can send the work order queued events
+        unless @work_plan.sent_queued_events
+          @work_plan.work_orders.each { |wo| BrokerHandle.publish(WorkOrderEventMessage.new(work_order: wo, status: 'queued')) }
+          @work_plan.update_attributes!(sent_queued_events: true)
+        end
         generate_dispatched_event(dispatch_order_id)
       end
     end
@@ -422,8 +427,9 @@ private
     end
     work_order = WorkOrder.find(order_id)
 
-    if (work_order.jobs.size == 0)
-      work_order = work_order_splitter.split(work_order)
+    if work_order.jobs.size == 0 && !work_order_splitter.split(work_order)
+      add_error("The work order could not be split into jobs.")
+      return false
     end
 
     if work_order_dispatcher.dispatch(work_order)

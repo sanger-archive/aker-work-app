@@ -57,8 +57,6 @@ class WorkPlan < ApplicationRecord
       end
 
       work_orders.reload
-      # Leave the event broadcasting till last, because it won't be rolled back
-      work_orders.each { |wo| BrokerHandle.publish(WorkOrderEventMessage.new(work_order: wo, status: 'queued')) }
     end
   end
 
