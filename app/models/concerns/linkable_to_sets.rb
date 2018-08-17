@@ -132,7 +132,7 @@ module ExternalRequests
     module_function :material_client
 
     def container_client
-      ExternalRequests::Containers.container_client
+      MatconClient::Container
     end
     module_function :container_client
 

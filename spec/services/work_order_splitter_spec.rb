@@ -65,8 +65,8 @@ RSpec.describe 'WorkOrderSplitter' do
       expect(work_order.jobs.second.input_set_uuid).to eql("28d7c0e2-9935-41b1-a806-e9b22324d42d")
     end
 
-    it 'returns the Work Order' do
-      expect(splitter.split(work_order)).to be work_order
+    it 'returns true' do
+      expect(splitter.split(work_order)).to eq(true)
     end
 
     context 'when it fails half way through' do
@@ -91,6 +91,10 @@ RSpec.describe 'WorkOrderSplitter' do
 
       it 'doesn\'t create any Jobs (and deletes any created sets)' do
         expect { splitter.split(work_order) }.to change { work_order.jobs.count }.by(0)
+      end
+
+      it 'returns false' do
+        expect(splitter.split(work_order)).to eq(false)
       end
 
     end

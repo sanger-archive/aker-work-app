@@ -8,13 +8,14 @@ RSpec.describe 'CreateMasterSetStep' do
   let(:work_plan) { create :work_plan }
 
   let(:work_order) { create(:work_order, order_index: 1, work_plan: work_plan) }
-  
+
 
   let(:job) { create :job, work_order: work_order, set_uuid: original_set.uuid }
 
   let(:finished_set) do
     uuid = made_up_uuid
     s = instance_double('set', locked: false, owner_id: work_order.owner_email, id: uuid, uuid: uuid)
+    allow(s).to receive(:destroy).and_return(true)
     allow(SetClient::Set).to receive(:create).and_return(s)
     s
   end
@@ -51,10 +52,23 @@ RSpec.describe 'CreateMasterSetStep' do
         step.up
       end
     end
+
     context 'when the work order is concluded' do
       setup do
         work_order.update_attributes(status: WorkOrder.CONCLUDED)
       end
+
+      context 'when the work_order has a Master Set' do
+        before do
+          work_order.update_attributes(finished_set_uuid: made_up_uuid)
+        end
+
+        it 'does nothing' do
+          expect(work_order).not_to receive(:update_attributes!)
+          step.up
+        end
+      end
+
       context 'when there is a next order' do
         before do
           @next_order = create(:work_order, order_index: 2, work_plan: work_plan)
@@ -100,6 +114,30 @@ RSpec.describe 'CreateMasterSetStep' do
       it 'sets the finished set to nil' do
         step.down
         expect(work_order.finished_set_uuid).to eq(nil)
+      end
+    end
+
+    context 'when Master Set is created and locked' do
+      before do
+        allow(finished_set).to receive(:locked).and_return(true)
+        step.master_set = finished_set
+      end
+
+      it 'does\'t destroy the Master Set' do
+        expect(finished_set).to_not receive(:destroy)
+        step.down
+      end
+
+    end
+
+    context 'when Master Set is created but not locked' do
+      before do
+        step.master_set = finished_set
+      end
+
+      it 'destroys the Master Set' do
+        expect(finished_set).to receive(:destroy)
+        step.down
       end
     end
   end
