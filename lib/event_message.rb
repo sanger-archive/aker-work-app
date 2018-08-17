@@ -66,6 +66,8 @@ end
 
 # A message specific to a work order
 class WorkOrderEventMessage < EventMessage
+  attr_reader :status
+
   def initialize(params)
     # For Work Order message
     @work_order = params.fetch(:work_order).decorate
@@ -177,7 +179,7 @@ class WorkOrderEventMessage < EventMessage
     else
       {
         'work_plan_id' => plan.id,
-        'drs_study_code' => plan.data_release_strategy.study_code
+        'drs_study_code' => plan.data_release_strategy&.study_code
       }
     end
   end

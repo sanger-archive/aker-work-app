@@ -842,6 +842,7 @@ RSpec.describe UpdatePlanService do
       }
     end
     let(:dispatch) { true }
+    let(:sent_queued_events) { false }
 
     def stub_billing_facade
       super
@@ -855,11 +856,14 @@ RSpec.describe UpdatePlanService do
       allow_any_instance_of(WorkOrderDispatcher).to receive(:dispatch) { @sent_to_lims = true }
       allow_any_instance_of(WorkOrder).to receive(:generate_dispatched_event) { @sent_event = true }
       allow_any_instance_of(WorkOrderDecorator).to receive(:finalise_set) { @finalised_set = true }
-      allow_any_instance_of(WorkOrderSplitter::ByContainer).to receive(:split).with(plan.work_orders.first)
+      allow_any_instance_of(WorkOrderSplitter::ByContainer).to receive(:split).with(plan.work_orders.first).and_return(true)
       stub_project
       stub_stamps
       stub_broker_connection
       stub_data_release_strategy
+      if sent_queued_events
+        plan.update_attributes(sent_queued_events: true)
+      end
     end
 
     context 'when the order is queued' do
@@ -892,6 +896,35 @@ RSpec.describe UpdatePlanService do
       end
       it 'should have a priority' do
         expect(plan.reload.priority).to eq 'high'
+      end
+    end
+
+    RSpec::Matchers.define :event_message_for do |work_order, status|
+      match { |actual| actual.work_order==work_order && actual.status.to_sym==status }
+    end
+
+    context 'when the "queued" events have not been sent' do
+      it 'should send "queued" events' do
+        expect(BrokerHandle).to have_received(:publish).exactly(plan.work_orders.count).times
+        plan.work_orders.each do |wo|
+          expect(BrokerHandle).to have_received(:publish).with(event_message_for(wo, :queued))
+        end
+      end
+
+      it 'should set the "sent_queued_events" attribute on the plan' do
+        expect(plan.sent_queued_events).to eq(true)
+      end
+    end
+
+    context 'when the "queued" events have already been sent' do
+      let(:sent_queued_events) { true }
+
+      it 'should not send more "queued" events' do
+        expect(BrokerHandle).not_to have_received(:publish)
+      end
+
+      it 'should not alter the "sent_queued_events" attribute on the plan' do
+        expect(plan.sent_queued_events).to eq(true)
       end
     end
 
@@ -1149,7 +1182,7 @@ RSpec.describe UpdatePlanService do
       @sent_to_lims = false
       @sent_event = false
       allow_any_instance_of(WorkOrderDispatcher).to receive(:dispatch) { @sent_to_lims = true }
-      allow_any_instance_of(WorkOrderSplitter::ByContainer).to receive(:split).with(plan.work_orders.second)
+      allow_any_instance_of(WorkOrderSplitter::ByContainer).to receive(:split).with(plan.work_orders.second).and_return(true)
       allow_any_instance_of(WorkOrder).to receive(:generate_dispatched_event) { @sent_event = true }
       stub_project
       stub_stamps

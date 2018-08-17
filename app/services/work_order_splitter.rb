@@ -31,18 +31,22 @@ module WorkOrderSplitter
 
             after_create(job)
 
+            job.save!
+
             jobs << job
           end
 
           # Done last because you can't undo it
           lock_all_sets(work_order)
         end
-      rescue
+      rescue => e
+        Rails.logger.error "WorkOrderSplitter.split failed for work order #{work_order.id}"
+        Rails.logger.error ([e.message] + e.backtrace).join("\n   ")
         rollback
         return false
       end
-
-      return work_order
+      work_order.reload
+      return true
     end
 
   protected

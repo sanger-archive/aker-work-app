@@ -98,7 +98,13 @@ class UpdatePlanService
             locked_set_uuid = @work_plan.work_orders.first.set_uuid
             work_order_ids = @work_plan.work_orders.map(&:id)
             WorkOrderModuleChoice.where(work_order_id: work_order_ids).each(&:destroy)
-            @work_plan.work_orders.destroy_all
+            @work_plan.work_orders.each(&:destroy) # use individual destroy to trigger proper cleanup (e.g. permissions)
+            if @work_plan.work_orders.respond_to? :reload
+              @work_plan.work_orders.reload
+            else
+              @work_plan.work_orders.object.reload
+              @work_plan.work_orders.clear # draper collectiondecorator does not refresh
+            end
           end
 
           if update_order
@@ -131,6 +137,11 @@ class UpdatePlanService
 
       if dispatch_order_id
         return false unless send_order(dispatch_order_id)
+        # Now the order is final, we can send the work order queued events
+        unless @work_plan.sent_queued_events
+          @work_plan.work_orders.each { |wo| BrokerHandle.publish(WorkOrderEventMessage.new(work_order: wo, status: 'queued')) }
+          @work_plan.update_attributes!(sent_queued_events: true)
+        end
         generate_dispatched_event(dispatch_order_id)
       end
     end
@@ -420,8 +431,9 @@ private
     end
     work_order = WorkOrder.find(order_id)
 
-    if (work_order.jobs.size == 0)
-      work_order = work_order_splitter.split(work_order)
+    if work_order.jobs.size == 0 && !work_order_splitter.split(work_order)
+      add_error("The work order could not be split into jobs.")
+      return false
     end
 
     if work_order_dispatcher.dispatch(work_order)
