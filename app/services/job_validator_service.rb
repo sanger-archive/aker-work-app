@@ -4,6 +4,7 @@ require 'set'
 class JobValidatorService
   attr_reader :job, :msg, :errors
 
+  # Expects a decorated job
   def initialize(job, msg)
     @job = job
     @msg = msg

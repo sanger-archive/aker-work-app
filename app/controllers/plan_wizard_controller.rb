@@ -33,7 +33,7 @@ class PlanWizardController < ApplicationController
   end
 
   def work_plan
-    @work_plan ||= WorkPlan.find(params[:work_plan_id])
+    @work_plan ||= WorkPlan.find(params[:work_plan_id]).decorate
   end
 
   def get_my_sets
@@ -41,7 +41,7 @@ class PlanWizardController < ApplicationController
   end
 
   def project
-    work_plan&.project
+    work_plan.project
   end
 
   def get_spendable_projects
@@ -95,7 +95,7 @@ class PlanWizardController < ApplicationController
   end
 
   def nothing_to_update
-    @work_plan.in_construction? && !params[:work_plan]
+    work_plan.in_construction? && !params[:work_plan]
   end
 
   def perform_step

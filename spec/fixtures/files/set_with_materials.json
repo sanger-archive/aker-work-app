@@ -1,0 +1,91 @@
+{
+  "data": {
+    "id": "5c552c96-aa91-494c-a6cb-39d7fa168ad0",
+    "type": "sets",
+    "links": {
+      "self": "https://wip.aker.sanger.ac.uk/api/v1/sets/5c552c96-aa91-494c-a6cb-39d7fa168ad0"
+    },
+    "attributes": {
+      "name": "Work Order 330 - Master Set",
+      "owner_id": "rl15@sanger.ac.uk",
+      "created_at": "2018-08-07T09:06:28.961Z",
+      "locked": true
+    },
+    "relationships": {
+      "materials": {
+        "links": {
+          "self": "https://wip.aker.sanger.ac.uk/api/v1/sets/5c552c96-aa91-494c-a6cb-39d7fa168ad0/relationships/materials",
+          "related": "https://wip.aker.sanger.ac.uk/api/v1/sets/5c552c96-aa91-494c-a6cb-39d7fa168ad0/materials"
+        },
+        "data": [
+          {
+            "type": "materials",
+            "id": "01cb5442-f7f1-4247-813e-8e7693b0b17d"
+          },
+          {
+            "type": "materials",
+            "id": "030a06d1-0309-4fb0-8c7f-571d5c8dcebc"
+          },
+          {
+            "type": "materials",
+            "id": "056ee9c0-0a9d-4213-bb68-0aacbc53653b"
+          },
+          {
+            "type": "materials",
+            "id": "06816dc3-f68e-4491-9b24-36a00e79133e"
+          },
+          {
+            "type": "materials",
+            "id": "082828d2-9635-4b7d-ba4c-46bddcb6692c"
+          }
+        ]
+      },
+      "set_transactions": {
+        "links": {
+          "self": "https://wip.aker.sanger.ac.uk/api/v1/sets/5c552c96-aa91-494c-a6cb-39d7fa168ad0/relationships/set-transactions",
+          "related": "https://wip.aker.sanger.ac.uk/api/v1/sets/5c552c96-aa91-494c-a6cb-39d7fa168ad0/set-transactions"
+        }
+      }
+    },
+    "meta": {
+      "size": 192
+    }
+  },
+  "included": [
+    {
+      "id": "01cb5442-f7f1-4247-813e-8e7693b0b17d",
+      "type": "materials",
+      "links": {
+        "self": "https://wip.aker.sanger.ac.uk/material_service/materials/01cb5442-f7f1-4247-813e-8e7693b0b17d"
+      }
+    },
+    {
+      "id": "030a06d1-0309-4fb0-8c7f-571d5c8dcebc",
+      "type": "materials",
+      "links": {
+        "self": "https://wip.aker.sanger.ac.uk/material_service/materials/030a06d1-0309-4fb0-8c7f-571d5c8dcebc"
+      }
+    },
+    {
+      "id": "056ee9c0-0a9d-4213-bb68-0aacbc53653b",
+      "type": "materials",
+      "links": {
+        "self": "https://wip.aker.sanger.ac.uk/material_service/materials/056ee9c0-0a9d-4213-bb68-0aacbc53653b"
+      }
+    },
+    {
+      "id": "06816dc3-f68e-4491-9b24-36a00e79133e",
+      "type": "materials",
+      "links": {
+        "self": "https://wip.aker.sanger.ac.uk/material_service/materials/06816dc3-f68e-4491-9b24-36a00e79133e"
+      }
+    },
+    {
+      "id": "082828d2-9635-4b7d-ba4c-46bddcb6692c",
+      "type": "materials",
+      "links": {
+        "self": "https://wip.aker.sanger.ac.uk/material_service/materials/082828d2-9635-4b7d-ba4c-46bddcb6692c"
+      }
+    }
+  ]
+}

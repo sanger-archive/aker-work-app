@@ -1,0 +1,31 @@
+{
+    "data": {
+        "id": "28d7c0e2-9935-41b1-a806-e9b22324d41f",
+        "type": "sets",
+        "links": {
+            "self": "http://localhost:3000/api/v1/sets/28d7c0e2-9935-41b1-a806-e5b22324d41f"
+        },
+        "attributes": {
+            "name": "Job 1 Input Set",
+            "created_at": "2018-07-24T15:10:28.400Z",
+            "locked": false
+        },
+        "relationships": {
+            "materials": {
+                "links": {
+                    "self": "http://localhost:3000/api/v1/sets/28d7c0e2-9935-41b1-a806-e5b22324d41f/relationships/materials",
+                    "related": "http://localhost:3000/api/v1/sets/28d7c0e2-9935-41b1-a806-e5b22324d41f/materials"
+                }
+            },
+            "set_transactions": {
+                "links": {
+                    "self": "http://localhost:3000/api/v1/sets/28d7c0e2-9935-41b1-a806-e5b22324d41f/relationships/set-transactions",
+                    "related": "http://localhost:3000/api/v1/sets/28d7c0e2-9935-41b1-a806-e5b22324d41f/set-transactions"
+                }
+            }
+        },
+        "meta": {
+            "size": 0
+        }
+    }
+}

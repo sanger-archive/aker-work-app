@@ -11,6 +11,7 @@ RSpec.describe JobValidatorService do
   end
   let(:job) do
     job = create :job, work_order: order
+    job = job.decorate
     job.start!
     allow(job).to receive(:materials?).and_return(true)
     job
