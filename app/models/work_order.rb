@@ -9,22 +9,19 @@ class WorkOrder < ApplicationRecord
   include AkerPermissionGem::Accessible
 
   belongs_to :work_plan
-
   belongs_to :process, class_name: "Aker::Process", optional: false
   has_many :work_order_module_choices, dependent: :destroy
-
-  has_many :jobs
+  has_many :process_modules, class_name: "Aker::ProcessModule", through: :work_order_module_choices
+  has_many :jobs, dependent: :destroy
 
   after_initialize :create_uuid
+
+  delegate :owner_email, to: :work_plan
 
   attr_accessor :rollback_materials
 
   def create_uuid
     self.work_order_uuid ||= SecureRandom.uuid
-  end
-
-  def owner_email
-    work_plan.owner_email
   end
 
   # The work order is in the 'active' state when not all jobs have been
@@ -57,10 +54,6 @@ class WorkOrder < ApplicationRecord
   scope :active, -> { where(status: WorkOrder.ACTIVE) }
   scope :pending, -> { where('status NOT IN (?)', not_pending_status_list)}
   scope :concluded, -> { where(status: WorkOrder.CONCLUDED) }
-
-  def materials
-    SetClient::Set.find_with_materials(set_uuid).first.materials
-  end
 
   def self.not_pending_status_list
     [WorkOrder.ACTIVE, WorkOrder.BROKEN, WorkOrder.CONCLUDED]
@@ -100,134 +93,8 @@ class WorkOrder < ApplicationRecord
     (!work_plan.cancelled? && queued? && work_plan.work_orders.find {|o| !o.closed? }==self)
   end
 
-  def original_set
-    return nil unless original_set_uuid
-    return @original_set if @original_set&.uuid==original_set_uuid
-    begin
-      @original_set = SetClient::Set.find(original_set_uuid).first
-    rescue JsonApiClient::Errors::NotFound => e
-      return nil
-    end
-  end
-
-  def original_set=(orig_set)
-    self.original_set_uuid = orig_set&.uuid
-    @original_set = orig_set
-  end
-
-  def set
-    return nil unless set_uuid
-    return @set if @set&.uuid==set_uuid
-    @set = SetClient::Set.find(set_uuid).first
-  end
-
-  def set=(set)
-    self.set_uuid = set&.uuid
-    @set = set
-  end
-
-  def finished_set
-    return nil unless finished_set_uuid
-    return @finished_set if @finished_set&.uuid==finished_set_uuid
-    @finished_set = SetClient::Set.find(finished_set_uuid).first
-  end
-
-  def num_samples
-    self.set && self.set.meta['size']
-  end
-
-  # Make sure we have a locked set in our set field.
-  # Returns true if a set has been locked during this method.
-  def finalise_set
-    # If we already have an input set, and it is already locked, there is nothing to do
-    return false if set&.locked
-
-    if !set && !original_set
-      # No set is linked to this order
-      raise "No set selected for work order"
-    end
-
-    anylocked = false
-
-    if set # We already have an input set, but it needs to be locked
-      set.update_attributes(locked: true)
-      @set = SetClient::Set.find(set_uuid).first # make sure the set is reloaded
-      raise "Failed to lock set #{set.name}" unless set.locked
-      anylocked = true
-    elsif original_set.locked # Our original set is already locked, so we don't need to copy it
-      self.set = original_set
-    else # create a locked clone of the original set as our final input set
-      self.set = original_set.create_locked_clone(name)
-      anylocked = true
-    end
-    save!
-    return anylocked
-  end
-
-  def create_editable_set
-    raise "Work order already has input set" if set_uuid
-    raise "Work order has no original set" unless original_set_uuid
-    self.set = original_set.create_unlocked_clone(name)
-    save!
-    self.set
-  end
-
   def name
     "Work Order #{id}"
-  end
-
-  def create_jobs
-    # Raise exception if module names are not valid from BillingFacadeMock
-    validate_module_names(module_choices)
-
-    material_ids = SetClient::Set.find_with_materials(set_uuid).first.materials.map{|m| m.id}
-    materials = all_results(MatconClient::Material.where("_id" => {"$in" => material_ids}).result_set)
-
-    unless materials.all? { |m| m.attributes['available'] }
-      raise "Some of the specified materials are not available."
-    end
-
-    containers = all_results(MatconClient::Container.where(
-      "slots.material": {
-        "$in": material_ids
-        }
-    ).result_set).uniq
-
-    @rollback_materials = []
-
-    ActiveRecord::Base.transaction do
-      containers.each do |container|
-        job = Job.create!(container_uuid: container.id, work_order: self, uuid: SecureRandom.uuid)
-        job.set_materials_availability(false)
-
-        @rollback_materials.concat(job.materials.result_set.to_a)
-      end
-    end
-  end
-
-  def send_to_lims
-    create_jobs if jobs.empty?
-    body = jobs.map(&:lims_data)
-
-    lims_url = work_plan.product.catalogue.job_creation_url
-    LimsClient.post(lims_url, { data: body })
-  end
-
-  def rollback_materials_availability
-    @rollback_materials.each do |mat|
-      # assuming that the material was available before the transaction failed
-      mat.update_attributes(available: true)
-    end
-    @rollback_materials = []
-  end
-
-  def all_results(result_set)
-    results = result_set.to_a
-    while result_set.has_next? do
-      result_set = result_set.next
-      results += result_set.to_a
-    end
-    results
   end
 
   def lims_data_for_get
@@ -281,26 +148,6 @@ class WorkOrder < ApplicationRecord
       Rails.logger.error e
       Rails.logger.error e.backtrace
     end
-  end
-
-  def module_choices
-    module_choices = []
-    WorkOrderModuleChoice.where(work_order_id: id).order(:position).pluck(:aker_process_modules_id).each do |id|
-      module_choices.push(Aker::ProcessModule.find(id).name)
-    end
-    module_choices
-  end
-
-  def validate_module_names(module_names)
-    bad_modules = module_names.reject { |m| validate_module_name(m) }
-    unless bad_modules.empty?
-      raise "Process module could not be validated: #{bad_modules}"
-    end
-  end
-
-  def validate_module_name(module_name)
-    uri_module_name = module_name.gsub(' ', '_').downcase
-    BillingFacadeClient.validate_process_module_name(uri_module_name)
   end
 
   # The next order in the work plan (or nil if there is none)

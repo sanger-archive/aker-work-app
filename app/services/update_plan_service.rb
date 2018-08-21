@@ -98,7 +98,13 @@ class UpdatePlanService
             locked_set_uuid = @work_plan.work_orders.first.set_uuid
             work_order_ids = @work_plan.work_orders.map(&:id)
             WorkOrderModuleChoice.where(work_order_id: work_order_ids).each(&:destroy)
-            @work_plan.work_orders.destroy_all
+            @work_plan.work_orders.each(&:destroy) # use individual destroy to trigger proper cleanup (e.g. permissions)
+            if @work_plan.work_orders.respond_to? :reload
+              @work_plan.work_orders.reload
+            else
+              @work_plan.work_orders.object.reload
+              @work_plan.work_orders.clear # draper collectiondecorator does not refresh
+            end
           end
 
           if update_order
@@ -131,6 +137,11 @@ class UpdatePlanService
 
       if dispatch_order_id
         return false unless send_order(dispatch_order_id)
+        # Now the order is final, we can send the work order queued events
+        unless @work_plan.sent_queued_events
+          @work_plan.work_orders.each { |wo| BrokerHandle.publish(WorkOrderEventMessage.new(work_order: wo, status: 'queued')) }
+          @work_plan.update_attributes!(sent_queued_events: true)
+        end
         generate_dispatched_event(dispatch_order_id)
       end
     end
@@ -256,7 +267,7 @@ private
 
     return false unless check_set_contents(order.set_uuid || order.original_set_uuid)
 
-    if order.finalise_set
+    if order.decorate.finalise_set
       return false unless check_set_contents(order.set_uuid)
     end
     return true
@@ -418,23 +429,21 @@ private
       add_notice("That product is suspended and cannot currently be ordered.")
       return false
     end
-    order = WorkOrder.find(order_id)
-    begin
-      ActiveRecord::Base.transaction do
-        order.send_to_lims
-      end
-    rescue StandardError => e
-      order.rollback_materials_availability
+    work_order = WorkOrder.find(order_id)
 
-      Rails.logger.error "Failed to send work order"
-      Rails.logger.error e
-      Rails.logger.error e.backtrace
-      add_error("The request to the LIMS failed. Description: #{e}")
-
+    if work_order.jobs.size == 0 && !work_order_splitter.split(work_order)
+      add_error("The work order could not be split into jobs.")
       return false
     end
-    order.update_attributes!(status: 'active', dispatch_date: Time.now)
-    return true
+
+    if work_order_dispatcher.dispatch(work_order)
+      return true
+    else
+      add_error("The request to the LIMS failed")
+      Rails.logger.error "Failed to send work order"
+      Rails.logger.error work_order_dispatcher.errors.full_messages
+      return false
+    end
   end
 
    def generate_dispatched_event(order_id)
@@ -443,7 +452,7 @@ private
   end
 
   def validate_modules(module_ids)
-    cost_code = @work_plan.project.cost_code
+    cost_code = @work_plan.decorate.project.cost_code
     module_names = module_ids.map { |id| Aker::ProcessModule.find(id).name }
     bad_modules = module_names.uniq.select { |name| BillingFacadeClient.get_cost_information_for_module(name, cost_code).nil? }
     unless bad_modules.empty?
@@ -459,6 +468,14 @@ private
 
   def add_notice(message)
     @messages[:notice] = message
+  end
+
+  def work_order_dispatcher
+    WorkOrderDispatcher.new(serializer: WorkOrderSerializer.new)
+  end
+
+  def work_order_splitter
+    WorkOrderSplitter::ByContainer.new
   end
 
 end

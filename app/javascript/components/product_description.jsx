@@ -406,7 +406,7 @@ class ProcessModulesSelectDropdowns extends React.Component {
 
     const {links, path} = this.props;
 
-    path.forEach((obj, index)=>{
+    path.forEach((obj, index) => {
       if (index == 0) {
         options = links.start;
       } else {
@@ -479,9 +479,10 @@ export class ProcessModuleParameters extends React.Component {
     if ((this.props.selectedOption.min_value || this.props.selectedOption.max_value)) {
       const caption = "Enter value between "+ this.props.selectedOption.min_value + " and "+this.props.selectedOption.max_value
       const name = "work_plan[work_order_module]["+this.props.selectedOption.id+"][selected_value]"
+      const disabled = !this.props.enabled
       return(
         <div className={this.classes()}>
-          <input autoComplete="off" value={this.state.selectedValue} type="text" name={name} className="form-control" placeholder={caption} onChange={this.onChange} />
+          <input autoComplete="off" disabled={disabled} value={this.state.selectedValue} type="text" name={name} className="form-control" placeholder={caption} onChange={this.onChange} />
           {this.renderFeedback(caption)}
         </div>
       )
@@ -517,7 +518,7 @@ class ProcessModuleSelectElement extends React.Component {
           { this.renderSelect(select_options, selection) }
         </div>
         <div className="col-md-3">
-          <ProcessModuleParameters selectedOption={selectedOption} selectedValueForChoice={this.props.selectedValueForChoice} />
+          <ProcessModuleParameters selectedOption={selectedOption} selectedValueForChoice={this.props.selectedValueForChoice} enabled={this.props.enabled} />
         </div>
       </div>
     )

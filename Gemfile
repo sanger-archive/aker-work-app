@@ -29,7 +29,7 @@ gem 'pg', '~> 1.0' # https://bitbucket.org/ged/ruby-pg/issues/270/pg-100-x64-min
 gem 'pry'
 gem 'puma', '~> 3.0' # Use Puma as the app server
 gem 'rack-cors'
-gem 'rails', '~> 5.1.0' # Bundle edge Rails instead: gem 'rails', github: 'rails/rails'
+gem 'rails', '~> 5.2' # Bundle edge Rails instead: gem 'rails', github: 'rails/rails'
 gem 'react-rails'
 gem 'request_store'
 gem 'rswag-api'
@@ -44,6 +44,8 @@ gem 'webpacker', '~> 3.2'
 gem 'webpacker-react', '~> 0.3.2'
 gem 'wicked'
 gem 'health_check'
+gem 'bootsnap'
+gem 'draper'
 
 gem 'jsonapi-resources'
 

@@ -1,11 +1,11 @@
 class ProductsController < ApplicationController
-  before_action :set_work_plan
+  before_action :work_plan
   before_action :set_product, only: [:show_product_inside_work_plan]
 
   def show_product_inside_work_plan
-    authorize! :read, @work_plan
+    authorize! :read, work_plan
 
-    cost_code = @work_plan.project.cost_code
+    cost_code = work_plan.decorate.project.cost_code
 
     processes = @product.processes.map do |process|
       {
@@ -24,8 +24,8 @@ class ProductsController < ApplicationController
   end
 
   def modules_unit_price
-    authorize! :read, @work_plan
-    cost_code = @work_plan.project.cost_code
+    authorize! :read, work_plan
+    cost_code = work_plan.decorate.project.cost_code
     module_names = params[:module_ids].split('-').map { |id| Aker::ProcessModule.find(id).name }
     unit_prices = module_names.map { |name| [name, BillingFacadeClient.get_cost_information_for_module(name, cost_code)] }
     errors = []
@@ -43,7 +43,7 @@ private
 
   # Returns the selected modules if such things exist; otherwise the default path modules
   def selected_modules(process)
-    if @work_plan.product_id==@product.id
+    if work_plan.product_id==@product.id
       order = @work_plan.work_orders.where(process_id: process.id).first
       if order
         return order.selected_path
@@ -52,7 +52,7 @@ private
     process.build_default_path
   end
 
-  def set_work_plan
+  def work_plan
     @work_plan = WorkPlan.find(params[:id])
   end
 

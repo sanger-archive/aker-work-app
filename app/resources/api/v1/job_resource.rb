@@ -7,7 +7,7 @@ module Api
       attributes :uuid, :container_uuid, :work_order_id, :started, :completed, :cancelled, :broken,
                  :date_requested, :requested_by, :project_and_costcode, :product,
                  :process_modules, :batch_size, :work_plan_comment, :priority, :barcode, :process,
-                 :set_uuid
+                 :set_uuid, :input_set_uuid
 
       paginator :paged
 
@@ -66,19 +66,19 @@ module Api
       end
 
       def date_requested
-        @model.work_order&.dispatch_date
+        model.work_order&.dispatch_date
       end
 
       def requested_by
-        @model.work_order&.work_plan&.owner_email
+        model.work_order&.work_plan&.owner_email
       end
 
       def project
-        @model.work_order&.work_plan&.project&.name
+        model.work_order&.work_plan&.project&.name
       end
 
       def costcode
-        @model.work_order&.work_plan&.project&.cost_code
+        model.work_order&.work_plan&.project&.cost_code
       end
 
       def project_and_costcode
@@ -86,35 +86,43 @@ module Api
       end
 
       def priority
-        @model.work_order&.work_plan&.priority
+        model.work_order&.work_plan&.priority
       end
 
       def product
-        @model.work_order&.work_plan&.product&.name
+        model.work_order&.work_plan&.product&.name
       end
 
       def process
-        @model.work_order&.process&.name
+        model.work_order&.process&.name
       end
 
       def process_modules
-        @model.work_order_module_choices.map(&:description).join(', ')
+        model.work_order_module_choices.map(&:description).join(', ')
       end
 
       def batch_size
-        @model&.material_ids&.length
+        model&.input_set_size || 0
       end
 
       def work_plan_comment
-        @model.work_order&.work_plan&.comment
+        model.work_order&.work_plan&.comment
       end
 
       def barcode
-        @model.container.barcode
+        model&.container&.barcode
+      end
+
+      def input_set_uuid
+        model&.input_set_uuid
       end
 
       def set_uuid
-        @model&.set_uuid
+        model&.set_uuid
+      end
+
+      def model
+        @decorated_model ||= @model.decorate
       end
     end
   end

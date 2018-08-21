@@ -17,12 +17,12 @@
 #
 # See http://rubydoc.info/gems/rspec-core/RSpec/Core/Configuration
 
-require 'simplecov'
-require 'simplecov-rcov'
+# require 'simplecov'
+# require 'simplecov-rcov'
 require 'webmock/rspec'
 
-SimpleCov.formatter = SimpleCov::Formatter::RcovFormatter
-SimpleCov.start
+# SimpleCov.formatter = SimpleCov::Formatter::RcovFormatter
+# SimpleCov.start
 
 RSpec.configure do |config|
   # rspec-expectations config goes here. You can use an alternate

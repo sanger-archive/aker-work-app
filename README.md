@@ -26,7 +26,7 @@ To run JavaScript tests: `yarn test`
 ## Messages
 The following messages are useful during testing:
 
-* [Product catalogue schema](https://ssg-confluence.internal.sanger.ac.uk/display/PSDPUB/Product+catalogue#Productcatalogue-Schema)
+* [Product catalogue schema](https://ssg-confluence.internal.sanger.ac.uk/display/PSDPUB/Product+Catalogue+JSON)
 * [Product catalogue messages](https://ssg-confluence.internal.sanger.ac.uk/display/PSDPUB/Messages#Messages-Productcataloguemessages)
 * [Work order messages](https://ssg-confluence.internal.sanger.ac.uk/display/PSDPUB/Messages#Messages-Workordermessages)
 

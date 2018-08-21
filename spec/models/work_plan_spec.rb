@@ -68,51 +68,6 @@ RSpec.describe WorkPlan, type: :model do
     end
   end
 
-  describe '#project' do
-    let(:other_project) { double(:project, id: 13) }
-
-    context 'when the plan has no project id' do
-      let(:plan) { build(:work_plan) }
-      it { expect(plan.project).to be_nil }
-    end
-
-    context 'when the plan has a project id' do
-      context 'when the project does exist' do
-        let(:plan) { build(:work_plan, project_id: project.id) }
-        it { expect(plan.project).to eq(project) }
-      end
-      context 'when the project does not exist' do
-        let(:plan) { build(:work_plan, project_id: 'not exist') }
-        before do
-          allow(StudyClient::Node).to receive(:find).with(plan.project_id).and_raise(JsonApiClient::Errors::NotFound, "")
-        end
-        it { expect(plan.project).to eq(nil) }
-      end
-    end
-
-    context 'when the plan has a @project with a different project_id' do
-      let(:plan) do
-        pl = build(:work_plan, project_id: project.id)
-        pl.instance_variable_set('@project', other_project)
-        pl
-      end
-      it 'should reload the correct project' do
-        expect(plan.project).to eq(project)
-      end
-    end
-
-    context 'when the plan has a @project with the correct project id' do
-      let(:plan) do
-        pl = build(:work_plan, project_id: other_project.id)
-        pl.instance_variable_set('@project', other_project)
-        pl
-      end
-      it 'should return the project' do
-        expect(plan.project).to eq(other_project)
-      end
-    end
-  end
-
   describe '#data_release_strategy' do
     context 'when the plan has a data_release_strategy' do
       let(:drs) { create(:data_release_strategy) }
@@ -332,48 +287,6 @@ RSpec.describe WorkPlan, type: :model do
       end
       it { expect(plan.cancellable?).to be false }
     end
-  end
-
-  describe '#original_set' do
-    context 'when the plan has no set uuid' do
-      let(:plan) { build(:work_plan, original_set_uuid: nil) }
-
-      it { expect(plan.original_set).to be_nil }
-    end
-
-    context 'when the plan has a set uuid' do
-      let(:plan) { build(:work_plan, original_set_uuid: set.uuid) }
-
-      it 'should return the set' do
-        expect(plan.original_set).to eq(set)
-      end
-    end
-
-    context 'when the plan has a new set uuid' do
-      let(:plan) { build(:work_plan, original_set_uuid: set.uuid) }
-      let(:another_set) { make_set }
-
-      it 'should reload when changed' do
-        expect(plan.original_set).to eq(set)
-        plan.original_set_uuid = another_set.uuid
-        expect(plan.original_set).to eq(another_set)
-      end
-    end
-  end
-
-  describe '#num_original_samples' do
-    context 'when the plan has no set' do
-      let(:plan) { build(:work_plan) }
-      it { expect(plan.num_original_samples).to be_nil }
-    end
-
-    context 'when the plan has a set' do
-      let(:plan) { build(:work_plan, original_set_uuid: set.id) }
-      it 'should return the size of the set' do
-        expect(plan.num_original_samples).to eq(set.meta['size'])
-      end
-    end
-
   end
 
   describe '#permitted?' do
