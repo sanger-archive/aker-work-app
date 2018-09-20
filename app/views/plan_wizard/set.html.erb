@@ -45,7 +45,7 @@
             <%= s.name %>
           </td>
           <td>
-            <%= pluralize(work_plan.num_original_samples, "Sample") %>
+            <%= pluralize(work_plan.original_set_size, "Sample") %>
           </td>
           <td>
             <%= time_ago_in_words(s.created_at) + " ago" %>
