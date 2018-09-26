@@ -45,10 +45,7 @@ class PlanWizardController < ApplicationController
   end
 
   def get_spendable_projects
-    StudyClient::Node.where(
-      node_type: 'subproject',
-      with_parent_spendable_by: user_and_groups_list
-    ).all.uniq { |proj| proj&.id }
+    WorkPlan.get_spendable_projects(current_user)
   end
 
   def get_current_catalogues

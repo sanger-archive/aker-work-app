@@ -30,6 +30,24 @@ class WorkPlan < ApplicationRecord
   # Find orders owned by the given user (an object with a .email attribute)
   scope :for_user, -> (owner) { where(owner_email: owner.email) }
 
+  # Find the orders owned by the given user, or a user in their group
+  scope :for_user_and_groups_of_user, -> (current_user) { get_work_plans_with_spendable_permission(current_user) }
+
+  def self.get_work_plans_with_spendable_permission(current_user)
+    where(owner_email: current_user.email).or(where(project_id: get_spendable_projects(current_user).map(&:id).map(&:to_i)))
+  end
+
+  def self.get_spendable_projects(current_user)
+    StudyClient::Node.where(
+      node_type: 'subproject',
+      with_parent_spendable_by: user_and_groups_list(current_user)
+    ).all.uniq { |proj| proj&.id }
+  end
+
+  def self.user_and_groups_list(current_user)
+    [current_user.email] + current_user.groups
+  end
+
   # Creates one work order per process in the product.
   # The process_module_ids needs to be an array of arrays of module ids to link to the respective orders.
   # The locked set uuid is passed for the first order, in case such a locked
