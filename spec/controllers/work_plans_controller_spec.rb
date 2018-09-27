@@ -7,26 +7,25 @@ RSpec.describe WorkPlansController, type: :controller do
   before do
     allow(controller).to receive(:check_credentials)
     allow(controller).to receive(:current_user).and_return(user)
-    allow(WorkPlan).to receive(:get_spendable_project_ids).with(user).and_return([12,13])
   end
 
   describe '#index' do
     let(:instance_fields) { [:@in_construction_plans, :@active_plans, :@closed_plans, :@cancelled_plans] }
 
     context 'when there are work plans of various statuses' do
-      let(:project_id) { 12 }
+      let(:project) { proj = double(:project, id: 12) }
       let!(:in_construction_plans) {
         (1..2).map { create(:work_plan, owner_email: user.email) }
       }
       let!(:active_plans) {
-        plans = (1..2).map { create(:work_plan, project_id: project_id, owner_email: user.email) }
+        plans = (1..2).map { create(:work_plan, project_id: project.id, owner_email: user.email) }
         plans.each do |plan|
           create(:work_order, work_plan: plan, process: pro, status: 'active')
         end
         plans
       }
       let!(:closed_plans) {
-        plans = (1..2).map { create(:work_plan, project_id: project_id, owner_email: user.email) }
+        plans = (1..2).map { create(:work_plan, project_id: project.id, owner_email: user.email) }
         statuses = ['concluded', 'concluded']
         plans.zip(statuses).each do |plan, status|
           create(:work_order, work_plan: plan, process: pro, status: status)
@@ -34,15 +33,16 @@ RSpec.describe WorkPlansController, type: :controller do
         plans
       }
       let!(:cancelled_plans) {
-        (1..2).map { create(:work_plan, project_id: project_id, owner_email: user.email, cancelled: Time.now)}
+        (1..2).map { create(:work_plan, project_id: project.id, owner_email: user.email, cancelled: Time.now)}
       }
       let!(:other_peoples_plans) {
         [nil, Time.now].map do |cancelled|
-          create(:work_plan, project_id: project_id, owner_email: 'fred@nowhere', cancelled: cancelled)
+          create(:work_plan, project_id: project.id, owner_email: 'fred@nowhere', cancelled: cancelled)
         end
       }
 
       before do
+        allow(StudyClient).to receive(:get_spendable_projects).with(user).and_return([project])
         get :index
       end
 
@@ -63,8 +63,12 @@ RSpec.describe WorkPlansController, type: :controller do
     end
 
     context 'when there are no work plans of various statuses' do
-      it 'should set the instance variables to empty arrays' do
+      before do
+        allow(StudyClient).to receive(:get_spendable_projects).with(user).and_return([])
         get :index
+      end
+
+      it 'should set the instance variables to empty arrays' do
         instance_fields.each do |attr|
           expect(controller.instance_variable_get(attr)).to be_empty
         end

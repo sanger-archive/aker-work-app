@@ -337,16 +337,15 @@ RSpec.describe WorkPlan, type: :model do
 
   describe '#owned_by_or_permission_to_spend_on' do
     let(:user) { OpenStruct.new(email: 'alaska@usa') }
-    let(:project_id) { 12 }
+    let(:project) { proj = double(:project, id: 12) }
     let(:plan1) { create(:work_plan, owner_email: user.email) }
-    let(:plan2) { create(:work_plan, project_id: project_id) }
+    let(:plan2) { create(:work_plan, project_id: project.id) }
 
     before do
-      allow(WorkPlan).to receive(:get_spendable_project_ids).with(user).and_return([project_id])
+      allow(StudyClient).to receive(:get_spendable_projects).with(user).and_return([project])
     end
 
     it 'should return plans belonging to the given user, or plans with a project the user has spend permissions on' do
-      expect(WorkPlan).to receive(:get_spendable_project_ids).with(user)
       expect(WorkPlan.owned_by_or_permission_to_spend_on(user)).to eq([plan1, plan2])
     end
   end
