@@ -30,27 +30,24 @@ class WorkPlan < ApplicationRecord
   # Find plans owned by the given user (an object with a .email attribute)
   scope :for_user, -> (owner) { where(owner_email: owner.email) }
 
-  # Find plans owned by the given user or
+  # Find plans owned by the given user OR
   # plans with a project selected where the given user has spend permissions on,
   # either as an individual or a member of a group, in projects-app
-  scope :owned_by_or_permission_to_spend_on, -> (current_user) { get_work_plans_with_spendable_permission(current_user) }
-
-  # Finds plans which are either owner by a given user
-  # or where the plans' project_id is a spendable project for the user
-  def self.get_work_plans_with_spendable_permission(user)
-    project_ids = get_spendable_projects(user).map(&:id).map(&:to_i)
+  def self.owned_by_or_permission_to_spend_on(user)
+    project_ids = get_spendable_project_ids(user)
     where(owner_email: user.email).or(where(project_id: project_ids))
   end
 
-  # TODO: Move this to decorator class?
-  # Gets unique projects where the given user has spend permissions
+  # TODO: Move this out of WorkPlan class into own class? /lib ?
+  # TODO: Test
+  # Gets unique project_ids where the given user has spend permissions
   # Unique as a project might have been created by the user (therefor has spend permission)
   # and be a member of a group with spend permissions
-  def self.get_spendable_projects(user)
+  def self.get_spendable_project_ids(user)
     StudyClient::Node.where(
       node_type: 'subproject',
       with_parent_spendable_by: user_and_groups_list(user)
-    ).all.uniq { |proj| proj&.id }
+    ).all.uniq { |proj| proj&.id }.map(&:id).map(&:to_i)
   end
 
   # Creates one work order per process in the product.

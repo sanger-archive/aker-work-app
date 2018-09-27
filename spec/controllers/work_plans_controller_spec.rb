@@ -7,6 +7,7 @@ RSpec.describe WorkPlansController, type: :controller do
   before do
     allow(controller).to receive(:check_credentials)
     allow(controller).to receive(:current_user).and_return(user)
+    allow(WorkPlan).to receive(:get_spendable_project_ids).with(user).and_return([12,13])
   end
 
   describe '#index' do
@@ -46,7 +47,8 @@ RSpec.describe WorkPlansController, type: :controller do
       end
 
       it 'should set the in-construction plans correctly' do
-        expect(controller.instance_variable_get(:@in_construction_plans)).to match_array(in_construction_plans)
+        expected_plans = in_construction_plans << other_peoples_plans[0]
+        expect(controller.instance_variable_get(:@in_construction_plans)).to match_array(expected_plans)
       end
       it 'should set the active plans correctly' do
         expect(controller.instance_variable_get(:@active_plans)).to match_array(active_plans)
@@ -55,7 +57,8 @@ RSpec.describe WorkPlansController, type: :controller do
         expect(controller.instance_variable_get(:@closed_plans)).to match_array(closed_plans)
       end
       it 'should set the cancelled plans correctly' do
-        expect(controller.instance_variable_get(:@cancelled_plans)).to match_array(cancelled_plans)
+        expected_plans = cancelled_plans << other_peoples_plans[1]
+        expect(controller.instance_variable_get(:@cancelled_plans)).to match_array(expected_plans)
       end
     end
 
