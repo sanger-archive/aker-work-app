@@ -13,7 +13,9 @@ class WorkPlansController < ApplicationController
   end
 
   def index
-    plan_groups = WorkPlan.for_user_and_groups_of_user(current_user).order(updated_at: :desc).group_by(&:status)
+    # Gets an list with all the work plans that the current user owns
+    # or has spend permisson on the work plans project
+    plan_groups = WorkPlan.owned_by_or_permission_to_spend_on(current_user).order(updated_at: :desc).group_by(&:status)
 
     @in_construction_plans = plan_groups['construction'] || []
     @active_plans = plan_groups['active'] || []
