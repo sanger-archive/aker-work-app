@@ -289,35 +289,56 @@ RSpec.describe WorkPlan, type: :model do
     end
   end
 
-  describe '#permitted?' do
-    let(:owner) { 'user@here' }
-    let(:plan) { build(:work_plan, owner_email: owner) }
+  describe '#user_permitted?' do
+    let(:user) { OpenStruct.new(email: 'alaska@usa', groups: []) }
+    let(:user_with_groups) { OpenStruct.new(email: 'alaska@usa', groups: ['pirates', owner.email]) }
+    let(:owner) { OpenStruct.new(email: 'owner@here', groups: []) }
+    let(:plan) { build(:work_plan, owner_email: owner.email) }
     context 'when the access is :read' do
       it 'always returns true' do
-        expect(plan.permitted?('anything', :read)).to be_truthy
-        expect(plan.permitted?(['anything'], :read)).to be_truthy
+        expect(plan.user_permitted?(user, :read)).to be_truthy
       end
     end
     context 'when the access is :create' do
       it 'always returns true' do
-        expect(plan.permitted?('anything', :create)).to be_truthy
-        expect(plan.permitted?(['anything'], :create)).to be_truthy
+        expect(plan.user_permitted?(user, :create)).to be_truthy
       end
     end
+
     context 'when the access is :write' do
-      context 'when the parameter is the owner email' do
-        it { expect(plan.permitted?(owner, :write)).to be_truthy }
+      context 'when the user is the owner' do
+        it { expect(plan.user_permitted?(owner, :write)).to be_truthy }
       end
-      context 'when the parameter is another string' do
-        it { expect(plan.permitted?('somethingelse', :write)).to be_falsey }
+      context 'when the users groups include the owners email' do
+        it { expect(plan.user_permitted?(user_with_groups, :write)).to be_truthy }
       end
-      context 'when the parameter is an array including the owner email' do
-        it { expect(plan.permitted?(['alpha', owner, 'beta'], :write)).to be_truthy }
+
+      context 'when the plan is in construction' do
+        before do
+          allow(plan).to receive(:in_construction?).and_return(true)
+        end
+        it { expect(plan.user_permitted?(user, :write)).to be_falsey }
       end
-      context 'when the parameter is an array not including the owner email' do
-        it { expect(plan.permitted?(['alpha', 'beta'], :write)).to be_falsey }
+
+      context 'when the plan is not in construction' do
+        before do
+          allow(plan).to receive(:in_construction?).and_return(false)
+        end
+        context 'when the user does not have spend permission on the plans project' do
+          before do
+            allow(plan).to receive(:user_has_spend_permission_on_project_for_work_plan).with(user).and_return(false)
+          end
+          it { expect(plan.user_permitted?(user, :write)).to be_falsey }
+        end
+        context 'when the user does have spend permission on the plans project' do
+          before do
+            allow(plan).to receive(:user_has_spend_permission_on_project_for_work_plan).with(user).and_return(true)
+          end
+          it { expect(plan.user_permitted?(user, :write)).to be_truthy }
+        end
       end
     end
+
   end
 
   describe '#for_user' do

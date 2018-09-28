@@ -137,19 +137,32 @@ class WorkPlan < ApplicationRecord
   end
 
   # Everyone has :read and :create permission.
-  # Only the plan owner has :write (or any other) permission.
-  def permitted?(email_or_group, access)
+  # :write (or any other) permission includes:
+  #   - the plans owner
+  #   - the current user if their groups include the plans owner
+  #   - the current user if the work plan is not in construction, and
+  #     the current user has spend permission on the plans project
+
+  def user_permitted?(user, access)
     access = access.to_sym
     return true if access==:read || access==:create
-    if email_or_group.instance_of? String
-      email_or_group==owner_email
-    else
-      email_or_group.include?(owner_email)
-    end
+    return true if user.email==owner_email
+    return true if user.groups.include?(owner_email)
+    return true if user_can_update_work_plan(user)
+    return false
   end
 
   def is_product_from_sequencescape?
     product.catalogue.lims_id == SEQUENCESCAPE_LIMS_ID
   end
 
+  def user_can_update_work_plan(user)
+    return false if in_construction?
+    return true if user_has_spend_permission_on_project_for_work_plan(user)
+  end
+
+  def user_has_spend_permission_on_project_for_work_plan(user)
+    spendable_project_ids = StudyClient.get_spendable_projects(user).map(&:id).map(&:to_i)
+    spendable_project_ids.include?(project_id)
+  end
 end
