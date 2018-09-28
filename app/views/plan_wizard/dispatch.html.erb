@@ -6,7 +6,8 @@
   <br>
   <div class="panel panel-primary">
     <div class="panel-heading">Work Plan <%= work_plan.id %>
-      <span class="pull-right">Created: <%= work_plan.created_at.strftime('%d/%m/%y') %></span>
+      <span class="pull-right" style="width: 150px;">Created at: <%= work_plan.created_at.strftime('%d/%m/%y') %></span>
+      <span class="pull-right" style="width: 250px;">Created by: <%= work_plan.owner_email %></span>
     </div>
     <div class="panel-body">
       <div class="row">
