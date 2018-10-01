@@ -156,13 +156,10 @@ class WorkPlan < ApplicationRecord
     product.catalogue.lims_id == SEQUENCESCAPE_LIMS_ID
   end
 
+  private
+
   def user_can_update_work_plan(user)
     return false if in_construction?
-    return true if user_has_spend_permission_on_project_for_work_plan(user)
-  end
-
-  def user_has_spend_permission_on_project_for_work_plan(user)
-    spendable_project_ids = StudyClient.get_spendable_projects(user).map(&:id).map(&:to_i)
-    spendable_project_ids.include?(project_id)
+    return true if StudyClient.user_has_spend_permission_on_project(user, project_id)
   end
 end

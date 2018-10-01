@@ -11,6 +11,10 @@ module StudyClient
     ).all.uniq { |proj| proj&.id }
   end
 
+  def self.user_has_spend_permission_on_project(user, project_id)
+    StudyClient::Node.where(id: project_id).all[0]["spendable-by-current-user"]
+  end
+
   def self.user_and_groups_list(current_user)
     [current_user.email] + current_user.groups
   end

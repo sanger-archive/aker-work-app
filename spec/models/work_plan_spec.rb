@@ -326,13 +326,13 @@ RSpec.describe WorkPlan, type: :model do
         end
         context 'when the user does not have spend permission on the plans project' do
           before do
-            allow(plan).to receive(:user_has_spend_permission_on_project_for_work_plan).with(user).and_return(false)
+            allow(StudyClient).to receive(:user_has_spend_permission_on_project).and_return(false)
           end
           it { expect(plan.user_permitted?(user, :write)).to be_falsey }
         end
         context 'when the user does have spend permission on the plans project' do
           before do
-            allow(plan).to receive(:user_has_spend_permission_on_project_for_work_plan).with(user).and_return(true)
+            allow(StudyClient).to receive(:user_has_spend_permission_on_project).and_return(true)
           end
           it { expect(plan.user_permitted?(user, :write)).to be_truthy }
         end
