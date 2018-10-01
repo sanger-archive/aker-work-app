@@ -1,5 +1,5 @@
 # This class overrights the aker-permission-gem Ability class
-# as we want to check permissions against an Open Struct user object
+# as we want to check permissions against an OpenStruct user object
 # rather than just the users' email or users' groups
 
 # https://github.com/CanCanCommunity/cancancan/wiki/defining-abilities

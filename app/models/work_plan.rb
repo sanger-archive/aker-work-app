@@ -33,7 +33,7 @@ class WorkPlan < ApplicationRecord
   scope :for_user, -> (owner) { where(owner_email: owner.email) }
 
   # Returns a list of plans owned by the given user OR
-  # plans where the given user has spend permissions on the selected project.
+  # plans where the given user has spend permissions on the plans' project.
   def self.owned_by_or_permission_to_spend_on(user)
     project_ids = StudyClient.get_spendable_projects(user).map(&:id).map(&:to_i)
     where(owner_email: user.email).or(where(project_id: project_ids))
@@ -148,7 +148,7 @@ class WorkPlan < ApplicationRecord
     return true if access==:read || access==:create
     return true if user.email==owner_email
     return true if user.groups.include?(owner_email)
-    return true if user_can_update_work_plan(user)
+    return true if can_user_update_work_plan?(user)
     return false
   end
 
@@ -158,7 +158,7 @@ class WorkPlan < ApplicationRecord
 
   private
 
-  def user_can_update_work_plan(user)
+  def can_user_update_work_plan?(user)
     return false if in_construction?
     return true if StudyClient.user_has_spend_permission_on_project(user, project_id)
   end
