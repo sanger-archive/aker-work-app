@@ -40,7 +40,7 @@ RSpec.describe PlanWizardController, type: :controller do
 
   describe "#show" do
     context "when the order belongs to the current user" do
-      it "should let you access the work plan" do
+      it "should authorize write" do
         wp = create(:work_plan, owner_email: @user.email)
 
         get :show, params: { work_plan_id: wp.id, id: 'set' }
@@ -55,7 +55,7 @@ RSpec.describe PlanWizardController, type: :controller do
       user = OpenStruct.new(email: 'dirk@sanger.ac.uk', groups: ['world'])
 
       context "when the work plan is in construction" do
-        it "should not let you access the work plan" do
+        it "should not authorize write" do
           wp = create(:work_plan, owner_email: user.email)
 
           get :show, params: { work_plan_id: wp.id, id: 'set' }
@@ -71,7 +71,7 @@ RSpec.describe PlanWizardController, type: :controller do
           allow(StudyClient).to receive(:user_has_spend_permission_on_project).and_return(true)
         end
 
-        it "should let you access the work plan" do
+        it "should authorize write" do
           wp = create(:work_plan, owner_email: user.email, project_id: 1)
           wo = create(:work_order, status: WorkOrder.ACTIVE, work_plan: wp)
 
@@ -88,7 +88,7 @@ RSpec.describe PlanWizardController, type: :controller do
           allow(StudyClient).to receive(:user_has_spend_permission_on_project).and_return(false)
         end
 
-        it "should not let you access the work plan" do
+        it "should not authorize write" do
           wp = create(:work_plan, owner_email: user.email, project_id: 1)
           wo = create(:work_order, status: WorkOrder.ACTIVE, work_plan: wp)
 

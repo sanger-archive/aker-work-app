@@ -17,6 +17,31 @@ RSpec.describe 'StudyClientSpec' do
     end
   end
 
+  context '#user_has_spend_permission_on_project' do
+    before do
+      allow(StudyClient::Node).to receive(:where).and_return(OpenStruct.new(all: [project]))
+    end
+
+    context 'when user has spend permission' do
+      let(:user) { OpenStruct.new(email: 'jeff@sanger.ac.uk', groups: ['world']) }
+      let(:project) { OpenStruct.new(id: 12, 'spendable-by-current-user': true) }
+
+      it 'should return true' do
+        result = StudyClient.user_has_spend_permission_on_project(user, project.id)
+        expect(result).to eq(true)
+      end
+    end
+    context 'when user does not have spend permission' do
+      let(:user) { OpenStruct.new(email: 'jeff@sanger.ac.uk', groups: ['world']) }
+      let(:project) { OpenStruct.new(id: 12, 'spendable-by-current-user': false) }
+
+      it 'should return true' do
+        result = StudyClient.user_has_spend_permission_on_project(user, project.id)
+        expect(result).to eq(false)
+      end
+    end
+
+  end
 
   context '#user_and_groups_list' do
     let(:user) { OpenStruct.new(email: 'jeff@sanger.ac.uk', groups: ['world']) }

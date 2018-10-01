@@ -361,6 +361,7 @@ RSpec.describe WorkPlan, type: :model do
     let(:project) { proj = double(:project, id: 12) }
     let(:plan1) { create(:work_plan, owner_email: user.email) }
     let(:plan2) { create(:work_plan, project_id: project.id) }
+    let(:plan3) { create(:work_plan, owner_email: 'other@here') }
 
     before do
       allow(StudyClient).to receive(:get_spendable_projects).with(user).and_return([project])
