@@ -1,4 +1,4 @@
-# This class overrights the aker-permission-gem Ability class
+# This class overwrites the aker-permission-gem Ability class
 # as we want to check permissions against an OpenStruct user object
 # rather than just the users' email or users' groups
 
