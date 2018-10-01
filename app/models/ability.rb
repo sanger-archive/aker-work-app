@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 # This class overwrites the aker-permission-gem Ability class
 # as we want to check permissions against an OpenStruct user object
 # rather than just the users' email or users' groups
@@ -9,9 +10,9 @@ class Ability
   def initialize(user)
     can do |permission_type, subject_class, subject|
       if !user && !subject
-        permission_type==:read
+        permission_type == :read
       elsif !subject
-        [:create, :read].include?(permission_type)
+        %i[create read].include?(permission_type)
       else
         permitted?(subject, user, permission_type)
       end
@@ -19,8 +20,7 @@ class Ability
   end
 
   def permitted?(accessible, user, permission_type)
-    return (permission_type==:read) if user.nil?
-    permission_type==:create || accessible&.user_permitted?(user, permission_type)
+    return (permission_type == :read) if user.nil?
+    permission_type == :create || accessible&.user_permitted?(user, permission_type)
   end
-
 end

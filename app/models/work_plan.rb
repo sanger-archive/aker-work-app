@@ -148,7 +148,7 @@ class WorkPlan < ApplicationRecord
     return true if access==:read || access==:create
     return true if user.email==owner_email
     return true if user.groups.include?(owner_email)
-    return true if can_user_update_work_plan?(user)
+    return true if can_current_user_update_work_plan?
     return false
   end
 
@@ -158,8 +158,8 @@ class WorkPlan < ApplicationRecord
 
   private
 
-  def can_user_update_work_plan?(user)
+  def can_current_user_update_work_plan?
     return false if in_construction?
-    return true if StudyClient.user_has_spend_permission_on_project(user, project_id)
+    return true if StudyClient.current_user_has_spend_permission_on_project(project_id)
   end
 end
