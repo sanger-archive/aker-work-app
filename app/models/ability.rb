@@ -9,8 +9,8 @@ class Ability
   include CanCan::Ability
 
   def initialize(user)
-    can do |permission_type, subject_class, subject|
-      if !user && !subject
+    can do |permission_type, subject|
+      if !user
         permission_type == :read
       elsif !subject
         %i[create read].include?(permission_type)
@@ -21,7 +21,6 @@ class Ability
   end
 
   def permitted?(accessible, user, permission_type)
-    return (permission_type == :read) if user.nil?
     permission_type == :create || accessible&.user_permitted?(user, permission_type)
   end
 end

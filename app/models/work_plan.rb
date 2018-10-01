@@ -145,11 +145,17 @@ class WorkPlan < ApplicationRecord
 
   def user_permitted?(user, access)
     access = access.to_sym
-    return true if access==:read || access==:create
-    return true if user.email==owner_email
-    return true if user.groups.include?(owner_email)
-    return true if can_current_user_update_work_plan?
-    return false
+    permitted = false
+    if access==:read || access==:create
+      permitted = true
+    elsif user.email==owner_email
+      permitted = true
+    elsif user.groups.include?(owner_email)
+      permitted = true
+    elsif can_current_user_update_work_plan?
+      permitted = true
+    end
+    return permitted
   end
 
   def is_product_from_sequencescape?
