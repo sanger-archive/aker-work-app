@@ -11,9 +11,12 @@ module StudyClient
     ).all.uniq { |proj| proj&.id }
   end
 
+  # Returns a boolean whether the given user has spend permisssion on the given project id
   def self.user_has_spend_permission_on_project(user, project_id)
     StudyClient::Node.where(id: project_id).all[0]["spendable-by-current-user"]
   end
+
+  private
 
   def self.user_and_groups_list(current_user)
     [current_user.email] + current_user.groups

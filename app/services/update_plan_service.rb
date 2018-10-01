@@ -237,7 +237,7 @@ private
   end
 
   # No longer validate the data release strategy on work plan dispatch,
-  # as the user dispacting the plan may not have the same permissions as the plan owner
+  # as the user dispatching the plan may not have the same permissions as the plan owner
   # who originally selected to data release strategy
 
   def check_dispatch(order_id)
