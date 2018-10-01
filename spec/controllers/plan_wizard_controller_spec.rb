@@ -40,7 +40,7 @@ RSpec.describe PlanWizardController, type: :controller do
 
   describe "#show" do
     context "when the order belongs to the current user" do
-      it "should work" do
+      it "should let you access the work plan" do
         wp = create(:work_plan, owner_email: @user.email)
 
         get :show, params: { work_plan_id: wp.id, id: 'set' }
@@ -52,15 +52,52 @@ RSpec.describe PlanWizardController, type: :controller do
     end
 
     context "when the order belongs to another user" do
-      it "should fail authorisation" do
-        user2 = OpenStruct.new(email: 'dirk@sanger.ac.uk', groups: ['world'])
-        wp = create(:work_plan, owner_email: user2.email)
+      user = OpenStruct.new(email: 'dirk@sanger.ac.uk', groups: ['world'])
 
-        get :show, params: { work_plan_id: wp.id, id: 'set' }
+      context "when the work plan is in construction" do
+        it "should not let you access the work plan" do
+          wp = create(:work_plan, owner_email: user.email)
 
-        expect(response).to have_http_status(:found)
-        expect(response.redirect_url).to be_present
-        expect(flash[:alert]).to match(/not authori[sz]ed/)
+          get :show, params: { work_plan_id: wp.id, id: 'set' }
+
+          expect(response).to have_http_status(:found)
+          expect(response.redirect_url).to be_present
+          expect(flash[:alert]).to match(/not authori[sz]ed/)
+        end
+      end
+
+      context "when the work plan is active and user has spendable permission" do
+        before do
+          allow(StudyClient).to receive(:user_has_spend_permission_on_project).and_return(true)
+        end
+
+        it "should let you access the work plan" do
+          wp = create(:work_plan, owner_email: user.email, project_id: 1)
+          wo = create(:work_order, status: WorkOrder.ACTIVE, work_plan: wp)
+
+          get :show, params: { work_plan_id: wp.id, id: 'set' }
+
+          expect(response).to have_http_status(:ok)
+          expect(response.redirect_url).to be_nil
+          expect(flash[:alert]).to be_nil
+        end
+      end
+
+      context "when the work plan is active and user does not have spendable permission" do
+        before do
+          allow(StudyClient).to receive(:user_has_spend_permission_on_project).and_return(false)
+        end
+
+        it "should not let you access the work plan" do
+          wp = create(:work_plan, owner_email: user.email, project_id: 1)
+          wo = create(:work_order, status: WorkOrder.ACTIVE, work_plan: wp)
+
+          get :show, params: { work_plan_id: wp.id, id: 'set' }
+
+          expect(response).to have_http_status(:found)
+          expect(response.redirect_url).to be_present
+          expect(flash[:alert]).to match(/not authori[sz]ed/)
+        end
       end
     end
 
