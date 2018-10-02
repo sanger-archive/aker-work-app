@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'study_client'
 
 # A sequence of work orders created for a particular product
@@ -146,7 +148,7 @@ class WorkPlan < ApplicationRecord
   def user_permitted?(user, access)
     access = access.to_sym
     permitted = false
-    if access==:read || access==:create
+    if %i[read create].include?(access)
       permitted = true
     elsif user.email==owner_email
       permitted = true

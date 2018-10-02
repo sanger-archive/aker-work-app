@@ -17,7 +17,7 @@ RSpec.describe 'StudyClientSpec' do
     end
   end
 
-  context '#user_has_spend_permission_on_project' do
+  context '#current_user_has_spend_permission_on_project' do
     before do
       allow(StudyClient::Node).to receive(:where).and_return(OpenStruct.new(all: [project]))
     end
@@ -27,7 +27,7 @@ RSpec.describe 'StudyClientSpec' do
       let(:project) { OpenStruct.new(id: 12, 'spendable-by-current-user': true) }
 
       it 'should return true' do
-        result = StudyClient.user_has_spend_permission_on_project(user, project.id)
+        result = StudyClient.current_user_has_spend_permission_on_project(project.id)
         expect(result).to eq(true)
       end
     end
@@ -36,7 +36,7 @@ RSpec.describe 'StudyClientSpec' do
       let(:project) { OpenStruct.new(id: 12, 'spendable-by-current-user': false) }
 
       it 'should return true' do
-        result = StudyClient.user_has_spend_permission_on_project(user, project.id)
+        result = StudyClient.current_user_has_spend_permission_on_project(project.id)
         expect(result).to eq(false)
       end
     end

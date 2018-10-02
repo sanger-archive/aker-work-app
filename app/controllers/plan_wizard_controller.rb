@@ -5,7 +5,7 @@ class PlanWizardController < ApplicationController
 
   steps :set, :project, :product, :data_release_strategy, :dispatch
 
-  helper_method :work_plan, :get_my_sets, :project, :get_spendable_projects_for_current_user,
+  helper_method :work_plan, :get_my_sets, :project, :spendable_projects_for_current_user,
                 :get_current_catalogues, :get_current_catalogues_with_products,
                 :get_data_release_strategies, :last_step?, :first_step?
 
@@ -45,7 +45,7 @@ class PlanWizardController < ApplicationController
     work_plan.project
   end
 
-  def get_spendable_projects_for_current_user
+  def spendable_projects_for_current_user
     StudyClient.get_spendable_projects(current_user)
   end
 

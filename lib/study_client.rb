@@ -10,7 +10,7 @@ module StudyClient
     StudyClient::Node.where(
       node_type: 'subproject',
       with_parent_spendable_by: user_and_groups_list(user)
-    ).all.uniq { |proj| proj.id }
+    ).all.uniq(&:id)
   end
 
   # Returns a boolean whether the current user has spend permisssion on the given project id

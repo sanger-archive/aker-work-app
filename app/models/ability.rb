@@ -9,7 +9,7 @@ class Ability
   include CanCan::Ability
 
   def initialize(user)
-    can do |permission_type, subject|
+    can do |permission_type, subject_class, subject|
       if !user
         permission_type == :read
       elsif !subject

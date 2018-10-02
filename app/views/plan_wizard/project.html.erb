@@ -4,7 +4,7 @@
 
   <% enabled = work_plan.in_construction? %>
 
-  <%= f.collection_radio_buttons(:project_id, get_spendable_projects_for_current_user, :id,
+  <%= f.collection_radio_buttons(:project_id, spendable_projects_for_current_user, :id,
     lambda { |node| "#{node.name}, Cost code: #{node.cost_code}"},
     disabled: !enabled,
     label: "These are all the projects you can spend on. Please select a project:") %>
