@@ -25,5 +25,6 @@ FactoryBot.define do
       end
       plan.save!
     end
+
   end
 end

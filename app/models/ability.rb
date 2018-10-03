@@ -21,6 +21,6 @@ class Ability
   end
 
   def permitted?(accessible, user, permission_type)
-    permission_type == :create || accessible&.user_permitted?(user, permission_type)
+    permission_type == :create || accessible&.user_permitted?(accessible, user, permission_type)
   end
 end

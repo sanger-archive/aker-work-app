@@ -136,36 +136,13 @@ class WorkPlan < ApplicationRecord
     return 'construction'
   end
 
-  # Everyone has :read and :create permission.
-  # :write (or any other) permission includes:
-  #   - the plans owner
-  #   - the current user if their groups include the plans owner
-  #   - the current user if the work plan is not in construction, and
-  #     the current user has spend permission on the plans project
-
-  def user_permitted?(user, access)
-    access = access.to_sym
-    permitted = false
-    if %i[read create].include?(access)
-      permitted = true
-    elsif user.email==owner_email
-      permitted = true
-    elsif user.groups.include?(owner_email)
-      permitted = true
-    elsif can_current_user_update_work_plan?
-      permitted = true
-    end
-    return permitted
+  def user_permitted?(accessible, user, access)
+    user_policy = WorkPlanPermissionPolicy.new(user, accessible)
+    user_policy.permitted?(access)
   end
 
   def is_product_from_sequencescape?
     product.catalogue.lims_id == SEQUENCESCAPE_LIMS_ID
   end
 
-  private
-
-  def can_current_user_update_work_plan?
-    return false if in_construction?
-    return true if Study.current_user_has_spend_permission_on_project?(project_id)
-  end
 end

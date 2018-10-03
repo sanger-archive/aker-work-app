@@ -37,9 +37,9 @@ private
     @work_plan ||= WorkPlan.find(params[:id])
   end
 
+  # Gets an list with all the work plans that the current user owns
+  # or has spend permisson on the work plans project
   def work_plans
-    # Gets an list with all the work plans that the current user owns
-    # or has spend permisson on the work plans project
     @work_plans ||= WorkPlan.owned_by_or_permission_to_spend_on(current_user)
   end
 end

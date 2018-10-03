@@ -296,28 +296,28 @@ RSpec.describe WorkPlan, type: :model do
     let(:plan) { build(:work_plan, owner_email: owner.email) }
     context 'when the access is :read' do
       it 'always returns true' do
-        expect(plan.user_permitted?(user, :read)).to be_truthy
+        expect(plan.user_permitted?(plan, user, :read)).to be_truthy
       end
     end
     context 'when the access is :create' do
       it 'always returns true' do
-        expect(plan.user_permitted?(user, :create)).to be_truthy
+        expect(plan.user_permitted?(plan, user, :create)).to be_truthy
       end
     end
 
     context 'when the access is :write' do
       context 'when the user is the owner' do
-        it { expect(plan.user_permitted?(owner, :write)).to be_truthy }
+        it { expect(plan.user_permitted?(plan, owner, :write)).to be_truthy }
       end
       context 'when the users groups include the owners email' do
-        it { expect(plan.user_permitted?(user_with_groups, :write)).to be_truthy }
+        it { expect(plan.user_permitted?(plan, user_with_groups, :write)).to be_truthy }
       end
 
       context 'when the plan is in construction' do
         before do
           allow(plan).to receive(:in_construction?).and_return(true)
         end
-        it { expect(plan.user_permitted?(user, :write)).to be_falsey }
+        it { expect(plan.user_permitted?(plan, user, :write)).to be_falsey }
       end
 
       context 'when the plan is not in construction' do
@@ -328,13 +328,13 @@ RSpec.describe WorkPlan, type: :model do
           before do
             allow(Study).to receive(:current_user_has_spend_permission_on_project?).and_return(false)
           end
-          it { expect(plan.user_permitted?(user, :write)).to be_falsey }
+          it { expect(plan.user_permitted?(plan, user, :write)).to be_falsey }
         end
         context 'when the user does have spend permission on the plans project' do
           before do
             allow(Study).to receive(:current_user_has_spend_permission_on_project?).and_return(true)
           end
-          it { expect(plan.user_permitted?(user, :write)).to be_truthy }
+          it { expect(plan.user_permitted?(plan, user, :write)).to be_truthy }
         end
       end
     end
