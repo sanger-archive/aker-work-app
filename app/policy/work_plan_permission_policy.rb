@@ -1,5 +1,11 @@
 # frozen_string_literal: true
+
+# A Policy class which provides buisness logic around whether a user
+# has permissions on a work plan
+# https://codeclimate.com/blog/7-ways-to-decompose-fat-activerecord-models/
 class WorkPlanPermissionPolicy
+  attr_reader :user, :work_plan
+
   def initialize(user, work_plan)
     @user = user
     @work_plan = work_plan
@@ -20,14 +26,6 @@ class WorkPlanPermissionPolicy
   end
 
   private
-
-  def user
-    @user
-  end
-
-  def work_plan
-    @work_plan
-  end
 
   def plans_owner
     work_plan.owner_email
