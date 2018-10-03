@@ -5,7 +5,7 @@ FactoryBot.define do
     work_plan
     process
     order_index 1
-    
+
     trait :active do
       status 'active'
     end
@@ -19,9 +19,14 @@ FactoryBot.define do
       completion_date 1.day.ago
     end
 
+    trait :queued do
+      status 'queued'
+    end
+
     factory :active_work_order, traits: [:active]
     factory :closed_work_order, traits: [:closed]
     factory :broken_work_order, traits: [:broken]
+    factory :queued_work_order, traits: [:queued]
 
     factory :work_order_with_jobs, traits: [:queued] do
 
