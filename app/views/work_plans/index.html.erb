@@ -13,10 +13,10 @@ My Groups' Work Plans
   <div class="col-md-12">
     <h4>Pending</h4>
     <p>These work plans haven't yet had their first work order dispatched. Partially created work plans are saved here for you.</p>
-    <% if @in_construction_plans.length == 0 %>
-      <p>You don't have any pending Work Plans.</p>
+    <% if @grouped_work_plans.any_in_construction? %>
+      <%= render "work_plans_table", work_plans: @grouped_work_plans.in_construction, group: 'construction' %>
     <% else %>
-      <%= render "work_plans_table", work_plans: @in_construction_plans, group: 'construction' %>
+      <p>You don't have any pending Work Plans.</p>
     <% end %>
   </div>
 </div>
@@ -26,10 +26,10 @@ My Groups' Work Plans
     <h4>In Progress</h4>
     <p>These work plans have work orders that have been dispatched to Scientific Operations. Once they complete or cancel your
       work order you will be able to dispatch the next one.</p>
-      <% if @active_plans.length == 0 %>
-        <p>None of your Work Plans are currently in progress.</p>
+      <% if @grouped_work_plans.any_active? %>
+        <%= render "work_plans_table", work_plans: @grouped_work_plans.active, group: 'active' %>
       <% else %>
-        <%= render "work_plans_table", work_plans: @active_plans, group: 'active' %>
+        <p>None of your Work Plans are currently in progress.</p>
       <% end %>
   </div>
 </div>
@@ -38,10 +38,10 @@ My Groups' Work Plans
   <div class="col-md-12">
     <h4>Finished Work Plans</h4>
     <p>These work plans have had all of their work orders completed or cancelled by Scientific Operations.</p>
-    <% if @closed_plans.length == 0 %>
-      <p>You don't have any finished Work Plans.</p>
+    <% if @grouped_work_plans.any_closed? %>
+      <%= render "work_plans_table", work_plans: @grouped_work_plans.closed, group: 'closed' %>
     <% else %>
-      <%= render "work_plans_table", work_plans: @closed_plans, group: 'closed' %>
+      <p>You don't have any finished Work Plans.</p>
     <% end %>
   </div>
 </div>
@@ -50,10 +50,10 @@ My Groups' Work Plans
   <div class="col-md-12">
     <h4>Cancelled</h4>
     <p>These work plans are those which you have cancelled.</p>
-    <% if @cancelled_plans.length == 0 %>
-      <p>You don't have any cancelled Work Plans.</p>
+    <% if @grouped_work_plans.any_cancelled? %>
+      <%= render "work_plans_table", work_plans: @grouped_work_plans.cancelled, group: 'cancelled' %>
     <% else %>
-      <%= render "work_plans_table", work_plans: @cancelled_plans, group: 'cancelled' %>
+      <p>You don't have any cancelled Work Plans.</p>
     <% end %>
   </div>
 </div>

@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'study_client'
-
 # A sequence of work orders created for a particular product
 class WorkPlan < ApplicationRecord
 
@@ -37,7 +35,7 @@ class WorkPlan < ApplicationRecord
   # Returns a list of plans owned by the given user OR
   # plans where the given user has spend permissions on the plans' project.
   def self.owned_by_or_permission_to_spend_on(user)
-    project_ids = StudyClient.get_spendable_projects(user).map(&:id).map(&:to_i)
+    project_ids = Study.spendable_projects(user).map(&:id).map(&:to_i)
     where(owner_email: user.email).or(where(project_id: project_ids))
   end
 
@@ -168,6 +166,6 @@ class WorkPlan < ApplicationRecord
 
   def can_current_user_update_work_plan?
     return false if in_construction?
-    return true if StudyClient.current_user_has_spend_permission_on_project(project_id)
+    return true if Study.current_user_has_spend_permission_on_project?(project_id)
   end
 end

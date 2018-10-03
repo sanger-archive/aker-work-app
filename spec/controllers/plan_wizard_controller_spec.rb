@@ -68,7 +68,7 @@ RSpec.describe PlanWizardController, type: :controller do
 
       context "when the work plan is active and user has spendable permission" do
         before do
-          allow(StudyClient).to receive(:current_user_has_spend_permission_on_project).and_return(true)
+          allow(Study).to receive(:current_user_has_spend_permission_on_project?).and_return(true)
         end
 
         it "should authorize write" do
@@ -85,7 +85,7 @@ RSpec.describe PlanWizardController, type: :controller do
 
       context "when the work plan is active and user does not have spendable permission" do
         before do
-          allow(StudyClient).to receive(:current_user_has_spend_permission_on_project).and_return(false)
+          allow(Study).to receive(:current_user_has_spend_permission_on_project?).and_return(false)
         end
 
         it "should not authorize write" do

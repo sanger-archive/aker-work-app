@@ -326,13 +326,13 @@ RSpec.describe WorkPlan, type: :model do
         end
         context 'when the user does not have spend permission on the plans project' do
           before do
-            allow(StudyClient).to receive(:current_user_has_spend_permission_on_project).and_return(false)
+            allow(Study).to receive(:current_user_has_spend_permission_on_project?).and_return(false)
           end
           it { expect(plan.user_permitted?(user, :write)).to be_falsey }
         end
         context 'when the user does have spend permission on the plans project' do
           before do
-            allow(StudyClient).to receive(:current_user_has_spend_permission_on_project).and_return(true)
+            allow(Study).to receive(:current_user_has_spend_permission_on_project?).and_return(true)
           end
           it { expect(plan.user_permitted?(user, :write)).to be_truthy }
         end
@@ -364,7 +364,7 @@ RSpec.describe WorkPlan, type: :model do
     let(:plan3) { create(:work_plan, owner_email: 'other@here') }
 
     before do
-      allow(StudyClient).to receive(:get_spendable_projects).with(user).and_return([project])
+      allow(Study).to receive(:spendable_projects).with(user).and_return([project])
     end
 
     it 'should return plans belonging to the given user, or plans with a project the user has spend permissions on' do

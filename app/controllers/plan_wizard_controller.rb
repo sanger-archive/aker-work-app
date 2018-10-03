@@ -46,7 +46,7 @@ class PlanWizardController < ApplicationController
   end
 
   def spendable_projects_for_current_user
-    StudyClient.get_spendable_projects(current_user)
+    Study.spendable_projects(current_user)
   end
 
   def get_current_catalogues

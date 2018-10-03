@@ -13,15 +13,7 @@ class WorkPlansController < ApplicationController
   end
 
   def index
-    # Gets an list with all the work plans that the current user owns
-    # or has spend permisson on the work plans project
-    plans = WorkPlan.owned_by_or_permission_to_spend_on(current_user)
-    plan_groups = plans.order(updated_at: :desc).group_by(&:status)
-
-    @in_construction_plans = plan_groups['construction'] || []
-    @active_plans = plan_groups['active'] || []
-    @closed_plans = plan_groups['closed'] || []
-    @cancelled_plans = plan_groups['cancelled'] || []
+    @grouped_work_plans = ViewModels::WorkPlanGroups.new(work_plans: work_plans)
   end
 
   def destroy
@@ -43,5 +35,11 @@ private
 
   def work_plan
     @work_plan ||= WorkPlan.find(params[:id])
+  end
+
+  def work_plans
+    # Gets an list with all the work plans that the current user owns
+    # or has spend permisson on the work plans project
+    @work_plans ||= WorkPlan.owned_by_or_permission_to_spend_on(current_user)
   end
 end

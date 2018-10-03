@@ -17,7 +17,7 @@ RSpec.feature "Permissions", type: :feature do
 
           before do
             allow(work_plan).to receive(:in_construction?).and_return(true)
-            allow(StudyClient).to receive(:get_spendable_projects).with(user).and_return([])
+            allow(Study).to receive(:spendable_projects).with(user).and_return([])
             visit work_plan_build_path(work_plan_id: work_plan.id, id: 'set')
           end
 
