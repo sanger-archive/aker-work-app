@@ -29,15 +29,8 @@ class WorkPlan < ApplicationRecord
     end
   end
 
-  # Find plans owned by the given user (an object with a .email attribute)
-  scope :for_user, -> (owner) { where(owner_email: owner.email) }
-
-  # Returns a list of plans owned by the given user OR
-  # plans where the given user has spend permissions on the plans' project.
-  def self.owned_by_or_permission_to_spend_on(user)
-    project_ids = Study.spendable_projects(user).map(&:id).map(&:to_i)
-    where(owner_email: user.email).or(where(project_id: project_ids))
-  end
+  scope :for_user, -> (user) { WorkPlans::ForUserQuery.call(user) }
+  scope :owned_by_or_permission_to_spend_on, -> (user) { WorkPlans::ModifiableByUserQuery.call(user) }
 
   # Creates one work order per process in the product.
   # The process_module_ids needs to be an array of arrays of module ids to link to the respective orders.
