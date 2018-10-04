@@ -29,8 +29,10 @@ class WorkPlan < ApplicationRecord
     end
   end
 
-  scope :for_user, -> (user) { WorkPlans::ForUserQuery.call(user) }
-  scope :owned_by_or_permission_to_spend_on, -> (user) { WorkPlans::ModifiableByUserQuery.call(user) }
+  scope :for_user, ->(user) { WorkPlans::ForUserQuery.call(user) }
+  scope :owned_by_or_permission_to_spend_on, ->(user) {
+    WorkPlans::ModifiableByUserQuery.call(user)
+  }
 
   # Creates one work order per process in the product.
   # The process_module_ids needs to be an array of arrays of module ids to link to the respective orders.

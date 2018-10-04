@@ -15,6 +15,5 @@ module WorkPlans
     def call(user)
       @relation.where(owner_email: user.email)
     end
-
   end
 end

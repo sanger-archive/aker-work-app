@@ -5,7 +5,7 @@ module WorkPlans
   # Returns an ActiveRecord relation of work plans owned by the given user OR
   # plans where the given user has spend permissions on the plans' project.
   class ModifiableByUserQuery < ForUserQuery
-
+    attr_reader :user
     class << self
       delegate :call, to: :new
     end
@@ -22,11 +22,11 @@ module WorkPlans
     private
 
     def user_plans
-      WorkPlans::ForUserQuery.call(@user)
+      WorkPlans::ForUserQuery.call(user)
     end
 
     def spendable_plans
-      spendable_projects_ids = Study.spendable_projects(@user).map(&:id).map(&:to_i)
+      spendable_projects_ids = Study.spendable_projects(user).map(&:id).map(&:to_i)
       @relation.where(project_id: spendable_projects_ids)
     end
   end
