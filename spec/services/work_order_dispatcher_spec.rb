@@ -38,7 +38,7 @@ RSpec.describe WorkOrderDispatcher do
     end
 
     context 'when WorkOrder does not have any Jobs' do
-      let(:work_order) { create(:dispatchable_work_order) }
+      let(:work_order) { create(:queued_work_order) }
 
       it 'is invalid' do
         expect(work_order_dispatcher.valid?).to be false

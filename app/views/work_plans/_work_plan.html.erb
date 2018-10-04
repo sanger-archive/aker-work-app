@@ -1,6 +1,8 @@
 <tr>
   <td><%= work_plan.id %></td>
-  <td width="30%"><%= work_plan.product&.name || "None selected" %></td>
+  <td><%= work_plan.owner_email %></td>
+  <td><%= work_plan.decorate.project&.name || "None selected" %></td>
+  <td width="20%"><%= work_plan.product&.name || "None selected" %></td>
 
   <% if !work_plan.in_construction? %>
     <td><%= work_plan.work_order_ids.join(', ') %></td>
