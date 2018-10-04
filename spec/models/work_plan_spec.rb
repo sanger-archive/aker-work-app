@@ -356,7 +356,7 @@ RSpec.describe WorkPlan, type: :model do
     end
   end
 
-  describe '#owned_by_or_permission_to_spend_on' do
+  describe '#modifiable_by' do
     let(:user) { OpenStruct.new(email: 'alaska@usa') }
     let(:project) { proj = double(:project, id: 12) }
     let(:plan1) { create(:work_plan, owner_email: user.email) }
@@ -368,7 +368,7 @@ RSpec.describe WorkPlan, type: :model do
     end
 
     it 'should return plans belonging to the given user, or plans with a project the user has spend permissions on' do
-      expect(WorkPlan.owned_by_or_permission_to_spend_on(user)).to eq([plan1, plan2])
+      expect(WorkPlan.modifiable_by(user)).to eq([plan1, plan2])
     end
   end
 

@@ -40,6 +40,6 @@ private
   # Gets an list with all the work plans that the current user owns
   # or has spend permisson on the work plans project
   def work_plans
-    @work_plans ||= WorkPlan.owned_by_or_permission_to_spend_on(current_user)
+    @work_plans ||= WorkPlan.modifiable_by(current_user)
   end
 end
