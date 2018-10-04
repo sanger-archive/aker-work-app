@@ -17,13 +17,6 @@ RSpec.describe 'WorkPlanGroupsSpec' do
     end
   end
 
-  # describe 'initialize' do
-  #   context 'when no plans are passed to the initalizer' do
-  #   end
-  #   context 'when a list of plans are passed to the initalizer' do
-  #   end
-  # end
-
   describe '#in_construction' do
     context 'when there are work plans in construction' do
       it 'returns them' do

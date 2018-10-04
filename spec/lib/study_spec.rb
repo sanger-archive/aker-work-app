@@ -6,9 +6,10 @@ RSpec.describe 'StudySpec' do
     let(:user) { OpenStruct.new(email: 'jeff@sanger.ac.uk', groups: ['world']) }
     let(:project1) { double(:project, id: 12) }
     let(:project2) { double(:project, id: 13) }
+    let(:projects) { double(:projects, all: [project1, project2]) }
 
     before do
-      allow(StudyClient::Node).to receive(:where).and_return(OpenStruct.new(all: [project1, project1, project2 ]))
+      allow(StudyClient::Node).to receive(:where).and_return(projects)
     end
 
     it 'should return a list of unique projects' do

@@ -15,6 +15,7 @@ class WorkPlanPermissionPolicy
   # :write (or any other) permission includes:
   #   - the plans owner
   #   - the current user if their groups include the plans owner
+  #     (not currently being used)
   #   - the current user if the work plan is not in construction, and
   #     the current user has spend permission on the plans project
   def permitted?(access)
