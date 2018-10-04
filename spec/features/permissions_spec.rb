@@ -33,14 +33,14 @@ RSpec.feature "Permissions", type: :feature do
         context 'when the plan is active' do
           let(:set) { double("SetClient::Set", uuid: 12, name: 'a set') }
           let(:project) { double(:project, id: 12, name: 'a project') }
-          let(:work_plan) { create(:work_plan, owner_email: 'bob@sanger.ac.uk', project_id: project.id) }
-          let(:work_order) { create(:work_order, work_plan: work_plan, status: WorkOrder.ACTIVE, original_set_uuid: set.uuid, set_uuid: set.uuid) }
+          let(:work_plan) { create(:work_plan, status: :active) }
 
           before do
+            allow(Study).to receive(:current_user_has_spend_permission_on_project?).and_return true
             visit work_plan_build_path(work_plan_id: work_plan.id, id: 'product')
           end
 
-          it 'allows user to redirects to the root path' do
+          it 'allows user to redirects to the plan path' do
             expect(page).not_to have_current_path(root_path)
           end
         end

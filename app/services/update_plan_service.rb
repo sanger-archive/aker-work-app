@@ -236,10 +236,6 @@ private
     return true
   end
 
-  # No longer validate the data release strategy on work plan dispatch,
-  # as the user dispatching the plan may not have the same permissions as the plan owner
-  # who originally selected to data release strategy
-
   def check_dispatch(order_id)
     if @work_plan.work_orders.empty?
       add_error("The orders are not ready for dispatch.")
