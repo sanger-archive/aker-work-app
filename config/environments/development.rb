@@ -98,6 +98,7 @@ Rails.application.configure do
   config.job_completion_json = 'job_completion.json'
 
   config.billing_facade_url = 'http://localhost:3601'
+  config.ubw_service_url = 'http://localhost:3602'
 
   config.fake_ldap = true
 
@@ -117,7 +118,7 @@ Rails.application.configure do
                   projects: '',
                   work: '' }
 
-  config.sequencescape_url = 'http://dev.psd.sanger.ac.uk:6630'
+  config.sequencescape_url = 'http://localhost:6630'
 
   config.akerdev_email = ENV.fetch('USER', 'user') + '@sanger.ac.uk'
 end
