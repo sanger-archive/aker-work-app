@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class WorkPlansController < ApplicationController
   skip_authorization_check only: [:index, :complete, :cancel, :get, :set_search]
 
