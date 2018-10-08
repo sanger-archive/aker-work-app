@@ -32,7 +32,7 @@ module WorkOrders
     # Application configuration should go into files in config/initializers
     # -- all .rb files in that directory are automatically loaded.
 
-    config.autoload_paths << Rails.root.join('lib')
+    config.autoload_paths += Dir["#{config.root}/lib/**/", "#{config.root}/app/queries/work_plans/"]
 
     config.middleware.insert_before 0, Rack::Cors do
       allow do
