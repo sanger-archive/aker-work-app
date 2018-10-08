@@ -4,6 +4,8 @@
   <thead>
     <tr>
       <th>ID</th>
+      <th>Created by</th>
+      <th>Project</th>
       <th>Product</th>
       <% if group != 'construction' %>
         <th>Work Orders</th>
@@ -14,6 +16,7 @@
       <% elsif group=='construction' %>
         <th>Step</th>
       <% end %>
+
 
       <th>Created</th>
       <th>Updated</th>
