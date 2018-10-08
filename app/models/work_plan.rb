@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # A sequence of work orders created for a particular product
 class WorkPlan < ApplicationRecord
 
@@ -27,8 +29,8 @@ class WorkPlan < ApplicationRecord
     end
   end
 
-  # Find orders owned by the given user (an object with a .email attribute)
-  scope :for_user, -> (owner) { where(owner_email: owner.email) }
+  scope :for_user, ->(user) { WorkPlans::ForUserQuery.call(user) }
+  scope :modifiable_by, ->(user) { WorkPlans::ModifiableByUserQuery.call(user) }
 
   # Creates one work order per process in the product.
   # The process_module_ids needs to be an array of arrays of module ids to link to the respective orders.
@@ -127,16 +129,9 @@ class WorkPlan < ApplicationRecord
     return 'construction'
   end
 
-  # Everyone has :read and :create permission.
-  # Only the plan owner has :write (or any other) permission.
-  def permitted?(email_or_group, access)
-    access = access.to_sym
-    return true if access==:read || access==:create
-    if email_or_group.instance_of? String
-      email_or_group==owner_email
-    else
-      email_or_group.include?(owner_email)
-    end
+  def user_permitted?(accessible, user, access)
+    user_policy = WorkPlanPermissionPolicy.new(user, accessible)
+    user_policy.permitted?(access)
   end
 
   def is_product_from_sequencescape?
