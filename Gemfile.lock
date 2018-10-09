@@ -1,6 +1,6 @@
 GIT
   remote: https://github.com/sanger/aker-billing-facade-client.git
-  revision: f364143bbbbea56cd43fd55cfc0e50636854dfdc
+  revision: 62b5cdf63fcd4dd6bdf80901eddd103062607842
   branch: a139_ubw_service_integration
   specs:
     aker-billing-facade-client (0.1.8)
