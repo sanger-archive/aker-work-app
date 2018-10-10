@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require 'view_models/work_plan_groups'
 
 class WorkPlansController < ApplicationController
