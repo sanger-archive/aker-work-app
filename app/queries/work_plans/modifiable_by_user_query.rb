@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'study'
-
 # Helper query object for modifiable work plans
 module WorkPlans
   # Returns an ActiveRecord relation of work plans owned by the given user OR
