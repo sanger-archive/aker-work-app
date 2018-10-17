@@ -55,6 +55,7 @@ Rails.application.configure do
   config.stamp_url = 'http://external-server:7000/api/v1'
 
   config.billing_facade_url = 'http://external-server:3601'
+  config.ubw_service_url = 'http://external-server:3602'
 
   config.job_completion_json = 'job_completion.json'
 
