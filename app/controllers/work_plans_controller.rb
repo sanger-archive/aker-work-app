@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class WorkPlansController < ApplicationController
   skip_authorization_check only: [:index, :complete, :cancel, :get, :set_search]
 
@@ -13,11 +15,7 @@ class WorkPlansController < ApplicationController
   end
 
   def index
-    plan_groups = WorkPlan.for_user(current_user).order(updated_at: :desc).group_by(&:status)
-    @in_construction_plans = plan_groups['construction'] || []
-    @active_plans = plan_groups['active'] || []
-    @closed_plans = plan_groups['closed'] || []
-    @cancelled_plans = plan_groups['cancelled'] || []
+    @grouped_work_plans = ViewModels::WorkPlanGroups.new(work_plans: work_plans)
   end
 
   def destroy
@@ -39,5 +37,11 @@ private
 
   def work_plan
     @work_plan ||= WorkPlan.find(params[:id])
+  end
+
+  # Gets an list with all the work plans that the current user owns
+  # or has spend permisson on the work plans project
+  def work_plans
+    @work_plans ||= WorkPlan.modifiable_by(current_user)
   end
 end
