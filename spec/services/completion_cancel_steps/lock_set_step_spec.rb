@@ -48,7 +48,7 @@ RSpec.describe 'LockSetStep' do
         created_set = double('set', id: 'someidentifier')
         allow(SetClient::Set).to receive(:create).and_return(created_set)
         expect(created_set).to receive(:set_materials)
-        expect(created_set).to receive(:update_attributes).with(owner_id: work_plan.owner_email, locked: true)
+        expect(created_set).to receive(:update_attributes).with(owner_id: Rails.configuration.aker_email, locked: true)
         expect(step).to receive(:set_materials_availability).with(true)
         step.up
       end

@@ -36,7 +36,7 @@ class LockSetStep
 
     job_concluded_set.set_materials(unique_material_ids)
 
-    job_concluded_set.update_attributes(owner_id: work_order.work_plan.owner_email, locked: true)
+    job_concluded_set.update_attributes(owner_id: Rails.configuration.aker_email, locked: true)
 
   end
 
