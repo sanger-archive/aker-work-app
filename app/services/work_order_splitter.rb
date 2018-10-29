@@ -37,7 +37,7 @@ module WorkOrderSplitter
           end
 
           # Done last because you can't undo it
-          lock_all_sets(work_order)
+          lock_all_sets
         end
       rescue => e
         Rails.logger.error "WorkOrderSplitter.split failed for work order #{work_order.id}"
