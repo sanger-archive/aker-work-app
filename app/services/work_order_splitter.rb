@@ -62,8 +62,10 @@ module WorkOrderSplitter
 
   private
 
-    def lock_all_sets(work_order)
-      with_input_sets { |set| set.update_attributes(owner_id: Rails.configuration.aker_email, locked: true) }
+    def lock_all_sets
+      with_input_sets do |set| 
+        set.update_attributes(owner_id: Rails.configuration.aker_email, locked: true) 
+      end
     end
 
     def rollback
