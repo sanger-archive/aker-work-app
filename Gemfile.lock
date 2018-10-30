@@ -76,6 +76,14 @@ GIT
       faraday (~> 0.9)
       faraday_middleware (~> 0.9)
 
+GIT
+  remote: https://github.com/sanger/ubw-client.git
+  revision: 135870234a14f6ebfa1a2095d0cb8e38f6437a16
+  specs:
+    ubw-client (0.1.0)
+      faraday (~> 0.15)
+      faraday_middleware (~> 0.12)
+
 GEM
   remote: https://rubygems.org/
   specs:
@@ -539,6 +547,7 @@ DEPENDENCIES
   therubyracer
   timecop
   turbolinks (~> 5)
+  ubw-client!
   uglifier (~> 3.2)
   uuid
   web-console

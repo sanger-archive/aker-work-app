@@ -60,6 +60,7 @@ gem 'aker_shared_navbar', github: 'sanger/aker-shared-navbar'
 gem 'bootstrap-sass', '~> 3.3.6', github: 'sanger/bootstrap-sass'
 gem 'json_api_client', github: 'sanger/json_api_client'
 gem 'matcon_client', github: 'sanger/aker-matcon-client'
+gem 'ubw-client', github: 'sanger/ubw-client'
 
 ###
 # Groups
