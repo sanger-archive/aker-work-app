@@ -8,4 +8,8 @@ class WorkPlanDecorator < Draper::Decorator
 
   link_to_set :original_set_uuid
   link_to_project :project_id
+
+  def parent_cost_code
+    StudyClient::Node.find(project&.parent_id).first&.cost_code
+  end
 end
