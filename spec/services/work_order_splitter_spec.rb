@@ -47,11 +47,11 @@ RSpec.describe 'WorkOrderSplitter' do
 
     # Lock the Sets
     stub_request(:patch, "http://external-server:3000/api/v1/sets/28d7c0e2-9935-41b1-a806-e9b22324d41f")
-      .with(body: "{\"data\":{\"id\":\"28d7c0e2-9935-41b1-a806-e9b22324d41f\",\"type\":\"sets\",\"attributes\":{\"owner_id\":\"owner@sanger.ac.uk\",\"locked\":true}}}")
+      .with(body: "{\"data\":{\"id\":\"28d7c0e2-9935-41b1-a806-e9b22324d41f\",\"type\":\"sets\",\"attributes\":{\"owner_id\":\"#{Rails.configuration.aker_email}\",\"locked\":true}}}")
       .to_return(status: 200, body: "", headers: {})
 
     stub_request(:patch, "http://external-server:3000/api/v1/sets/28d7c0e2-9935-41b1-a806-e9b22324d42d")
-      .with(body: "{\"data\":{\"id\":\"28d7c0e2-9935-41b1-a806-e9b22324d42d\",\"type\":\"sets\",\"attributes\":{\"owner_id\":\"owner@sanger.ac.uk\",\"locked\":true}}}")
+      .with(body: "{\"data\":{\"id\":\"28d7c0e2-9935-41b1-a806-e9b22324d42d\",\"type\":\"sets\",\"attributes\":{\"owner_id\":\"#{Rails.configuration.aker_email}\",\"locked\":true}}}")
       .to_return(status: 200, body: "", headers: {})
 
     allow(splitter).to receive(:with_each_split).and_yield(first_container_uuids).and_yield(second_container_uuids)
