@@ -14,7 +14,6 @@ class LockSetStep
   def up
     # We only want to create a completion set if any new materials, or updated materials are returned
     # We want to create a job completion set for every concluded job
-    work_order = job.work_order
 
     return unless new_material_step.materials.length.positive? || updated_material_step.materials.length.positive?
 
@@ -36,7 +35,7 @@ class LockSetStep
 
     job_concluded_set.set_materials(unique_material_ids)
 
-    job_concluded_set.update_attributes(owner_id: work_order.work_plan.owner_email, locked: true)
+    job_concluded_set.update_attributes(owner_id: Rails.configuration.aker_email, locked: true)
 
   end
 
