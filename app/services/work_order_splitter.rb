@@ -37,7 +37,7 @@ module WorkOrderSplitter
           end
 
           # Done last because you can't undo it
-          lock_all_sets(work_order)
+          lock_all_sets
         end
       rescue => e
         Rails.logger.error "WorkOrderSplitter.split failed for work order #{work_order.id}"
@@ -62,8 +62,10 @@ module WorkOrderSplitter
 
   private
 
-    def lock_all_sets(work_order)
-      with_input_sets { |set| set.update_attributes(owner_id: work_order.work_plan.owner_email, locked: true) }
+    def lock_all_sets
+      with_input_sets do |set|
+        set.update_attributes(owner_id: Rails.configuration.aker_email, locked: true)
+      end
     end
 
     def rollback

@@ -78,6 +78,7 @@ Rails.application.configure do
                   work: '' }
 
   config.akerdev_email = ENV.fetch('USER', 'user') + '@sanger.ac.uk'
+  config.aker_email = 'aker@sanger.ac.uk'
 
   config.sequencescape_url = 'http://localhost:3000'
 
