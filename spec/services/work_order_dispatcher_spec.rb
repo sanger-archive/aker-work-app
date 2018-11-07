@@ -7,12 +7,22 @@ RSpec.describe WorkOrderDispatcher do
   let(:available_material) { double(MatconClient::Material, available: true) }
   let(:unavailable_material) { double(MatconClient::Material, available: false) }
   let(:materials) { [available_material, available_material, available_material] }
-  let(:work_plan) { create(:work_plan, product: create(:product)) }
+  let(:work_plan) { create(:work_plan, product: create(:product), project_id: subproject.id) }
   let(:work_order) { create(:work_order_with_jobs, work_plan: work_plan) }
+  let(:project) { make_node(10, 'S1234') }
+  let(:subproject) { make_node(11, 'S1234-0', project.id) }
+
+  def make_node(id, cost_code, parent_id=nil)
+    node = double(:project, id: id, name: "Project #{id}", cost_code: cost_code, parent_id: parent_id)
+    allow(StudyClient::Node).to receive(:find).with(id).and_return([node])
+    node
+  end
 
   before :each do
     work_order_dispatcher.work_order = work_order
     allow(work_order_dispatcher).to receive(:materials).and_return(materials)
+
+    allow(UbwClient).to receive(:missing_unit_prices).and_return([])
   end
 
   describe '#initialize' do
@@ -29,7 +39,7 @@ RSpec.describe WorkOrderDispatcher do
     end
 
     context 'when WorkOrder can not be dispatched' do
-      let(:work_order) { create(:work_order_with_jobs, status: WorkOrder.BROKEN) }
+      let(:work_order) { create(:work_order_with_jobs, status: WorkOrder.BROKEN, work_plan: work_plan) }
 
       it 'is invalid' do
         expect(work_order_dispatcher.valid?).to be false
@@ -38,7 +48,7 @@ RSpec.describe WorkOrderDispatcher do
     end
 
     context 'when WorkOrder does not have any Jobs' do
-      let(:work_order) { create(:queued_work_order) }
+      let(:work_order) { create(:queued_work_order, work_plan: work_plan) }
 
       it 'is invalid' do
         expect(work_order_dispatcher.valid?).to be false
@@ -48,15 +58,16 @@ RSpec.describe WorkOrderDispatcher do
 
     context 'when WorkOrder has invalid modules' do
       let(:invalid_process_module) { build(:process_module, name: 'Invalid') }
-      let(:work_order) { create(:work_order_with_jobs, process_modules: [invalid_process_module]) }
+      let(:work_order) { create(:work_order_with_jobs, process_modules: [invalid_process_module], work_plan: work_plan) }
 
       before do
-        allow(BillingFacadeClient).to receive(:validate_process_module_name).and_return(false)
+        allow(UbwClient).to receive(:missing_unit_prices) { |module_names, cost_code| module_names }
       end
 
       it 'is invalid' do
         expect(work_order_dispatcher.valid?).to be false
-        expect(work_order_dispatcher.errors.full_messages_for(:base)).to eql(["Process module could not be validated: #{invalid_process_module.name}"])
+        expected_error = "Process module could not be validated: #{[invalid_process_module.name]}"
+        expect(work_order_dispatcher.errors.full_messages_for(:base)).to eq([expected_error])
       end
     end
 

@@ -7,7 +7,7 @@ RSpec.describe 'UbwClient' do
     [ [ 'alpha', 'S0000', '100.50' ], ['alpha', 'S0001', '201.00'],
       [ 'beta', 'S0001', '3.5' ], ['beta', 'S0000', '1.5'],
     ].map do |name, cost_code, price|
-      OpenStruct.new(module_name: name, cost_code: cost_code, unit_price: price)
+      OpenStruct.new(module_name: name, cost_code: cost_code, unit_price: BigDecimal.new(price))
     end
   end
 
@@ -28,7 +28,7 @@ RSpec.describe 'UbwClient' do
   describe '#get_unit_prices' do
     context 'when passed a valid module name' do
       it 'should return a hash containing the correct price' do
-        expected = { 'alpha' => '201.00' }
+        expected = { 'alpha' => BigDecimal.new('201.00') }
         expect(UbwClient::get_unit_prices('alpha', 'S0001')).to eq(expected)
       end
     end
@@ -47,7 +47,7 @@ RSpec.describe 'UbwClient' do
 
     context 'when passed an array' do
       it 'should return a hash containing the correct prices' do
-        expected = { 'alpha' => '100.50', 'beta' => '1.5' }
+        expected = { 'alpha' => BigDecimal.new('100.50'), 'beta' => BigDecimal.new('1.5') }
         expect(UbwClient::get_unit_prices(['alpha', 'beta', 'omega'], 'S0000')).to eq(expected)
       end
     end

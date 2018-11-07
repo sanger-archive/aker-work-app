@@ -78,7 +78,7 @@ GIT
 
 GIT
   remote: https://github.com/sanger/ubw-client.git
-  revision: 135870234a14f6ebfa1a2095d0cb8e38f6437a16
+  revision: 31014bc6cc13fc177108237853d71577c222b2c3
   specs:
     ubw-client (0.1.0)
       faraday (~> 0.15)

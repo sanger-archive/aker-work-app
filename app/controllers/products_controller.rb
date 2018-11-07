@@ -25,17 +25,23 @@ class ProductsController < ApplicationController
 
   def modules_unit_price
     authorize! :read, work_plan
-    cost_code = work_plan.decorate.project.cost_code
-    module_names = params[:module_ids].split('-').map { |id| Aker::ProcessModule.find(id).name }
-    unit_prices = module_names.map { |name| [name, BillingFacadeClient.get_cost_information_for_module(name, cost_code)] }
-    errors = []
+    cost_code = work_plan.decorate.parent_cost_code
     unit_price = nil
-    if unit_prices.any? { |name, cost| cost.nil? }
-      bad_modules = unit_prices.select { |name, cost| cost.nil? }.map { |name, cost| name }
-      errors.push("The following modules are not valid for cost code #{cost_code}: #{bad_modules}")
+    errors = []
+    unless cost_code
+      errors.push("There is no cost code associated with this order's project.")
     else
-      unit_price = unit_prices.map { |name, cost| cost }.inject(0, :+)
+      module_names = params[:module_ids].split('-').map { |id| Aker::ProcessModule.find(id).name }
+      unit_prices = UbwClient::get_unit_prices(module_names, cost_code)
+
+      bad_modules = module_names.select { |name| unit_prices[name].nil? }
+      if bad_modules.any?
+        errors.push("The following modules are not valid for cost code #{cost_code}: #{bad_modules}")
+      else
+        unit_price = unit_prices.values.inject(0, :+)
+      end
     end
+
     render json: {errors: errors, unit_price: unit_price}.to_json
   end
 

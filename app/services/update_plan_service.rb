@@ -1,8 +1,8 @@
 # Class to handle updating a work order during the work order wizard.
-require 'billing_facade_client'
 require 'set'
 require 'broker'
 require 'uuid'
+require 'bigdecimal'
 
 class UpdatePlanService
 
@@ -42,7 +42,7 @@ class UpdatePlanService
         end
       end
       product = Product.find(@work_plan_params[:product_id])
-      return false unless validate_modules(product_options.flatten)
+      #return false unless validate_modules(product_options.flatten)
       return false unless check_product_module_ids(product_options, product)
       @work_plan_params = @work_plan_params.except(:product_options)
     elsif @work_plan_params[:product_options] || @work_plan_params[:product_id]
@@ -60,6 +60,9 @@ class UpdatePlanService
 
     update_order = nil
 
+    update_cost_estimate = (@work_plan_params[:project_id] || @work_plan_params[:work_order_modules] ||
+                            @work_plan_params[:product_id] || product_options)
+
     # Requesting to update the modules in one order
     if @work_plan_params[:work_order_id] && @work_plan_params[:work_order_modules]
       module_ids = JSON.parse(@work_plan_params[:work_order_modules])
@@ -69,7 +72,7 @@ class UpdatePlanService
         modules: module_ids,
         modules_selected_value: modules_selected_values
       }
-      return false unless validate_modules(module_ids)
+      #return false unless validate_modules(module_ids)
       order = WorkOrder.find(update_order[:order_id])
       unless order.work_plan == @work_plan
         add_error("The work order specified is not part of this work plan.")
@@ -81,10 +84,16 @@ class UpdatePlanService
       end
       return false unless check_process_module_ids(module_ids, order.process)
       @work_plan_params = @work_plan_params.except(:work_order_id, :work_order_modules)
-
+      modules_changed = true
     elsif @work_plan_params[:work_order_id] || @work_plan_params[:work_order_modules]
       add_error("Invalid parameters")
       return false
+    end
+    update_cost_estimate = (@work_plan_params[:project_id] || @work_plan_params[:product_id] ||
+                             update_order || product_options)
+
+    if update_cost_estimate
+      return false unless precheck_modules_with_cost_code(update_order, product_options)
     end
 
     @work_plan_params = @work_plan_params.except(:work_order_module)
@@ -135,6 +144,10 @@ class UpdatePlanService
         end
       end
 
+      if update_cost_estimate
+        return false unless update_cost_quotes
+      end
+
       if dispatch_order_id
         return false unless send_order(dispatch_order_id)
         # Now the order is final, we can send the work order queued events
@@ -150,6 +163,107 @@ class UpdatePlanService
   end
 
 private
+  def parent_cost_code(selected_project_id)
+    return nil unless selected_project_id
+    parent_id = StudyClient::Node.find(selected_project_id).first&.parent_id
+    return nil unless parent_id
+    return StudyClient::Node.find(parent_id).first&.cost_code
+  end
+
+  def precheck_modules_with_cost_code(update_order, product_options)
+    project_id = @work_plan_params[:project_id] || @work_plan.project_id
+    return true unless project_id # nothing to check if there is no project id
+    cost_code = parent_cost_code(project_id)
+    unless cost_code
+      add_error("No parent cost code could be found for the selected project.")
+      return false
+    end
+
+    # If present, product_options is array of arrays of module ids to link to the respective orders
+    # If present, update_order[:order_id] and update_order[:modules] gives the module ids of one of the orders
+    if not product_options
+      return true if @work_plan.work_orders.empty?
+      module_ids = @work_plan.work_orders.map do |order|
+        next unless order.queued?
+
+        if update_order && update_order[:order_id].to_i==order.id
+          update_order[:modules]
+        else
+          order.process_modules.map(&:id)
+        end
+      end.compact.flatten
+    else
+      module_ids = product_options.flatten
+    end
+
+    modules = Aker::ProcessModule.where(id: module_ids)
+    missing_module_ids = Set.new(module_ids) - modules.map(&:id)
+    unless missing_module_ids.empty?
+      add_error("Invalid module ids: #{missing_module_ids.to_a}")
+      return false
+    end
+
+    return true if modules.empty?
+    module_names = modules.map(&:name)
+
+    uncosted = UbwClient::missing_unit_prices(module_names, cost_code)
+
+    unless uncosted.empty?
+      add_error("The following #{uncosted.size==1 ? 'module has' : 'modules have'} " +
+                "no listed price for cost code #{cost_code}: #{uncosted.to_a}")
+      return false
+    end
+
+    return true
+  end
+
+  def fetch_set_size(set_uuid)
+    return nil unless set_uuid
+    @set_size_cache ||= {}
+    @set_size_cache[set_uuid] ||= SetClient::Set.find(set_uuid)&.first&.meta&.[](:size)
+  end
+
+  def calculate_cost(order, num_samples, cost_code)
+    return nil if num_samples.nil? || cost_code.nil?
+    module_names = order.process_modules.map(&:name)
+    unit_prices = UbwClient::get_unit_prices(module_names, cost_code)
+    uncosted = module_names.reject { |name| unit_prices[name].present? }
+    unless uncosted.empty?
+      add_error("The following module#{uncosted.size==1 ? ' has' : 's have'} " +
+                "no listed price for cost code #{cost_code}: #{uncosted.to_a}")
+      return nil
+    end
+    total_unit_price = unit_prices.values.reduce(0, :+)
+
+    return total_unit_price * num_samples
+  end
+
+  def update_cost_quotes
+    return true if @work_plan.work_orders.empty? # Evidently haven't reached the orders part yet, so nothing to do
+    cost_code = @work_plan.decorate.parent_cost_code
+    unless cost_code
+      add_error("No cost code is associated with this work plan.")
+      return false
+    end
+
+    cur_set_uuid = @work_plan.original_set_uuid
+    @work_plan.work_orders.each do |order|
+      cur_set_uuid = order.finished_set_uuid || order.set_uuid || order.original_set_uuid || cur_set_uuid
+      next unless order.queued?
+      num_samples = fetch_set_size(cur_set_uuid)
+      if cur_set_uuid && num_samples.nil?
+        add_error("Couldn't retrieve number of samples for set #{cur_set_uuid}")
+        return false
+      end
+
+      cost_estimate = calculate_cost(order, num_samples, cost_code)
+      if cost_estimate
+        order.update_attributes!(total_cost: cost_estimate)
+      end
+    end
+
+    true
+  end
 
   def modules_selected_value_from_module_ids(module_ids)
     module_ids.map do |id|
@@ -342,25 +456,26 @@ private
     return module_id_arrays.zip(product.processes).all? { |mids, pro| check_process_module_ids(mids, pro) }
   end
 
-  def validate_project_selection(project_id)
+  def check_project_error(project_id)
+    return "No project selected." unless project_id
     node = StudyClient::Node.find(project_id).first
-    unless node
-      add_error("No project could be found with id #{project_id}")
-      return false
-    end
+    return "No project could be found with id #{project_id}" unless node
+    return "The selected project has no parent project." unless node.parent_id
+    parent_node = StudyClient::Node.find(node.parent_id).first
+    return "The parent of the selected node could not be loaded." unless parent_node
+    return "The parent of the selected node has no cost code." unless parent_node.cost_code
+    nil
+  end
 
-    cost_code = node.cost_code
-    unless cost_code
-      add_error("The selected project does not have a cost code.")
+  def validate_project_selection(project_id)
+    error = check_project_error(project_id)
+    if error
+      add_error(error)
       return false
     end
 
     return false unless authorize_project(project_id)
 
-    unless BillingFacadeClient.validate_cost_code?(cost_code)
-      add_error("The Billing service does not validate the cost code for the selected project.")
-      return false
-    end
     return true
   end
 
@@ -449,17 +564,6 @@ private
    def generate_dispatched_event(order_id)
     order = WorkOrder.find(order_id)
     order.generate_dispatched_event
-  end
-
-  def validate_modules(module_ids)
-    cost_code = @work_plan.decorate.project.cost_code
-    module_names = module_ids.map { |id| Aker::ProcessModule.find(id).name }
-    bad_modules = module_names.uniq.select { |name| BillingFacadeClient.get_cost_information_for_module(name, cost_code).nil? }
-    unless bad_modules.empty?
-      add_error "The following modules are not valid for cost code #{cost_code}: #{bad_modules}"
-      return false
-    end
-    true
   end
 
   def add_error(message)

@@ -1,12 +1,15 @@
 require 'set'
+require 'bigdecimal'
 
 module UbwClient
 
   # Looks up modules by name and gets their unit price with the given cost code.
-  # Returns a hash of module name to unit price (as a string).
+  # Returns a hash of module name to unit price (as a BigDecimal).
   def self.get_unit_prices(module_names, cost_code)
     Ubw::Price.where(module_name: module_names, cost_code: cost_code).inject({}) do |memo, price|
-      memo[price.module_name] = price.unit_price
+      if price.unit_price
+        memo[price.module_name] = BigDecimal.new(price.unit_price)
+      end
       memo
     end
   end
@@ -41,6 +44,5 @@ module UbwClient
     end
     module_name_set - valid_module_names(module_names)
   end
-
 
 end

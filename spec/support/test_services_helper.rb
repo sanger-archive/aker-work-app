@@ -10,10 +10,6 @@ module TestServicesHelper
     allow(double_set).to receive(:update_attributes)
   end
 
-  def allow_billing_service_validate_all
-    allow(BillingFacadeClient).to receive(:filter_invalid_product_names).and_return([])
-  end
-
   def webmock_billing_facade_client
     stub_request(:post, "#{Rails.configuration.billing_facade_url}/events")
       .to_return(status: 200, body: '', headers: {})
