@@ -16,6 +16,13 @@
       <div class="col-md-6">Dispatch Date: <%= work_order.dispatch_date %></div>
     <% end %>
   </div>
+  <% if work_order.total_cost %>
+  <div class="row">
+    <div class="col-md-6">
+      Estimated cost: <%= number_to_currency(work_order.total_cost, unit: '£') %>
+    </div>
+  </div>
+  <% end %>
   <div class="row">
     <div id="set-for-<%=work_order.id%>" class="col-md-6">
       <% if input_set %>
