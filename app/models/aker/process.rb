@@ -31,7 +31,8 @@ module Aker
       process_class_translation[process_class.to_sym]
     end
 
-    def build_available_links
+    def build_available_links(unit_prices)
+
       # create a hash, where the value is a list
       available_links = Hash.new { |h, k| h[k] = [] }
       pairings = Aker::ProcessModulePairings.where(aker_process_id: id)
@@ -41,17 +42,17 @@ module Aker
         to_step = pmp.to_step_id ? Aker::ProcessModule.find(pmp.to_step_id) : nil
 
         if from_step.nil?
-          available_links['start'] << to_step.to_custom_hash
+          available_links['start'] << module_hash(to_step, unit_prices)
         elsif to_step.nil?
           available_links[from_step.name] << { name: 'end' }
         else
-          available_links[from_step.name] << to_step.to_custom_hash
+          available_links[from_step.name] << module_hash(to_step, unit_prices)
         end
       end
       available_links
     end
 
-    def build_default_path
+    def build_default_path(unit_prices)
       pairings = Aker::ProcessModulePairings.where(aker_process_id: id)
       default_path_ids = []
 
@@ -67,7 +68,17 @@ module Aker
         default_path_ids << next_module[0].to_step_id unless next_module[0].to_step_id.nil?
       end
 
-      default_path_ids.map { |id| Aker::ProcessModule.find(id).to_custom_hash }
+      default_path_ids.map { |id| module_hash(Aker::ProcessModule.find(id), unit_prices) }
     end
+
+  private
+
+    def module_hash(process_module, unit_prices)
+      result = process_module.to_custom_hash
+      result[:cost] = unit_prices[result[:name]]
+      result
+    end
+
   end
+
 end

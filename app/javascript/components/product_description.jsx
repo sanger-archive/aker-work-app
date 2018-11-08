@@ -44,7 +44,7 @@ export class ProductDescription extends React.Component {
     //event.target.parentElement.id
     const selectElementId = parseInt(event.target.id, 10)
 
-    const processModuleName = event.target.selectedOptions[0].text
+    const processModuleName = nameWithoutCost(event.target.selectedOptions[0].text)
     const processModuleId = event.target.value
 
     let updatedProductProcesses = this.state.selectedProductProcesses.slice();
@@ -350,7 +350,7 @@ export class WorkOrderProcess extends React.Component {
     e.preventDefault();
 
     const processModuleSelectId = parseInt(e.target.id);
-    const processModuleName = e.target.selectedOptions[0].text;
+    const processModuleName = nameWithoutCost(e.target.selectedOptions[0].text);
     const processModuleId = e.target.value;
 
     let updatedProductProcess = {...this.state.productProcess};
@@ -528,9 +528,15 @@ class ProcessModuleSelectElement extends React.Component {
 class ProcessModuleSelectOption extends React.Component {
   render() {
     const productObject = this.props.obj;
+    let text = productObject.name;
+    if (productObject.cost!=null) {
+      text += ' ('+convertToCurrency(parseFloat(productObject.cost))+' per sample)';
+    } else if (text!='end') {
+      text += ' (not available for this cost code)';
+    }
     return (
       <Fragment>
-        <option value={productObject.id}>{productObject.name}</option>
+        <option value={productObject.id}>{text}</option>
       </Fragment>
     );
   }
@@ -566,7 +572,7 @@ class CostInformation extends React.Component {
           <h5>Cost Information</h5>
           <pre>{`Number of samples: ${numSamples}
 `}
-<span class="wrappable" style={{color: 'red'}}>&#9888; {`${errorText}`}</span></pre>
+<span className="wrappable" style={{color: 'red'}}>&#9888; {`${errorText}`}</span></pre>
         </div>
         </Fragment>
       );
@@ -598,6 +604,17 @@ Total: ${convertToCurrency(total)}
       </Fragment>
     );
   }
+}
+
+function nameWithoutCost(text) {
+  if (text==null) {
+    return text;
+  }
+  const i = text.lastIndexOf(" (");
+  if (i >= 0) {
+    return text.substring(0,i);
+  }
+  return text;
 }
 
 function tatString(tat) {

@@ -18,6 +18,8 @@
     </div>
   </div>
 
+  <% unit_prices = unit_prices_for_work_plan(work_plan) %>
+
   <% work_plan.work_orders.each_with_index do |work_order, i| %>
     <div class="panel panel-default">
       <div class="panel-heading" role="tab" id="heading<%=i%>">
@@ -35,9 +37,9 @@
           </span>
         </h4>
       </div>
-         <div class="panel-body">
-            <%= render 'accordion_body', work_order: work_order, index: i %>
-         </div>
+      <div class="panel-body">
+        <%= render 'accordion_body', work_order: work_order, unit_prices: unit_prices, index: i %>
+      </div>
     </div>
     <br>
   <% end %>

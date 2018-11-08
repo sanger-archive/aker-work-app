@@ -6,13 +6,17 @@ class ProductsController < ApplicationController
     authorize! :read, work_plan
 
     cost_code = work_plan.decorate.project.cost_code
+    parent_cost_code = work_plan.decorate.parent_cost_code
+
+    module_names = @product.processes.flat_map(&:process_modules).map(&:name).uniq
+    unit_prices = UbwClient::get_unit_prices(module_names, parent_cost_code)
 
     processes = @product.processes.map do |process|
       {
         name: process.name, id: process.id, tat: process.TAT,
         process_class: process.process_class_human,
-        links: process.build_available_links,
-        path: selected_modules(process)
+        links: process.build_available_links(unit_prices),
+        path: selected_modules(process, unit_prices),
       }
     end
 
@@ -25,18 +29,18 @@ class ProductsController < ApplicationController
 
   def modules_unit_price
     authorize! :read, work_plan
-    cost_code = work_plan.decorate.parent_cost_code
+    parent_cost_code = work_plan.decorate.parent_cost_code
     unit_price = nil
     errors = []
-    unless cost_code
+    unless parent_cost_code
       errors.push("There is no cost code associated with this order's project.")
     else
       module_names = params[:module_ids].split('-').map { |id| Aker::ProcessModule.find(id).name }
-      unit_prices = UbwClient::get_unit_prices(module_names, cost_code)
+      unit_prices = UbwClient::get_unit_prices(module_names, parent_cost_code)
 
       bad_modules = module_names.select { |name| unit_prices[name].nil? }
       if bad_modules.any?
-        errors.push("The following modules are not valid for cost code #{cost_code}: #{bad_modules}")
+        errors.push("The following modules are not valid for cost code #{parent_cost_code}: #{bad_modules}")
       else
         unit_price = unit_prices.values.inject(0, :+)
       end
@@ -48,14 +52,14 @@ class ProductsController < ApplicationController
 private
 
   # Returns the selected modules if such things exist; otherwise the default path modules
-  def selected_modules(process)
+  def selected_modules(process, unit_prices)
     if work_plan.product_id==@product.id
       order = @work_plan.work_orders.where(process_id: process.id).first
       if order
         return order.selected_path
       end
     end
-    process.build_default_path
+    process.build_default_path(unit_prices)
   end
 
   def work_plan
