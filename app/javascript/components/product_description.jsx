@@ -562,14 +562,17 @@ class CostInformation extends React.Component {
       let errorText = this.props.errors.join('\n');
       return (
         <Fragment>
+        <div className="col-md-6">
+          <h5>Cost Information</h5>
           <pre>{`Number of samples: ${numSamples}
-
-${errorText}`}</pre>
+`}
+<span class="wrappable" style={{color: 'red'}}>&#9888; {`${errorText}`}</span></pre>
+        </div>
         </Fragment>
       );
     }
 
-    const costPerSample = this.props.unitPrice;
+    const costPerSample = typeof(this.props.unitPrice)=='string' ? parseFloat(this.props.unitPrice) : this.props.unitPrice;
 
     if (costPerSample==null) {
       return (
@@ -588,8 +591,8 @@ ${errorText}`}</pre>
           <pre>{`Number of samples: ${numSamples}
 Estimated cost per sample: ${convertToCurrency(costPerSample)}
 Total: ${convertToCurrency(total)}
-  `}
-<span style={{color: 'red'}}> &#9888; These values come from mock UBW.</span>
+`}
+<span style={{color: 'red'}}>&#9888; These values come from mock UBW.</span>
           </pre>
         </div>
       </Fragment>
@@ -608,8 +611,5 @@ function tatString(tat) {
 }
 
 function convertToCurrency(input) {
-  if (typeof(input)=='string') {
-    input = parseInt(input)
-  }
   return '£' + input.toFixed(2);
 }

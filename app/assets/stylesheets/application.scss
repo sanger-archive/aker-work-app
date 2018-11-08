@@ -136,3 +136,11 @@ h2 {
     margin-right: 0px !important;
   }
 }
+
+.wrappable {
+  white-space: pre-wrap;
+  white-space: -moz-pre-wrap !important;
+  white-space: -pre-wrap;
+  white-space: -o-pre-wrap;
+  word-wrap: break-word;
+}
