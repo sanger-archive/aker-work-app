@@ -239,6 +239,7 @@ private
   end
 
   def update_cost_quotes
+    @work_plan = @work_plan.reload # Doesn't work properly without this line
     return true if @work_plan.work_orders.empty? # Evidently haven't reached the orders part yet, so nothing to do
     cost_code = @work_plan.decorate.parent_cost_code
     unless cost_code
