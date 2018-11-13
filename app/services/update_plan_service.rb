@@ -60,9 +60,6 @@ class UpdatePlanService
 
     update_order = nil
 
-    update_cost_estimate = (@work_plan_params[:project_id] || @work_plan_params[:work_order_modules] ||
-                            @work_plan_params[:product_id] || product_options)
-
     # Requesting to update the modules in one order
     if @work_plan_params[:work_order_id] && @work_plan_params[:work_order_modules]
       module_ids = JSON.parse(@work_plan_params[:work_order_modules])
@@ -89,9 +86,15 @@ class UpdatePlanService
       add_error("Invalid parameters")
       return false
     end
+    # We will need to recalculate the cost if:
+    #  - we are changing the project
+    #  - we are changing the product
+    #  - we are changing the modules for an order
+    #  - we are setting the modules for all the orders
     update_cost_estimate = (@work_plan_params[:project_id] || @work_plan_params[:product_id] ||
-                             update_order || product_options)
+                             update_order || product_options || dispatch_order_id)
 
+    # Before we change a bunch of other stuff, check if the module/cost code is going to be valid
     if update_cost_estimate
       return false unless precheck_modules_with_cost_code(update_order, product_options)
     end
@@ -223,8 +226,8 @@ private
     @set_size_cache[set_uuid] ||= SetClient::Set.find(set_uuid)&.first&.meta&.[](:size)
   end
 
-  def calculate_cost(order, num_samples, cost_code)
-    return nil if num_samples.nil? || cost_code.nil?
+  def calculate_unit_price(order, cost_code)
+    return nil if cost_code.nil?
     module_names = order.process_modules.map(&:name)
     unit_prices = UbwClient::get_unit_prices(module_names, cost_code)
     uncosted = module_names.reject { |name| unit_prices[name].present? }
@@ -233,9 +236,8 @@ private
                 "no listed price for cost code #{cost_code}: #{uncosted.to_a}")
       return nil
     end
-    total_unit_price = unit_prices.values.reduce(0, :+)
 
-    return total_unit_price * num_samples
+    return unit_prices.values.reduce(0, :+)
   end
 
   def update_cost_quotes
@@ -257,10 +259,9 @@ private
         return false
       end
 
-      cost_estimate = calculate_cost(order, num_samples, cost_code)
-      if cost_estimate
-        order.update_attributes!(total_cost: cost_estimate)
-      end
+      cost_per_sample = calculate_unit_price(order, cost_code)
+      total_cost = cost_per_sample && cost_per_sample*num_samples
+      order.update_attributes!(cost_per_sample: cost_per_sample, total_cost: total_cost)
     end
 
     true

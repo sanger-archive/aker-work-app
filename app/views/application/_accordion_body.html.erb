@@ -10,16 +10,24 @@
 
 <% show_create_set_link = (work_order.original_set_uuid && !work_order.set_uuid && work_order.queued?) %>
 
+<% if work_order.dispatched? && work_order.total_cost %>
+  <% estimated_cost = work_order.total_cost %>
+<% elsif work_order.cost_per_sample && input_set && input_set.meta[:size] > 0 %>
+  <% estimated_cost = work_order.cost_per_sample * input_set.meta[:size] %>
+<% else %>
+  <% estimated_cost = nil %>
+<% end %>
+
 <div>
   <div class="row">
     <% if work_order.dispatch_date %>
       <div class="col-md-6">Dispatch Date: <%= work_order.dispatch_date %></div>
     <% end %>
   </div>
-  <% if work_order.total_cost %>
+  <% if estimated_cost %>
   <div class="row">
     <div class="col-md-6">
-      Estimated cost: <%= number_to_currency(work_order.total_cost, unit: '£') %>
+      Estimated cost: <%= number_to_currency(estimated_cost, unit: '£') %>
     </div>
   </div>
   <% end %>
