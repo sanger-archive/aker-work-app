@@ -91,6 +91,7 @@ class UpdatePlanService
     #  - we are changing the product
     #  - we are changing the modules for an order
     #  - we are setting the modules for all the orders
+    #  - we are dispatching the order
     update_cost_estimate = (@work_plan_params[:project_id] || @work_plan_params[:product_id] ||
                              update_order || product_options || dispatch_order_id)
 
