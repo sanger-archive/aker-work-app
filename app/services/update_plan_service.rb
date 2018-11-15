@@ -213,7 +213,7 @@ private
     uncosted = UbwClient::missing_unit_prices(module_names, cost_code)
 
     unless uncosted.empty?
-      add_error("The following #{uncosted.size==1 ? 'module has' : 'modules have'} " +
+      add_error("The following module#{uncosted.size==1 ? ' has' : 's have'} " +
                 "no listed price for cost code #{cost_code}: #{uncosted.to_a}")
       return false
     end

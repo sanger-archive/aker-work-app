@@ -529,7 +529,7 @@ class ProcessModuleSelectOption extends React.Component {
   render() {
     const productObject = this.props.obj;
     let text = productObject.name;
-    let disabled = null;
+    let disabled = false;
     if (productObject.cost!=null) {
       text += ' ('+convertToCurrency(parseFloat(productObject.cost))+' per sample)';
     } else if (text!='end') {
