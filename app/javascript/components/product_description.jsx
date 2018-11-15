@@ -529,14 +529,16 @@ class ProcessModuleSelectOption extends React.Component {
   render() {
     const productObject = this.props.obj;
     let text = productObject.name;
+    let disabled = null;
     if (productObject.cost!=null) {
       text += ' ('+convertToCurrency(parseFloat(productObject.cost))+' per sample)';
     } else if (text!='end') {
       text += ' (not available for this cost code)';
+      disabled = true;
     }
     return (
       <Fragment>
-        <option value={productObject.id}>{text}</option>
+        <option value={productObject.id} disabled={disabled}>{text}</option>
       </Fragment>
     );
   }
