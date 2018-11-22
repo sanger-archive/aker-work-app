@@ -44,7 +44,7 @@ export class ProductDescription extends React.Component {
     //event.target.parentElement.id
     const selectElementId = parseInt(event.target.id, 10)
 
-    const processModuleName = event.target.selectedOptions[0].text
+    const processModuleName = nameWithoutCost(event.target.selectedOptions[0].text)
     const processModuleId = event.target.value
 
     let updatedProductProcesses = this.state.selectedProductProcesses.slice();
@@ -350,7 +350,7 @@ export class WorkOrderProcess extends React.Component {
     e.preventDefault();
 
     const processModuleSelectId = parseInt(e.target.id);
-    const processModuleName = e.target.selectedOptions[0].text;
+    const processModuleName = nameWithoutCost(e.target.selectedOptions[0].text);
     const processModuleId = e.target.value;
 
     let updatedProductProcess = {...this.state.productProcess};
@@ -528,9 +528,17 @@ class ProcessModuleSelectElement extends React.Component {
 class ProcessModuleSelectOption extends React.Component {
   render() {
     const productObject = this.props.obj;
+    let text = productObject.name;
+    let disabled = false;
+    if (productObject.cost!=null) {
+      text += ' ('+convertToCurrency(parseFloat(productObject.cost))+' per sample)';
+    } else if (text!='end') {
+      text += ' (not available for this cost code)';
+      disabled = true;
+    }
     return (
       <Fragment>
-        <option value={productObject.id}>{productObject.name}</option>
+        <option value={productObject.id} disabled={disabled}>{text}</option>
       </Fragment>
     );
   }
@@ -562,14 +570,17 @@ class CostInformation extends React.Component {
       let errorText = this.props.errors.join('\n');
       return (
         <Fragment>
+        <div className="col-md-6">
+          <h5>Cost Information</h5>
           <pre>{`Number of samples: ${numSamples}
-
-${errorText}`}</pre>
+`}
+<span className="wrappable" style={{color: 'red'}}>&#9888; {`${errorText}`}</span></pre>
+        </div>
         </Fragment>
       );
     }
 
-    const costPerSample = this.props.unitPrice;
+    const costPerSample = typeof(this.props.unitPrice)=='string' ? parseFloat(this.props.unitPrice) : this.props.unitPrice;
 
     if (costPerSample==null) {
       return (
@@ -588,13 +599,24 @@ ${errorText}`}</pre>
           <pre>{`Number of samples: ${numSamples}
 Estimated cost per sample: ${convertToCurrency(costPerSample)}
 Total: ${convertToCurrency(total)}
-  `}
-<span style={{color: 'red'}}> &#9888; These values come from mock UBW.</span>
+`}
+<span style={{color: 'red'}}>&#9888; These values come from mock UBW.</span>
           </pre>
         </div>
       </Fragment>
     );
   }
+}
+
+function nameWithoutCost(text) {
+  if (text==null) {
+    return text;
+  }
+  const i = text.lastIndexOf(" (");
+  if (i >= 0) {
+    return text.substring(0,i);
+  }
+  return text;
 }
 
 function tatString(tat) {
@@ -608,8 +630,5 @@ function tatString(tat) {
 }
 
 function convertToCurrency(input) {
-  if (typeof(input)=='string') {
-    input = parseInt(input)
-  }
   return '£' + input.toFixed(2);
 }

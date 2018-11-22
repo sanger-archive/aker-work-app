@@ -125,13 +125,9 @@ class Catalogue < ApplicationRecord
         [pm[:to_step], pm[:from_step]]
       end
     end .flatten.compact.uniq
-    bad_modules = module_names.reject { |m| validate_module_name(m) }
-    raise "Process module could not be validated: #{bad_modules}" unless bad_modules.empty?
-  end
 
-  def self.validate_module_name(module_name)
-    uri_module_name = module_name.tr(' ', '_').downcase
-    BillingFacadeClient.validate_process_module_name(uri_module_name)
+    invalid_names = UbwClient::invalid_module_names(module_names)
+    raise "Process module could not be validated: #{invalid_names}" unless invalid_names.empty?
   end
 
   # All products must have a unique name and uuid (within the catalogue)

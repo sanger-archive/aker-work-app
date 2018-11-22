@@ -30,6 +30,14 @@ class WorkOrderDispatcher
 
 private
 
+  def cost_code
+    # Load the cost code only once, even if it's nil
+    unless defined? @code_code
+      @cost_code = work_order.work_plan.decorate.parent_cost_code
+    end
+    @cost_code
+  end
+
   def work_order_can_be_dispatched
     if !work_order.can_be_dispatched?
       errors.add(:work_order, 'can not be dispatched')
@@ -37,15 +45,14 @@ private
   end
 
   def modules_are_valid
-    bad_modules = work_order.process_modules.reject { |m| validate_module_name(m.name) }
-    unless bad_modules.empty?
-      errors.add(:base, "Process module could not be validated: #{bad_modules.map(&:name).join(', ')}")
+    unless cost_code
+      errors.add(:base, "No cost code is associated with this order's project.")
+      return
     end
-  end
-
-  def validate_module_name(module_name)
-    uri_module_name = module_name.gsub(' ', '_').downcase
-    BillingFacadeClient.validate_process_module_name(uri_module_name)
+    bad_module_names = UbwClient::missing_unit_prices(work_order.process_modules.map(&:name).to_a, cost_code)
+    unless bad_module_names.empty?
+      errors.add(:base, "Process module could not be validated: #{bad_module_names}")
+    end
   end
 
   def materials_are_available

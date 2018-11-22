@@ -9,15 +9,25 @@ RSpec.describe UpdatePlanService do
   let(:service) { UpdatePlanService.new(params, plan, dispatch, user_and_groups, messages) }
   let(:catalogue) { create(:catalogue, lims_id: 'SQSC' ) }
   let(:product) { create(:product, catalogue: catalogue) }
-  let(:project) { make_project(18, 'S1234-0') }
-  let(:set) { make_set(false, true, locked_set) }
-  let(:locked_set) { make_set(false, true) }
+  let(:project) { make_project(18, 'S1234', nil) }
+  let(:subproject) { make_project(19, 'S1234-0', project.id) }
+  let(:set) { make_set(1, true, locked_set) }
+  let(:locked_set) { make_set(1, true) }
   let(:processes) { create_processes(product) }
   let(:drs) { create(:data_release_strategy) }
 
+  let(:known_materials) do
+    known_mats = {}
+    allow(MatconClient::Material).to receive(:where) do |args|
+      matids = args['_id']['$in']
+      make_rs_response(matids.map { |id| known_mats[id] }.compact)
+    end
+    known_mats
+  end
+
   before(:each) do
-    stub_billing_facade
     extra_stubbing
+    stub_ubw_client
     stub_data_release_strategy
     @result = service.perform
   end
@@ -29,8 +39,23 @@ RSpec.describe UpdatePlanService do
     allow(DataReleaseStrategyClient).to receive(:find_strategies_by_user).and_return([drs])
   end
 
-  def stub_billing_facade
-    allow(BillingFacadeClient).to receive(:validate_cost_code?).and_return(true)
+  def set_unit_price(module_name, cost_code, unit_price)
+    @unit_prices ||= {}
+    @unit_prices[[module_name, cost_code]] = BigDecimal.new(unit_price)
+  end
+
+  def stub_ubw_client
+    @unit_prices ||= {}
+    allow(UbwClient).to receive(:get_unit_prices) do |module_names, cost_code|
+      module_names.map do |module_name|
+        unit_price = @unit_prices[[module_name, cost_code]]
+        if unit_price
+          [module_name, unit_price]
+        else
+          nil
+        end
+      end.compact.to_h
+    end
   end
 
   def stub_project
@@ -46,26 +71,26 @@ RSpec.describe UpdatePlanService do
     return double(:response, result_set: result_set)
   end
 
-  def make_project(id, cost_code)
-    proj = double(:project, id: id, name: "project #{id}", cost_code: cost_code)
+  def make_project(id, cost_code, parent_id)
+    proj = double(:project, id: id, name: "project #{id}", cost_code: cost_code, parent_id: parent_id)
     allow(StudyClient::Node).to receive(:find).with(id).and_return([proj])
     proj
   end
 
-  def make_set(empty=false, available=true, clone_set=nil)
+  def make_set(size=1, available=true, clone_set=nil)
     uuid = SecureRandom.uuid
-    set = double(:set, id: uuid, uuid: uuid, name: "Set #{uuid}", locked: clone_set.nil?)
+    set = double(:set, id: uuid, uuid: uuid, name: "Set #{uuid}", locked: clone_set.nil?, meta: { size: size })
 
-    if empty
+    if size==0
       matids = []
       set_materials = double(:set_materials, materials: [])
     else
-      matid = SecureRandom.uuid
-      matids = [matid]
-      set_content_material = double(:material, id: matid)
-      set_materials = double(:set_materials, materials: [set_content_material])
-      material = double(:material, id: matid, attributes: { 'available' => available})
-      allow(MatconClient::Material).to receive(:where).with("_id" => { "$in" => [matid]}).and_return(make_rs_response([material]))
+      matids = (0...size).map { SecureRandom.uuid }
+      set_content_materials = matids.map { |matid| double(:material, id: matid) }
+      set_materials = double(:set_materials, materials: set_content_materials)
+      materials = matids.map { |matid| double(:material, id: matid, attributes: { 'available' => available }) }
+
+      materials.each { |material| known_materials[material.id] = material }
     end
 
     allow(SetClient::Set).to receive(:find_with_materials).with(uuid).and_return([set_materials])
@@ -77,8 +102,9 @@ RSpec.describe UpdatePlanService do
     set
   end
 
+
   def make_plan_with_orders
-    plan = create(:work_plan, original_set_uuid: set.uuid, project_id: project.id, product: product, data_release_strategy_id: drs.id)
+    plan = create(:work_plan, original_set_uuid: set.uuid, project_id: subproject.id, product: product, data_release_strategy_id: drs.id)
     module_choices = processes.map { |pro| [pro.process_modules.first.id] }
     product_options_selected_values = module_choices.map{|c| [nil]}
     wo = plan.create_orders(module_choices, set.id, product_options_selected_values)
@@ -111,9 +137,9 @@ RSpec.describe UpdatePlanService do
       stub_project
     end
 
-    let(:new_project) { make_project(21, 'S1234-2') }
+    let(:new_subproject) { make_project(21, 'S1234-2', project.id) }
 
-    let(:params) { { project_id: new_project.id } }
+    let(:params) { { project_id: new_subproject.id } }
 
     context 'when the plan has no set selected' do
       it { expect(@result).to be_falsey }
@@ -136,7 +162,7 @@ RSpec.describe UpdatePlanService do
         expect(messages).to be_empty
       end
       it 'should set the project in the plan' do
-        expect(plan.project_id).to eq(new_project.id)
+        expect(plan.project_id).to eq(new_subproject.id)
       end
       it 'should still be in construction' do
         expect(plan).to be_in_construction
@@ -144,30 +170,13 @@ RSpec.describe UpdatePlanService do
     end
 
     context 'when the plan already has a project selected' do
-      let(:plan) { create(:work_plan, original_set_uuid: set.uuid, project_id: project.id) }
+      let(:plan) { create(:work_plan, original_set_uuid: set.uuid, project_id: subproject.id) }
       it { expect(@result).to be_truthy }
       it 'should produce no error messages' do
         expect(messages).to be_empty
       end
       it 'should set the project in the plan' do
-        expect(plan.project_id).to eq(new_project.id)
-      end
-      it 'should still be in construction' do
-        expect(plan).to be_in_construction
-      end
-    end
-
-    context 'when the cost code is invalid' do
-      let(:plan) { create(:work_plan, original_set_uuid: set.uuid) }
-      def stub_billing_facade
-        allow(BillingFacadeClient).to receive(:validate_cost_code?).and_return(false)
-      end
-      it { expect(@result).to be_falsey }
-      it 'should produce an error message' do
-        expect(messages[:error]).to match /cost code/
-      end
-      it 'should not set the project in the plan' do
-        expect(plan.project_id).to be_nil
+        expect(plan.project_id).to eq(new_subproject.id)
       end
       it 'should still be in construction' do
         expect(plan).to be_in_construction
@@ -178,7 +187,7 @@ RSpec.describe UpdatePlanService do
       let(:plan) { create(:work_plan, original_set_uuid: set.uuid) }
       def stub_project
         ex = AkerPermissionGem::NotAuthorized.new("Not authorised")
-        allow(StudyClient::Node).to receive(:authorize!).with(:spend, new_project.id, user_and_groups).and_raise ex
+        allow(StudyClient::Node).to receive(:authorize!).with(:spend, new_subproject.id, user_and_groups).and_raise ex
       end
 
       it { expect(@result).to be_falsey }
@@ -186,7 +195,7 @@ RSpec.describe UpdatePlanService do
         expect(messages[:error]).to match /not authori[zs]ed/i
       end
       it 'should have tried to authorise the project' do
-        expect(StudyClient::Node).to have_received(:authorize!).with(:spend, new_project.id, user_and_groups)
+        expect(StudyClient::Node).to have_received(:authorize!).with(:spend, new_subproject.id, user_and_groups)
       end
       it 'should not set the project in the plan' do
         expect(plan.project_id).to be_nil
@@ -197,7 +206,8 @@ RSpec.describe UpdatePlanService do
     end
 
     context 'when the project has no cost code' do
-      let(:new_project) { make_project(21, nil) }
+      let(:new_project) { make_project(21, nil, nil) }
+      let(:new_subproject) { make_project(21, nil, new_project.id) }
       let(:plan) { create(:work_plan, original_set_uuid: set.uuid) }
 
       it { expect(@result).to be_falsey }
@@ -244,7 +254,7 @@ RSpec.describe UpdatePlanService do
         expect(messages[:error]).to match /in progress/
       end
       it 'should not change the project in the plan' do
-        expect(plan.project_id).to eq(project.id)
+        expect(plan.project_id).to eq(subproject.id)
       end
       it 'should still be active' do
         expect(plan).to be_active
@@ -256,7 +266,7 @@ RSpec.describe UpdatePlanService do
   describe 'selecting a set' do
     let(:available) { true }
     let(:empty) { false }
-    let(:new_set) { make_set(empty, available) }
+    let(:new_set) { make_set(empty ? 0 : 1, available) }
     let(:params) { { original_set_uuid: new_set.uuid } }
 
     def extra_stubbing
@@ -353,13 +363,6 @@ RSpec.describe UpdatePlanService do
       }
     end
 
-    let(:module_cost) { 15 }
-
-    def stub_billing_facade
-      super
-      allow(BillingFacadeClient).to receive(:get_cost_information_for_module).and_return(module_cost)
-    end
-
     context 'when the plan does not have a project yet' do
       let(:plan) { create(:work_plan, original_set_uuid: set.uuid) }
 
@@ -379,7 +382,14 @@ RSpec.describe UpdatePlanService do
     end
 
     context 'when the plan has a project' do
-      let(:plan) { create(:work_plan, original_set_uuid: set.uuid, project_id: project.id) }
+      let(:plan) { create(:work_plan, original_set_uuid: set.uuid, project_id: subproject.id) }
+
+      def extra_stubbing
+        product_options.flatten.each do |module_id|
+          pm = Aker::ProcessModule.find(module_id)
+          set_unit_price(pm.name, project.cost_code, "5.99")
+        end
+      end
 
       it { expect(@result).to be_truthy }
       it 'should not produce an error message' do
@@ -407,10 +417,17 @@ RSpec.describe UpdatePlanService do
           expect(order.set_uuid).to be_nil
         end
       end
+
+      it 'should have estimated the costs for work orders' do
+        plan.work_orders.each do |order|
+          cost = BigDecimal.new('5.99') * order.process_modules.size
+          expect(order.total_cost).to eq(cost)
+        end
+      end
     end
 
     context 'when there are not modules given for each process' do
-      let(:plan) { create(:work_plan, original_set_uuid: set.uuid, project_id: project.id) }
+      let(:plan) { create(:work_plan, original_set_uuid: set.uuid, project_id: subproject.id) }
       let(:product_options) { [[processes[0].process_modules.first.id]] }
 
       it { expect(@result).to be_falsey }
@@ -438,7 +455,7 @@ RSpec.describe UpdatePlanService do
           memo
         end
       end
-      let(:plan) { create(:work_plan, original_set_uuid: set.uuid, project_id: project.id) }
+      let(:plan) { create(:work_plan, original_set_uuid: set.uuid, project_id: subproject.id) }
       let(:params) do
         {
           product_id: product.id,
@@ -450,17 +467,30 @@ RSpec.describe UpdatePlanService do
         let(:selected_value) { 7 }
         it { expect(@result).to be_falsey }
         it 'should produce an error message' do
-          expect(messages[:error]).to match Regexp.new('Creating.*failed.*')
+          expect(messages[:error]).to match Regexp.new('modules.*cost code')
         end
       end
       context 'when the module selected values are valid' do
+        def extra_stubbing
+          processes.flat_map(&:process_modules).each do |mod|
+            set_unit_price(mod.name, project.cost_code, "100.99")
+          end
+        end
+
         let(:selected_value) { 3 }
         it { expect(@result).to be_truthy }
-      end
 
+        it 'should update the order costs' do
+          plan.work_orders.each do |order|
+            cost = BigDecimal.new('100.99') * order.process_modules.size
+            expect(order.total_cost).to eq(cost)
+          end
+        end
+      end
     end
+
     context 'when the module ids are not a valid path for a process' do
-      let(:plan) { create(:work_plan, original_set_uuid: set.uuid, project_id: project.id) }
+      let(:plan) { create(:work_plan, original_set_uuid: set.uuid, project_id: subproject.id) }
       let(:product_options) do
         pops = processes.map { |pro| [pro.process_modules.first.id] }
         pops[1] += pops[1]
@@ -469,7 +499,7 @@ RSpec.describe UpdatePlanService do
 
       it { expect(@result).to be_falsey }
       it 'should produce an error message' do
-        expect(messages[:error]).to match Regexp.new('modules.*valid.*'+Regexp.escape(processes[1].name))
+        expect(messages[:error]).to match Regexp.new('module.*valid.*'+Regexp.escape(processes[1].name))
       end
       it 'should not set the product in the plan' do
         expect(plan.product_id).to be_nil
@@ -483,12 +513,11 @@ RSpec.describe UpdatePlanService do
     end
 
     context 'when the modules and cost code are invalid' do
-      let(:plan) { create(:work_plan, original_set_uuid: set.uuid, project_id: project.id) }
-      let(:module_cost) { nil }
+      let(:plan) { create(:work_plan, original_set_uuid: set.uuid, project_id: subproject.id) }
 
       it { expect(@result).to be_falsey }
       it 'should produce an error message' do
-        expect(messages[:error]).to match /modules.*cost code/
+        expect(messages[:error]).to match /module.*cost code/
       end
       it 'should not set the product in the plan' do
         expect(plan.product_id).to be_nil
@@ -502,7 +531,7 @@ RSpec.describe UpdatePlanService do
     end
 
     context 'when the work orders are already created but not started' do
-      let(:old_locked_set) { make_set(false, true) }
+      let(:old_locked_set) { make_set(1, true) }
 
       let(:plan) do
         plan = make_plan_with_orders
@@ -514,6 +543,12 @@ RSpec.describe UpdatePlanService do
       # product options different from the defaults
       let(:product_options) do
         processes.map { |pro| [pro.process_modules[1].id] }
+      end
+
+      def extra_stubbing
+        processes.flat_map(&:process_modules).each do |mod|
+          set_unit_price(mod.name, project.cost_code, "5.99")
+        end
       end
 
       it { expect(@result).to be_truthy }
@@ -581,7 +616,7 @@ RSpec.describe UpdatePlanService do
     end
 
     context 'when no product options are supplied' do
-      let(:plan) { create(:work_plan, original_set_uuid: set.uuid, project_id: project.id) }
+      let(:plan) { create(:work_plan, original_set_uuid: set.uuid, project_id: subproject.id) }
       let(:params) do
         {
           product_id: product.id,
@@ -608,7 +643,7 @@ RSpec.describe UpdatePlanService do
 
     context 'when no product id is supplied' do
 
-      let(:plan) { create(:work_plan, original_set_uuid: set.uuid, project_id: project.id) }
+      let(:plan) { create(:work_plan, original_set_uuid: set.uuid, project_id: subproject.id) }
       let(:params) do
         {
           comment: 'commentary',
@@ -680,7 +715,8 @@ RSpec.describe UpdatePlanService do
   describe 'altering product modules' do
     let(:plan) do
       plan = make_plan_with_orders
-      plan.work_orders.first.update_attributes!(status: 'active')
+      plan.work_orders.first.update_attributes!(original_set_uuid: make_set(1).id, status: 'active')
+      plan.work_orders.second.update_attributes!(original_set_uuid: make_set(2).id)
       plan
     end
 
@@ -697,11 +733,10 @@ RSpec.describe UpdatePlanService do
 
     let(:module_ids) { [processes[1].process_modules[1].id] }
 
-    let(:module_cost) { 15 }
-
-    def stub_billing_facade
-      super
-      allow(BillingFacadeClient).to receive(:get_cost_information_for_module).and_return(module_cost)
+    def extra_stubbing
+      processes.flat_map(&:process_modules).each do |mod|
+        set_unit_price(mod.name, project.cost_code, "5.99")
+      end
     end
 
     context 'when the order is queued' do
@@ -722,6 +757,80 @@ RSpec.describe UpdatePlanService do
         end
         expect(modules[0]).to eq([processes[0].process_modules[0].id])
         expect(modules[1]).to eq([processes[1].process_modules[1].id])
+      end
+      it 'should have had its cost amended' do
+        expect(WorkOrder.find(params[:work_order_id]).reload.total_cost).to eq(BigDecimal.new('5.99')*2)
+      end
+
+      it 'should not have set the cost for the first order' do
+        expect(plan.work_orders.first.reload.total_cost).to be_nil
+      end
+    end
+
+    context 'when changing from invalid modules to valid ones' do
+
+      def extra_stubbing
+        super
+        @unit_prices.delete([processes[1].process_modules[0].name, project.cost_code])
+      end
+
+      it { expect(@result).to be_truthy }
+
+      it 'should not produce an error message' do
+        expect(messages).to be_empty
+      end
+      it 'should leave the plan still active' do
+        expect(plan).to be_active
+      end
+      it 'should leave the plan with the same orders' do
+        expect(plan.work_orders.reload).to eq(old_orders)
+      end
+      it 'should have correctly set the modules for the orders' do
+        orders = plan.work_orders.reload
+        modules = orders.map do |order|
+          WorkOrderModuleChoice.where(work_order_id: order.id).map(&:aker_process_modules_id)
+        end
+        expect(modules[0]).to eq([processes[0].process_modules[0].id])
+        expect(modules[1]).to eq([processes[1].process_modules[1].id])
+      end
+      it 'should have had its cost amended' do
+        expect(WorkOrder.find(params[:work_order_id]).reload.total_cost).to eq(BigDecimal.new('5.99')*2)
+      end
+
+      it 'should not have set the cost for the first order' do
+        expect(plan.work_orders.first.reload.total_cost).to be_nil
+      end
+    end
+
+    context 'when trying to select modules with no unit price' do
+
+      def extra_stubbing
+        super
+        @unit_prices.delete([processes[1].process_modules[1].name, project.cost_code])
+      end
+
+      it { expect(@result).to be_falsey }
+      it 'should produce an error message' do
+        expect(messages[:error]).to match /module.*cost.?code/i
+        expect(messages[:error]).to include processes[1].process_modules[1].name
+        expect(messages[:error]).to include project.cost_code
+      end
+      it 'should still be active' do
+        expect(plan).to be_active
+      end
+      it 'should have the same work orders' do
+        expect(plan.work_orders.reload).to eq(old_orders)
+      end
+      it 'should still have the original modules' do
+        orders = plan.work_orders.reload
+        modules = orders.map do |order|
+          WorkOrderModuleChoice.where(work_order_id: order.id).map(&:aker_process_modules_id)
+        end
+        expect(modules[0]).to eq([processes[0].process_modules[0].id])
+        expect(modules[1]).to eq([processes[1].process_modules[0].id])
+      end
+      it 'should not have had its cost amended' do
+        expect(WorkOrder.find(params[:work_order_id]).total_cost).to be_nil
       end
     end
 
@@ -750,6 +859,9 @@ RSpec.describe UpdatePlanService do
         expect(modules[0]).to eq([processes[0].process_modules[0].id])
         expect(modules[1]).to eq([processes[1].process_modules[0].id])
       end
+      it 'should not have had its cost amended' do
+        expect(WorkOrder.find(params[:work_order_id]).total_cost).to be_nil
+      end
     end
 
     context 'when the modules are not valid for the process' do
@@ -757,7 +869,7 @@ RSpec.describe UpdatePlanService do
 
       it { expect(@result).to be_falsey }
       it 'should produce an error message' do
-        expect(messages[:error]).to match Regexp.new('modules.*valid.*'+Regexp.escape(processes[1].name))
+        expect(messages[:error]).to match Regexp.new('module.*valid.*'+Regexp.escape(processes[1].name))
       end
       it 'should still be active' do
         expect(plan).to be_active
@@ -776,7 +888,12 @@ RSpec.describe UpdatePlanService do
     end
 
     context 'when the modules cannot be costed' do
-      let(:module_cost) { nil }
+
+      def extra_stubbing
+        super()
+        mod_name = Aker::ProcessModule.find(module_ids.first).name
+        @unit_prices.delete([mod_name, project.cost_code])
+      end
 
       it { expect(@result).to be_falsey }
       it 'should produce an error message' do
@@ -844,11 +961,6 @@ RSpec.describe UpdatePlanService do
     let(:dispatch) { true }
     let(:sent_queued_events) { false }
 
-    def stub_billing_facade
-      super
-      allow(BillingFacadeClient).to receive(:get_cost_information_for_module).and_return(13)
-    end
-
     def extra_stubbing
       @sent_to_lims = false
       @sent_event = false
@@ -864,9 +976,14 @@ RSpec.describe UpdatePlanService do
       if sent_queued_events
         plan.update_attributes(sent_queued_events: true)
       end
+
+      processes.flat_map(&:process_modules).each do |mod|
+        set_unit_price(mod.name, project.cost_code, '5.99')
+      end
     end
 
     context 'when the order is queued' do
+
       it { expect(@result).to be_truthy }
       it 'should not produce an error message' do
         expect(messages).to be_empty
@@ -978,7 +1095,7 @@ RSpec.describe UpdatePlanService do
     end
 
     context 'when the set is empty' do
-      let(:set) { make_set(true, true, locked_set) }
+      let(:set) { make_set(0, true, locked_set) }
 
       it { expect(@result).to be_falsey }
       it 'should produce an error message' do
@@ -1016,7 +1133,7 @@ RSpec.describe UpdatePlanService do
     end
 
     context 'when the set materials are unavailable' do
-      let(:set) { make_set(false, false, locked_set) }
+      let(:set) { make_set(1, false, locked_set) }
 
       it { expect(@result).to be_falsey }
       it 'should produce an error message' do
@@ -1107,14 +1224,14 @@ RSpec.describe UpdatePlanService do
     context 'when the project is not authorised' do
       def stub_project
         ex = AkerPermissionGem::NotAuthorized.new("Not authorised")
-        allow(StudyClient::Node).to receive(:authorize!).with(:spend, project.id, user_and_groups).and_raise ex
+        allow(StudyClient::Node).to receive(:authorize!).with(:spend, subproject.id, user_and_groups).and_raise ex
       end
       it { expect(@result).to be_falsey }
       it 'should produce an error message' do
         expect(messages[:error]).to match /not authori[sz]ed/i
       end
       it 'should have tried to authorise the project' do
-        expect(StudyClient::Node).to have_received(:authorize!).with(:spend, project.id, user_and_groups)
+        expect(StudyClient::Node).to have_received(:authorize!).with(:spend, subproject.id, user_and_groups)
       end
       it 'should have the same work orders' do
         expect(plan.work_orders.reload).to eq(orders)
@@ -1146,6 +1263,7 @@ RSpec.describe UpdatePlanService do
         expect(orders[0].reload.dispatch_date).to be_nil
       end
     end
+
     context 'when the data release strategy is not valid' do
       def stub_data_release_strategy
         allow(DataReleaseStrategyClient).to receive(:find_strategies_by_user).and_return([])
@@ -1173,11 +1291,6 @@ RSpec.describe UpdatePlanService do
     end
     let(:dispatch) { true }
 
-    def stub_billing_facade
-      super
-      allow(BillingFacadeClient).to receive(:get_cost_information_for_module).and_return(13)
-    end
-
     def extra_stubbing
       @sent_to_lims = false
       @sent_event = false
@@ -1187,6 +1300,10 @@ RSpec.describe UpdatePlanService do
       stub_project
       stub_stamps
       stub_broker_connection
+
+      processes.flat_map(&:process_modules).each do |mod|
+        set_unit_price(mod.name, project.cost_code, '5.99')
+      end
     end
 
     context 'when the broker is broken' do
@@ -1278,12 +1395,12 @@ RSpec.describe UpdatePlanService do
 
       def stub_project
         ex = AkerPermissionGem::NotAuthorized.new("Not authorised")
-        allow(StudyClient::Node).to receive(:authorize!).with(:spend, project.id, user_and_groups).and_raise ex
+        allow(StudyClient::Node).to receive(:authorize!).with(:spend, subproject.id, user_and_groups).and_raise ex
       end
 
       it { expect(@result).to be_falsey }
       it 'should have tried to authorise the project' do
-        expect(StudyClient::Node).to have_received(:authorize!).with(:spend, project.id, user_and_groups)
+        expect(StudyClient::Node).to have_received(:authorize!).with(:spend, subproject.id, user_and_groups)
       end
       it 'should produce an error message' do
         expect(messages[:error]).to match /not.*authori[sz]ed/i
@@ -1419,6 +1536,7 @@ RSpec.describe UpdatePlanService do
         plan.work_orders.first.update_attributes!(status: 'concluded', finished_set_uuid: locked_set.uuid)
         plan
       end
+
       it { expect(@result).to be_truthy }
       it 'should not produce an error message' do
         expect(messages).to be_empty

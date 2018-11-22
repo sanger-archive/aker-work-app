@@ -40,7 +40,7 @@ RSpec.describe Catalogue, type: :model do
       end
 
       before do
-        allow(BillingFacadeClient).to receive(:validate_process_module_name).and_return(true)
+        allow(UbwClient).to receive(:invalid_module_names).and_return []
         @cat1 = Catalogue.create!(lims_id: lims_id,
                                   url: 'somewhere',
                                   pipeline: 'cells',
@@ -124,14 +124,46 @@ RSpec.describe Catalogue, type: :model do
     end
   end
 
-  describe '#validate_module_name' do
-    it 'should return true when the name is valid' do
-      allow(BillingFacadeClient).to receive(:validate_process_module_name).and_return(true)
-      expect(Catalogue.validate_module_name('good name')).to eq true
+  describe '#validate_module_names' do
+    let(:valid_module_names) { ['alpha', 'beta', 'gamma', 'delta'] }
+    let(:process_params) do
+      pairings.map do |pairs|
+        {
+          process_module_pairings: pairs.map { |x,y| {from_step: x, to_step: y} }
+        }
+      end
     end
-    it 'should return false when the name is invalue' do
-      allow(BillingFacadeClient).to receive(:validate_process_module_name).and_return(false)
-      expect(Catalogue.validate_module_name('bad name')).to eq false
+
+    before do
+      allow(UbwClient).to receive(:invalid_module_names) do |module_names|
+        module_names = module_names.to_a if module_names.is_a? String
+        module_names - valid_module_names
+      end
+    end
+
+    context 'when the module names are valid' do
+      let(:pairings) do
+        [
+          [[nil, 'alpha'], ['alpha', 'beta'], ['beta', nil]],
+          [[nil, 'delta'], ['delta', nil]],
+        ]
+      end
+
+      it 'should not raise an exception' do
+        expect { Catalogue.validate_module_names(process_params) }.not_to raise_error
+      end
+    end
+
+    context 'when a module name is invalid' do
+      let(:pairings) do
+        [ 
+          [[nil, 'alpha'], ['alpha', 'bananas'], ['bananas', nil]],
+        ]
+      end
+      it 'should raise an exception' do
+        bad_names = ['bananas']
+        expect { Catalogue.validate_module_names(process_params) }.to raise_error(RuntimeError, /module.*valid.*banana/i)
+      end
     end
   end
 

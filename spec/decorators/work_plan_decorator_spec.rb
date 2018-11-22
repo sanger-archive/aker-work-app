@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'rails_helper'
+require 'ostruct'
 
 RSpec.describe WorkPlanDecorator do
 
@@ -36,5 +37,48 @@ RSpec.describe WorkPlanDecorator do
       expect(decorated_work_plan.work_orders).to all be_instance_of(WorkOrder)
     end
 
+  end
+
+  describe '#parent_cost_code' do
+    let(:project) { OpenStruct.new(id: 7, cost_code: 'S8421') }
+    let(:subproject) { OpenStruct.new(id: 8, parent_id: project.id) }
+    let(:work_plan) { create(:work_plan, project_id: subproject.id) }
+
+    before do
+      [project, subproject].each do |node|
+        allow(StudyClient::Node).to receive(:find).with(node.id).and_return([node])
+      end
+      allow(StudyClient::Node).to receive(:find).with(nil).and_return([])
+    end
+
+    context 'when the work plan is linked to a subproject whose parent has a cost code' do
+      it 'should return the cost code from the parent project' do
+        expect(decorated_work_plan.parent_cost_code).to eq('S8421')
+      end
+    end
+
+    context 'when the work plan is linked to a subproject whose parent has no cost code' do
+      let(:project) { OpenStruct.new(id: 7, cost_code: nil) }
+
+      it 'should return nil' do
+        expect(decorated_work_plan.parent_cost_code).to be_nil
+      end
+    end
+
+    context 'when the work plan is linked to a node without a parent' do
+      let(:subproject) { OpenStruct.new(id: 8, parent_id: nil) }
+
+      it 'should return nil' do
+        expect(decorated_work_plan.parent_cost_code).to be_nil
+      end
+    end
+
+    context 'when the work plan is not linked to any project' do
+      let(:work_plan) { create(:work_plan, project_id: nil) }
+
+      it 'should return nil' do
+        expect(decorated_work_plan.parent_cost_code).to be_nil
+      end
+    end
   end
 end

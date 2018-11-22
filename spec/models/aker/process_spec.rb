@@ -2,6 +2,15 @@
 require 'rails_helper'
 
 RSpec.describe Aker::Process, type: :model do
+
+  let(:unit_prices) { {} }
+
+  def module_hash(mod)
+    h = mod.to_custom_hash
+    h[:cost] = unit_prices[h[:name]]
+    h
+  end
+
   describe '#validation' do
     it 'is not valid without a name' do
       expect(build(:aker_process, name: nil)).to_not be_valid
@@ -48,112 +57,113 @@ RSpec.describe Aker::Process, type: :model do
       list_of_modules
     end
 
-    context '#build_available_links' do
+    describe '#build_available_links' do
+      let(:process) { create(:process) }
+
       context 'with an empty list of pairings' do
         it 'returns an empty object' do
-          process = create :process
-          expect(process.build_available_links).to eq({})
+          expect(process.build_available_links(unit_prices)).to eq({})
         end
       end
 
       context 'with a linear process' do
-        before do
-          @process = create :process
-          @list_of_modules = build_linear_process_for(@process, 5)
+        let(:process) { create(:process) }
+        let!(:list_of_modules) { build_linear_process_for(process, 5) }
+        let(:unit_prices) do
+          {
+            list_of_modules[0].name => BigDecimal.new('5.99'),
+            list_of_modules[1].name => BigDecimal.new('3.55'),
+          }
         end
+
         it 'creates an object describing that linear process' do
-          expect(@process.build_available_links).to eq(
-            'start' => [@list_of_modules[0].to_custom_hash],
-            @list_of_modules[0].name => [@list_of_modules[1].to_custom_hash],
-            @list_of_modules[1].name => [@list_of_modules[2].to_custom_hash],
-            @list_of_modules[2].name => [@list_of_modules[3].to_custom_hash],
-            @list_of_modules[3].name => [@list_of_modules[4].to_custom_hash],
-            @list_of_modules[4].name => [{ name: 'end' }]
+          expect(process.build_available_links(unit_prices)).to eq(
+            'start' => [module_hash(list_of_modules[0])],
+            list_of_modules[0].name => [module_hash(list_of_modules[1])],
+            list_of_modules[1].name => [module_hash(list_of_modules[2])],
+            list_of_modules[2].name => [module_hash(list_of_modules[3])],
+            list_of_modules[3].name => [module_hash(list_of_modules[4])],
+            list_of_modules[4].name => [{ name: 'end' }]
           )
         end
       end
 
       context 'with diferent processes structures' do
         context 'with a loop process' do
+          let!(:list_of_modules) { build_linear_process_for(process, 5) }
           before do
-            @process = create :process
-            @list_of_modules = build_linear_process_for(@process, 5)
-            create(:aker_process_module_pairings, from_step: @list_of_modules.last,
-                                                  to_step: @list_of_modules.first,
-                                                  aker_process: @process,
+            create(:aker_process_module_pairings, from_step: list_of_modules.last,
+                                                  to_step: list_of_modules.first,
+                                                  aker_process: process,
                                                   default_path: false)
           end
           it 'creates an object describing the loop' do
-            expect(@process.build_available_links).to eq(
-              'start' => [@list_of_modules[0].to_custom_hash],
-              @list_of_modules[0].name => [@list_of_modules[1].to_custom_hash],
-              @list_of_modules[1].name => [@list_of_modules[2].to_custom_hash],
-              @list_of_modules[2].name => [@list_of_modules[3].to_custom_hash],
-              @list_of_modules[3].name => [@list_of_modules[4].to_custom_hash],
-              @list_of_modules[4].name => [{ name: 'end' }, @list_of_modules[0].to_custom_hash]
+            expect(process.build_available_links(unit_prices)).to eq(
+              'start' => [module_hash(list_of_modules[0])],
+              list_of_modules[0].name => [module_hash(list_of_modules[1])],
+              list_of_modules[1].name => [module_hash(list_of_modules[2])],
+              list_of_modules[2].name => [module_hash(list_of_modules[3])],
+              list_of_modules[3].name => [module_hash(list_of_modules[4])],
+              list_of_modules[4].name => [{ name: 'end' }, module_hash(list_of_modules[0])]
             )
           end
         end
 
         context 'with 2 parallel linear modules not connected' do
-          before do
-            @process = create :process
-            @list_of_modules = build_linear_process_for(@process, 2)
-            @list_of_modules2 = build_linear_process_for(@process, 2)
-          end
+          let!(:list_of_modules) { build_linear_process_for(process, 2) }
+          let!(:list_of_modules2) { build_linear_process_for(process, 2) }
           it 'creates an object describing these with 2 starting points and 2 ending' do
-            expect(@process.build_available_links).to eq(
+            expect(process.build_available_links(unit_prices)).to eq(
               'start' => [
-                @list_of_modules[0].to_custom_hash,
-                @list_of_modules2[0].to_custom_hash
+                module_hash(list_of_modules[0]),
+                module_hash(list_of_modules2[0])
               ],
-              @list_of_modules[0].name => [@list_of_modules[1].to_custom_hash],
-              @list_of_modules2[0].name => [@list_of_modules2[1].to_custom_hash],
-              @list_of_modules[1].name => [{ name: 'end' }],
-              @list_of_modules2[1].name => [{ name: 'end' }]
+              list_of_modules[0].name => [module_hash(list_of_modules[1])],
+              list_of_modules2[0].name => [module_hash(list_of_modules2[1])],
+              list_of_modules[1].name => [{ name: 'end' }],
+              list_of_modules2[1].name => [{ name: 'end' }]
             )
           end
         end
 
         context 'with some parallel linear modules interconnected' do
-          before do
-            @process = create :process
-            @list_of_modules = build_linear_process_for(@process, 2)
-            @list_of_modules2 = build_linear_process_for(@process, 2)
-            @list_of_modules3 = build_linear_process_for(@process, 2)
+          let!(:list_of_modules) { build_linear_process_for(process, 2) }
+          let!(:list_of_modules2) { build_linear_process_for(process, 2) }
+          let!(:list_of_modules3) { build_linear_process_for(process, 2) }
 
-            create(:aker_process_module_pairings, from_step: @list_of_modules[0],
-                                                  to_step: @list_of_modules2[1],
-                                                  aker_process: @process,
+          before do
+            create(:aker_process_module_pairings, from_step: list_of_modules[0],
+                                                  to_step: list_of_modules2[1],
+                                                  aker_process: process,
                                                   default_path: false)
-            create(:aker_process_module_pairings, from_step: @list_of_modules2[0],
-                                                  to_step: @list_of_modules[1],
-                                                  aker_process: @process,
+            create(:aker_process_module_pairings, from_step: list_of_modules2[0],
+                                                  to_step: list_of_modules[1],
+                                                  aker_process: process,
                                                   default_path: false)
           end
 
           it 'creates an object describing these with starting points and endings, and connections
             between' do
-            expect(@process.build_available_links).to eq(
+            expect(process.build_available_links(unit_prices)).to eq(
               'start' => [
-                @list_of_modules[0].to_custom_hash,
-                @list_of_modules2[0].to_custom_hash,
-                @list_of_modules3[0].to_custom_hash
+                module_hash(list_of_modules[0]),
+                module_hash(list_of_modules2[0]),
+                module_hash(list_of_modules3[0])
               ],
-              @list_of_modules[0].name => [
-                @list_of_modules[1].to_custom_hash,
-                @list_of_modules2[1].to_custom_hash
+              list_of_modules[0].name => [
+                module_hash(list_of_modules[1]),
+                module_hash(list_of_modules2[1])
               ],
-              @list_of_modules2[0].name => [
-                @list_of_modules2[1].to_custom_hash,
-                @list_of_modules[1].to_custom_hash
+              list_of_modules2[0].name => [
+                module_hash(list_of_modules2[1]),
+                module_hash(list_of_modules[1])
               ],
-              @list_of_modules3[0].name => [
-                @list_of_modules3[1].to_custom_hash
+              list_of_modules3[0].name => [
+                module_hash(list_of_modules3[1])
               ],
-              @list_of_modules[1].name => [{ name: 'end' }],
-              @list_of_modules2[1].name => [{ name: 'end' }],
-              @list_of_modules3[1].name => [{ name: 'end' }]
+              list_of_modules[1].name => [{ name: 'end' }],
+              list_of_modules2[1].name => [{ name: 'end' }],
+              list_of_modules3[1].name => [{ name: 'end' }]
             )
           end
         end
@@ -161,44 +171,45 @@ RSpec.describe Aker::Process, type: :model do
     end
 
     context '#build_default_path' do
+      let(:process) { create(:process) }
+
       context 'a linear process' do
+        let!(:list_of_modules) { build_linear_process_for(process, 5) }
+
         before do
-          @process = create :process
-          @list_of_modules = build_linear_process_for(@process, 5)
           Aker::ProcessModulePairings.all.update_all(default_path: true)
         end
+
         it 'gets the default path' do
-          expect(@process.build_default_path).to eq(@list_of_modules.map(&:to_custom_hash))
+          expect(process.build_default_path(unit_prices)).to eq(list_of_modules.map { |mod| module_hash(mod) })
         end
       end
 
       context 'with some parallel linear modules interconnected' do
+        let!(:list_of_modules) { build_linear_process_for(process, 2) }
+        let!(:list_of_modules2) { build_linear_process_for(process, 2) }
+        let!(:list_of_modules3) { build_linear_process_for(process, 2) }
         before do
-          @process = create :process
-          @list_of_modules = build_linear_process_for(@process, 2)
-          @list_of_modules2 = build_linear_process_for(@process, 2)
-          @list_of_modules3 = build_linear_process_for(@process, 2)
-
-          create(:aker_process_module_pairings, from_step: @list_of_modules[0],
-                                                to_step: @list_of_modules2[1],
-                                                aker_process: @process,
+          create(:aker_process_module_pairings, from_step: list_of_modules[0],
+                                                to_step: list_of_modules2[1],
+                                                aker_process: process,
                                                 default_path: true)
-          create(:aker_process_module_pairings, from_step: @list_of_modules2[0],
-                                                to_step: @list_of_modules[1],
-                                                aker_process: @process,
+          create(:aker_process_module_pairings, from_step: list_of_modules2[0],
+                                                to_step: list_of_modules[1],
+                                                aker_process: process,
                                                 default_path: false)
 
-          Aker::ProcessModulePairings.where(to_step: @list_of_modules[0])
+          Aker::ProcessModulePairings.where(to_step: list_of_modules[0])
                                      .update_all(default_path: true)
-          Aker::ProcessModulePairings.where(from_step: @list_of_modules[0],
-                                            to_step: @list_of_modules2[1])
+          Aker::ProcessModulePairings.where(from_step: list_of_modules[0],
+                                            to_step: list_of_modules2[1])
                                      .update_all(default_path: true)
-          Aker::ProcessModulePairings.where(from_step: @list_of_modules2[1])
+          Aker::ProcessModulePairings.where(from_step: list_of_modules2[1])
                                      .update_all(default_path: true)
         end
         it 'gets the default path' do
-          expect(@process.build_default_path).to eq([@list_of_modules[0].to_custom_hash,
-                                                     @list_of_modules2[1].to_custom_hash])
+          expect(process.build_default_path(unit_prices)).to eq([module_hash(list_of_modules[0]),
+                                                     module_hash(list_of_modules2[1])])
         end
       end
     end

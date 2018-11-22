@@ -4,11 +4,8 @@ RSpec.describe ProductsController, type: :controller do
   let!(:user) { setup_user }
 
   let(:catalogue) { create(:catalogue) }
-  let(:project) do
-    proj = double(:project, id: 17, cost_code: 'S1234-0')
-    allow(StudyClient::Node).to receive(:find).with(proj.id).and_return([proj])
-    proj
-  end
+  let(:project) { make_project(17, 'S1234') }
+  let(:subproject) { make_project(18, 'S1234-0', project.id) }
   let(:product) { create(:product, catalogue: catalogue, description: "Bake cakes") }
   let(:processes) do
     tats = [5,11]
@@ -28,13 +25,25 @@ RSpec.describe ProductsController, type: :controller do
     end
   end
 
-  let(:work_plan) { create(:work_plan, project_id: project.id) }
+  let(:work_plan) { create(:work_plan, project_id: subproject.id) }
+
+  def make_project(id, cost_code, parent_id=nil)
+    node = double(:project, id: id, cost_code: cost_code, parent_id: parent_id)
+    allow(StudyClient::Node).to receive(:find).with(id).and_return([node])
+    node
+  end
 
   def setup_user(name = "user")
     user = OpenStruct.new(email: "#{name}@sanger.ac.uk", groups: ['world'])
     allow(controller).to receive(:check_credentials)
     allow(controller).to receive(:current_user).and_return(user)
     return user
+  end
+
+  before do
+    allow(UbwClient).to receive(:get_unit_prices) do |module_names, cost_code|
+      module_names.map { |name| [name, BigDecimal.new('5.99')]}.to_h
+    end
   end
 
   describe "#before_action" do
@@ -67,11 +76,13 @@ RSpec.describe ProductsController, type: :controller do
         expect(r[:name]).to eq product.name
         expect(r[:description]).to eq product.description
         expect(r[:availability]).to eq product.availability
-        expect(r[:cost_code]).to eq project.cost_code
+        expect(r[:cost_code]).to eq subproject.cost_code
         expect(r[:total_tat]).to eq (processes[0].TAT + processes[1].TAT)
 
+        unit_prices = Hash.new(BigDecimal.new('5.99'))
+
         product_processes = processes.map do |pro|
-          { name: pro.name, id: pro.id, links: pro.build_available_links, path: pro.build_default_path,
+          { name: pro.name, id: pro.id, links: pro.build_available_links(unit_prices), path: pro.build_default_path(unit_prices),
             tat: pro.TAT, process_class: pro.process_class_human }
         end
 
@@ -97,7 +108,7 @@ RSpec.describe ProductsController, type: :controller do
         end
       end
 
-      let(:work_plan) { create(:work_plan, project_id: project.id, product_id: product.id) }
+      let(:work_plan) { create(:work_plan, project_id: subproject.id, product_id: product.id) }
 
       it "should return the work orders product info with the selected path" do
         params = { id: work_plan.id, product_id: product.id}
@@ -108,14 +119,16 @@ RSpec.describe ProductsController, type: :controller do
         expect(r[:name]).to eq product.name
         expect(r[:description]).to eq product.description
         expect(r[:availability]).to eq product.availability
-        expect(r[:cost_code]).to eq project.cost_code
+        expect(r[:cost_code]).to eq subproject.cost_code
         expect(r[:total_tat]).to eq (processes[0].TAT + processes[1].TAT)
+
+        unit_prices = Hash.new(BigDecimal.new('5.99'))
 
         
         product_processes = processes.each_with_index.map do |pro, i|
           option_for_module = alt_modules[i].to_custom_hash.merge(selected_value: nil).reject{|k| ((k == :min_value) || (k==:max_value))}
           path_for_process = [option_for_module]
-          { name: pro.name, id: pro.id, links: pro.build_available_links, path: path_for_process,
+          { name: pro.name, id: pro.id, links: pro.build_available_links(unit_prices), path: path_for_process,
             tat: pro.TAT, process_class: pro.process_class_human }
         end
         expect(r[:product_processes]).to eq(JSON.parse(product_processes.to_json, symbolize_names: true))
@@ -128,17 +141,19 @@ RSpec.describe ProductsController, type: :controller do
     let(:prices) { [11,5] }
 
     before do
-      stub_billing    
+      stub_ubw
       get :modules_unit_price, params: { id: work_plan.id, module_ids: modules.map(&:id).join('-') }
     end
 
     let(:body) { JSON.parse(response.body, symbolize_names: true) }
 
     context 'when the modules and the cost code are correct' do
-      def stub_billing
+      def stub_ubw
         cost_code = project.cost_code
-        modules.zip(prices) do |mod, price|
-          allow(BillingFacadeClient).to receive(:get_cost_information_for_module).with(mod.name, cost_code).and_return(BigDecimal(price))
+        unit_prices = modules.map(&:name).zip(prices.map { |price| BigDecimal.new(price) }).to_h
+        allow(UbwClient).to receive(:get_unit_prices) do |mod_names, cost_code|
+          mod_names = [mod_names] if mod_names.is_a? String
+          mod_names.map { |name| [name, unit_prices[name]] }.to_h
         end
       end
     
@@ -153,8 +168,8 @@ RSpec.describe ProductsController, type: :controller do
     end
 
     context 'when the billing service cannot give a price for the modules and cost code' do
-      def stub_billing
-        allow(BillingFacadeClient).to receive(:get_cost_information_for_module).and_return(nil)
+      def stub_ubw
+        allow(UbwClient).to receive(:get_unit_prices).and_return({})
       end
 
       it 'should return an appropriate error' do

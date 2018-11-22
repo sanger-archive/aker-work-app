@@ -10,12 +10,27 @@
 
 <% show_create_set_link = (work_order.original_set_uuid && !work_order.set_uuid && work_order.queued?) %>
 
+<% if work_order.dispatched? && work_order.total_cost %>
+  <% estimated_cost = work_order.total_cost %>
+<% elsif work_order.cost_per_sample && input_set && input_set.meta[:size] > 0 %>
+  <% estimated_cost = work_order.cost_per_sample * input_set.meta[:size] %>
+<% else %>
+  <% estimated_cost = nil %>
+<% end %>
+
 <div>
   <div class="row">
     <% if work_order.dispatch_date %>
       <div class="col-md-6">Dispatch Date: <%= work_order.dispatch_date %></div>
     <% end %>
   </div>
+  <% if estimated_cost %>
+  <div class="row">
+    <div class="col-md-6">
+      Estimated cost: <%= number_to_currency(estimated_cost, unit: '£') %>
+    </div>
+  </div>
+  <% end %>
   <div class="row">
     <div id="set-for-<%=work_order.id%>" class="col-md-6">
       <% if input_set %>
@@ -53,7 +68,8 @@
   <!-- Supply pro.name, pro.tat and pro.process_class in the appropriate fields if you want them to show up
        on the dispatch page the way they do on the products page
   -->
-  <%= react_component('WorkOrderProcess', { index: index, work_order_id: work_order.id, pro: { name: nil, links: pro.build_available_links, path: work_order.selected_path,
+
+  <%= react_component('WorkOrderProcess', { index: index, work_order_id: work_order.id, pro: { name: nil, links: pro.build_available_links(unit_prices), path: work_order.selected_path,
     tat: nil, process_class: nil, enabled: work_order.queued? } }) %>
 
   <% if work_order.can_be_dispatched? %>

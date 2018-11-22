@@ -88,6 +88,10 @@ class WorkOrder < ApplicationRecord
     status == WorkOrder.CONCLUDED
   end
 
+  def dispatched?
+    active? || concluded?
+  end
+
 # checks work_plan is not cancelled, work order is queued, and the first order in the work plan not to be closed
   def can_be_dispatched?
     (!work_plan.cancelled? && queued? && work_plan.work_orders.find {|o| !o.closed? }==self)
