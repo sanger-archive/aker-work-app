@@ -88,6 +88,10 @@ class Job < ApplicationRecord
     status == 'broken'
   end
 
+  def forwarded?
+    status == 'forwarded'
+  end
+
   def start!
     update!(started: Time.zone.now)
   end
@@ -109,6 +113,7 @@ class Job < ApplicationRecord
 
   def status
     return 'broken' if broken
+    return 'forwarded' if forwarded
     return 'cancelled' if cancelled
     return 'completed' if completed
     return 'active' if started
