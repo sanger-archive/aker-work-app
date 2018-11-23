@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2018_08_16_103146) do
+ActiveRecord::Schema.define(version: 2018_11_23_100354) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "citext"
@@ -78,9 +78,11 @@ ActiveRecord::Schema.define(version: 2018_08_16_103146) do
     t.datetime "broken"
     t.bigint "work_order_id", null: false
     t.string "close_comment"
-    t.uuid "set_uuid"
+    t.uuid "output_set_uuid"
     t.uuid "uuid", default: -> { "uuid_generate_v4()" }, null: false
     t.uuid "input_set_uuid"
+    t.uuid "revised_output_set_uuid"
+    t.datetime "forwarded"
     t.index ["work_order_id"], name: "index_jobs_on_work_order_id"
   end
 
@@ -128,9 +130,6 @@ ActiveRecord::Schema.define(version: 2018_08_16_103146) do
     t.integer "order_index", null: false
     t.datetime "dispatch_date"
     t.datetime "completion_date"
-    t.uuid "original_set_uuid"
-    t.uuid "set_uuid"
-    t.uuid "finished_set_uuid"
     t.uuid "work_order_uuid", null: false
     t.bigint "work_plan_id", null: false
     t.bigint "process_id", null: false
