@@ -65,9 +65,7 @@ class DispatchNextOrderService
   def validate_sets!
     jobs.each do |job|
       raise "Job #{job.id} has no output set." unless job.output_set_uuid
-      if job.revised_output_set_uuid && !is_subset(job.revised_output_set_uuid, job.output_set_uuid)
-        raise "Job #{job.id} has extraneous materials in its revised output set."
-      end
+
       if job.revised_output_set_uuid
         raise "Job #{job.id} has no materials in its revised output set." if set_empty(job.revised_output_set)
         raise "Job #{job.id} has extraneous materials in its revised output set." unless is_subset_uuid(job.revised_output_set_uuid, job.output_set_uuid)
@@ -92,6 +90,10 @@ class DispatchNextOrderService
     validate!
 
     finalise_revised_sets
+
+    jobs.each do |job|
+      job.update_attributes!(forwarded: Time.now)
+    end
 
     @order = WorkOrder.create!(process: new_process, order_index: new_order_index,
                                work_plan: plan, status: WorkOrder.QUEUED)
