@@ -31,7 +31,7 @@ class DispatchNextOrderService
 
   def validate!
     raise "No job IDs supplied." if @job_ids.empty?
-    raise "Job IDs are from different work plan." unless jobs.all { |job| job.work_order.work_plan==plan }
+    raise "Job IDs are from different work plans." unless jobs.all { |job| job.work_order.work_plan==plan }
     raise "Job IDS are from different processes." unless jobs.all { |job| job.work_order.process==old_process }
     raise "This is the last process in the product." if old_process==product.processes.last
     raise "Jobs that have already been forwarded to the next process cannot be forwarded again." if jobs.any? { |job| job.forwarded }
