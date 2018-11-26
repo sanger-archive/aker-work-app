@@ -10,6 +10,8 @@ class WorkPlan < ApplicationRecord
 
   has_many :work_orders, -> { order(:order_index) }, dependent: :destroy
 
+  has_many :process_module_choices, -> { order(:aker_process_id, :position) }, dependent: :destroy
+
   after_initialize :create_uuid
   before_validation :sanitise_owner
   before_save :sanitise_owner
@@ -136,6 +138,10 @@ class WorkPlan < ApplicationRecord
 
   def is_product_from_sequencescape?
     product.catalogue.lims_id == SEQUENCESCAPE_LIMS_ID
+  end
+
+  def modules_for_process_id(pro_id)
+    process_module_choices.select { |mc| mc.aker_process_id==pro_id }.sort_by(&:position)
   end
 
 end

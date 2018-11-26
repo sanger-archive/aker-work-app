@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2018_11_23_100354) do
+ActiveRecord::Schema.define(version: 2018_11_26_100544) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "citext"
@@ -98,6 +98,19 @@ ActiveRecord::Schema.define(version: 2018_11_23_100354) do
     t.index ["permitted"], name: "index_permissions_on_permitted"
   end
 
+  create_table "process_module_choices", force: :cascade do |t|
+    t.bigint "work_plan_id", null: false
+    t.bigint "aker_process_id", null: false
+    t.bigint "aker_process_module_id", null: false
+    t.integer "position", null: false
+    t.integer "selected_value"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["aker_process_id"], name: "index_process_module_choices_on_aker_process_id"
+    t.index ["aker_process_module_id"], name: "index_process_module_choices_on_aker_process_module_id"
+    t.index ["work_plan_id"], name: "index_process_module_choices_on_work_plan_id"
+  end
+
   create_table "products", id: :serial, force: :cascade do |t|
     t.string "name"
     t.datetime "created_at", null: false
@@ -133,6 +146,7 @@ ActiveRecord::Schema.define(version: 2018_11_23_100354) do
     t.uuid "work_order_uuid", null: false
     t.bigint "work_plan_id", null: false
     t.bigint "process_id", null: false
+    t.uuid "set_uuid"
     t.index ["process_id"], name: "index_work_orders_on_process_id"
     t.index ["work_plan_id"], name: "index_work_orders_on_work_plan_id"
   end
@@ -159,6 +173,9 @@ ActiveRecord::Schema.define(version: 2018_11_23_100354) do
   add_foreign_key "aker_product_processes", "aker_processes"
   add_foreign_key "aker_product_processes", "products"
   add_foreign_key "jobs", "work_orders"
+  add_foreign_key "process_module_choices", "aker_process_modules"
+  add_foreign_key "process_module_choices", "aker_processes"
+  add_foreign_key "process_module_choices", "work_plans"
   add_foreign_key "products", "catalogues"
   add_foreign_key "work_order_module_choices", "aker_process_modules", column: "aker_process_modules_id"
   add_foreign_key "work_order_module_choices", "work_orders"
