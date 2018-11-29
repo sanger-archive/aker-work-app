@@ -102,11 +102,11 @@ private
   end
 
   def work_order_dispatcher
-    WorkOrderDispatcher.new(serializer: WorkOrderSerializer.new)
+    @dispatcher ||= WorkOrderDispatcher.new(serializer: WorkOrderSerializer.new)
   end
 
   def work_order_splitter
-    WorkOrderSplitter::ByContainer.new
+    @splitter ||= WorkOrderSplitter::ByContainer.new
   end
 
   def helper
