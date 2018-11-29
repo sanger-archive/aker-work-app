@@ -1,8 +1,10 @@
 # Class to handle dispatching a selection of jobs to the next process in their work plan
 class DispatchNextOrderService
 
-  def initialize(job_ids)
+  def initialize(job_ids, user_and_groups, messages)
     @job_ids = job_ids
+    @user_and_groups = user_and_groups
+    @messages = messages
   end
 
   # DECORATED jobs from the @job_ids
@@ -22,6 +24,10 @@ class DispatchNextOrderService
     @old_process ||= jobs.first.work_order.process
   end
 
+  def helper
+    @helper ||= PlanHelper.new(plan, @user_and_groups, @messages)
+  end
+
   def new_process
     @new_process ||= begin
       procs = product.processes
@@ -29,15 +35,10 @@ class DispatchNextOrderService
     end
   end
 
-  def set_material_ids(set_uuid)
-    @cached_material_ids ||= {}
-    @cached_material_ids[set_uuid] ||= SetClient::Set.find_with_materials(set_uuid).first.materials.map(&:id)
-  end
-
   def combined_set
     @combined_set ||= begin
       set_uuids = jobs.map { |job| job.revised_output_set_uuid || job.output_set_uuid }
-      material_uuids = set_uuids.flat_map(&method(:set_material_ids)).uniq
+      material_uuids = set_uuids.flat_map { |setid| helper.set_material_ids(setid) }.uniq
 
       new_set = SetClient::Set.create(name: "Work Order #{@order.id}")
       new_set.set_materials(material_uuids)
@@ -52,27 +53,28 @@ class DispatchNextOrderService
     plan.work_orders.map(&:order_index).max + 1
   end
 
-  def validate!
-    raise "No job IDs supplied." if @job_ids.empty?
-    raise "Job IDs are from different work plans." unless jobs.all { |job| job.work_order.work_plan==plan }
-    raise "Job IDS are from different processes." unless jobs.all { |job| job.work_order.process==old_process }
-    raise "This is the last process in the product." if old_process==product.processes.last
-    raise "Jobs that have already been forwarded to the next process cannot be forwarded again." if jobs.any? { |job| job.forwarded }
-    raise "This plan is in a broken state." if plan.broken?
-    validate_sets!
+  def validate
+    return error("No job IDs supplied.") if @job_ids.empty?
+    return error("Job IDs are from different work plans.") unless jobs.all { |job| job.work_order.work_plan==plan }
+    return error("Job IDS are from different processes.") unless jobs.all { |job| job.work_order.process==old_process }
+    return error("This is the last process in the product.") if old_process==product.processes.last
+    return error("Jobs that have already been forwarded to the next process cannot be forwarded again.") if jobs.any? { |job| job.forwarded }
+    return error("This plan is in a broken state.") if plan.broken?
+    validate_sets
   end
 
-  def validate_sets!
+  def validate_sets
     jobs.each do |job|
-      raise "Job #{job.id} has no output set." unless job.output_set_uuid
+      return error("Job #{job.id} has no output set.") unless job.output_set_uuid
 
       if job.revised_output_set_uuid
-        raise "Job #{job.id} has no materials in its revised output set." if set_empty(job.revised_output_set)
-        raise "Job #{job.id} has extraneous materials in its revised output set." unless is_subset_uuid(job.revised_output_set_uuid, job.output_set_uuid)
+        return error("Job #{job.id} has no materials in its revised output set.") if set_empty(job.revised_output_set)
+        return error("Job #{job.id} has extraneous materials in its revised output set.") unless is_subset_uuid(job.revised_output_set_uuid, job.output_set_uuid)
       else
-        raise "Job #{job.id} has no materials in its output set." if set_empty(job.output_set)
+        return error("Job #{job.id} has no materials in its output set.") if set_empty(job.output_set)
       end
     end
+    true
   end
 
   def finalise_revised_sets
@@ -87,13 +89,12 @@ class DispatchNextOrderService
 
   # This method should be called inside a transaction
   def execute
-    validate!
+    return false unless validate
 
     finalise_revised_sets
 
-    jobs.each do |job|
-      job.update_attributes!(forwarded: Time.now)
-    end
+    now = Time.now
+    jobs.each { |job| job.update_attributes!(forwarded: now) }
 
     @order = WorkOrder.create!(process: new_process, order_index: new_order_index,
                                work_plan: plan, status: WorkOrder.QUEUED)
@@ -117,6 +118,8 @@ class DispatchNextOrderService
 
     # Do this last because it cannot be undone
     combined_set.update_attributes(owner_id: @order.owner_email, locked: true)
+
+    true
   end
 
 private
@@ -126,8 +129,8 @@ private
   end
 
   def is_subset_uuid(subset_uuid, superset_uuid)
-    subset_materials = set_material_ids(subset_uuid)
-    superset_materials = set_material_ids(superset_uuid)
+    subset_materials = helper.set_material_ids(subset_uuid)
+    superset_materials = helper.set_material_ids(superset_uuid)
     return (subset_materials - superset_materials).empty?
   end
 
@@ -137,5 +140,10 @@ private
 
   def work_order_splitter
     @splitter ||= WorkOrderSplitter::ByContainer.new
+  end
+
+  def error(message)
+    @messages[:error] = message
+    return false
   end
 end
