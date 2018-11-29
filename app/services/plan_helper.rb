@@ -1,4 +1,5 @@
 require 'set'
+require 'broker'
 
 # Some common helper methods from the various plan-related services
 class PlanHelper
@@ -6,8 +7,8 @@ class PlanHelper
 
   def initialize(plan, user_and_groups, messages)
     @plan = plan
-    @messages = messages
     @user_and_groups = user_and_groups
+    @messages = messages
   end
 
   def validate_data_release_strategy_selection(data_release_strategy_id)
