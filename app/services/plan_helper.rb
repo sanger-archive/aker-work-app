@@ -133,10 +133,10 @@ class PlanHelper
 
     module_costs = UbwClient::get_unit_prices(module_names, cost_code)
 
-    uncosted = module_names - module_costs.keys
+    uncosted = module_names - module_costs.select { |k,v| v.present? }.keys
 
     unless uncosted.empty?
-      error("The following module#{uncosted.size==1 ? ' has' : 's have'} " +
+      return error("The following module#{uncosted.size==1 ? ' has' : 's have'} " +
                 "no listed price for cost code #{cost_code}: #{uncosted.to_a}")
     end
 
@@ -186,7 +186,7 @@ class PlanHelper
   end
 
   def error(message)
-    messages[:error] = message
+    @messages[:error] = message
     false
   end
 

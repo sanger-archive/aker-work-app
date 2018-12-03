@@ -133,7 +133,9 @@ class PlanUpdateService
   end
 
   def create_module_choices(plan, process, module_ids, selected_values)
-    module_ids.zip(selected_values).each_with_index do |modid,val,pos|
+    # zip and each_with_index don't work properly in combination
+    module_ids.each_with_index do |modid,pos|
+      val = selected_values[pos]
       ProcessModuleChoice.create!(work_plan: plan, aker_process: process,
         aker_process_module_id: modid, selected_value: val, position: pos)
     end
