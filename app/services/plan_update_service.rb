@@ -135,7 +135,6 @@ class PlanUpdateService
     module_ids.zip(selected_values).each_with_index do |modid,val,pos|
       ProcessModuleChoice.create!(work_plan: plan, aker_process: process,
         aker_process_module_id: modid, selected_value: val, position: pos)
-      end
     end
   end
 
