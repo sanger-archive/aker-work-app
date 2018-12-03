@@ -32,7 +32,7 @@ class PlanHelper
 
   def validate_project_selection(project_id)
     return error("No project id supplied.") unless project_id.present?
-    unless parent_cost_code[project_id]
+    unless parent_cost_code(project_id)
       @messages[:error] ||= "No parent cost code could be identified for the supplied project id."
       return false
     end

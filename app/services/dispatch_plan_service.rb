@@ -64,10 +64,10 @@ class DispatchPlanService
     @plan_unit_price = nil
 
     project_id = plan.project_id
-    return true unless project_id # nothing to check if there is no project id
+    return error("This plan has no project.") unless project_id
 
     module_names = plan.process_module_choices.map { |choice| choice.process_module.name }
-    return true if module_names.empty?
+    return error("This plan has no modules selected.") if module_names.empty?
 
     @plan_unit_price = helper.predict_unit_price(project_id, module_names)
 
