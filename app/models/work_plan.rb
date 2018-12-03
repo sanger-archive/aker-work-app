@@ -94,7 +94,7 @@ class WorkPlan < ApplicationRecord
   end
 
   def closed?
-    status=='closed'
+    false # There is no longer any way for plans to become closed
   end
 
   def active?
@@ -124,7 +124,6 @@ class WorkPlan < ApplicationRecord
       wos = work_orders.to_a # load them all now so we don't make multiple queries
       if !wos.empty?
         return 'broken' if wos.any?(&:broken?)
-        return 'closed' if wos.all?(&:closed?)
         return 'active' unless wos.all?(&:queued?)
       end
     end
