@@ -58,6 +58,8 @@ class PlanUpdateService
       return false unless predict_plan_cost(product_options)
     end
 
+    return true
+
   end
 
   def perform
@@ -98,11 +100,12 @@ class PlanUpdateService
         return error("Please select a product in an earlier step.")
       end
     end
+    return true
   end
 
   def check_set_change
     set_uuid = params[:original_set_uuid]
-    return unless set_uuid
+    return true unless set_uuid
     return error("The set cannot be changed now.") unless plan.work_orders.empty?
     helper.check_set_contents(set_uuid)
   end

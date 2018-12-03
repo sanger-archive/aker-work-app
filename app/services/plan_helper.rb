@@ -119,8 +119,7 @@ class PlanHelper
     else
       joined = bad_uuids.to_s
     end
-    add_error("Not authorised to consume materials #{joined}.")
-    return false
+    return error("Not authorised to consume materials #{joined}.")
   end
 
   def predict_unit_price(project_id, module_names)
