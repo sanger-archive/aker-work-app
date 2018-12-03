@@ -87,7 +87,7 @@ class DispatchPlanService
     order.update_attributes!(cost_per_sample: unit_price, total_cost: order_cost, set_uuid: order_set.uuid)
 
     module_choices.each_with_index do |choice, i|
-      WorkOrderModuleChoice.create!(work_order_id: order.id, aker_process_modules_id: choice.process_module_id,
+      WorkOrderModuleChoice.create!(work_order_id: order.id, aker_process_modules_id: choice.aker_process_module_id,
                                     position: i, selected_value: choice.selected_value)
     end
 
@@ -97,7 +97,7 @@ class DispatchPlanService
 private
 
   def error(message)
-    messages[:error] = message
+    @messages[:error] = message
     false
   end
 
