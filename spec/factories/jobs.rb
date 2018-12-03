@@ -5,15 +5,15 @@ FactoryBot.define do
     work_order
 
     trait :started do
-      started 2.weeks.ago
+      started { 2.weeks.ago }
     end
 
     trait :cancelled do
-      cancelled 1.week.ago
+      cancelled { 1.week.ago }
     end
 
     trait :completed do
-      completed 1.day.ago
+      completed { 1.day.ago }
     end
 
     factory :cancelled_job, traits: [:started, :cancelled]

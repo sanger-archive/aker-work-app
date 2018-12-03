@@ -2,7 +2,7 @@
 
 FactoryBot.define do
   factory :work_plan do
-    owner_email 'owner@sanger.ac.uk'
+    owner_email { 'owner@sanger.ac.uk' }
     uuid { SecureRandom.uuid }
 
     transient do
@@ -11,7 +11,7 @@ FactoryBot.define do
     end
 
     trait :with_project do
-      project_id SecureRandom.uuid
+      project_id { SecureRandom.uuid }
     end
 
     after(:create) do |plan, evaluator|
