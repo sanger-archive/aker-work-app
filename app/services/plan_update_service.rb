@@ -22,7 +22,7 @@ class PlanUpdateService
     return false unless check_set_change
 
     @product_options = nil
-    if params[:product_options].present? || params[:product_id].present?
+    if [:product_options, :product_id, :work_order_modules].any? { |field| params[field].present? }
       unless params[:product_options].present? && params[:product_id].present?
         return error("Please select product and options to proceed.")
       end
@@ -36,7 +36,7 @@ class PlanUpdateService
       end
       return false unless helper.check_product_options(@product, @product_options, @selected_values)
       
-      @params = @params.except(:product_options)
+      @params = @params.except(:product_options, :work_order_modules)
     end
 
     if params[:project_id]

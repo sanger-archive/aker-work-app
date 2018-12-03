@@ -55,8 +55,8 @@ class DispatchNextOrderService
 
   def validate
     return error("No job IDs supplied.") if @job_ids.empty?
-    return error("Job IDs are from different work plans.") unless jobs.all { |job| job.work_order.work_plan==plan }
-    return error("Job IDS are from different processes.") unless jobs.all { |job| job.work_order.process==old_process }
+    return error("Job IDs are from different work plans.") unless jobs.all? { |job| job.work_order.work_plan==plan }
+    return error("Job IDS are from different processes.") unless jobs.all? { |job| job.work_order.process==old_process }
     return error("This is the last process in the product.") if old_process==product.processes.last
     return error("Jobs that have already been forwarded to the next process cannot be forwarded again.") if jobs.any? { |job| job.forwarded }
     return error("This plan is in a broken state.") if plan.broken?
