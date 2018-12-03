@@ -151,10 +151,10 @@ class PlanHelper
       return error("The modules specified do not match the selected product.")
     end
     processes.zip(product_options, selected_values).all? do |pro, mids, values|
-      if modules_ok_for_process(mids, process) && module_values_ok(mids, values)
+      if modules_ok_for_process(mids, pro) && module_values_ok(mids, values)
         true
       else
-        error("The given options are not a valid sequence for process \"#{process.name}\".")
+        error("The given options are not a valid sequence for process \"#{pro.name}\".")
       end
     end
   end
@@ -177,7 +177,7 @@ class PlanHelper
   def get_node(node_id)
     return nil unless node_id
     @nodes ||= {}
-    @nodes[node_id] ||= StudyClient::Node.find(selected_project_id).first
+    @nodes[node_id] ||= StudyClient::Node.find(node_id).first
   end
 
   def check_broker

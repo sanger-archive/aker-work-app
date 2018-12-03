@@ -29,14 +29,12 @@ class PlanUpdateService
 
       @product = Product.find(params[:product_id])
       @product_options = JSON.parse(params[:product_options])
-
-      return false unless helper.check_product_options(product, @product_options, selected_values)
-
       @selected_values = @product_options.map do |list|
         list.map do |module_id|
           params[:work_order_modules]&.[](module_id.to_s)&.[](:selected_value)
         end
       end
+      return false unless helper.check_product_options(@product, @product_options, @selected_values)
       
       @params = @params.except(:product_options)
     end
@@ -55,7 +53,7 @@ class PlanUpdateService
     @update_cost_estimate = (params[:project_id] || @product_options)
 
     if @update_cost_estimate
-      return false unless predict_plan_cost(product_options)
+      return false unless predict_plan_cost(@product_options)
     end
 
     return true
