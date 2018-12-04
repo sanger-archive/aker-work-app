@@ -128,16 +128,7 @@ class PlanUpdateService
   def choose_modules(product, module_ids, selected_values)
     wp = plan
     product.processes.zip(module_ids, selected_values).each do |pro,modids,vals|
-      create_module_choices(wp, pro, modids, vals)
-    end
-  end
-
-  def create_module_choices(plan, process, module_ids, selected_values)
-    # zip and each_with_index don't work properly in combination
-    module_ids.each_with_index do |modid,pos|
-      val = selected_values[pos]
-      ProcessModuleChoice.create!(work_plan: plan, aker_process: process,
-        aker_process_module_id: modid, selected_value: val, position: pos)
+      helper.create_module_choices(wp, pro, modids, vals)
     end
   end
 

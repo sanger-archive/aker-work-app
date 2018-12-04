@@ -169,6 +169,15 @@ class PlanHelper
     return pairs.include? [last, nil]
   end
 
+  def create_module_choices(plan, process, module_ids, selected_values)
+    # zip and each_with_index don't work properly in combination
+    module_ids.each_with_index do |modid,pos|
+      val = selected_values[pos]
+      ProcessModuleChoice.create!(work_plan: plan, aker_process: process,
+        aker_process_module_id: modid, selected_value: val, position: pos)
+    end
+  end
+
   def module_values_ok(module_ids, values)
     module_ids.length == values.length &&
       module_ids.zip(values).all? { |mid, value| Aker::ProcessModule.find(mid).accepts_value(value) }
