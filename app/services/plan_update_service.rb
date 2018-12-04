@@ -127,6 +127,7 @@ class PlanUpdateService
   # Choosing product options for the whole plan
   def choose_modules(product, module_ids, selected_values)
     wp = plan
+    wp.process_module_choices.each(&:destroy!)
     product.processes.zip(module_ids, selected_values).each do |pro,modids,vals|
       helper.create_module_choices(wp, pro, modids, vals)
     end
