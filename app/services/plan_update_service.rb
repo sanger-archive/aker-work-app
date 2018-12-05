@@ -108,22 +108,6 @@ class PlanUpdateService
     helper.check_set_contents(set_uuid)
   end
 
-  def check_material_permissions(mids)
-    return true if StampClient::Permission.check_catch({
-      permission_type: :consume,
-      names: @user_and_groups,
-      material_uuids: mids,
-    })
-
-    bad_uuids = StampClient::Permission.unpermitted_uuids
-    if bad_uuids.length > 10
-      joined = bad_uuids[0,10].to_s + ' (too many to list)'
-    else
-      joined = bad_uuids.to_s
-    end
-    return error("Not authorised to consume materials #{joined}.")
-  end
-
   # Choosing product options for the whole plan
   def choose_modules(product, module_ids, selected_values)
     wp = plan

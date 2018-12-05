@@ -39,26 +39,6 @@ class PlanHelper
     return authorize_project(project_id)
   end
 
-  def authorize_project(project_id)
-    StudyClient::Node.authorize! :spend, project_id, @user_and_groups
-    return true
-  rescue AkerPermissionGem::NotAuthorized => e
-    return error(e.message)
-  end
-
-  def all_results(result_set)
-    results = result_set.to_a
-    while result_set.has_next? do
-      result_set = result_set.next
-      results += result_set.to_a
-    end
-    results
-  end
-
-  def load_materials(matids)
-    all_results(MatconClient::Material.where("_id" => {"$in" => matids}).result_set)
-  end
-
   def set_material_ids(set_uuid)
     @set_materials ||= {}
     @set_materials[set_uuid] ||= SetClient::Set.find_with_materials(set_uuid).first.materials.map(&:id)
@@ -102,22 +82,6 @@ class PlanHelper
     Rails.logger.error e
     Rails.logger.error e.backtrace
     return error("The materials could not be retrieved.")
-  end
-
-  def check_material_permissions(matids)
-    return true if StampClient::Permission.check_catch({
-      permission_type: :consume,
-      names: @user_and_groups,
-      material_uuids: matids,
-    })
-
-    bad_uuids = StampClient::Permission.unpermitted_uuids
-    if bad_uuids.length > 10
-      joined = bad_uuids[0,10].to_s +' (too many to list)'
-    else
-      joined = bad_uuids.to_s
-    end
-    return error("Not authorised to consume materials #{joined}.")
   end
 
   def predict_unit_price(project_id, module_names)
@@ -167,6 +131,11 @@ class PlanHelper
     return pairs.include? [last, nil]
   end
 
+  def module_values_ok(module_ids, values)
+    module_ids.length == values.length &&
+      module_ids.zip(values).all? { |mid, value| Aker::ProcessModule.find(mid).accepts_value(value) }
+  end
+
   def create_module_choices(plan, process, module_ids, selected_values)
     # zip and each_with_index don't work properly in combination
     module_ids.each_with_index do |modid,pos|
@@ -174,11 +143,6 @@ class PlanHelper
       ProcessModuleChoice.create!(work_plan: plan, aker_process: process,
         aker_process_module_id: modid, selected_value: val, position: pos)
     end
-  end
-
-  def module_values_ok(module_ids, values)
-    module_ids.length == values.length &&
-      module_ids.zip(values).all? { |mid, value| Aker::ProcessModule.find(mid).accepts_value(value) }
   end
 
   def get_node(node_id)
@@ -190,6 +154,44 @@ class PlanHelper
   def check_broker
     return true if BrokerHandle.working? || BrokerHandle.events_disabled?
     return error("Could not connect to message exchange.")
+  end
+
+private
+
+  def authorize_project(project_id)
+    StudyClient::Node.authorize! :spend, project_id, @user_and_groups
+    return true
+  rescue AkerPermissionGem::NotAuthorized => e
+    return error(e.message)
+  end
+
+  def all_results(result_set)
+    results = result_set.to_a
+    while result_set.has_next? do
+      result_set = result_set.next
+      results += result_set.to_a
+    end
+    results
+  end
+
+  def load_materials(matids)
+    all_results(MatconClient::Material.where("_id" => {"$in" => matids}).result_set)
+  end
+  
+  def check_material_permissions(matids)
+    return true if StampClient::Permission.check_catch({
+      permission_type: :consume,
+      names: @user_and_groups,
+      material_uuids: matids,
+    })
+
+    bad_uuids = StampClient::Permission.unpermitted_uuids
+    if bad_uuids.length > 10
+      joined = bad_uuids[0,10].to_s +' (too many to list)'
+    else
+      joined = bad_uuids.to_s
+    end
+    return error("Not authorised to consume materials #{joined}.")
   end
 
   def error(message)
