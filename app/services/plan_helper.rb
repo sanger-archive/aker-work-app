@@ -156,14 +156,14 @@ class PlanHelper
     return error("Could not connect to message exchange.")
   end
 
-private
-
   def authorize_project(project_id)
     StudyClient::Node.authorize! :spend, project_id, @user_and_groups
     return true
   rescue AkerPermissionGem::NotAuthorized => e
     return error(e.message)
   end
+
+private
 
   def all_results(result_set)
     results = result_set.to_a
