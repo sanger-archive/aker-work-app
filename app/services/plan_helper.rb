@@ -88,10 +88,8 @@ class PlanHelper
     parent_node.cost_code
   end
 
-
   def check_set_contents(set_uuid)
     matids = set_material_ids(set_uuid)
-    @set_size = matids.size
     if matids.empty?
       return error("The selected set is empty.")
     end
@@ -133,7 +131,7 @@ class PlanHelper
 
     module_costs = UbwClient::get_unit_prices(module_names, cost_code)
 
-    uncosted = module_names - module_costs.select { |k,v| v.present? }.keys
+    uncosted = module_names.uniq - module_costs.select { |k,v| v.present? }.keys
 
     unless uncosted.empty?
       return error("The following module#{uncosted.size==1 ? ' has' : 's have'} " +
