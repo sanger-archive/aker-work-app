@@ -34,7 +34,7 @@ class ReviseOptionsService
     return error("Work for this process has already been dispatched.") if plan.work_orders.any? { |order| order.process==process }
 
     return error("The selected modules are not suitable for this process.") unless helper.modules_ok_for_process(@module_ids, process)
-    return error("The selected values are not suitable for this process.") unless helper.module_values_ok(@module_ids, @values)
+    return error("The selected values are not suitable for the modules.") unless helper.module_values_ok(@module_ids, @values)
     return false unless helper.predict_unit_price(plan.project_id, modules.map(&:name))
     # We don't update the cost estimate for the plan, because it's impossible to reasonably reflect how many orders and samples will be done
 
