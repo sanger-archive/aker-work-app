@@ -405,6 +405,23 @@ RSpec.describe :plan_helper do
     end
   end
 
+  describe '#authorize_project' do
+    let(:project_id) { 12 }
+    context 'when the project is authorized' do
+      it 'should succeed wihout error' do
+        expect(StudyClient::Node).to receive(:authorize!).with(:spend, project_id, user_and_groups)
+        expect(helper.authorize_project(project_id)).to succeed_without_error
+      end
+    end
+
+    context 'when the project is not authorized' do
+      it 'should fail with the error message from the exception' do
+        expect(StudyClient::Node).to receive(:authorize!).with(:spend, project_id, user_and_groups).and_raise(AkerPermissionGem::NotAuthorized, 'It was not allowed.')
+        expect(helper.authorize_project(project_id)).to fail_with_error 'It was not allowed.'
+      end
+    end
+  end
+
   # helper functions
 
   def make_node(id, cost_code, parent_id=nil)
