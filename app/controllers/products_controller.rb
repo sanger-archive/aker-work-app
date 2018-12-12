@@ -53,13 +53,9 @@ private
 
   # Returns the selected modules if such things exist; otherwise the default path modules
   def selected_modules(process, unit_prices)
-    if work_plan.product_id==@product.id
-      order = @work_plan.work_orders.where(process_id: process.id).first
-      if order
-        return order.selected_path
-      end
-    end
-    process.build_default_path(unit_prices)
+    selected_modules = process.selected_path(work_plan)
+    selected_modules = process.build_default_path(unit_prices) if selected_modules.empty?
+    selected_modules
   end
 
   def work_plan

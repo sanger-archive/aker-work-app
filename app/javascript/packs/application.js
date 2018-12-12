@@ -10,9 +10,10 @@
 import React from 'react';
 import ReactDOM from 'react-dom'
 import { render } from 'react-dom';
-import { ProductDescription, WorkOrderProcess }from '../components/product_description';
+import { ProductDescription }from '../components/product_description';
+import { WorkPlanProcess }from '../components/work_plan_process';
 import WebpackerReact from 'webpacker-react'
 
 WebpackerReact.setup({ProductDescription})
-WebpackerReact.setup({WorkOrderProcess})
+WebpackerReact.setup({WorkPlanProcess})
 

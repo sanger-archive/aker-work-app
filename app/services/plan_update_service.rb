@@ -35,7 +35,7 @@ class PlanUpdateService
         end
       end
       return false unless helper.check_product_options(@product, @product_options, @selected_values)
-      
+
       @params = @params.except(:product_options, :work_order_modules)
     end
 

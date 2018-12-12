@@ -12,6 +12,7 @@ class PlanHelper
   end
 
   def validate_data_release_strategy_selection(data_release_strategy_id)
+    return true
     return true unless plan.is_product_from_sequencescape?
     return error("No data release strategy is selected.") unless data_release_strategy_id.present?
 
@@ -133,7 +134,7 @@ class PlanHelper
 
   def module_values_ok(module_ids, values)
     module_ids.length == values.length &&
-      module_ids.zip(values).all? { |mid, value| Aker::ProcessModule.find(mid).accepts_value(value) }
+      module_ids.zip(values).all? { |mid, value| Aker::ProcessModule.find(mid).accepts_value(value.to_i) }
   end
 
   def create_module_choices(plan, process, module_ids, selected_values)
@@ -177,7 +178,7 @@ private
   def load_materials(matids)
     all_results(MatconClient::Material.where("_id" => {"$in" => matids}).result_set)
   end
-  
+
   def check_material_permissions(matids)
     return true if StampClient::Permission.check_catch({
       permission_type: :consume,

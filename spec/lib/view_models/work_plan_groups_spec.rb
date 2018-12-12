@@ -34,6 +34,7 @@ RSpec.describe 'WorkPlanGroupsSpec' do
   describe '#active' do
     context 'when there are active work plans' do
       it 'returns them' do
+        debugger
         expect(@groups.active).to match_array(active_plans)
       end
     end

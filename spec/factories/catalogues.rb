@@ -5,7 +5,21 @@ FactoryBot.define do
 
   factory :catalogue do
     lims_id { lims_id }
-    url { 'someurl' }
+    url { 'some url' }
+    pipeline { 'sequencing' }
+    current { true }
+
+    factory :catalogue_with_products do
+
+      transient do
+        product_count { 3 }
+      end
+
+      after(:create) do |catalogue, evaluator|
+        create_list(:product, evaluator.product_count, catalogue: catalogue)
+      end
+
+    end
   end
 
   factory :catalogue_json, class: Hash do

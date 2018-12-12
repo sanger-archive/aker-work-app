@@ -10,8 +10,23 @@ FactoryBot.define do
       work_order_count { 1 }
     end
 
+    trait :with_original_set do
+      original_set_uuid { SecureRandom.uuid }
+    end
+
     trait :with_project do
       project_id { SecureRandom.uuid }
+    end
+
+    trait :with_product do
+      after(:create) do |plan, evaluator|
+        plan.product = create(:product_with_processes)
+        plan.save!
+      end
+    end
+
+    trait :with_drs do
+      data_release_strategy
     end
 
     after(:create) do |plan, evaluator|
@@ -25,6 +40,8 @@ FactoryBot.define do
       end
       plan.save!
     end
+
+    factory :startable_work_plan, traits: [:with_original_set, :with_project, :with_product, :with_drs]
 
   end
 end

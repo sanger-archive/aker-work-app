@@ -82,6 +82,7 @@ private
   end
 
   def send_to_lims(url, body)
+    return true unless Rails.configuration.send_to_lims[:enabled]
     begin
       LimsClient.post(url, body)
     rescue StandardError => e

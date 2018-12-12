@@ -1,14 +1,12 @@
 <%= render partial: 'plan_header' %>
 
-<%= bootstrap_form_for work_plan, url: wizard_path, method: :put  do |f| %>
+<%= bootstrap_form_for view_model.work_plan, url: wizard_path, method: :put  do |f| %>
 
-  <% enabled = work_plan.in_construction? %>
-
-  <%= f.collection_radio_buttons(:project_id, spendable_projects_for_current_user, :id,
-    lambda { |node| "#{node.name}, Cost code: #{node.cost_code}"},
-    disabled: !enabled,
+  <%= f.collection_radio_buttons(:project_id, view_model.projects, :id,
+    lambda { |node| "#{node.name}, Cost Code: #{node.cost_code}"},
+    disabled: !view_model.form_enabled?,
     label: "These are all the projects you can spend on. Please select a project:") %>
 
-  <%= render 'buttons', work_plan: work_plan, f: f %>
+  <%= render 'buttons', work_plan: view_model.work_plan, f: f %>
 
 <% end %>

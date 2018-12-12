@@ -1,12 +1,15 @@
 module PlanWizardHelper
   def view_set_link(set)
     return unless set
-    url = Rails.configuration.urls[:sets] + '/simple/sets/' + set.uuid
-    link_to(set.name, url, target: :_blank)
+    link_to(set.name, set_url(set), target: :_blank)
+  end
+
+  def set_url(set)
+    Rails.configuration.urls[:sets] + '/simple/sets/' + set.uuid
   end
 
   def view_set_link_with_size(set)
-    view_set_link(set) + " [#{set.meta["size"]} samples]"
+    view_set_link(set) + " [#{pluralize(set.meta["size"], 'sample')}]"
   end
 
   def unit_prices_for_work_plan(work_plan)

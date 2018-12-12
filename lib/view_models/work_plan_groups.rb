@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
+# A helper class for work plans #index view, grouping plans by status
 module ViewModels
-  # A helper class for work plans #index view, grouping plans by status
   class WorkPlanGroups
     attr_reader :work_plans
 

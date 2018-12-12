@@ -8,6 +8,7 @@ class WorkPlan < ApplicationRecord
   belongs_to :product, optional: true
   belongs_to :data_release_strategy, optional: true
 
+  has_many :processes, through: :product
   has_many :work_orders, -> { order(:order_index) }, dependent: :destroy
 
   has_many :process_module_choices, -> { order(:aker_process_id, :position) }, dependent: :destroy

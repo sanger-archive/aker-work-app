@@ -1,6 +1,6 @@
 <%= render partial: 'plan_header' %>
 
-<%= bootstrap_form_for work_plan, url: wizard_path, method: :put  do |f| %>
+<%= bootstrap_form_for view_model.work_plan, url: wizard_path, method: :put  do |f| %>
 
   <p>These are the active Sequencescape studies that you follow, manage or created.
     Please select one to be used as the Data Release Strategy for this Work Plan.
@@ -15,39 +15,14 @@
     </thead>
 
     <tbody>
-      <% if work_plan.in_construction? %>
-        <% get_data_release_strategies.each do |s| %>
-          <tr>
-            <td>
-              <%= f.radio_button(:data_release_strategy_id, s.id) %>
-            </td>
-            <td>
-              <%= s.study_code %>
-            </td>
-            <td>
-              <%= s.name %>
-            </td>
-          </tr>
-          <% end %>
-        <% else %>
-          <tr>
-            <td>
-              <%= f.radio_button(:data_release_strategy_id, "", disabled: true, checked: true) %>
-            </td>
-            <td>
-              <%= work_plan.data_release_strategy.study_code %>
-            </td>
-            <td>
-              <%= work_plan.data_release_strategy.name %>
-            </td>
-          </tr>
-        <% end %>
+      <%= render view_model.data_release_strategies, f: f, selected_id: view_model.work_plan_drs_id, disabled: !view_model.form_enabled? %>
     </tbody>
   </table>
 
   <% content_for :title_button do %>
     <small class="pull-right" style="margin-top: 10px; color: white"><%= Rails.application.config.sequencescape_url %></small>
   <% end %>
+
   <%= render 'buttons', work_plan: work_plan, f: f %>
 
 <% end %>

@@ -1,0 +1,11 @@
+<tr>
+  <td>
+    <%= f.radio_button(:data_release_strategy_id, data_release_strategy.id, disabled: local_assigns[:disabled], checked: data_release_strategy.id == local_assigns[:selected_id], hide_label: true) %>
+  </td>
+  <td>
+    <%= data_release_strategy.study_code %>
+  </td>
+  <td>
+    <%= data_release_strategy.name %>
+  </td>
+</tr>

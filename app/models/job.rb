@@ -40,6 +40,7 @@ class Job < ApplicationRecord
   scope :prioritised, -> (order = 'asc') { joins(work_order: :work_plan).order("work_plans.priority #{order}") }
   scope :completed, -> { where.not(completed: nil) }
   scope :cancelled, -> { where.not(cancelled: nil) }
+  scope :concluded, -> { completed.or(cancelled) }
 
   # Before modifying the state for an object, it checks that the pre-conditions for each step have
   # been met
@@ -109,6 +110,10 @@ class Job < ApplicationRecord
     # update the work order to be broken too, jobs can still be concluded but work plan cannot
     # progress
     work_order.broken!
+  end
+
+  def forward!
+    update!(forwarded: Time.zone.now)
   end
 
   def status

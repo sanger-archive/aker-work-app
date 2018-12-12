@@ -138,7 +138,8 @@ class UpdatePlanService
 
       if product_options && @work_plan.work_orders.empty?
         begin
-          @work_plan.create_orders(product_options, locked_set_uuid, product_options_selected_values)
+          # @work_plan.create_orders(product_options, locked_set_uuid, product_options_selected_values)
+          return true
         rescue => e
           Rails.logger.error("Failed to create work orders")
           Rails.logger.error e
@@ -403,10 +404,10 @@ private
         return false
       end
       materials = all_results(MatconClient::Material.where("_id" => {"$in" => mids}).result_set)
-      if !materials.all? { |mat| mat.attributes['available'] }
-        add_error("Some of the materials in the selected set are not available.")
-        return false
-      end
+      # if !materials.all? { |mat| mat.attributes['available'] }
+      #   add_error("Some of the materials in the selected set are not available.")
+      #   return false
+      # end
       return check_material_permissions(materials.map(&:id))
     rescue => e
       Rails.logger.error e
@@ -417,6 +418,7 @@ private
   end
 
   def check_material_permissions(material_uuids)
+    return true
     return true if StampClient::Permission.check_catch({
       permission_type: :consume,
       names: @user_and_groups,

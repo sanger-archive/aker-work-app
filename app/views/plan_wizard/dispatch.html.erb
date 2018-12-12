@@ -1,51 +1,39 @@
+<% if @job %>
+  <script>
+    var newTab = window.open('about:blank', '_blank');
+    newTab.location.href = "<%= set_url(@job.revised_output_set) %>";
+  </script>
+<% end %>
+
 <%= render partial: 'plan_header' %>
 
-<%= bootstrap_form_for work_plan, url: wizard_path, method: :put  do |f| %>
+<%= bootstrap_form_for work_plan, url: work_plan_dispatch_url, method: :put  do |f| %>
 
-  <%= f.hidden_field :id %>
-  <br>
-  <div class="panel panel-primary">
-    <div class="panel-heading">Work Plan <%= work_plan.id %>
-      <span class="pull-right" style="width: 150px;">Created at: <%= work_plan.created_at.strftime('%d/%m/%y') %></span>
-      <span class="pull-right" style="width: 250px;">Created by: <%= work_plan.owner_email %></span>
-    </div>
-    <div class="panel-body">
-      <div class="row">
-        <div class="col-md-3 col-sm-3 text-center">
-          <h6>Product</h6>
-          <span><%= work_plan.product.name %></span>
-        </div>
-        <div class="col-md-3 col-sm-3 text-center">
-          <h6>Project</h6>
-          <span><%= work_plan.project.name %></span>
-        </div>
-        <div class="col-md-3 col-sm-3 text-center">
-          <h6>Cost Code</h6>
-          <span><%= work_plan.project.cost_code %></span>
-        </div>
-        <div class="col-md-3 col-sm-3 text-center">
-          <h6>Data Release Strategy</h6>
-          <span><%= work_plan.data_release_strategy&.name %></span>
-        </div>
-      </div>
-    </div>
-  </div>
+  <br />
+
+  <%= render "work_plans/summary_panel", view_model: view_model.summary_panel %>
 
   <div class="row">
     <div class="col-md-10">
       <h4>Comments</h4>
-      <%= f.text_field :comment, label: 'Enter any comments you wish to be visible to Scientifc Operations', disabled: !work_plan.in_construction? %>
+      <%= f.text_field :comment, label: 'Enter any comments you wish to be visible to Scientifc Operations', disabled: !view_model.form_enabled? %>
     </div>
     <div class="col-md-2">
       <h4>Priority</h4>
-      <%= f.check_box :priority, {label: 'High priority', disabled: !work_plan.in_construction?}, "high", "standard" %>
+      <%= f.check_box :priority, { label: 'High priority', disabled: !view_model.form_enabled? }, "high", "standard" %>
     </div>
   </div>
 
-
-
-  <%= render 'products_accordion' %>
-
-  <%= render 'buttons', work_plan: work_plan, f: f %>
+  <% if view_model.form_enabled? %>
+    <%= f.submit 'Start Work Plan', class: 'btn btn-success btn-block' %>
+  <% end %>
 
 <% end %>
+
+<div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
+  <h3>Processes</h3>
+
+  <%= render partial: "aker/processes/process", collection: view_model.processes, as: :view_model, locals: { work_plan: work_plan, unit_prices: unit_prices_for_work_plan(work_plan) } %>
+</div>
+
+<%= render 'buttons', work_plan: work_plan %>
