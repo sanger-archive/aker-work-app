@@ -12,7 +12,6 @@ class PlanHelper
   end
 
   def validate_data_release_strategy_selection(data_release_strategy_id)
-    return true # TODO - remove this line
     return true unless plan.is_product_from_sequencescape?
     return error("No data release strategy is selected.") unless data_release_strategy_id.present?
 
