@@ -1,7 +1,7 @@
 require 'rails_helper'
 
 RSpec.describe :dispatch_next_order_service do
-  RSpec::Matchers.define :fail_with_error do |error_expr|
+  RSpec::Matchers.define :dnos_fail_with_error do |error_expr|
     match { |result| !result && error_expr.match?(messages[:error]) && plan.reload.work_orders.size==2 }
 
     failure_message do |result|
@@ -179,7 +179,7 @@ RSpec.describe :dispatch_next_order_service do
   context 'when no job ids are supplied' do
     let(:job_ids) { [] }
 
-    it { expect(service.execute).to fail_with_error(/No job ids/i) }
+    it { expect(service.execute).to dnos_fail_with_error(/No job ids/i) }
   end
 
   context 'when job ids are from different work plans' do
@@ -192,7 +192,7 @@ RSpec.describe :dispatch_next_order_service do
     end
     let(:job_ids) { [jobs[0], other_job].map(&:id) }
 
-    it { expect(service.execute).to fail_with_error(/.*different.*plans/i) }
+    it { expect(service.execute).to dnos_fail_with_error(/.*different.*plans/i) }
   end
 
   context 'when job ids are from different processes' do
@@ -203,13 +203,13 @@ RSpec.describe :dispatch_next_order_service do
       ]
     end
 
-    it { expect(service.execute).to fail_with_error(/.*different.*processes/i) }
+    it { expect(service.execute).to dnos_fail_with_error(/.*different.*processes/i) }
   end
 
   context 'when the jobs are from the last process in the product' do
     let(:previous_process) { product.processes.last }
 
-    it { expect(service.execute).to fail_with_error(/.*last.*process/i) }
+    it { expect(service.execute).to dnos_fail_with_error(/.*last.*process/i) }
   end
 
   context 'when one of the jobs has already been forwarded' do
@@ -221,37 +221,37 @@ RSpec.describe :dispatch_next_order_service do
       end
     end
 
-    it { expect(service.execute).to fail_with_error(/.*already.*forwarded/) }
+    it { expect(service.execute).to dnos_fail_with_error(/.*already.*forwarded/) }
   end
 
   context 'when the plan is broken' do
     before { orders.first.update_attributes!(status: WorkOrder.BROKEN) }
 
-    it { expect(service.execute).to fail_with_error(/.*plan.*broken/) }
+    it { expect(service.execute).to dnos_fail_with_error(/.*plan.*broken/) }
   end
 
   context 'when a job does not have an output set' do
     let(:job_sets) { [nil, super()[1]] }
 
-    it { expect(service.execute).to fail_with_error(/.*job.*output set/i) }
+    it { expect(service.execute).to dnos_fail_with_error(/.*job.*output set/i) }
   end
 
   context 'when the revised job set is empty' do
     let(:revised_sets) { [nil, set_double(0)] }
 
-    it { expect(service.execute).to fail_with_error(/.*no materials.*revised.*set/i) }
+    it { expect(service.execute).to dnos_fail_with_error(/.*no materials.*revised.*set/i) }
   end
 
   context 'when the unrevised job set is empty' do
     let(:job_sets) { [set_double(0), set_double(2)] }
 
-    it { expect(service.execute).to fail_with_error(/.*no materials.*output.*set/i) }
+    it { expect(service.execute).to dnos_fail_with_error(/.*no materials.*output.*set/i) }
   end
 
   context 'when the revised set has extraneous materials' do
     let(:revised_sets) { [nil, set_double(2)] }
 
-    it { expect(service.execute).to fail_with_error(/.*extraneous materials.*revised.*set/i) }
+    it { expect(service.execute).to dnos_fail_with_error(/.*extraneous materials.*revised.*set/i) }
   end
 
 end

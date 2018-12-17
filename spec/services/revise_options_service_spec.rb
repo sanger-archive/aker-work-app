@@ -59,7 +59,7 @@ RSpec.describe :revise_options_service do
   #  * there should be an error message as specified
   #  * modules should not have been destroyed
   #  * create_module_choices should not have been called
-  RSpec::Matchers.define :fail_with_error do |error|
+  RSpec::Matchers.define :ros_fail_with_error do |error|
     match { |result| !result && match_or_eq(messages[:error], error) && plan.reload.process_module_choices.size==initial_module_ids.size && !@create_module_choices_called }
 
     failure_message do |result|
@@ -88,19 +88,19 @@ RSpec.describe :revise_options_service do
   context 'when the plan has no set' do
     let(:plan) { WorkPlan.create!(owner_email: user_and_groups[0], product: product, project_id: 12) }
 
-    it { expect(service.perform).to fail_with_error(/select a set/) }
+    it { expect(service.perform).to ros_fail_with_error(/select a set/) }
   end
 
   context 'when the plan has no product' do
     let(:plan) { WorkPlan.create!(owner_email: user_and_groups[0], original_set_uuid: setuuid, project_id: 12) }
 
-    it { expect(service.perform).to fail_with_error(/no product/) }
+    it { expect(service.perform).to ros_fail_with_error(/no product/) }
   end
 
   context 'when the plan has no project' do
     let(:plan) { WorkPlan.create!(owner_email: user_and_groups[0], product: product, original_set_uuid: setuuid) }
 
-    it { expect(service.perform).to fail_with_error(/select a project/) }
+    it { expect(service.perform).to ros_fail_with_error(/select a project/) }
   end
 
   context 'when the cost code cannot be determined' do
@@ -109,13 +109,13 @@ RSpec.describe :revise_options_service do
         messages[:error] = 'It cannot be judged.'
         nil
       end
-      expect(service.perform).to fail_with_error('It cannot be judged.')
+      expect(service.perform).to ros_fail_with_error('It cannot be judged.')
     end
   end
 
   context 'when the process is not part of the selected product' do
     let(:process) { create(:aker_process) }
-    it { expect(service.perform).to fail_with_error(/process .* not .* product/) }
+    it { expect(service.perform).to ros_fail_with_error(/process .* not .* product/) }
   end
 
   context 'when there are already work orders for the process' do
@@ -125,14 +125,14 @@ RSpec.describe :revise_options_service do
       plan.reload
     end
 
-    it { expect(service.perform).to fail_with_error(/already.*dispatched/) }
+    it { expect(service.perform).to ros_fail_with_error(/already.*dispatched/) }
   end
 
   context 'when the modules are not suitable for the process' do
     let(:initial_module_ids) { modules.map(&:id) }
     it 'should fail with an appropriate error' do
       expect(helper).to receive(:modules_ok_for_process).with(new_module_ids, product.processes.first).and_return false
-      expect(service.perform).to fail_with_error(/modules.*process/)
+      expect(service.perform).to ros_fail_with_error(/modules.*process/)
     end
   end
 
@@ -140,7 +140,7 @@ RSpec.describe :revise_options_service do
     let(:initial_module_ids) { modules.map(&:id) }
     it 'should fail with an appropriate error' do
       expect(helper).to receive(:module_values_ok).with(new_module_ids, new_values).and_return false
-      expect(service.perform).to fail_with_error(/values.*modules/)
+      expect(service.perform).to ros_fail_with_error(/values.*modules/)
     end
   end
 
@@ -152,7 +152,7 @@ RSpec.describe :revise_options_service do
         messages[:error] = 'I have no way of knowing.'
         false
       end
-      expect(service.perform).to fail_with_error 'I have no way of knowing.'
+      expect(service.perform).to ros_fail_with_error 'I have no way of knowing.'
     end
   end
 

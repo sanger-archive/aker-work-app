@@ -80,7 +80,7 @@ RSpec.describe :dispatch_plan_service do
   #  * it should return false
   #  * there should be an error message as specified
   #  * no work orders should have been created
-  RSpec::Matchers.define :fail_with_error do |error|
+  RSpec::Matchers.define :dps_fail_with_error do |error|
     match { |result| !result && match_or_eq(messages[:error], error) && plan.reload.work_orders.empty? }
 
     failure_message do |result|
@@ -119,17 +119,17 @@ RSpec.describe :dispatch_plan_service do
 
   context 'when the plan has no set' do
     let(:plan) { WorkPlan.create!(owner_email: user_and_groups[0], product: product, project_id: 12) }
-    it { expect(service.perform).to fail_with_error(/No set/) }
+    it { expect(service.perform).to dps_fail_with_error(/No set/) }
   end
 
   context 'when the plan has no project' do
     let(:plan) { WorkPlan.create!(owner_email: user_and_groups[0], product: product, original_set_uuid: set.id) }
-    it { expect(service.perform).to fail_with_error(/No project/) }
+    it { expect(service.perform).to dps_fail_with_error(/No project/) }
   end
 
   context 'when the plan has no product' do
     let(:plan) { WorkPlan.create!(owner_email: user_and_groups[0], original_set_uuid: set.id, project_id: 12) }
-    it { expect(service.perform).to fail_with_error(/No product/) }
+    it { expect(service.perform).to dps_fail_with_error(/No product/) }
   end
 
   context 'when looking up the cost code fails' do
@@ -138,7 +138,7 @@ RSpec.describe :dispatch_plan_service do
         messages[:error] = 'Bad project'
         false
       end
-      expect(service.perform).to fail_with_error 'Bad project'
+      expect(service.perform).to dps_fail_with_error 'Bad project'
     end
   end
 
@@ -148,7 +148,7 @@ RSpec.describe :dispatch_plan_service do
         messages[:error] = 'It was not allowed.'
         false
       end
-      expect(service.perform).to fail_with_error 'It was not allowed.'
+      expect(service.perform).to dps_fail_with_error 'It was not allowed.'
     end
   end
 
@@ -158,7 +158,7 @@ RSpec.describe :dispatch_plan_service do
         messages[:error] = 'Not strategic enough.'
         false
       end
-      expect(service.perform).to fail_with_error 'Not strategic enough.'
+      expect(service.perform).to dps_fail_with_error 'Not strategic enough.'
     end
   end
 
@@ -168,7 +168,7 @@ RSpec.describe :dispatch_plan_service do
         messages[:error] = 'Did not check out.'
         false
       end
-      expect(service.perform).to fail_with_error 'Did not check out.'
+      expect(service.perform).to dps_fail_with_error 'Did not check out.'
     end
   end
 
@@ -178,13 +178,13 @@ RSpec.describe :dispatch_plan_service do
         messages[:error] = 'Broken.'
         false
       end
-      expect(service.perform).to fail_with_error 'Broken.'
+      expect(service.perform).to dps_fail_with_error 'Broken.'
     end
   end
 
   context 'when there are no modules selected' do
     let(:selected_module_ids) { [] }
-    it { expect(service.perform).to fail_with_error(/no modules/) }
+    it { expect(service.perform).to dps_fail_with_error(/no modules/) }
   end
 
   context 'when the product is not available' do

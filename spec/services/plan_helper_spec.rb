@@ -32,7 +32,7 @@ RSpec.describe :plan_helper do
     known_mats
   end
 
-  RSpec::Matchers.define :fail_with_error do |error|
+  RSpec::Matchers.define :helper_fail_with_error do |error|
     match do |result|
       if result
         false
@@ -74,12 +74,12 @@ RSpec.describe :plan_helper do
     end
 
     context 'when the strategy id is missing' do
-      it { expect(helper.validate_data_release_strategy_selection('')).to fail_with_error(/No data release strategy/) }
-      it { expect(helper.validate_data_release_strategy_selection(nil)).to fail_with_error(/No data release strategy/) }
+      it { expect(helper.validate_data_release_strategy_selection('')).to helper_fail_with_error(/No data release strategy/) }
+      it { expect(helper.validate_data_release_strategy_selection(nil)).to helper_fail_with_error(/No data release strategy/) }
     end
 
     context 'when the strategy id is invalid' do
-      it { expect(helper.validate_data_release_strategy_selection(SecureRandom.uuid)).to fail_with_error(/No data release strategy.* found/) }
+      it { expect(helper.validate_data_release_strategy_selection(SecureRandom.uuid)).to helper_fail_with_error(/No data release strategy.* found/) }
     end
 
     context 'when the strategy id is valid' do
@@ -97,7 +97,7 @@ RSpec.describe :plan_helper do
       context 'when the strategy client does not find a matching strategy' do
         let(:found_strategies) { [double('strategy', id: SecureRandom.uuid)] }
         
-        it { expect(helper.validate_data_release_strategy_selection(strategy.id)).to fail_with_error(/cannot select/) }
+        it { expect(helper.validate_data_release_strategy_selection(strategy.id)).to helper_fail_with_error(/cannot select/) }
       end
     end
 
@@ -109,16 +109,16 @@ RSpec.describe :plan_helper do
     end
 
     context 'when the project id is invalid' do
-      it { expect(helper.parent_cost_code(-1)).to fail_with_error(/No project.*found/) }
+      it { expect(helper.parent_cost_code(-1)).to helper_fail_with_error(/No project.*found/) }
     end
 
     context 'when the node has no parent' do
-      it { expect(helper.parent_cost_code(project.id)).to fail_with_error(/no parent project/) }
+      it { expect(helper.parent_cost_code(project.id)).to helper_fail_with_error(/no parent project/) }
     end
 
     context 'when the parent node has no cost code' do
       let(:project) { make_node(100, nil) }
-      it { expect(helper.parent_cost_code(subproject.id)).to fail_with_error(/no cost code/) }
+      it { expect(helper.parent_cost_code(subproject.id)).to helper_fail_with_error(/no cost code/) }
     end
 
     context 'when the parent node has a cost code' do
@@ -131,8 +131,8 @@ RSpec.describe :plan_helper do
 
   describe '#validate_project_selection' do
     context 'when no project id is supplied' do
-      it { expect(helper.validate_project_selection(nil)).to fail_with_error(/No project id/) }
-      it { expect(helper.validate_project_selection('')).to fail_with_error(/No project id/) }
+      it { expect(helper.validate_project_selection(nil)).to helper_fail_with_error(/No project id/) }
+      it { expect(helper.validate_project_selection('')).to helper_fail_with_error(/No project id/) }
     end
 
     context 'when the parent cost code check fails' do
@@ -141,7 +141,7 @@ RSpec.describe :plan_helper do
           messages[:error] = "It was not correct."
           false
         end
-        expect(helper.validate_project_selection(10)).to fail_with_error "It was not correct."
+        expect(helper.validate_project_selection(10)).to helper_fail_with_error "It was not correct."
       end
     end
 
@@ -149,7 +149,7 @@ RSpec.describe :plan_helper do
       it 'should fail with the error message from the exception' do
         expect(StudyClient::Node).to receive(:authorize!).and_raise(AkerPermissionGem::NotAuthorized, "It was not allowed.")
         expect(helper).to receive(:parent_cost_code).with(10).and_return true
-        expect(helper.validate_project_selection(10)).to fail_with_error "It was not allowed."
+        expect(helper.validate_project_selection(10)).to helper_fail_with_error "It was not allowed."
       end
     end
 
@@ -185,12 +185,12 @@ RSpec.describe :plan_helper do
 
     context 'when the set is empty' do
       let(:materials) { [] }
-      it { expect(helper.check_set_contents(setid)).to fail_with_error(/set.*empty/) }
+      it { expect(helper.check_set_contents(setid)).to helper_fail_with_error(/set.*empty/) }
     end
 
     context 'when some materials are unavailable' do
       let(:materials) { make_materials([true, false, true]) }
-      it { expect(helper.check_set_contents(setid)).to fail_with_error(/materials.*not available/) }
+      it { expect(helper.check_set_contents(setid)).to helper_fail_with_error(/materials.*not available/) }
     end
 
     context 'when the materials are not permitted' do
@@ -203,7 +203,7 @@ RSpec.describe :plan_helper do
               ).and_return false
         expect(StampClient::Permission).to receive(:unpermitted_uuids).and_return([badmid])
 
-        expect(helper.check_set_contents(setid)).to fail_with_error(/Not authori[sz]ed/)
+        expect(helper.check_set_contents(setid)).to helper_fail_with_error(/Not authori[sz]ed/)
         expect(messages[:error]).to include badmid
       end
     end
@@ -232,7 +232,7 @@ RSpec.describe :plan_helper do
           false
         end
 
-        expect(helper.predict_unit_price(project_id, module_names)).to fail_with_error "Cost code bad."
+        expect(helper.predict_unit_price(project_id, module_names)).to helper_fail_with_error "Cost code bad."
       end
     end
 
@@ -246,14 +246,14 @@ RSpec.describe :plan_helper do
       end
 
       context 'when no module names are suplied' do
-        it { expect(helper.predict_unit_price(project_id, [])).to fail_with_error(/No module/) }
+        it { expect(helper.predict_unit_price(project_id, [])).to helper_fail_with_error(/No module/) }
       end
 
       context 'when one unit price is missing' do
         let(:unit_prices) { super().except('beta') }
 
         it 'should fail with an appropriate error' do
-          expect(helper.predict_unit_price(project_id, module_names)).to fail_with_error("The following module has no listed price for cost code #{cost_code}: #{['beta']}")
+          expect(helper.predict_unit_price(project_id, module_names)).to helper_fail_with_error("The following module has no listed price for cost code #{cost_code}: #{['beta']}")
         end
       end
 
@@ -261,7 +261,7 @@ RSpec.describe :plan_helper do
         let(:unit_prices) { {} }
 
         it 'should fail with an appropriate error' do
-          expect(helper.predict_unit_price(project_id, module_names)).to fail_with_error("The following modules have no listed price for cost code #{cost_code}: #{module_names.uniq}")
+          expect(helper.predict_unit_price(project_id, module_names)).to helper_fail_with_error("The following modules have no listed price for cost code #{cost_code}: #{module_names.uniq}")
         end
       end
 
@@ -319,8 +319,8 @@ RSpec.describe :plan_helper do
 
   describe '#check_product_options' do
     context 'when the arguments are of the wrong length' do
-      it { expect(helper.check_product_options(product, [[],[],[]], [])).to fail_with_error(/modules.*do not match/) }
-      it { expect(helper.check_product_options(product, [], [[],[],[]])).to fail_with_error(/modules.*do not match/) }
+      it { expect(helper.check_product_options(product, [[],[],[]], [])).to helper_fail_with_error(/modules.*do not match/) }
+      it { expect(helper.check_product_options(product, [], [[],[],[]])).to helper_fail_with_error(/modules.*do not match/) }
     end
 
     context 'when the modules are not ok for one of the processes' do
@@ -333,7 +333,7 @@ RSpec.describe :plan_helper do
         expect(helper).to receive(:modules_ok_for_process).with([1,2], processes[0]).and_return true
         expect(helper).to receive(:modules_ok_for_process).with([3,4], processes[1]).and_return false
 
-        expect(helper.check_product_options(product, modids, values)).to fail_with_error(/not .*valid .*process/)
+        expect(helper.check_product_options(product, modids, values)).to helper_fail_with_error(/not .*valid .*process/)
         expect(messages[:error]).to include processes[1].name
       end
     end
@@ -348,7 +348,7 @@ RSpec.describe :plan_helper do
         expect(helper).to receive(:module_values_ok).with([1,2], [100,200]).and_return true
         expect(helper).to receive(:module_values_ok).with([3,4], [300,400]).and_return false
 
-        expect(helper.check_product_options(product, modids, values)).to fail_with_error(/not .*valid .*process/)
+        expect(helper.check_product_options(product, modids, values)).to helper_fail_with_error(/not .*valid .*process/)
         expect(messages[:error]).to include processes[1].name
       end
     end
@@ -401,7 +401,7 @@ RSpec.describe :plan_helper do
 
     context 'when the broker is not working' do
       let(:working?) { false }
-      it { expect(helper.check_broker).to fail_with_error("Could not connect to message exchange.") }
+      it { expect(helper.check_broker).to helper_fail_with_error("Could not connect to message exchange.") }
     end
   end
 
@@ -417,7 +417,7 @@ RSpec.describe :plan_helper do
     context 'when the project is not authorized' do
       it 'should fail with the error message from the exception' do
         expect(StudyClient::Node).to receive(:authorize!).with(:spend, project_id, user_and_groups).and_raise(AkerPermissionGem::NotAuthorized, 'It was not allowed.')
-        expect(helper.authorize_project(project_id)).to fail_with_error 'It was not allowed.'
+        expect(helper.authorize_project(project_id)).to helper_fail_with_error 'It was not allowed.'
       end
     end
   end
