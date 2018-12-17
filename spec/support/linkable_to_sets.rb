@@ -17,6 +17,7 @@ RSpec.shared_examples "linkable_to_sets" do |attributes|
       describe "#set" do
         context "when #{attribute}? is false" do
           let(:model) { build(model_name, "#{attribute}": nil) }
+
           it 'is nil' do
             expect(decorated_model.send(@stripped_attribute)).to be_nil
           end

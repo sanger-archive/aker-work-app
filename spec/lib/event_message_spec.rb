@@ -19,14 +19,6 @@ RSpec.describe 'EventMessage' do
     describe '#generate_json' do
 
       let(:set) { double(:set, uuid: 'set_uuid', id: 'set_uuid', meta: { 'size' => '4' }) }
-      let(:finished_set) do
-        double(
-          :set,
-          uuid: 'finished_set_uuid',
-          id: 'finished_set_uuid',
-          meta: { 'size' => '2' }
-        )
-      end
       let(:project) { double(:project, id: 123, name: 'test project', node_uuid: '12345a') }
       let(:product) { build(:product, name: 'test product') }
       let(:process) { build(:process, name: 'test process') }
@@ -90,7 +82,6 @@ RSpec.describe 'EventMessage' do
         allow(wo).to receive(:id).and_return 123
         allow(wo).to receive(:total_cost).and_return 50
         allow_any_instance_of(WorkOrderDecorator).to receive(:set).and_return set
-        allow_any_instance_of(WorkOrderDecorator).to receive(:finished_set).and_return finished_set
         wo
       end
 
@@ -189,25 +180,15 @@ RSpec.describe 'EventMessage' do
 
         it_behaves_like 'work order event message json'
 
-        context 'when there is no finished set as a result of the work order' do
-          it 'generates the message without raising an exception' do
-            allow_any_instance_of(WorkOrderDecorator).to receive(:finished_set_size).and_return nil
-            expect(metadata['num_new_materials']).to eq(0)
-          end
-        end
-
         # Metadata
         it 'should have the correct work order id' do
           expect(metadata['work_order_id']).to eq(work_order.id)
         end
 
         it 'should have the correct amount of metadata' do
-          expect(metadata.length).to eq(4)
+          expect(metadata.length).to eq(3)
         end
 
-        it 'should have the correct num new materials' do
-          expect(metadata['num_new_materials']).to eq(finished_set.meta['size'])
-        end
         it 'should have the correct num of completed jobs' do
           expect(metadata['num_completed_jobs']).to eq(1)
         end

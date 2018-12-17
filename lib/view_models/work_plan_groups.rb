@@ -17,10 +17,6 @@ module ViewModels
       grouped_work_plans['active'] || []
     end
 
-    def closed
-      grouped_work_plans['closed'] || []
-    end
-
     def cancelled
       grouped_work_plans['cancelled'] || []
     end
@@ -31,10 +27,6 @@ module ViewModels
 
     def any_active?
       active.length.positive?
-    end
-
-    def any_closed?
-      closed.length.positive?
     end
 
     def any_cancelled?

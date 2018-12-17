@@ -3,10 +3,10 @@
 FactoryBot.define do
   factory :job do
     work_order
-    input_set_uuid { SecureRandom.uuid }
 
     trait :started do
       started { 2.weeks.ago }
+      input_set_uuid { SecureRandom.uuid }
     end
 
     trait :cancelled do

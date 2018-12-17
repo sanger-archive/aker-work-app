@@ -10,7 +10,6 @@ Rails.application.routes.draw do
 
   scope '/api/v1' do
     scope 'work_orders/:id' do
-      post 'create_editable_set', to: 'work_orders#create_editable_set', as: :create_editable_set
       get '', to: 'work_orders#get'
     end
 

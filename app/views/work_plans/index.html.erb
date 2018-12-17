@@ -36,18 +36,6 @@ My Groups' Work Plans
 
 <div class="row">
   <div class="col-md-12">
-    <h4>Finished Work Plans</h4>
-    <p>These work plans have had all of their work orders completed or cancelled by Scientific Operations.</p>
-    <% if @grouped_work_plans.any_closed? %>
-      <%= render "work_plans_table", work_plans: @grouped_work_plans.closed, group: 'closed' %>
-    <% else %>
-      <p>You don't have any finished Work Plans.</p>
-    <% end %>
-  </div>
-</div>
-
-<div class="row">
-  <div class="col-md-12">
     <h4>Cancelled</h4>
     <p>These work plans are those which you have cancelled.</p>
     <% if @grouped_work_plans.any_cancelled? %>
