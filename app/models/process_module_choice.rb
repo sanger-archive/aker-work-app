@@ -10,17 +10,9 @@ class ProcessModuleChoice < ApplicationRecord
     process_module.name + selected_value_description
   end
 
-  def selected_value_descrition
-    if process_module.min_value || process_module.max_value
-      "(#{selected_value})"
-    else
-      ""
-    end
-  end
-
   def validate_selected_value
-    min = process_module.min_value
-    max = process_module.max_value
+    min = process_module&.min_value
+    max = process_module&.max_value
 
     return unless (min || max)
 
@@ -30,6 +22,16 @@ class ProcessModuleChoice < ApplicationRecord
       errors.add(:selected_value, "The selected value is less than the minimum specified for this module.")
     elsif max && selected_value > max
       errors.add(:selected_value, "The selected value is greater than the maximum specified for this module.")
+    end
+  end
+
+private
+
+  def selected_value_description
+    if process_module.min_value || process_module.max_value
+      "(#{selected_value})"
+    else
+      ""
     end
   end
 end
