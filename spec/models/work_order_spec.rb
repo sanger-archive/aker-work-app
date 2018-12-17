@@ -92,75 +92,27 @@ RSpec.describe WorkOrder, type: :model do
   end
 
   describe '#can_be_dispatched?' do
-    context 'when the work order is queued' do
-      let!(:processes) { make_processes(3) }
-      let(:modules_selected_values) { processes.map{ [nil] }}
-      let(:plan) { create(:work_plan, product: product) }
+    let!(:processes) { make_processes(3) }
+    let(:modules_selected_values) { processes.map{ [nil] } }
+    let(:plan_cancelled) { nil }
+    let(:plan) { create(:work_plan, product: product, cancelled: plan_cancelled) }
+    let(:order_status) { WorkOrder.QUEUED }
+    let(:order) { create(:work_order, work_plan: plan, process: processes.first, status: order_status) }
 
-      context 'when the last order in the plan, not closed, is the work order' do
-        it 'should return true' do
-          plan.create_orders(process_options, nil, modules_selected_values)
-          plan.work_orders[0].update_attributes(status: WorkOrder.CONCLUDED)
-          plan.work_orders[1].update_attributes(status: WorkOrder.CONCLUDED)
-          plan.work_orders.reload
+    context 'when the order is queued' do
+      it { expect(order).to be_can_be_dispatched }
+    end
 
-          expect(plan.work_orders[0].can_be_dispatched?).to eq(false)
-          expect(plan.work_orders[1].can_be_dispatched?).to eq(false)
-          expect(plan.work_orders[2].can_be_dispatched?).to eq(true)
-        end
-      end
-      context 'when the last order in the plan, not closed, is not the work order' do
-        it 'should return false' do
-          plan.create_orders(process_options, nil, modules_selected_values)
-          plan.work_orders[0].update_attributes(status: WorkOrder.QUEUED)
-          plan.work_orders.reload
+    context 'when the order is not queued' do
+      let(:order_status) { WorkOrder.CONCLUDED }
 
-          expect(plan.work_orders[0].can_be_dispatched?).to eq(true)
-          expect(plan.work_orders[1].can_be_dispatched?).to eq(false)
-        end
-      end
+      it { expect(order).not_to be_can_be_dispatched }
     end
-    context 'when the work order not queued' do
-      it 'should return false' do
-        process = build(:process, TAT: 4)
-        plan = create(:work_plan)
-        order = build(:work_order, process: process, work_plan: plan, status: 'active')
-        expect(order.can_be_dispatched?).to eq(false)
-      end
-    end
-    context 'when the work plan is cancelled' do
-      it 'should return false' do
-        process = build(:process, TAT: 4)
-        plan = create(:work_plan, cancelled: Time.now)
-        order = build(:work_order, process: process, work_plan: plan, status: 'active')
-        expect(order.can_be_dispatched?).to eq(false)
-      end
-    end
-  end
 
-  describe '#selected_path' do
-    let!(:plan) { create (:work_plan) }
-    let!(:order) { build(:work_order, process: process, work_plan: plan)}
-    let(:modules) do
-      (1..2).map { |i| create(:aker_process_module, name: "Module#{i}", aker_process_id: process.id) }
-    end
-    context 'when there are work order module choices for a work order' do
-      it 'returns a list of module choices' do
-        modules.each_with_index { |m,i| WorkOrderModuleChoice.create(work_order: order, process_module: m, position: i)}
-        expect(order.selected_path).to eq([{name: modules[0].name, id: modules[0].id, selected_value: nil},{name: modules[1].name, id: modules[1].id, selected_value: nil}])
-      end
-      it 'includes the selected values for the choices' do
-        modules.each_with_index { |m,i| WorkOrderModuleChoice.create(work_order: order, process_module: m, position: i, selected_value: i)}
-        expect(order.selected_path).to eq([
-          {name: modules[0].name, id: modules[0].id, selected_value: 0},
-          {name: modules[1].name, id: modules[1].id, selected_value: 1}
-        ])
-      end
-    end
-    context 'when there are no work order module choices for a work order' do
-      it 'returns a empty list' do
-        expect(order.selected_path).to eq([])
-      end
+    context 'when the plan is cancelled' do
+      let(:plan_cancelled) { Time.now }
+
+      it { expect(order).not_to be_can_be_dispatched }
     end
   end
 
