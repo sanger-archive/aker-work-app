@@ -35,36 +35,6 @@ class WorkPlan < ApplicationRecord
   scope :for_user, ->(user) { WorkPlans::ForUserQuery.call(user) }
   scope :modifiable_by, ->(user) { WorkPlans::ModifiableByUserQuery.call(user) }
 
-  # Creates one work order per process in the product.
-  # The process_module_ids needs to be an array of arrays of module ids to link to the respective orders.
-  # The locked set uuid is passed for the first order, in case such a locked
-  # set already exists
-  # The product_options_selected_values is an array of arrays that matches with process_module_ids by position. It contains
-  # the selected argument for the module (if any) or nil if the module does not need a selected value
-  def create_orders(process_module_ids, locked_set_uuid, product_options_selected_values)
-    unless product
-      raise "No product is selected"
-    end
-    unless product.processes.length==process_module_ids.length
-      raise "Bad process options passed"
-    end
-    unless work_orders.empty?
-      return work_orders
-    end
-    ActiveRecord::Base.transaction do
-      product.processes.each_with_index do |pro, i|
-        wo = WorkOrder.create!(process: pro, order_index: i, work_plan: self, status: WorkOrder.QUEUED,
-                original_set_uuid: i==0 ? original_set_uuid : nil, set_uuid: i==0 ? locked_set_uuid : nil)
-        module_ids = process_module_ids[i]
-        module_ids.each_with_index do |mid, j|
-          WorkOrderModuleChoice.create!(work_order_id: wo.id, aker_process_modules_id: mid, position: j, selected_value: product_options_selected_values[i][j])
-        end
-      end
-
-      work_orders.reload
-    end
-  end
-
   def name
     "Work plan #{id}"
   end

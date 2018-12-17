@@ -92,95 +92,16 @@ RSpec.describe WorkPlan, type: :model do
     end
   end
 
-  describe '#create_orders' do
-
-    context 'when no product is selected' do
-      let(:plan) { create(:work_plan, original_set_uuid: set.uuid) }
-
-      it { expect { plan.create_orders(process_options, nil, modules_selected_values) }.to raise_error("No product is selected") }
-    end
-
-    context 'when work orders already exist' do
-      let(:existing_orders) { ['existing orders'] }
-      let(:plan) do
-        pl = create(:work_plan, product: product, original_set_uuid: set.uuid)
-        allow(pl).to receive(:work_orders).and_return existing_orders
-        pl
-      end
-
-      it 'should return the existing orders' do
-        expect(plan.create_orders(process_options, nil, modules_selected_values)).to eq(existing_orders)
-      end
-    end
-
-    context 'when work orders need to be created' do
-      let!(:processes) { make_processes(3) }
-      let(:plan) { create(:work_plan, product: product, original_set_uuid: set.uuid) }
-      let(:orders) { plan.create_orders(process_options, nil, modules_selected_values) }
-
-      it 'should create an order for each process' do
-        expect(orders.length).to eq(processes.length)
-        orders.zip(processes).each do |order, pro|
-          expect(order.id).not_to be_nil
-          expect(order.process).to eq(pro)
-          expect(order.work_plan).to eq(plan)
-        end
-      end
-
-      it 'should set the order_index correctly on orders' do
-        orders.each_with_index do |order, i|
-          expect(order.order_index).to eq(i)
-        end
-      end
-
-      it 'should have orders in state queued' do
-        orders.each { |o| expect(o.status).to eq(WorkOrder.QUEUED) }
-      end
-
-      it 'should be possible to retrieve the orders from the plan later' do
-        expect(WorkPlan.find(plan.id).work_orders).to eq(orders)
-      end
-
-      it 'should set the sets correctly' do
-        expect(orders.first.original_set_uuid).to eq(plan.original_set_uuid)
-        expect(orders.first.set_uuid).to be_nil
-        orders[1..-1].each do |o|
-          expect(o.original_set_uuid).to be_nil
-          expect(o.set_uuid).to be_nil
-        end
-      end
-    end
-
-    context 'when a locked set uuid is supplied' do
-      let(:locked_set_uuid) { SecureRandom.uuid }
-      let!(:processes) { make_processes(3) }
-      let(:plan) { create(:work_plan, product: product, original_set_uuid: set.uuid) }
-      let(:orders) { plan.create_orders(process_options, locked_set_uuid, modules_selected_values) }
-
-      it 'should set the sets correctly' do
-        expect(orders.first.original_set_uuid).to eq(plan.original_set_uuid)
-        expect(orders.first.set_uuid).to eq(locked_set_uuid)
-        orders[1..-1].each do |o|
-          expect(o.original_set_uuid).to be_nil
-          expect(o.set_uuid).to be_nil
-        end
-      end
-
-    end
-
-  end
-
   describe '#work_orders' do
     let!(:processes) { make_processes(3) }
     let(:plan) { create(:work_plan, product: product) }
 
     # Check that the order is definitely controlled by the order_index field
     it 'should be kept in order according to order_index' do
-      expect(plan.create_orders(process_options, nil, modules_selected_values).map(&:order_index)).to eq([0,1,2])
-      plan.work_orders[1].update_attributes(order_index: 5)
-      expect(plan.work_orders.reload.map(&:order_index)).to eq([0,2,5])
-      plan.work_orders[0].update_attributes(order_index: 4)
-      expect(plan.work_orders.reload.map(&:order_index)).to eq([2,4,5])
+      create(:work_order, work_plan: plan, order_index: 0, process: processes.first)
+      create(:work_order, work_plan: plan, order_index: 1, process: processes.second)
+      create(:work_order, work_plan: plan, order_index: 2, process: processes.first)
+      expect(plan.reload.work_orders.map(&:order_index)).to eq([0,1,2])
     end
   end
 
@@ -209,7 +130,6 @@ RSpec.describe WorkPlan, type: :model do
     context 'when the product has also been selected' do
       before do
         plan.update_attributes!(product: product, project_id: project.id, original_set_uuid: set.uuid)
-        plan.create_orders(process_options, nil, modules_selected_values).first.update_attributes!(set_uuid: set.uuid)
       end
       it { expect(plan.wizard_step).to eq('data_release_strategy') }
     end
@@ -217,7 +137,6 @@ RSpec.describe WorkPlan, type: :model do
       let(:drs) { create(:data_release_strategy) }
       before do
         plan.update_attributes!(product: product, project_id: project.id, original_set_uuid: set.uuid, data_release_strategy_id: drs.id)
-        plan.create_orders(process_options, nil, modules_selected_values).first.update_attributes!(set_uuid: set.uuid)
       end
       it { expect(plan.wizard_step).to eq('dispatch') }
     end
@@ -225,13 +144,15 @@ RSpec.describe WorkPlan, type: :model do
 
   describe '#status' do
     let!(:processes) { make_processes(3) }
-    let(:plan) do
-      pl = create(:work_plan, product: product, project_id: project.id, original_set_uuid: set.uuid)
-      pl.create_orders(process_options, nil, modules_selected_values).first.update_attributes!(set_uuid: set.uuid)
-      pl
+    let(:plan) { create(:work_plan, product: product, project_id: project.id, original_set_uuid: set.uuid) }
+    let!(:orders) do
+      processes.each_with_index do |pro, i|
+        create(:work_order, work_plan: plan, order_index: i, process: pro)
+      end
     end
 
     context 'when the plan is not yet started' do
+      let(:orders) { [] }
       it { expect(plan.status).to eq('construction') }
     end
 
@@ -248,7 +169,7 @@ RSpec.describe WorkPlan, type: :model do
         plan.work_orders.each_with_index { |order,i| order.update_attributes(status: WorkOrder.CONCLUDED) }
         plan.reload
       end
-      it { expect(plan.status).to eq('closed') }
+      it { expect(plan.status).to eq('active') }
     end
 
     context 'when an order is in progress' do
@@ -262,7 +183,6 @@ RSpec.describe WorkPlan, type: :model do
     context 'when the plan is cancelled' do
       before do
         plan.update_attributes(cancelled: Time.now)
-        plan.reload
       end
       it { expect(plan.status).to eq('cancelled') }
     end
@@ -270,10 +190,11 @@ RSpec.describe WorkPlan, type: :model do
 
   describe '#cancellable?' do
     let!(:processes) { make_processes(3) }
-    let(:plan) do
-      pl = create(:work_plan, product: product, project_id: project.id, original_set_uuid: set.uuid)
-      pl.create_orders(process_options, nil, modules_selected_values)
-      pl
+    let(:plan) { create(:work_plan, product: product, project_id: project.id, original_set_uuid: set.uuid) }
+    let!(:orders) do
+      processes.each_with_index do |pro, i|
+        create(:work_order, work_plan: plan, order_index: i, process: pro)
+      end
     end
 
     context 'when a work plan is cancellable' do
@@ -373,15 +294,14 @@ RSpec.describe WorkPlan, type: :model do
   end
 
   describe '#active_status' do
-    let(:plan) do
-      pl = create(:work_plan, product: product, project_id: project.id, original_set_uuid: set.id)
-      pl.create_orders(process_options, nil, modules_selected_values)
-      pl.work_orders.reload
-      pl
-    end
-
-    before do
-      make_processes(3)
+    let!(:processes) { make_processes(3) }
+    let(:plan) { create(:work_plan, product: product, project_id: project.id, original_set_uuid: set.uuid) }
+    let!(:orders) do
+      wos = processes.each_with_index do |pro, i|
+        create(:work_order, work_plan: plan, order_index: i, process: pro)
+      end
+      plan.reload
+      wos
     end
 
     context 'when an order is in progress' do
@@ -393,17 +313,8 @@ RSpec.describe WorkPlan, type: :model do
       end
     end
 
-    context 'when order cancelled' do
-      it 'should say that the process was cancelled' do
-        plan.work_orders.first.update_attributes!(status: WorkOrder.CONCLUDED)
-        order = plan.work_orders[1]
-        order.update_attributes!(status: WorkOrder.CONCLUDED)
-        expect(plan.active_status).to eq("#{order.process.name} concluded")
-      end
-    end
-
-    context 'when order completed' do
-      it 'should say that the process was completed' do
+    context 'when order concluded' do
+      it 'should say that the process was concluded' do
         plan.work_orders.first.update_attributes!(status: WorkOrder.CONCLUDED)
         order = plan.work_orders[1]
         order.update_attributes!(status: WorkOrder.CONCLUDED)
