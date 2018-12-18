@@ -61,19 +61,12 @@ class PlanUpdateService
   end
 
   def perform
-    return false unless checks
-
-    plan.update_attributes!(params)
-
-    if @product_options
-      choose_modules(@product, @product_options, @selected_values)
+    result = false
+    ActiveRecord::Base.transaction do
+      result = perform_inner
+      raise ActiveRecord::Rollback if not result
     end
-
-    if @update_cost_estimate
-      return false unless update_plan_cost
-    end
-
-    return true
+    result
   end
 
   # Don't let the user change plan-level details about a plan that has already been partially dispatched
@@ -143,6 +136,23 @@ class PlanUpdateService
   end
 
 private
+
+  # This method should be called inside a transaction
+  def perform_inner
+    return false unless checks
+
+    plan.update_attributes!(params)
+
+    if @product_options
+      choose_modules(@product, @product_options, @selected_values)
+    end
+
+    if @update_cost_estimate
+      return false unless update_plan_cost
+    end
+
+    return true
+  end
 
   def helper
     @helper ||= PlanHelper.new(@plan, @user_and_groups, @messages)

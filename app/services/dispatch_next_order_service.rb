@@ -87,8 +87,19 @@ class DispatchNextOrderService
     end
   end
 
-  # This method should be called inside a transaction
   def execute
+    result = false
+    ActiveRecord::Base.transaction do
+      result = execute_inner
+      raise ActiveRecord::Rollback if not result
+    end
+    result
+  end
+
+private
+
+  # This method should be called inside a transaction
+  def execute_inner
     return false unless validate
 
     finalise_revised_sets
@@ -121,8 +132,6 @@ class DispatchNextOrderService
 
     true
   end
-
-private
 
   def set_empty(set)
     return set.meta[:size]==0

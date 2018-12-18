@@ -41,8 +41,19 @@ class ReviseOptionsService
     return true
   end
 
-  # This should be called inside a transaction
   def perform
+    result = false
+    ActiveRecord::Base.transaction do
+      result = perform_inner
+      raise ActiveRecord::Rollback if not result
+    end
+    result
+  end
+
+private
+
+  # This should be called inside a transaction
+  def perform_inner
     return false unless checks
 
     plan.modules_for_process_id(@process_id).each(&:destroy)
@@ -50,7 +61,6 @@ class ReviseOptionsService
     return true
   end
 
-private
 
   def helper
     @helper ||= PlanHelper.new(plan, @user_and_groups, @messages)

@@ -32,20 +32,12 @@ class DispatchPlanService
   end
 
   def perform
-    return false unless checks
-
-    plan.update_attributes!(estimated_cost: @plan_unit_price * plan.decorate.original_set.meta[:size])
-
-    order = create_order
-
-    raise "The work order could not be split into jobs." unless work_order_splitter.split(order)
-
-    unless work_order_dispatcher.dispatch(order)
-      Rails.logger.error work_order_dispatcher.errors.full_messages
-      raise "The request to the LIMS failed."
+    result = false
+    ActiveRecord::Base.transaction do
+      result = perform_inner
+      raise ActiveRecord::Rollback if not result
     end
-
-    true
+    result
   end
 
   def find_parent_cost_code(project_id)
@@ -96,6 +88,23 @@ class DispatchPlanService
 
 private
 
+  def perform_inner
+    return false unless checks
+
+    plan.update_attributes!(estimated_cost: @plan_unit_price * plan.decorate.original_set.meta[:size])
+
+    order = create_order
+
+    raise "The work order could not be split into jobs." unless work_order_splitter.split(order)
+
+    unless work_order_dispatcher.dispatch(order)
+      Rails.logger.error work_order_dispatcher.errors.full_messages
+      raise "The request to the LIMS failed."
+    end
+
+    true
+  end
+  
   def error(message)
     @messages[:error] = message
     false
