@@ -150,14 +150,9 @@ class WorkOrderEventMessage < EventMessage
   def metadata_for_concluded
     {
       'work_order_id' => @work_order.id,
-      'num_new_materials' => num_new_materials,
       'num_completed_jobs' => num_completed_jobs,
       'num_cancelled_jobs' => num_cancelled_jobs
     }
-  end
-
-  def num_new_materials
-    @work_order.finished_set_size || 0
   end
 
   def num_completed_jobs

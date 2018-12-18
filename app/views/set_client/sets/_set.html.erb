@@ -1,0 +1,14 @@
+<tr>
+  <td>
+    <%= f.radio_button(:original_set_uuid, set.id, selected: (local_assigns[:selected_id] == set.uuid), disabled: local_assigns[:disabled], hide_label: true) %>
+  </td>
+  <td>
+    <%= set.name %>
+  </td>
+  <td>
+    <%= pluralize(set.meta["size"], "Sample") %>
+  </td>
+  <td>
+    <%= time_ago_in_words(set.created_at) + " ago" %>
+  </td>
+</tr>

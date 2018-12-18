@@ -1,24 +1,15 @@
-require 'data_release_strategy_client'
-
 class PlanWizardController < ApplicationController
   include Wicked::Wizard
 
   steps :set, :project, :product, :data_release_strategy, :dispatch
 
-  helper_method :work_plan, :get_my_sets, :project, :spendable_projects_for_current_user,
-                :get_current_catalogues, :get_current_catalogues_with_products,
-                :get_data_release_strategies, :last_step?, :first_step?
+  helper_method :work_plan, :view_model, :last_step?, :first_step?
+
+  before_action :revised_output, only: [:show]
 
   def show
     authorize! :write, work_plan
-
-    if step == :data_release_strategy && !work_plan.is_product_from_sequencescape?
-      skip_step
-    end
-
-    if step==Wicked::FINISH_STEP
-      jump_to(:dispatch)
-    end
+    skip_step if step == :data_release_strategy && !work_plan.is_product_from_sequencescape?
     render_wizard
   end
 
@@ -33,40 +24,26 @@ class PlanWizardController < ApplicationController
     end
   end
 
+  private
+
   def work_plan
-    @work_plan ||= WorkPlan.find(params[:work_plan_id]).decorate
-  end
+    return @work_plan if @work_plan
+    @work_plan = WorkPlan
 
-  def get_my_sets
-    SetClient::Set.where(owner_id: current_user.email, empty: false).order(created_at: :desc).all
-  end
-
-  def project
-    work_plan.project
-  end
-
-  def spendable_projects_for_current_user
-    Study.spendable_projects(current_user)
-  end
-
-  def get_current_catalogues
-    Catalogue.where(current: true).all
-  end
-
-  def get_current_catalogues_with_products
-    # format for grouped_options_for_select form helper method in product.html.erb
-    # include whether the product is not available i.e needs to be disabled, and initial blank option
-    get_current_catalogues.map { |c| [c.pipeline, c.products.map { |p| [p.name, p.id, {'disabled'=> p.suspended? }] } ] }.insert(0, ['', ['']])
-  end
-
-  def get_data_release_strategies
-    data_release_strategies = []
-    begin
-      data_release_strategies = DataReleaseStrategyClient.find_strategies_by_user(current_user.email)
-    rescue Faraday::ConnectionFailed => e
-      flash[:error] = "There is no connection with the Data release service."
+    case step
+    when :dispatch
+      @work_plan.includes(
+        :data_release_strategy,
+        :process_module_choices,
+        work_orders: [:jobs],
+        product: [{
+          product_processes: {
+            aker_process: :process_modules
+          }
+        }]
+      )
     end
-    data_release_strategies
+    @work_plan = @work_plan.find(params[:work_plan_id]).decorate
   end
 
   def last_step?
@@ -82,7 +59,7 @@ class PlanWizardController < ApplicationController
   end
 
   def perform_update
-    if nothing_to_update
+    if nothing_to_update?
       flash[:error] = "Please select an option to proceed"
       render_wizard
     elsif perform_step
@@ -92,19 +69,38 @@ class PlanWizardController < ApplicationController
     end
   end
 
-  def nothing_to_update
+  def nothing_to_update?
     work_plan.in_construction? && !params[:work_plan]
   end
 
   def perform_step
-    return UpdatePlanService.new(work_plan_params, work_plan, params[:commit]=='dispatch', user_and_groups_list, flash).perform
+    PlanUpdateService.new(work_plan_params, work_plan, user_and_groups_list, flash).perform
   end
 
   def work_plan_params
     return {} unless params[:work_plan]
     params.require(:work_plan).permit(
-      :original_set_uuid, :project_id, :product_id, :product_options, :comment, :priority, :data_release_strategy_id, :work_order_id, :work_order_modules, :work_order_module => {}
+      :original_set_uuid, :project_id, :product_id, :product_options, :comment, :priority, :data_release_strategy_id, :work_order_id, :work_order_modules => {}
     )
+  end
+
+  def view_model
+    @view_model ||= case step
+      when :set
+        ViewModels::WorkPlanSet.new(work_plan: work_plan, user: current_user)
+      when :project
+        ViewModels::WorkPlanProject.new(work_plan: work_plan, user: current_user)
+      when :product
+        ViewModels::WorkPlanProduct.new(work_plan: work_plan)
+      when :data_release_strategy
+        ViewModels::WorkPlanDRS.new(work_plan: work_plan, user: current_user)
+      when :dispatch
+        ViewModels::WorkPlanDispatch.new(work_plan: work_plan)
+      end
+  end
+
+  def revised_output
+    @job = Job.find(params[:revised_output]).decorate if params[:revised_output]
   end
 
 end

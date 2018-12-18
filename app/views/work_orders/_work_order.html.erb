@@ -1,0 +1,50 @@
+<div class="panel panel-default">
+  <div class="panel-body">
+
+    <div class="row">
+      <div class="col-md-6">
+        <b>Work Order <%= view_model.work_order_id %></b>
+      </div>
+
+      <div class="col-md-6 text-right">
+        <%= view_model.status_label %>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <ul>
+          <li>Dispatch Date: <%= view_model.dispatch_date %></li>
+          <li>
+            <%= view_model.completion_date %>
+          </li>
+          <li>Jobs: <%= view_model.number_of_jobs %></li>
+        </ul>
+      </div>
+    </div>
+
+    <% if view_model.show_jobs? %>
+    <div class="row">
+      <div class="col-md-12">
+        <table class="table table-condensed">
+          <thead>
+            <tr>
+              <th>Job</th>
+              <th>Input</th>
+              <th>Result</th>
+              <th>Return Date</th>
+              <th>Output</th>
+              <th>Revised</th>
+              <th><%= check_box_tag('select_all', 1, true, { 'data-behavior': 'select_all' }) %> Select/Deselect All</th>
+            </tr>
+          </thead>
+          <tbody>
+            <%= render partial: "jobs/job", collection: view_model.jobs, as: :view_model %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <% end %>
+
+  </div>
+</div>

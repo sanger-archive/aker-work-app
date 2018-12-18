@@ -100,6 +100,10 @@ Rails.application.configure do
   config.billing_facade_url = 'http://localhost:3601'
   config.ubw_service_url = 'http://localhost:3602'
 
+  config.ubw = { enabled: false }
+  config.data_release_client = { enabled: false }
+  config.send_to_lims = { enabled: false }
+
   config.fake_ldap = true
 
   config.action_mailer.default_url_options = { host: 'localhost', port: 3001 }

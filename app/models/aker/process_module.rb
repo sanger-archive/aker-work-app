@@ -9,5 +9,11 @@ module Aker
     def to_custom_hash
       { name: name, id: id, min_value: min_value, max_value: max_value }
     end
+
+    def accepts_value(value)
+      return false if min_value.present? && (!value.present? || value < min_value)
+      return false if max_value.present? && (!value.present? || value > max_value)
+      true
+    end
   end
 end

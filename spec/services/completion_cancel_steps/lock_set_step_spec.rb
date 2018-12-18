@@ -9,8 +9,7 @@ RSpec.describe 'LockSetStep' do
 
   let(:work_order) { create(:work_order, order_index: 1, work_plan: work_plan) }
 
-
-  let(:job) { create :job, work_order: work_order, set_uuid: original_set.uuid }
+  let(:job) { create :job, work_order: work_order, input_set_uuid: original_set.uuid }
 
   let(:original_set) {
     uuid = made_up_uuid
@@ -56,12 +55,11 @@ RSpec.describe 'LockSetStep' do
   end
   describe '#down' do
     it 'unsets the set from the job and claim back the materials' do
-      job.update_attributes(set_uuid: SecureRandom.uuid)
-      job.reload
+      job.update_attributes!(output_set_uuid: SecureRandom.uuid)
       expect(step).to receive(:set_materials_availability).with(false)
       step.down
       job.reload
-      expect(job.set_uuid).to eq(nil)
+      expect(job.output_set_uuid).to eq(nil)
     end
   end
 end

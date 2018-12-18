@@ -124,11 +124,9 @@ RSpec.describe ProductsController, type: :controller do
 
         unit_prices = Hash.new(BigDecimal.new('5.99'))
 
-        
+
         product_processes = processes.each_with_index.map do |pro, i|
-          option_for_module = alt_modules[i].to_custom_hash.merge(selected_value: nil).reject{|k| ((k == :min_value) || (k==:max_value))}
-          path_for_process = [option_for_module]
-          { name: pro.name, id: pro.id, links: pro.build_available_links(unit_prices), path: path_for_process,
+          { name: pro.name, id: pro.id, links: pro.build_available_links(unit_prices), path: pro.build_default_path(unit_prices),
             tat: pro.TAT, process_class: pro.process_class_human }
         end
         expect(r[:product_processes]).to eq(JSON.parse(product_processes.to_json, symbolize_names: true))
@@ -156,7 +154,7 @@ RSpec.describe ProductsController, type: :controller do
           mod_names.map { |name| [name, unit_prices[name]] }.to_h
         end
       end
-    
+
       it 'should return no errors' do
         expect(body[:errors]).to be_empty
       end

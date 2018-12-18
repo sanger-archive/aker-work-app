@@ -7,6 +7,7 @@ module Aker
     has_many :product_processes, foreign_key: :aker_process_id, dependent: :destroy
     has_many :process_modules, foreign_key: :aker_process_id, dependent: :destroy
     has_many :products, through: :product_processes
+    has_many :work_orders
 
     enum process_class: { sequencing: 0,
                           genotyping: 1,
@@ -69,6 +70,16 @@ module Aker
       end
 
       default_path_ids.map { |id| module_hash(Aker::ProcessModule.find(id), unit_prices) }
+    end
+
+    def selected_path(work_plan)
+      path = []
+      module_choices = work_plan.process_module_choices.where(aker_process_id: id)
+      module_choices.each do |module_choice|
+        mod = Aker::ProcessModule.find(module_choice.aker_process_module_id)
+        path.push({name: mod.name, id: mod.id, selected_value: module_choice.selected_value})
+      end
+      path
     end
 
   private

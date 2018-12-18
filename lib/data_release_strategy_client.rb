@@ -16,7 +16,16 @@ module DataReleaseStrategyClient
     conn = get_connection
 
     username = user.gsub(/@.*/, '')
-    studies = JSON.parse(conn.get('/api/v2/studies?filter[state]=active&filter[user]='+username).body)['data']
+
+    begin
+      studies = JSON.parse(conn.get('/api/v2/studies?filter[state]=active&filter[user]='+username).body)['data']
+    rescue Faraday::ConnectionFailed => e
+      Rails.logger.error("Failed to fetch Data Release Strategies for user: #{username}")
+      Rails.logger.error e.message
+      Rails.logger.error e.backtrace.join("\n")
+      # Re-raise the error so Rails shows an error page. Fail noisily.
+      raise
+    end
 
     studies.map do |study|
       strategy = DataReleaseStrategy.find_or_create_by(id: study['attributes']['uuid'])

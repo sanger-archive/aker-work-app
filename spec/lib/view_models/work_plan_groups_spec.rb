@@ -4,7 +4,6 @@ RSpec.describe 'WorkPlanGroupsSpec' do
   let!(:plans_in_construction) { create_list(:work_plan, 2) }
   let!(:active_plans) { create_list(:work_plan, 2, status: :active) }
   let!(:broken_plans) { create_list(:work_plan, 2, status: :broken) }
-  let!(:closed_plans) { create_list(:work_plan, 2, status: :closed) }
   let!(:cancelled_plans) { create_list(:work_plan, 2, status: :cancelled) }
 
   before do
@@ -45,20 +44,6 @@ RSpec.describe 'WorkPlanGroupsSpec' do
     end
   end
 
-  describe '#closed' do
-    context 'when there are closed work plans' do
-      it 'returns them' do
-        expect(@groups.closed).to match_array(closed_plans)
-      end
-    end
-    context 'when there are no closed work plans' do
-      let!(:closed_plans) { }
-      it 'should return an empty list' do
-        expect(@groups.closed).to eq([])
-      end
-    end
-  end
-
   describe '#cancelled' do
     context 'when there are cancelled work plans' do
       it 'returns them' do
@@ -82,12 +67,6 @@ RSpec.describe 'WorkPlanGroupsSpec' do
   describe '#any_active?' do
     it 'returns a boolean whether there are active plans' do
       expect(@groups.any_active?).to be true
-    end
-  end
-
-  describe '#any_closed?' do
-    it 'returns a boolean whether there are closed plans' do
-      expect(@groups.any_closed?).to be true
     end
   end
 

@@ -1,0 +1,40 @@
+<div class="panel panel-default">
+  <div class="panel-heading" role="tab">
+    <h4 class="panel-title"><%= view_model.process_name %></h4>
+  </div>
+  <div class="panel-body">
+    <%= form_tag(work_plan_process_module_choice_url(work_plan, view_model.process), method: "put") do %>
+
+      <%= react_component('WorkPlanProcess', {
+        work_plan_id: work_plan.id,
+        index: 1, # Hard coding for now cause not sure if it's needed
+        pro: {
+          id: view_model.process.id,
+          name: nil,
+          links: view_model.process.build_available_links(unit_prices),
+          path: view_model.process.selected_path(work_plan),
+          tat: nil,
+          process_class: nil,
+          enabled: view_model.form_enabled?
+        }
+      }) %>
+
+      <br />
+
+      <% if view_model.form_enabled? %>
+        <%= submit_tag "Save", class: "btn btn-success pull-right" %>
+      <% end %>
+    <% end %>
+
+    <%= form_tag(forward_jobs_url, method: "post") do %>
+
+      <%= render partial: 'work_orders/work_order', collection: view_model.work_orders, as: :view_model %>
+
+      <% if view_model.show_start_jobs_button? %>
+        <br />
+        <%= submit_tag "Start Job(s)", class: "btn btn-success pull-right" %>
+      <% end %>
+    <% end %>
+
+  </div>
+</div>

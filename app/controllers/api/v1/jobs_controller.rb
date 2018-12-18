@@ -5,7 +5,6 @@ require 'completion_cancel_steps/lock_set_step'
 require 'completion_cancel_steps/update_work_order_step'
 require 'completion_cancel_steps/fail_step'
 require 'completion_cancel_steps/update_job_step'
-require 'completion_cancel_steps/create_master_set_step'
 
 module Api
   module V1
@@ -91,8 +90,7 @@ module Api
             updated_material_step,
             UpdateJobStep.new(job, params, finish_status),
             UpdateWorkOrderStep.new(job),
-            LockSetStep.new(job.decorate, params, new_material_step, updated_material_step),
-            CreateMasterSetStep.new(job)
+            LockSetStep.new(job.decorate, params, new_material_step, updated_material_step)
           ])
 
           cleanup = !success

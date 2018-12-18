@@ -63,7 +63,7 @@ class Catalogue < ApplicationRecord
 
   def self.validate_params_for_module(params_for_module)
     if params_for_module[:min_value] > params_for_module[:max_value]
-      raise "Error in module #{params_for_module[:name]}. #{params_for_module[:min_value]} > #{params_for_module[:max_value]}" 
+      raise "Error in module #{params_for_module[:name]}. #{params_for_module[:min_value]} > #{params_for_module[:max_value]}"
     end
     true
   end

@@ -8,7 +8,6 @@ RSpec.shared_examples "linkable_to_sets" do |attributes|
   let(:decorated_model) { model.decorate }
 
   attributes.each do |attribute|
-
     describe "Link #{attribute} to Set" do
 
       before do
@@ -17,6 +16,8 @@ RSpec.shared_examples "linkable_to_sets" do |attributes|
 
       describe "#set" do
         context "when #{attribute}? is false" do
+          let(:model) { build(model_name, "#{attribute}": nil) }
+
           it 'is nil' do
             expect(decorated_model.send(@stripped_attribute)).to be_nil
           end
@@ -70,6 +71,8 @@ RSpec.shared_examples "linkable_to_sets" do |attributes|
         end
 
         context 'when set is not set' do
+          let(:model) { build(model_name, "#{attribute}": nil) }
+
           it 'returns nil' do
             expect(decorated_model.send(method_name)).to be_nil
           end

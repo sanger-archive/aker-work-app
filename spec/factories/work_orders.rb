@@ -4,23 +4,23 @@ FactoryBot.define do
   factory :work_order do
     work_plan
     process
-    order_index 1
+    order_index { 1 }
 
     trait :active do
-      status 'active'
+      status { 'active' }
     end
 
     trait :broken do
-      status 'broken'
+      status { 'broken' }
     end
 
     trait :closed do
-      status 'concluded'
-      completion_date 1.day.ago
+      status { 'concluded' }
+      completion_date { 1.day.ago }
     end
 
     trait :queued do
-      status 'queued'
+      status { 'queued' }
     end
 
     factory :active_work_order, traits: [:active]
@@ -31,7 +31,7 @@ FactoryBot.define do
     factory :work_order_with_jobs, traits: [:queued] do
 
       transient do
-        job_count 3
+        job_count { 3 }
       end
 
       after(:create) do |work_order, evaluator|

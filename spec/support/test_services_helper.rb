@@ -30,8 +30,6 @@ module TestServicesHelper
     }
     stub_request(:get, "#{Rails.configuration.material_url}/materials/json_patch_schema")
       .to_return(status: 200, body: @material_schema, headers: {})
-    stub_request(:get, "#{Rails.configuration.material_url}/materials/json_patch_schema")
-      .to_return(status: 200, body: @material_schema, headers: {})
 
     stub_request(:get, "#{Rails.configuration.material_url}/materials/json_schema")
       .to_return(status: 200, body: @material_schema, headers: {})

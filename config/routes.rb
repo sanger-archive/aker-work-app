@@ -10,7 +10,6 @@ Rails.application.routes.draw do
 
   scope '/api/v1' do
     scope 'work_orders/:id' do
-      post 'create_editable_set', to: 'work_orders#create_editable_set', as: :create_editable_set
       get '', to: 'work_orders#get'
     end
 
@@ -37,5 +36,13 @@ Rails.application.routes.draw do
 
   resources :work_plans do
     resources :build, controller: 'plan_wizard'
+    put :dispatch, to: 'work_plans/dispatch#update'
+    resources :process_module_choices, only: [:update]
   end
+
+  resources :jobs, only: [] do
+    post :revise_output, to: 'jobs/revise_output#create'
+    post :forward, to: 'jobs/forward#create', on: :collection
+  end
+
 end

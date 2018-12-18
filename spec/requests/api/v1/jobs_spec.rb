@@ -90,7 +90,7 @@ RSpec.describe 'Api::V1::Jobs', type: :request do
         expect(obtained_job['data']['attributes']['work-plan-comment']).to eq(plan.comment)
         expect(obtained_job['data']['attributes']['priority']).to eq(plan.priority)
         expect(obtained_job['data']['attributes']['barcode']).to eq(container.barcode)
-        expect(obtained_job['data']['attributes']['set_uuid']).to eq(job.set_uuid)
+        expect(obtained_job['data']['attributes']['set_uuid']).to eq(job.output_set_uuid)
         expect(obtained_job['data']['attributes']['input-set-uuid']).to eq(job.input_set_uuid)
       end
     end
@@ -121,6 +121,7 @@ RSpec.describe 'Api::V1::Jobs', type: :request do
       describe '#start' do
         context 'when job is queued' do
           before do
+            allow_any_instance_of(JobDecorator).to receive(:input_set_size).and_return(10)
             put api_v1_job_start_path(job), headers: headers, params: params
           end
 
