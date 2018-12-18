@@ -245,9 +245,7 @@ RSpec.describe 'Api::V1::Jobs', type: :request do
       describe '#cancel' do
         before do
           allow(BillingFacadeClient).to receive(:send_event)
-
           mock_set_creation
-
         end
         context 'when job is active' do
           before do

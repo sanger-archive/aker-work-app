@@ -15,10 +15,15 @@ module DataReleaseStrategyClient
   def self.find_strategies_by_user(user)
     conn = get_connection
 
-    username = user.gsub(/@.*/, '')
+    username = user.gsub(/@sanger\.ac\.uk$/i, '')
 
     begin
-      studies = JSON.parse(conn.get('/api/v2/studies?filter[state]=active&filter[user]='+username).body)['data']
+      response = JSON.parse(conn.get('/api/v2/studies?filter[state]=active&page[size]=500&filter[user]='+username).body)
+      studies = response['data'].to_a
+      while response.dig('links', 'next')
+        response = JSON.parse(conn.get(response['links']['next']).body)
+        studies += response['data']
+      end
     rescue Faraday::ConnectionFailed => e
       Rails.logger.error("Failed to fetch Data Release Strategies for user: #{username}")
       Rails.logger.error e.message
@@ -36,7 +41,7 @@ module DataReleaseStrategyClient
 
   # Connection to access the data release server
   def self.get_connection
-    conn = Faraday.new(:url => Rails.application.config.sequencescape_url) do |faraday|
+    conn = Faraday.new(url: Rails.application.config.sequencescape_url) do |faraday|
       faraday.request  :url_encoded
       faraday.response :logger
       faraday.adapter  Faraday.default_adapter
@@ -46,5 +51,3 @@ module DataReleaseStrategyClient
   end
 
 end
-
-
