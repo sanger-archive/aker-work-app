@@ -36,7 +36,7 @@ module ViewModels
     end
 
     def data_release_strategy
-      work_plan.data_release_strategy.name
+      work_plan.data_release_strategy&.name
     end
 
   end
