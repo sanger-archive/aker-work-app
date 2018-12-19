@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2018_11_27_141215) do
+ActiveRecord::Schema.define(version: 2018_12_19_110644) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "citext"
@@ -143,10 +143,10 @@ ActiveRecord::Schema.define(version: 2018_11_27_141215) do
     t.integer "order_index", null: false
     t.datetime "dispatch_date"
     t.datetime "completion_date"
-    t.uuid "set_uuid"
     t.uuid "work_order_uuid", null: false
     t.bigint "work_plan_id", null: false
     t.bigint "process_id", null: false
+    t.uuid "set_uuid"
     t.index ["process_id"], name: "index_work_orders_on_process_id"
     t.index ["work_plan_id"], name: "index_work_orders_on_work_plan_id"
   end
