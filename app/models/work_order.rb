@@ -129,14 +129,15 @@ class WorkOrder < ApplicationRecord
     end
   end
 
-  def generate_dispatched_event
+  def generate_dispatched_event(forwarded_jobs)
     begin
       if active?
-        message = WorkOrderEventMessage.new(work_order: self, status: 'dispatched')
+        message = WorkOrderEventMessage.new(work_order: self, status: 'dispatched',
+                    forwarded_jobs: forwarded_jobs, dispatched_jobs: jobs)
         BrokerHandle.publish(message)
         BillingFacadeClient.send_event(self, 'dispatched')
       else
-        Rails.logger.error("dispatched event cannot be generated from a work order that is not active.")
+        Rails.logger.error('Dispatched event cannot be generated from a work order that is not active.')
       end
     rescue => e
       Rails.logger.error e

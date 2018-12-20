@@ -199,6 +199,10 @@ RSpec.describe :dispatch_plan_service do
 
   context 'when nothing goes wrong' do
     before do
+      allow_any_instance_of(WorkOrder).to receive(:generate_dispatched_event) do |order, forwarded_jobs|
+        @event_order = order
+        @event_forwarded_jobs = forwarded_jobs
+      end
       @result = service.perform
       @order = plan.reload.work_orders.first
     end
@@ -231,6 +235,11 @@ RSpec.describe :dispatch_plan_service do
 
     it 'should have dispatched the order' do
       expect(dispatcher).to have_received(:dispatch).with(@order)
+    end
+
+    it 'should have tried to dispatch an event message with the correct arguments' do
+      expect(@event_order).to eq(@order)
+      expect(@event_forwarded_jobs).to be_empty
     end
   end
 

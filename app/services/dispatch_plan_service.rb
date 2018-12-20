@@ -47,11 +47,6 @@ class DispatchPlanService
     return false
   end
 
-  def generate_dispatched_event(order_id)
-    order = WorkOrder.find(order_id)
-    order.generate_dispatched_event
-  end
-
   def predict_plan_cost
     @plan_unit_price = nil
 
@@ -101,6 +96,8 @@ private
       Rails.logger.error work_order_dispatcher.errors.full_messages
       raise "The request to the LIMS failed."
     end
+
+    order.reload.generate_dispatched_event([])
 
     true
   end

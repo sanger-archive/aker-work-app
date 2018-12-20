@@ -85,9 +85,13 @@ RSpec.describe 'EventMessage' do
         wo
       end
 
+      let(:forwarded_jobs) { nil }
+      let(:dispatched_jobs) { nil }
+
       let(:message) do
         Timecop.freeze do
-          m = WorkOrderEventMessage.new(work_order: work_order, status: status)
+          m = WorkOrderEventMessage.new(work_order: work_order, status: status,
+              forwarded_jobs: forwarded_jobs, dispatched_jobs: dispatched_jobs)
           @timestamp = Time.now.utc.iso8601
           m
         end
@@ -121,7 +125,7 @@ RSpec.describe 'EventMessage' do
 
         # Roles
         it 'should have the correct number of roles' do
-          expect(roles.length).to eq(5)
+          expect(roles.length).to eq(5 + (forwarded_jobs&.size || 0) + (dispatched_jobs&.size || 0))
         end
         it 'should include the product role' do
           expect(roles).to include(expected_product_role)
@@ -145,6 +149,8 @@ RSpec.describe 'EventMessage' do
       end
 
       context 'when work order is dispatched' do
+        let(:forwarded_jobs) { (0...3).map { create(:job) } }
+        let(:dispatched_jobs) { work_order.jobs }
         let(:status) { 'dispatched' }
 
         it_behaves_like 'work order event message json'
@@ -171,6 +177,25 @@ RSpec.describe 'EventMessage' do
         end
         it 'should have the correct data release strategy uuid' do
           expect(metadata['data_release_strategy_uuid']).to eq(work_order.work_plan.data_release_strategy_id)
+        end
+
+        it 'should include roles for the forwarded jobs' do
+          forwarded_jobs.each do |job|
+            expect(roles).to include job_role(job, 'forwarded_job')
+          end
+        end
+        it 'should include roles for the dispatched jobs' do
+          dispatched_jobs.each do |job|
+            expect(roles).to include job_role(job, 'dispatched_job')
+          end
+        end
+        def job_role(job, roletype)
+          {
+            'subject_uuid' => job.uuid,
+            'subject_friendly_name' => job.name,
+            'role_type' => roletype,
+            'subject_type' => 'job',
+          }
         end
 
       end

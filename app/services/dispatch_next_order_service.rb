@@ -60,6 +60,7 @@ class DispatchNextOrderService
     return error("This is the last process in the product.") if old_process==product.processes.last
     return error("Jobs that have already been forwarded to the next process cannot be forwarded again.") if jobs.any? { |job| job.forwarded }
     return error("This plan is in a broken state.") if plan.broken?
+    return false unless helper.check_broker
     validate_sets
   end
 
@@ -129,6 +130,8 @@ private
 
     # Do this last because it cannot be undone
     combined_set.update_attributes(owner_id: @order.owner_email, locked: true)
+    
+    @order.reload.generate_dispatched_event(jobs)
 
     true
   end
