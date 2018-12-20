@@ -33,7 +33,7 @@ RSpec.describe :dispatch_next_order_service do
     spl
   end
 
-  let(:helper) { instance_double('PlanHelper') }
+  let(:helper) { instance_double('PlanHelper', check_broker: true) }
 
   let(:service) do
     ser = DispatchNextOrderService.new(job_ids, user_and_groups, messages)
@@ -118,11 +118,16 @@ RSpec.describe :dispatch_next_order_service do
   end
 
   before do
+    stub_const('BrokerHandle', class_double('BrokerHandle', publish: nil))
     allow(SetClient::Set).to receive(:create).and_return new_set
   end
 
   context 'when everything is valid' do
     before do
+      allow_any_instance_of(WorkOrder).to receive(:generate_dispatched_event) do |order, forwarded_jobs|
+        @event_order = order
+        @event_forwarded_jobs = forwarded_jobs
+      end
       @result = service.execute
       plan.reload
     end
@@ -173,6 +178,11 @@ RSpec.describe :dispatch_next_order_service do
 
     it 'should have updated and locked the combined set' do
       expect(new_set).to have_received(:update_attributes).with(owner_id: plan.owner_email, locked: true)
+    end
+
+    it 'should have attempted to send a dispatched event with the correct arguments' do
+      expect(@event_order).to eq(new_order)
+      expect(@event_forwarded_jobs).to eq(jobs)
     end
   end
 
@@ -252,6 +262,16 @@ RSpec.describe :dispatch_next_order_service do
     let(:revised_sets) { [nil, set_double(2)] }
 
     it { expect(service.execute).to dnos_fail_with_error(/.*extraneous materials.*revised.*set/i) }
+  end
+
+  context 'when the message broker is unavailable' do
+    it 'should fail with the error from the helper' do
+      expect(helper).to receive(:check_broker) do
+        messages[:error] = 'Broken'
+        false
+      end
+      expect(service.execute).to dnos_fail_with_error(/Broken/)
+    end
   end
 
 end

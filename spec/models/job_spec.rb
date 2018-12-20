@@ -3,7 +3,7 @@
 require 'rails_helper'
 
 RSpec.describe Job, type: :model do
-  context '#validation' do
+  describe '#validation' do
     it 'is not valid without a work order' do
       expect(build(:job, work_order: nil)).not_to be_valid
     end
@@ -18,7 +18,14 @@ RSpec.describe Job, type: :model do
 
   end
 
-  context '#status' do
+  describe '#name' do
+    it 'should be correct' do
+      job = create(:job)
+      expect(job.name).to eq("Job #{job.id}")
+    end
+  end
+
+  describe '#status' do
     let(:job) { create :job }
 
     it 'checks when the job is broken' do

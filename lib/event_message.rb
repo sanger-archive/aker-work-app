@@ -72,6 +72,8 @@ class WorkOrderEventMessage < EventMessage
     # For Work Order message
     @work_order = params.fetch(:work_order).decorate
     @status = params.fetch(:status)
+    @dispatched_jobs = params[:dispatched_jobs] || []
+    @forwarded_jobs = params[:forwarded_jobs] || []
     @timestamp = Time.now.utc.iso8601
     @uuid = SecureRandom.uuid
   end
@@ -79,16 +81,25 @@ class WorkOrderEventMessage < EventMessage
   # Generate the JSON for a Work Order event
   def generate_json
     plan = @work_order.work_plan.decorate
-    project = plan.project
-    product = plan.product
-    process = @work_order.process
     {
       'event_type' => "aker.events.work_order.#{@status}",
       'lims_id' => 'aker',
       'uuid' => @uuid,
       'timestamp' => @timestamp,
       'user_identifier' => plan.owner_email,
-      'roles' => [
+      'roles' => roles,
+      'metadata' => metadata,
+      'notifier_info' => notifier_info,
+    }.to_json
+  end
+
+  def roles
+    plan = @work_order.work_plan.decorate
+    project = plan.project
+    product = plan.product
+    process = @work_order.process
+    
+    [
         {
           'role_type' => 'work_order',
           'subject_type' => 'work_order',
@@ -118,11 +129,21 @@ class WorkOrderEventMessage < EventMessage
           'subject_type' => 'work_plan',
           'subject_friendly_name' => plan.name,
           'subject_uuid' => plan.uuid
-        }
-      ],
-      'metadata' => metadata,
-      'notifier_info' => notifier_info
-    }.to_json
+        },
+    ] +
+    job_roles(@dispatched_jobs, 'dispatched_job') +
+    job_roles(@forwarded_jobs, 'forwarded_job')
+  end
+
+  def job_roles(jobs, roletype)
+    jobs.map do |job|
+      {
+        'role_type' => roletype,
+        'subject_type' => 'job',
+        'subject_friendly_name' => job.name,
+        'subject_uuid' => job.uuid
+      }
+    end
   end
 
   def metadata

@@ -42,6 +42,10 @@ class Job < ApplicationRecord
   scope :cancelled, -> { where.not(cancelled: nil) }
   scope :concluded, -> { completed.or(cancelled) }
 
+  def name
+    "Job #{id}"
+  end
+
   # Before modifying the state for an object, it checks that the pre-conditions for each step have
   # been met
   def status_ready_for_update

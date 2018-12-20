@@ -33,16 +33,16 @@ RSpec.describe WorkOrder, type: :model do
   end
 
   describe '#generate_concluded_event' do
-    context 'if work order does not have status completed or cancelled' do
-      it 'generates an event using the BrokerHandle' do
+    context 'when work order does not have status completed or cancelled' do
+      it 'does not generate an event using the BrokerHandle' do
         wo = build(:work_order)
-        expect(BrokerHandle).not_to receive(:publish).with(an_instance_of(WorkOrderEventMessage))
+        expect(BrokerHandle).not_to receive(:publish)
         expect(Rails.logger).to receive(:error).with('Concluded event cannot be generated from a work order where all the jobs are not either cancelled or completed.')
         wo.generate_concluded_event
       end
     end
 
-    context 'if work order does have status completed or cancelled' do
+    context 'when work order does have status completed or cancelled' do
       it 'generates an event using the BrokerHandle' do
         wo = build(:work_order, status: 'concluded')
         allow(BillingFacadeClient).to receive(:send_event).with(wo, 'concluded')
@@ -53,22 +53,34 @@ RSpec.describe WorkOrder, type: :model do
   end
 
   describe '#generate_dispatched_event' do
-    context 'if work order does not have status active' do
-      it 'generates an event using the BrokerHandle' do
+    before do
+      allow(BillingFacadeClient).to receive(:send_event)
+    end
+    context 'when work order does not have status active' do
+      it 'does not generate an event using the BrokerHandle' do
         wo = build(:work_order)
-        allow(BillingFacadeClient).to receive(:send_event).with(wo, 'dispatched')
-        expect(BrokerHandle).not_to receive(:publish).with(an_instance_of(WorkOrderEventMessage))
-        expect(Rails.logger).to receive(:error).with('dispatched event cannot be generated from a work order that is not active.')
-        wo.generate_dispatched_event
+        expect(BrokerHandle).not_to receive(:publish)
+        expect(Rails.logger).to receive(:error).with('Dispatched event cannot be generated from a work order that is not active.')
+        wo.generate_dispatched_event([])
       end
     end
 
-    context 'if work order does have status active' do
+    context 'when work order does have status active' do
       it 'generates an event using the BrokerHandle' do
         wo = build(:work_order, status: 'active')
-        allow(BillingFacadeClient).to receive(:send_event).with(wo, 'dispatched')
         expect(BrokerHandle).to receive(:publish).with(an_instance_of(WorkOrderEventMessage))
-        wo.generate_dispatched_event
+        wo.generate_dispatched_event([])
+      end
+    end
+
+    context 'when forwarded jobs are passed to the method' do
+      it 'generates an event with the forwarded jobs' do
+        wo = build(:work_order, status: 'active')
+        fjobs = (0...2).map { build(:job) }
+        expect(BrokerHandle).to receive(:publish) do |event|
+          expect(instance_variable_get(event), '@forwarded_jobs').to eq(fjobs)
+        end
+        wo.generate_dispatched_event(fjobs)
       end
     end
   end
