@@ -168,11 +168,14 @@ RSpec.describe 'Api::V1::Jobs', type: :request do
 
           context 'when the broker is broken' do
             before do
-              allow(BrokerHandle).to receive(:working?).and_return(false)
+              allow(BrokerHandle).to receive(:working?).and_return false
+              allow(BrokerHandle).to receive(:events_enabled?).and_return true
+              allow(BrokerHandle).to receive(:events_disabled?).and_return false
               put api_v1_job_complete_path(job), headers: headers, params: params
             end
             it 'should have correct message in response body' do
-              'RabbitMQ broker is broken'
+              msg = 'RabbitMQ broker is broken'
+              expect(response.body).to eq({errors: [{ detail: msg}]}.to_json)
             end
           end
 
