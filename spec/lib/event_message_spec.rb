@@ -7,7 +7,8 @@ RSpec.describe 'EventMessage' do
   include TestServicesHelper
 
   let(:set) { double(:set, uuid: 'set_uuid', id: 'set_uuid', meta: { 'size' => '4' }) }
-  let(:project) { double(:project, id: 123, name: 'test project', node_uuid: '12345a') }
+  let(:project) { double(:project, id: 123, name: 'test project', node_uuid: '12345a', program: [program]) }
+  let(:program) { double(:project, id: 5, name: 'Program Alpha', node_uuid: SecureRandom.uuid) }
   let(:product) { build(:product, name: 'test product') }
   let(:process) { build(:process, name: 'test process') }
   let(:drs) { create(:data_release_strategy) }
@@ -101,7 +102,7 @@ RSpec.describe 'EventMessage' do
 
         # Roles
         it 'should have the correct number of roles' do
-          expect(roles.length).to eq(5 + (forwarded_jobs&.size || 0) + (dispatched_jobs&.size || 0))
+          expect(roles.length).to eq(6 + (forwarded_jobs&.size || 0) + (dispatched_jobs&.size || 0))
         end
         it 'should include the product role' do
           expect(roles).to include(expected_product_role)
@@ -117,6 +118,11 @@ RSpec.describe 'EventMessage' do
         end
         it 'should include the work plan role' do
           expect(roles).to include(expected_work_plan_role)
+        end
+        it 'should include the program role' do
+          prog_role = role('program', program.name, program.node_uuid)
+          prog_role['subject_type'] = 'project'
+          expect(roles).to include prog_role
         end
 
         it 'should produce the same JSON consistently' do

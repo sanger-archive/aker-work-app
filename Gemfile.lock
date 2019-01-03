@@ -35,9 +35,9 @@ GIT
 
 GIT
   remote: https://github.com/sanger/aker-projects-client-gem.git
-  revision: 58fdc4523d80225a17dded1b5ac206e25d5aa7ea
+  revision: 9fbfe5110c0a565afc5fbecf68f94f73010c36c7
   specs:
-    aker-study-client (0.2.4)
+    aker-study-client (0.2.5)
 
 GIT
   remote: https://github.com/sanger/aker-set-client.git
@@ -491,7 +491,7 @@ PLATFORMS
 DEPENDENCIES
   aker-billing-facade-client!
   aker-set-client!
-  aker-study-client!
+  aker-study-client (>= 0.2.5)!
   aker_credentials_gem!
   aker_permission_gem!
   aker_shared_navbar!

@@ -132,6 +132,7 @@ private
     project = plan.project
     product = plan.product
     process = @work_order.process
+    program = project.program.first
     
     [
         work_order_role(@work_order),
@@ -139,9 +140,14 @@ private
         product_role(product),
         process_role(process),
         work_plan_role(plan),
+        program_role(program),
     ] +
     job_roles(@dispatched_jobs, 'dispatched_job') +
     job_roles(@forwarded_jobs, 'forwarded_job')
+  end
+
+  def program_role(program)
+    role(program, 'program', subject_type: 'project', uuid: program.node_uuid)
   end
 
   def job_roles(jobs, roletype)
