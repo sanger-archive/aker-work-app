@@ -129,4 +129,14 @@ class Job < ApplicationRecord
     'queued'
   end
 
+  def generate_concluded_event(status)
+    begin
+      message = JobEventMessage.new(job: self, status: status)
+      BrokerHandle.publish(message)
+    rescue => e
+      Rails.logger.error e
+      Rails.logger.error e.backtrace
+    end
+  end
+
 end

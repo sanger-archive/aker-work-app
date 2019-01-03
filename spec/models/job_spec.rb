@@ -79,4 +79,39 @@ RSpec.describe Job, type: :model do
     end
   end
 
+  describe '#generate_concluded_event' do
+    let(:job) { create(:job) }
+
+    let(:broker) do
+      brok = class_double('BrokerHandle')
+      stub_const('BrokerHandle', brok)
+      brok
+    end
+
+    let(:message) { class_double('JobEventMessage') }
+
+    context 'when the broker works' do
+      it 'should construct and send the message correctly' do
+        expect(JobEventMessage).to receive(:new).with(job: job, status: 'effulgent').and_return(message)
+        expect(broker).to receive(:publish).with(message)
+
+        job.generate_concluded_event('effulgent')
+      end
+    end
+
+    context 'when the broker does not work' do
+      it 'should construct and attempt to send the message and log the exception' do
+        expect(JobEventMessage).to receive(:new).with(job: job, status: 'effulgent').and_return(message)
+        error = RuntimeError.new("This will not be published.")
+        expect(broker).to receive(:publish).with(message).and_raise error
+        allow(Rails.logger).to receive(:error)
+
+        job.generate_concluded_event('effulgent')
+
+        expect(Rails.logger).to have_received(:error).with error
+        expect(Rails.logger).to have_received(:error).with error.backtrace
+      end
+    end
+  end
+
 end

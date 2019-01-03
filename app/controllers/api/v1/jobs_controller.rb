@@ -105,13 +105,12 @@ module Api
           end
         end
 
+        new_status = text_for_finish_status(finish_status)
         if success
-          msg = flash[:notice] = "Your job is #{text_for_finish_status(finish_status)}"
-          if job.work_order.concluded?
-            generate_concluded_event
-          end
+          msg = flash[:notice] = "Your job is #{new_status}."
+          generate_concluded_events(new_status)
         elsif cleanup
-          msg = flash[:error] = "The job could not be #{text_for_finish_status(finish_status)}"
+          msg = flash[:error] = "The job could not be #{new_status}."
         else
           msg = flash[:error] = "There has been a problem with the job update. Please contact support."
         end
@@ -125,18 +124,17 @@ module Api
         @job ||= Job.find(params[:job_id] || params[:id])
       end
 
-      def text_for_finish_status(finish_status)
-        if (finish_status == 'complete')
-          return 'completed'
-        elsif (finish_status== 'cancel')
-          return 'cancelled'
-        else
-          return finish_status
-        end
+      def text_for_finish_status(status)
+        return 'completed' if status=='complete'
+        return 'cancelled' if status=='cancel'
+        return status
       end
 
-      def generate_concluded_event
-        job.work_order.generate_concluded_event
+      def generate_concluded_events(status)
+        job.generate_concluded_event(status)
+        if job.work_order.concluded?
+          job.work_order.generate_concluded_event
+        end
       end
 
       # Ignore the submitter_id in material metadata

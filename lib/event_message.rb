@@ -2,14 +2,43 @@
 
 # Encapsulate a message from the work orders application to be sent to the mesage broker.
 class EventMessage
-  attr_reader :work_order
-  attr_reader :catalogue
 
   ROUTING_KEY = 'aker.events.work_order'
 
   # wrapper method to create the JSON message
   def generate_json
     raise 'This must be overridden!'
+  end
+
+private
+
+  def role(obj, role_type, params={})
+    {
+      'role_type' => role_type,
+      'subject_type' => params[:subject_type] || role_type,
+      'subject_friendly_name' => params[:name] || obj.name,
+      'subject_uuid' => params[:uuid] || obj.uuid
+    }
+  end
+
+  def project_role(project)
+    role(project, 'project', uuid: project.node_uuid)
+  end
+
+  def product_role(product)
+    role(product, 'product')
+  end
+
+  def work_order_role(order)
+    role(order, 'work_order', uuid: order.work_order_uuid)
+  end
+
+  def process_role(process)
+    role(process, 'process')
+  end
+
+  def work_plan_role(plan)
+    role(plan, 'work_plan')
   end
 
 end
@@ -32,6 +61,8 @@ class CatalogueEventMessage < EventMessage
       generate_accepted_catalogue_json
     end
   end
+
+private
 
   # Generate the JSON for a catalogue accepted event
   def generate_accepted_catalogue_json
@@ -66,6 +97,7 @@ end
 
 # A message specific to a work order
 class WorkOrderEventMessage < EventMessage
+  attr_reader :work_order
   attr_reader :status
 
   def initialize(params)
@@ -93,6 +125,8 @@ class WorkOrderEventMessage < EventMessage
     }.to_json
   end
 
+private
+
   def roles
     plan = @work_order.work_plan.decorate
     project = plan.project
@@ -100,50 +134,18 @@ class WorkOrderEventMessage < EventMessage
     process = @work_order.process
     
     [
-        {
-          'role_type' => 'work_order',
-          'subject_type' => 'work_order',
-          'subject_friendly_name' => @work_order.name,
-          'subject_uuid' => @work_order.work_order_uuid
-        },
-        {
-          'role_type' => 'project',
-          'subject_type' => 'project',
-          'subject_friendly_name' => project.name,
-          'subject_uuid' => project.node_uuid
-        },
-        {
-          'role_type' => 'product',
-          'subject_type' => 'product',
-          'subject_friendly_name' => product.name,
-          'subject_uuid' => product.uuid
-        },
-        {
-          'role_type' => 'process',
-          'subject_type' => 'process',
-          'subject_friendly_name' => process.name,
-          'subject_uuid' => process.uuid
-        },
-        {
-          'role_type' => 'work_plan',
-          'subject_type' => 'work_plan',
-          'subject_friendly_name' => plan.name,
-          'subject_uuid' => plan.uuid
-        },
+        work_order_role(@work_order),
+        project_role(project),
+        product_role(product),
+        process_role(process),
+        work_plan_role(plan),
     ] +
     job_roles(@dispatched_jobs, 'dispatched_job') +
     job_roles(@forwarded_jobs, 'forwarded_job')
   end
 
   def job_roles(jobs, roletype)
-    jobs.map do |job|
-      {
-        'role_type' => roletype,
-        'subject_type' => 'job',
-        'subject_friendly_name' => job.name,
-        'subject_uuid' => job.uuid
-      }
-    end
+    jobs.map { |job| role(job, roletype, subject_type: 'job') }
   end
 
   def metadata
@@ -198,5 +200,50 @@ class WorkOrderEventMessage < EventMessage
         'drs_study_code' => plan.data_release_strategy&.study_code
       }
     end
+  end
+end
+
+class JobEventMessage < EventMessage
+
+  def initialize(params)
+    @job = params.fetch(:job)
+    @status = params.fetch(:status)
+    @timestamp = Time.now.utc.iso8601
+    @uuid = SecureRandom.uuid
+  end
+
+  def generate_json
+    {
+      'event_type' => "aker.events.job.#{@status}",
+      'lims_id' => 'aker',
+      'uuid' => @uuid,
+      'timestamp' => @timestamp,
+      'user_identifier' => @job.work_order.work_plan.owner_email,
+      'roles' => roles,
+      'metadata' => metadata,
+    }.to_json
+  end
+
+private
+
+  def roles
+    order = @job.work_order
+    plan = order.work_plan.decorate
+
+    [
+      work_order_role(order),
+      project_role(plan.project),
+      product_role(plan.product),
+      process_role(order.process),
+      work_plan_role(plan),
+      role(@job, 'job'),
+    ]
+  end
+
+  def metadata
+    {
+      'work_order_id' => @job.work_order_id,
+      'work_plan_id' => @job.work_order.work_plan_id,
+    }
   end
 end

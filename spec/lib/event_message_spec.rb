@@ -6,6 +6,54 @@ require 'support/test_services_helper'
 RSpec.describe 'EventMessage' do
   include TestServicesHelper
 
+  let(:set) { double(:set, uuid: 'set_uuid', id: 'set_uuid', meta: { 'size' => '4' }) }
+  let(:project) { double(:project, id: 123, name: 'test project', node_uuid: '12345a') }
+  let(:product) { build(:product, name: 'test product') }
+  let(:process) { build(:process, name: 'test process') }
+  let(:drs) { create(:data_release_strategy) }
+  let(:owner_email) { 'user@sanger.ac.uk' }
+
+  let(:plan) do
+    pl = create(:work_plan, product: product, owner_email: owner_email, project_id: project.id, comment: 'first comment', data_release_strategy: drs)
+    allow_any_instance_of(WorkPlanDecorator).to receive(:project).and_return(project)
+    allow(pl).to receive(:data_release_strategy).and_return(drs)
+    pl
+  end
+
+  let(:work_order) do
+    wo = create(:work_order, status: WorkOrder.ACTIVE, work_plan: plan, process: process)
+    create(:cancelled_job, work_order: wo)
+    create(:completed_job, work_order: wo)
+    wo.jobs.reload
+    allow(wo).to receive(:work_plan).and_return plan
+    allow(wo).to receive(:total_cost).and_return 50
+    allow_any_instance_of(WorkOrderDecorator).to receive(:set).and_return set
+    wo
+  end
+
+  let(:cancelled_job) { work_order.jobs.first }
+  let(:completed_job) { work_order.jobs.second }
+
+  let(:json) { JSON.parse(message.generate_json) }
+
+  let(:roles) { json['roles'] }
+  let(:metadata) { json['metadata'] }
+
+  let(:expected_work_order_role) { role('work_order', work_order.name, work_order.work_order_uuid) }
+  let(:expected_project_role) { role('project', project.name, project.node_uuid) }
+  let(:expected_product_role) { role('product', product.name, product.uuid) }
+  let(:expected_process_role) { role('process', process.name, process.uuid) }
+  let(:expected_work_plan_role) { role('work_plan', plan.name, plan.uuid) }
+
+  def role(role_type, name, uuid)
+    {
+      'role_type' => role_type,
+      'subject_type' => role_type,
+      'subject_friendly_name' => name,
+      'subject_uuid' => uuid,
+    }
+  end
+
   describe 'WorkOrderEventMessage' do
     describe '#initialize' do
       it 'is initalized with a param object' do
@@ -18,73 +66,6 @@ RSpec.describe 'EventMessage' do
 
     describe '#generate_json' do
 
-      let(:set) { double(:set, uuid: 'set_uuid', id: 'set_uuid', meta: { 'size' => '4' }) }
-      let(:project) { double(:project, id: 123, name: 'test project', node_uuid: '12345a') }
-      let(:product) { build(:product, name: 'test product') }
-      let(:process) { build(:process, name: 'test process') }
-      let(:first_comment) { 'first comment' }
-      let(:expected_work_order_role) do
-        {
-          'role_type' => 'work_order',
-          'subject_type' => 'work_order',
-          'subject_friendly_name' => work_order.name,
-          'subject_uuid' => work_order.work_order_uuid
-        }
-      end
-      let(:expected_project_role) do
-        {
-          'role_type' => 'project',
-          'subject_type' => 'project',
-          'subject_friendly_name' => project.name,
-          'subject_uuid' => project.node_uuid
-        }
-      end
-      let(:expected_product_role) do
-        {
-          'role_type' => 'product',
-          'subject_type' => 'product',
-          'subject_friendly_name' => product.name,
-          'subject_uuid' => product.uuid,
-        }
-      end
-      let(:expected_process_role) do
-        {
-          'role_type' => 'process',
-          'subject_type' => 'process',
-          'subject_friendly_name' => process.name,
-          'subject_uuid' => process.uuid,
-        }
-      end
-      let(:expected_work_plan_role) do
-        {
-          'role_type' => 'work_plan',
-          'subject_type' => 'work_plan',
-          'subject_friendly_name' => plan.name,
-          'subject_uuid' => plan.uuid,
-        }
-      end
-
-      let(:drs) { create(:data_release_strategy) }
-
-      let(:plan) do
-        pl = create(:work_plan, product: product, project_id: project.id, comment: first_comment, data_release_strategy: drs)
-        allow_any_instance_of(WorkPlanDecorator).to receive(:project).and_return(project)
-        allow(pl).to receive(:data_release_strategy).and_return(drs)
-        pl
-      end
-
-      let(:cancelled_job) { create(:cancelled_job) }
-      let(:completed_job) { create(:completed_job) }
-
-      let(:work_order) do
-        wo = create(:work_order, status: WorkOrder.ACTIVE, work_plan: plan, process: process, jobs: [cancelled_job, completed_job])
-        allow(wo).to receive(:work_plan).and_return plan
-        allow(wo).to receive(:id).and_return 123
-        allow(wo).to receive(:total_cost).and_return 50
-        allow_any_instance_of(WorkOrderDecorator).to receive(:set).and_return set
-        wo
-      end
-
       let(:forwarded_jobs) { nil }
       let(:dispatched_jobs) { nil }
 
@@ -96,11 +77,6 @@ RSpec.describe 'EventMessage' do
           m
         end
       end
-
-      let(:json) { JSON.parse(message.generate_json) }
-
-      let(:roles) { json['roles'] }
-      let(:metadata) { json['metadata'] }
 
       shared_examples_for 'work order event message json' do
         it 'should have the correct event type' do
@@ -116,7 +92,7 @@ RSpec.describe 'EventMessage' do
         end
 
         it 'should have the correct user identifier' do
-          expect(json['user_identifier']).to eq(plan.owner_email)
+          expect(json['user_identifier']).to eq(owner_email)
         end
 
         it 'should have the correct timestamp' do
@@ -189,6 +165,7 @@ RSpec.describe 'EventMessage' do
             expect(roles).to include job_role(job, 'dispatched_job')
           end
         end
+
         def job_role(job, roletype)
           {
             'subject_uuid' => job.uuid,
@@ -197,7 +174,6 @@ RSpec.describe 'EventMessage' do
             'subject_type' => 'job',
           }
         end
-
       end
 
       context 'when work order is concluded' do
@@ -244,7 +220,7 @@ RSpec.describe 'EventMessage' do
       let(:json) { JSON.parse(message.generate_json) }
 
       shared_examples_for 'catalogue event message json' do
-        it 'should generate the same json consistenly' do
+        it 'should generate the same json consistenlty' do
           expect(message.generate_json).to eq(message.generate_json)
         end
 
@@ -290,6 +266,51 @@ RSpec.describe 'EventMessage' do
         let(:expected_event_type) { 'aker.events.catalogue.accepted' }
 
         it_behaves_like 'catalogue event message json'
+      end
+    end
+  end
+
+  describe 'JobEventMessage' do
+    let(:job) { completed_job }
+    let(:status) { 'completed' }
+
+    let(:message) do
+      Timecop.freeze do
+        msg = JobEventMessage.new(job: job, status: status)
+        @timestamp = Time.now.utc.iso8601
+        msg
+      end
+    end
+
+    describe '#generate_json' do
+      it 'should have the correct fields' do
+        expect(json['timestamp']).to eq(@timestamp)
+        expect(json['event_type']).to eq('aker.events.job.' + status)
+        expect(json['lims_id']).to eq('aker')
+        expect(json['user_identifier']).to eq(owner_email)
+        expect(json['uuid']).to be_a_uuid
+        expect(json['roles']).to be_present
+        expect(json['metadata']).to be_present
+      end
+
+      it 'should produce the same JSON consistently' do
+        expect(message.generate_json).to eq(message.generate_json)
+      end
+
+      it 'should have the correct metadata' do
+        expect(metadata.size).to eq(2)
+        expect(metadata['work_order_id']).to eq(work_order.id)
+        expect(metadata['work_plan_id']).to eq(plan.id)
+      end
+
+      it 'should have the correct roles' do
+        expect(roles.size).to eq(6)
+        expect(roles).to include expected_work_order_role
+        expect(roles).to include expected_product_role
+        expect(roles).to include expected_product_role
+        expect(roles).to include expected_process_role
+        expect(roles).to include expected_work_plan_role
+        expect(roles).to include role('job', job.name, job.uuid)
       end
     end
   end
