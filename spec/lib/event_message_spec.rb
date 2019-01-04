@@ -226,7 +226,7 @@ RSpec.describe 'EventMessage' do
       let(:json) { JSON.parse(message.generate_json) }
 
       shared_examples_for 'catalogue event message json' do
-        it 'should generate the same json consistenlty' do
+        it 'should generate the same json consistently' do
           expect(message.generate_json).to eq(message.generate_json)
         end
 
