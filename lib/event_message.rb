@@ -127,9 +127,15 @@ class WorkOrderEventMessage < EventMessage
 
 private
 
+  def plan
+    @plan ||= @work_order.work_plan.decorate
+  end
+
+  def project
+    @project ||= plan.project
+  end
+
   def roles
-    plan = @work_order.work_plan.decorate
-    project = plan.project
     product = plan.product
     process = @work_order.process
     program = project.program.first
@@ -163,12 +169,12 @@ private
   end
 
   def metadata_for_dispatched
-    plan = @work_order.work_plan
     {
       'work_order_id' => @work_order.id,
       'quoted_price' => @work_order.total_cost,
       'num_materials' => num_materials,
-      'data_release_strategy_uuid' => plan.data_release_strategy_id
+      'data_release_strategy_uuid' => plan.data_release_strategy_id,
+      'subcostcode' => project.cost_code,
     }
   end
 

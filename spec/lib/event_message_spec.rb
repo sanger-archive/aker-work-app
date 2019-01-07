@@ -7,7 +7,7 @@ RSpec.describe 'EventMessage' do
   include TestServicesHelper
 
   let(:set) { double(:set, uuid: 'set_uuid', id: 'set_uuid', meta: { 'size' => '4' }) }
-  let(:project) { double(:project, id: 123, name: 'test project', node_uuid: '12345a', program: [program]) }
+  let(:project) { double(:project, id: 123, name: 'test project', cost_code: 'S1234-0', node_uuid: '12345a', program: [program]) }
   let(:program) { double(:project, id: 5, name: 'Program Alpha', node_uuid: SecureRandom.uuid) }
   let(:product) { build(:product, name: 'test product') }
   let(:process) { build(:process, name: 'test process') }
@@ -146,7 +146,7 @@ RSpec.describe 'EventMessage' do
 
         # Metadata
         it 'should have the correct amount of metadata' do
-          expect(metadata.length).to eq(4)
+          expect(metadata.length).to eq(5)
         end
         it 'should have the correct work order id' do
           expect(metadata['work_order_id']).to eq(work_order.id)
@@ -159,6 +159,9 @@ RSpec.describe 'EventMessage' do
         end
         it 'should have the correct data release strategy uuid' do
           expect(metadata['data_release_strategy_uuid']).to eq(work_order.work_plan.data_release_strategy_id)
+        end
+        it 'should have the correct subcostcode' do
+          expect(metadata['subcostcode']).to eq(project.cost_code)
         end
 
         it 'should include roles for the forwarded jobs' do
