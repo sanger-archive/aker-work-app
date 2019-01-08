@@ -200,7 +200,7 @@ RSpec.describe 'Api::V1::Jobs', type: :request do
             it { expect(response).to have_http_status(:ok) }
 
             it 'should have correct message in repsonse body' do
-              msg = 'Your job is completed'
+              msg = 'Your job is completed.'
               expect(response.body).to eq({ meta: { message: msg } }.to_json)
             end
           end
