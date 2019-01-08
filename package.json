@@ -1,7 +1,7 @@
 {
   "license": "UNLICENSED",
   "scripts": {
-    "test": "NODE_ENV=test RAILS_ENV=test mocha-webpack --opts mocha-webpack.opts spec/javascript/**/*_spec.jsx"
+    "test": "NODE_ENV=test RAILS_ENV=test mocha-webpack --opts mocha-webpack.opts spec/javascript/**/*_spec.js"
   },
   "dependencies": {
     "@rails/webpacker": "^3.3.1",
