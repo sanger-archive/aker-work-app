@@ -7,6 +7,7 @@ module Aker
     has_many :product_processes, foreign_key: :aker_process_id, dependent: :destroy
     has_many :process_modules, foreign_key: :aker_process_id, dependent: :destroy
     has_many :products, through: :product_processes
+    has_many :work_orders
 
     enum process_class: { sequencing: 0,
                           genotyping: 1,
@@ -31,7 +32,8 @@ module Aker
       process_class_translation[process_class.to_sym]
     end
 
-    def build_available_links
+    def build_available_links(unit_prices)
+
       # create a hash, where the value is a list
       available_links = Hash.new { |h, k| h[k] = [] }
       pairings = Aker::ProcessModulePairings.where(aker_process_id: id)
@@ -41,17 +43,17 @@ module Aker
         to_step = pmp.to_step_id ? Aker::ProcessModule.find(pmp.to_step_id) : nil
 
         if from_step.nil?
-          available_links['start'] << to_step.to_custom_hash
+          available_links['start'] << module_hash(to_step, unit_prices)
         elsif to_step.nil?
           available_links[from_step.name] << { name: 'end' }
         else
-          available_links[from_step.name] << to_step.to_custom_hash
+          available_links[from_step.name] << module_hash(to_step, unit_prices)
         end
       end
       available_links
     end
 
-    def build_default_path
+    def build_default_path(unit_prices)
       pairings = Aker::ProcessModulePairings.where(aker_process_id: id)
       default_path_ids = []
 
@@ -67,7 +69,27 @@ module Aker
         default_path_ids << next_module[0].to_step_id unless next_module[0].to_step_id.nil?
       end
 
-      default_path_ids.map { |id| Aker::ProcessModule.find(id).to_custom_hash }
+      default_path_ids.map { |id| module_hash(Aker::ProcessModule.find(id), unit_prices) }
     end
+
+    def selected_path(work_plan)
+      path = []
+      module_choices = work_plan.process_module_choices.where(aker_process_id: id)
+      module_choices.each do |module_choice|
+        mod = Aker::ProcessModule.find(module_choice.aker_process_module_id)
+        path.push({name: mod.name, id: mod.id, selected_value: module_choice.selected_value})
+      end
+      path
+    end
+
+  private
+
+    def module_hash(process_module, unit_prices)
+      result = process_module.to_custom_hash
+      result[:cost] = unit_prices[result[:name]]
+      result
+    end
+
   end
+
 end

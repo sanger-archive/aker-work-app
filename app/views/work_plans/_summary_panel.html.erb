@@ -1,0 +1,26 @@
+<div class="panel panel-primary">
+  <div class="panel-heading">Work Plan <%= view_model.work_plan_id %>
+    <span class="pull-right" style="width: 150px;">Created at: <%= view_model.created_at %></span>
+    <span class="pull-right" style="width: 250px;">Created by: <%= view_model.owner_email %></span>
+  </div>
+  <div class="panel-body">
+    <div class="row">
+      <div class="col-md-3 col-sm-3 text-center">
+        <h6>Product</h6>
+        <span><%= view_model.product_name %></span>
+      </div>
+      <div class="col-md-3 col-sm-3 text-center">
+        <h6>Project</h6>
+        <span><%= view_model.project_name %></span>
+      </div>
+      <div class="col-md-3 col-sm-3 text-center">
+        <h6>Cost Code</h6>
+        <span><%= view_model.cost_code %></span>
+      </div>
+      <div class="col-md-3 col-sm-3 text-center">
+        <h6>Data Release Strategy</h6>
+        <span><%= view_model.data_release_strategy %></span>
+      </div>
+    </div>
+  </div>
+</div>

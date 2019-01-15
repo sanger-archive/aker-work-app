@@ -23,7 +23,7 @@ class LockSetStep
       name: "Job #{job.id} Concluded #{timestamp}"
     )
 
-    job.update_attributes!(set_uuid: job_concluded_set.id)
+    job.update_attributes!(output_set_uuid: job_concluded_set.id)
 
     # Release the materials so they can be used by another work order
     set_materials_availability(true)
@@ -40,9 +40,9 @@ class LockSetStep
   end
 
   def down
-    return unless job.set_uuid
+    return unless job.output_set_uuid
     set_materials_availability(false)
-    job.update_attributes(set_uuid: nil)
+    job.update_attributes(output_set_uuid: nil)
   end
 
 private

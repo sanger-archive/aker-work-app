@@ -6,11 +6,11 @@ RSpec.describe 'WorkPlanPermissionPolicy' do
     let(:plan) { create(:work_plan) }
 
     it 'raises an error if you dont pass a user' do
-      expect{ WorkPlanPermissionPolicy.new(plan) }.to raise_error
+      expect{ WorkPlanPermissionPolicy.new(plan) }.to raise_error /wrong number of arguments/
     end
 
     it 'raises an error if you dont pass a work plan' do
-      expect{ WorkPlanPermissionPolicy.new(user) }.to raise_error
+      expect{ WorkPlanPermissionPolicy.new(user) }.to raise_error /wrong number of arguments/
     end
 
     it 'does not raise an error if you pass a user and a work plan' do

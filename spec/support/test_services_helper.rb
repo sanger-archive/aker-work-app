@@ -10,10 +10,6 @@ module TestServicesHelper
     allow(double_set).to receive(:update_attributes)
   end
 
-  def allow_billing_service_validate_all
-    allow(BillingFacadeClient).to receive(:filter_invalid_product_names).and_return([])
-  end
-
   def webmock_billing_facade_client
     stub_request(:post, "#{Rails.configuration.billing_facade_url}/events")
       .to_return(status: 200, body: '', headers: {})
@@ -32,8 +28,6 @@ module TestServicesHelper
     @material_schema = %Q{
       {"required": ["gender", "donor_id", "phenotype", "supplier_name", "scientific_name"], "type": "object", "properties": {"gender": {"required": true, "type": "string", "enum": ["male", "female", "unknown"]}, "date_of_receipt": {"type": "string", "format": "date"}, "material_type": {"enum": ["blood", "dna"], "type": "string"}, "donor_id": {"required": true, "type": "string"}, "phenotype": {"required": true, "type": "string"}, "supplier_name": {"required": true, "type": "string"}, "scientific_name": {"required": true, "type": "string", "enum": ["Homo Sapiens", "Mouse"]}, "parents": {"type": "list", "schema": {"type": "uuid", "data_relation": {"field": "_id", "resource": "materials", "embeddable": true}}}, "owner_id": {"type": "string"}}}
     }
-    stub_request(:get, "#{Rails.configuration.material_url}/materials/json_patch_schema")
-      .to_return(status: 200, body: @material_schema, headers: {})
     stub_request(:get, "#{Rails.configuration.material_url}/materials/json_patch_schema")
       .to_return(status: 200, body: @material_schema, headers: {})
 

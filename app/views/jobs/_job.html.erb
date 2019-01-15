@@ -1,0 +1,19 @@
+<tr class="<%= view_model.css_classes %>">
+  <td><%= view_model.job_id %></td>
+  <td><%= view_set_link_with_size(view_model.job_input_set) %></td>
+  <td><%= view_model.status_label %></td>
+  <td><%= view_model.concluded_date %></td>
+  <td><%= view_set_link_with_size(view_model.job_output_set) %></td>
+  <td>
+    <% if view_model.has_revised_set? %>
+      <%= view_set_link_with_size(view_model.job_revised_output_set) %>
+    <% elsif !view_model.job_forwarded? %>
+      <%= link_to job_revise_output_url(view_model.job), method: :post do %>
+        <span class="label label-primary">Revise Set</span>
+      <% end %>
+    <% end %>
+  </td>
+  <td>
+    <%= check_box_tag('job_ids[]', view_model.job_id, true) unless view_model.job_forwarded? %>
+  </td>
+</tr>

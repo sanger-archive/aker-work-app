@@ -1,18 +1,8 @@
 import EnzymeHelper from '../enzyme_helper'
-
 import React, { Fragment } from 'react';
 import { expect } from 'chai'
-import { shallow, mount } from 'enzyme';
-import { ProductDescription, ProcessModuleParameters } from "../../../app/javascript/components/product_description.jsx"
-
-describe('<ProductDescription />', () => {
-  context('when rendering it', () => {
-    it('renders the select element', () => {
-      let wrapper = shallow(<ProductDescription />);
-      expect(wrapper.find('ProductSelectElement')).to.have.length(1);
-    })
-  })
-})
+import { mount } from 'enzyme';
+import ProcessModuleParameters from '../../../app/javascript/components/process_module_parameters';
 
 describe('<ProcessModuleParameters />', () => {
   let selectedValue = 3

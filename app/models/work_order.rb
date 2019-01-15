@@ -88,9 +88,13 @@ class WorkOrder < ApplicationRecord
     status == WorkOrder.CONCLUDED
   end
 
+  def dispatched?
+    active? || concluded?
+  end
+
 # checks work_plan is not cancelled, work order is queued, and the first order in the work plan not to be closed
   def can_be_dispatched?
-    (!work_plan.cancelled? && queued? && work_plan.work_orders.find {|o| !o.closed? }==self)
+    !work_plan.cancelled? && queued?
   end
 
   def name
@@ -103,16 +107,6 @@ class WorkOrder < ApplicationRecord
       data[:work_order][:status] = status
     end
     data
-  end
-
-  def selected_path
-    path = []
-    module_choices = WorkOrderModuleChoice.where(work_order_id: id)
-    module_choices.each do |c|
-      mod = Aker::ProcessModule.find(c.aker_process_modules_id)
-      path.push({name: mod.name, id: mod.id, selected_value: c.selected_value})
-    end
-    path
   end
 
   def estimated_completion_date
@@ -135,14 +129,15 @@ class WorkOrder < ApplicationRecord
     end
   end
 
-  def generate_dispatched_event
+  def generate_dispatched_event(forwarded_jobs)
     begin
       if active?
-        message = WorkOrderEventMessage.new(work_order: self, status: 'dispatched')
+        message = WorkOrderEventMessage.new(work_order: self, status: 'dispatched',
+                    forwarded_jobs: forwarded_jobs, dispatched_jobs: jobs)
         BrokerHandle.publish(message)
         BillingFacadeClient.send_event(self, 'dispatched')
       else
-        Rails.logger.error("dispatched event cannot be generated from a work order that is not active.")
+        Rails.logger.error('Dispatched event cannot be generated from a work order that is not active.')
       end
     rescue => e
       Rails.logger.error e

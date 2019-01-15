@@ -1,9 +1,8 @@
 <%= render partial: 'plan_header' %>
-<% setNames = [] %>
-<%= bootstrap_form_for work_plan, url: wizard_path, method: :put  do |f| %>
 
-  <%= render 'buttons', work_plan: work_plan, f: f %>
-  <% enabled = work_plan.in_construction? %>
+<%= bootstrap_form_for view_model.work_plan, url: wizard_path, method: :put  do |f| %>
+
+  <%= render 'buttons', work_plan: view_model.work_plan, f: f %>
 
   <div class="row">
     <div class="col-md-8">
@@ -13,7 +12,7 @@
       </div>
     </div>
     <div class="col-md-4">
-      <% unless work_plan.original_set_uuid %>
+      <% if view_model.form_enabled? %>
       <div class="pull-right">
         <h4>Search</h4>
         <input type="text" autocomplete="off" id="set-name" style="margin-right: 5px;">
@@ -35,47 +34,14 @@
     </thead>
 
     <tbody>
-      <% unless enabled %>
-        <% s = work_plan.original_set %>
-        <tr>
-          <td>
-            <%= f.radio_button(:original_set_uuid, s.id, disabled: !enabled) %>
-          </td>
-          <td>
-            <%= s.name %>
-          </td>
-          <td>
-            <%= pluralize(work_plan.original_set_size, "Sample") %>
-          </td>
-          <td>
-            <%= time_ago_in_words(s.created_at) + " ago" %>
-          </td>
-        </tr>
-      <% else %>
-        <% get_my_sets.each do |s| %>
-          <% setNames.push(s.name.downcase) %>
-          <tr>
-            <td>
-              <%= f.radio_button(:original_set_uuid, s.id) %>
-            </td>
-            <td>
-              <%= s.name %>
-            </td>
-            <td>
-              <%= pluralize(s.meta["size"], "Sample") %>
-            </td>
-            <td>
-              <%= time_ago_in_words(s.created_at) + " ago" %>
-            </td>
-          </tr>
-        <% end %>
-      <% end %>
+      <%= render view_model.sets, f: f, selected_id: view_model.original_set_uuid, disabled: !view_model.form_enabled? %>
     </tbody>
   </table>
 <% end %>
+
 <script>
   var setServiceURL = '<%= Rails.application.config.set_url %>';
-  var setNames = Array.from(<%= raw setNames.to_json %>);
+  var setNames = Array.from(<%= raw view_model.set_names.to_json %>);
   var relativeRoot = '<%= Rails.application.config.relative_url_root.presence || '' %>';
 
   // Allows pressing enter in the search form to perform the search, instead of

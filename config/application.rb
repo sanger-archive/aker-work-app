@@ -27,12 +27,17 @@ module WorkOrders
 
     config.assets.paths << Rails.root.join("vendor", "assets", "fonts")
 
+    # These services/actions are mocked out in initializers when not enabled.
+    config.ubw = { enabled: true }
+    config.data_release_client = { enabled: true }
+    config.send_to_lims = { enabled: true }
+
     config.ldap = config_for(:ldap)
     # Settings in config/environments/* take precedence over those specified here.
     # Application configuration should go into files in config/initializers
     # -- all .rb files in that directory are automatically loaded.
     config.eager_load_paths << Rails.root.join('lib')
-    
+
     config.middleware.insert_before 0, Rack::Cors do
       allow do
         origins '*'

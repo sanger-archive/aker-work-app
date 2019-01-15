@@ -90,7 +90,7 @@ RSpec.describe 'Api::V1::Jobs', type: :request do
         expect(obtained_job['data']['attributes']['work-plan-comment']).to eq(plan.comment)
         expect(obtained_job['data']['attributes']['priority']).to eq(plan.priority)
         expect(obtained_job['data']['attributes']['barcode']).to eq(container.barcode)
-        expect(obtained_job['data']['attributes']['set_uuid']).to eq(job.set_uuid)
+        expect(obtained_job['data']['attributes']['set_uuid']).to eq(job.output_set_uuid)
         expect(obtained_job['data']['attributes']['input-set-uuid']).to eq(job.input_set_uuid)
       end
     end
@@ -121,6 +121,7 @@ RSpec.describe 'Api::V1::Jobs', type: :request do
       describe '#start' do
         context 'when job is queued' do
           before do
+            allow_any_instance_of(JobDecorator).to receive(:input_set_size).and_return(10)
             put api_v1_job_start_path(job), headers: headers, params: params
           end
 
@@ -167,11 +168,14 @@ RSpec.describe 'Api::V1::Jobs', type: :request do
 
           context 'when the broker is broken' do
             before do
-              allow(BrokerHandle).to receive(:working?).and_return(false)
+              allow(BrokerHandle).to receive(:working?).and_return false
+              allow(BrokerHandle).to receive(:events_enabled?).and_return true
+              allow(BrokerHandle).to receive(:events_disabled?).and_return false
               put api_v1_job_complete_path(job), headers: headers, params: params
             end
             it 'should have correct message in response body' do
-              'RabbitMQ broker is broken'
+              msg = 'RabbitMQ broker is broken'
+              expect(response.body).to eq({errors: [{ detail: msg}]}.to_json)
             end
           end
 
@@ -196,7 +200,7 @@ RSpec.describe 'Api::V1::Jobs', type: :request do
             it { expect(response).to have_http_status(:ok) }
 
             it 'should have correct message in repsonse body' do
-              msg = 'Your job is completed'
+              msg = 'Your job is completed.'
               expect(response.body).to eq({ meta: { message: msg } }.to_json)
             end
           end

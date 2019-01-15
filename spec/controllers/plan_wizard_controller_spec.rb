@@ -145,13 +145,13 @@ RSpec.describe PlanWizardController, type: :controller do
         it "should show error and stay on step when no project is selected" do
           put :update, params: { work_plan_id: @wp.id, id: 'project'}
           expect(flash[:error]).to eq 'Please select an option to proceed'
-          expect(UpdatePlanService).not_to receive(:new)
+          expect(PlanUpdateService).not_to receive(:new)
           expect(response.redirect_url).to be_nil
         end
         it "should show error and stay on step when a project not authorised for the user is selected" do
           allow(StudyClient::Node).to receive(:authorize!).and_raise(CanCan::AccessDenied)
           put :update, params: { work_plan_id: @wp.id, work_plan: { project_id: 1234 }, id: 'project'}
-          expect(UpdatePlanService).not_to receive(:new)
+          expect(PlanUpdateService).not_to receive(:new)
           expect(response.redirect_url).to be_nil
         end
       end
@@ -162,21 +162,21 @@ RSpec.describe PlanWizardController, type: :controller do
         it "should show error and stay on step when product is empty" do
           put :update, params: { work_plan_id: @wp.id, id: 'product', work_plan: {comment:"", product_id:""}}
           expect(flash[:error]).to eq 'Please select a project in an earlier step.'
-          expect(UpdatePlanService).not_to receive(:new)
+          expect(PlanUpdateService).not_to receive(:new)
           expect(response.redirect_url).to be_nil
         end
 
         it "should show error and stay on step when no product is selected" do
           put :update, params: { work_plan_id: @wp.id, id: 'product', work_plan: {comment:""}}
           expect(flash[:error]).to eq 'Please select a project in an earlier step.'
-          expect(UpdatePlanService).not_to receive(:new)
+          expect(PlanUpdateService).not_to receive(:new)
           expect(response.redirect_url).to be_nil
         end
 
         it "should show error and stay on step when no product is selected but comment is" do
           put :update, params: { work_plan_id: @wp.id, id: 'product', work_plan: {comment:"xxx"}}
           expect(flash[:error]).to eq 'Please select a project in an earlier step.'
-          expect(UpdatePlanService).not_to receive(:new)
+          expect(PlanUpdateService).not_to receive(:new)
           expect(response.redirect_url).to be_nil
         end
       end
@@ -191,42 +191,13 @@ RSpec.describe PlanWizardController, type: :controller do
           @wp.update_attributes(product_id: nil)
           put :update, params: { work_plan_id: @wp.id, id: 'data_release_strategy', work_plan: { data_release_strategy_id: 1234 }}
           expect(flash[:error]).to eq 'Please select a product in an earlier step.'
-          expect(UpdatePlanService).not_to receive(:new)
+          expect(PlanUpdateService).not_to receive(:new)
           expect(response.redirect_url).to be_nil
         end
         it "should show error and stay on step when no data release strategy is selected" do
           put :update, params: { work_plan_id: @wp.id, id: 'data_release_strategy'}
           expect(flash[:error]).to eq 'Please select an option to proceed'
-          expect(UpdatePlanService).not_to receive(:new)
-          expect(response.redirect_url).to be_nil
-        end
-        it "should show error and stay on step when the data release strategy is not a uuid" do
-          allow(DataReleaseStrategyClient).to receive(:find_strategy_by_uuid).and_return(create_data_release_strategy(1234, 'strat1'))
-          put :update, params: { work_plan_id: @wp.id, id: 'data_release_strategy', work_plan: { data_release_strategy_id: 1234 } }
-          expect(flash[:error]).to eq 'The value for data release strategy selected is not a UUID'
-          expect(UpdatePlanService).not_to receive(:new)
-          expect(response.redirect_url).to be_nil
-        end
-        it "should show error and stay on step when the data release strategy does not exist" do
-          put :update, params: { work_plan_id: @wp.id, id: 'data_release_strategy', work_plan: { data_release_strategy_id: 'unknown' } }
-          expect(flash[:error]).to eq 'No data release strategy could be found with uuid unknown'
-          expect(UpdatePlanService).not_to receive(:new)
-          expect(response.redirect_url).to be_nil
-        end
-        it "should show error and stay on step if connection with the data release service failed" do
-          allow(DataReleaseStrategyClient).to receive(:find_strategy_by_uuid).and_return(create_data_release_strategy(1234, 'strat1'))
-          allow(DataReleaseStrategyClient).to receive(:find_strategies_by_user).and_raise(Faraday::ConnectionFailed, '')
-          put :update, params: { work_plan_id: @wp.id, id: 'data_release_strategy', work_plan: { data_release_strategy_id: SecureRandom.uuid }}
-          expect(flash[:error]).to eq 'There is no connection with the Data release service. Please contact with the administrator'
-          expect(UpdatePlanService).not_to receive(:new)
-          expect(response.redirect_url).to be_nil
-        end
-        it "should show error and stay on step if the strategy selected is not valid for the current user" do
-          allow(DataReleaseStrategyClient).to receive(:find_strategy_by_uuid).and_return(create_data_release_strategy(1234, 'strat1'))
-          allow(DataReleaseStrategyClient).to receive(:find_strategies_by_user).and_return([create_data_release_strategy(4321, 'strat2')])
-          put :update, params: { work_plan_id: @wp.id, id: 'data_release_strategy', work_plan: { data_release_strategy_id: SecureRandom.uuid }}
-          expect(flash[:error]).to eq 'The current user cannot select the Data release strategy provided.'
-          expect(UpdatePlanService).not_to receive(:new)
+          expect(PlanUpdateService).not_to receive(:new)
           expect(response.redirect_url).to be_nil
         end
       end
@@ -245,7 +216,7 @@ RSpec.describe PlanWizardController, type: :controller do
           end
           it "should show error and stay on step" do
             put :update, params: { work_plan_id: @wp.id, id: 'dispatch' }
-            expect(UpdatePlanService).not_to receive(:new)
+            expect(PlanUpdateService).not_to receive(:new)
           end
         end
         context "when a set that contains materials that I am not authorised as sender" do
@@ -261,7 +232,7 @@ RSpec.describe PlanWizardController, type: :controller do
           end
           it "should show error and stay on step" do
             put :update, params: { work_plan_id: @wp.id, id: 'dispatch' }
-            expect(UpdatePlanService).not_to receive(:new)
+            expect(PlanUpdateService).not_to receive(:new)
           end
         end
       end
@@ -271,8 +242,8 @@ RSpec.describe PlanWizardController, type: :controller do
       before do
         @wp = create(:work_plan, owner_email: @user.email)
         allow(WorkPlan).to receive(:find).and_return(@wp)
-        @ups = double('UpdatePlanService')
-        allow(UpdatePlanService).to receive(:new).and_return(@ups)
+        @ups = double('PlanUpdateService')
+        allow(PlanUpdateService).to receive(:new).and_return(@ups)
         allow(@ups).to receive(:perform).and_return(true)
         allow(@wp).to receive(:save).and_return(true)
 
@@ -288,7 +259,7 @@ RSpec.describe PlanWizardController, type: :controller do
       end
 
       it "should have performed the step" do
-        expect(UpdatePlanService).to have_received(:new).with(anything, @wp, false, anything, flash)
+        expect(PlanUpdateService).to have_received(:new).with(anything, @wp, anything, flash)
         expect(@ups).to have_received(:perform)
       end
 
@@ -309,8 +280,8 @@ RSpec.describe PlanWizardController, type: :controller do
       before do
         @wp = create(:work_plan, owner_email: @user.email)
         allow(WorkOrder).to receive(:find).and_return(@wp)
-        @ups = double('UpdatePlanService')
-        allow(UpdatePlanService).to receive(:new).and_return(@ups)
+        @ups = double('PlanUpdateService')
+        allow(PlanUpdateService).to receive(:new).and_return(@ups)
         allow(@ups).to receive(:perform).and_return(false)
         allow(@wp).to receive(:save).and_return(true)
 
@@ -328,7 +299,7 @@ RSpec.describe PlanWizardController, type: :controller do
       end
 
       it "should have tried to perform the step" do
-        expect(UpdatePlanService).to have_received(:new).with(anything, @wp, false, anything, flash)
+        expect(PlanUpdateService).to have_received(:new).with(anything, @wp, anything, flash)
         expect(@ups).to have_received(:perform)
       end
 
@@ -347,7 +318,7 @@ RSpec.describe PlanWizardController, type: :controller do
         user2 = OpenStruct.new(email: 'dirk@sanger.ac.uk', groups: ['world'])
         @wp = create(:work_plan, owner_email: user2.email)
 
-        expect(UpdatePlanService).not_to receive(:new)
+        expect(PlanUpdateService).not_to receive(:new)
 
         put :update, params: { work_plan_id: @wp.id, id: 'set', work_plan: {} }
 

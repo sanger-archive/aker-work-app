@@ -121,16 +121,38 @@ describe 'Jobs API' do
       parameter name: :job, in: :body,
                 schema: JSON.parse(JobValidatorService.schema_content)
 
+      before do
+        allow_any_instance_of(Job).to receive(:generate_concluded_event) do |job, status|
+          @event_job = job
+          @event_status = status
+        end
+      end
+
       response '200', 'job completed' do
         let(:job_id) { started_job.id }
         let(:job) { start_job_msg }
+
         run_test!
+
+        it 'should have called job.generate_concluded_event' do
+          expect(@event_job).to eq(started_job)
+          expect(@event_status).to eq('completed')
+        end
+
+        it 'should have completed the job' do
+          expect(started_job.reload.status).to eq('completed')
+        end
       end
 
-      response '422', 'job already cancelled' do
+      response '422', 'job already completed' do
         let(:job_id) { completed_job.id }
         let(:job) { complete_job_msg }
+
         run_test!
+
+        it 'should not have called job.generate_concluded_event' do
+          expect(@event_job).to be_nil
+        end
       end
     end
   end
@@ -143,16 +165,38 @@ describe 'Jobs API' do
       parameter name: :job, in: :body,
                 schema: JSON.parse(JobValidatorService.schema_content)
 
+      before do
+        allow_any_instance_of(Job).to receive(:generate_concluded_event) do |job, status|
+          @event_job = job
+          @event_status = status
+        end
+      end
+
       response '200', 'job cancelled' do
         let(:job_id) { started_job.id }
         let(:job) { start_job_msg }
+
         run_test!
+
+        it 'should have called job.generate_concluded_event' do
+          expect(@event_job).to eq(started_job)
+          expect(@event_status).to eq('cancelled')
+        end
+
+        it 'should have cancelled the job' do
+          expect(started_job.reload.status).to eq('cancelled')
+        end
       end
 
       response '422', 'job already cancelled' do
         let(:job_id) { cancelled_job.id }
         let(:job) { cancel_job_msg }
+
         run_test!
+
+        it 'should not have called job.generate_concluded_event' do
+          expect(@event_job).to be_nil
+        end
       end
     end
   end

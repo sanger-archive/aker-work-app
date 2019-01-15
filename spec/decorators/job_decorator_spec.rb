@@ -8,7 +8,7 @@ RSpec.describe JobDecorator do
   let(:decorated_job) { job.decorate }
   let(:container) { double("MatconClient::Container", uuid: SecureRandom.uuid) }
 
-  it_behaves_like "linkable_to_sets", [:input_set_uuid, :set_uuid] do
+  it_behaves_like "linkable_to_sets", [:input_set_uuid, :output_set_uuid, :revised_output_set_uuid] do
     let(:model_name) { :job }
   end
 
