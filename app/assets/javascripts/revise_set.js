@@ -4,9 +4,6 @@ $(document).on('turbolinks:load', function() {
     // Don't follow the link
     event.preventDefault();
 
-    // Cache the current link
-    var oldHtml = event.currentTarget;
-
     // Show a nice little spinner
     var $spinner = $('<i class="fa fa-spinner fa-spin fa-fw"></i>');
     $(event.currentTarget).replaceWith($spinner);
