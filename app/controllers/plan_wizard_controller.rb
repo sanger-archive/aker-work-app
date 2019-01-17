@@ -5,8 +5,6 @@ class PlanWizardController < ApplicationController
 
   helper_method :work_plan, :view_model, :last_step?, :first_step?
 
-  before_action :revised_output, only: [:show]
-
   def show
     authorize! :write, work_plan
     skip_step if step == :data_release_strategy && !work_plan.is_product_from_sequencescape?
@@ -97,10 +95,6 @@ class PlanWizardController < ApplicationController
       when :dispatch
         ViewModels::WorkPlanDispatch.new(work_plan: work_plan)
       end
-  end
-
-  def revised_output
-    @job = Job.find(params[:revised_output]).decorate if params[:revised_output]
   end
 
 end

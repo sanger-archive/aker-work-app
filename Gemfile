@@ -47,8 +47,6 @@ gem 'health_check'
 gem 'bootsnap'
 gem 'draper'
 
-gem 'jsonapi-resources'
-
 ###
 # Sanger gems
 ###
