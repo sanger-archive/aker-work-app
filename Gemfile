@@ -26,7 +26,7 @@ gem 'logstash-event'
 gem 'logstash-logger'
 gem 'net-ldap' # Pure Ruby LDAP library. Read more: https://github.com/ruby-ldap/ruby-net-ldap
 gem 'pg', '~> 1.0' # https://bitbucket.org/ged/ruby-pg/issues/270/pg-100-x64-mingw32-rails-server-not-start
-gem 'pry'
+gem 'pry', '0.11.3' # 0.12.x seems to break starting puma with monit
 gem 'puma', '~> 3.0' # Use Puma as the app server
 gem 'rack-cors'
 gem 'rails', '~> 5.2' # Bundle edge Rails instead: gem 'rails', github: 'rails/rails'
@@ -46,8 +46,6 @@ gem 'wicked'
 gem 'health_check'
 gem 'bootsnap'
 gem 'draper'
-
-gem 'jsonapi-resources'
 
 ###
 # Sanger gems
