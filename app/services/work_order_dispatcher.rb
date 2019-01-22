@@ -1,21 +1,18 @@
+# Class responsible for dispatching a Work Order to a LIMS
 class WorkOrderDispatcher
-  include ActiveModel::Validations
-
-  attr_reader :serializer, :materials
+  extend ActiveModel::Naming
+  attr_reader :serializer, :policy, :errors
   attr_accessor :work_order
 
-  validate :work_order_can_be_dispatched
-  validate :modules_are_valid
-  validate :materials_are_available
-  validate :work_order_has_jobs
-
-  def initialize(options)
-    @serializer = options.fetch(:serializer)
+  def initialize(options = {})
+    @serializer = options.fetch(:serializer, WorkOrderSerializer.new)
+    @policy     = options.fetch(:policy, DispatchableWorkOrderPolicy.new)
+    @errors     = ActiveModel::Errors.new(self)
   end
 
   def dispatch(work_order)
     @work_order = work_order.decorate
-    return false if invalid?
+    return false if !valid?
     set_materials_availability(false)
     serialized_work_order = serializer.serialize(work_order)
 
@@ -30,45 +27,10 @@ class WorkOrderDispatcher
 
 private
 
-  def cost_code
-    # Load the cost code only once, even if it's nil
-    unless defined? @code_code
-      @cost_code = work_order.work_plan.decorate.parent_cost_code
-    end
-    @cost_code
-  end
-
-  def work_order_can_be_dispatched
-    if !work_order.can_be_dispatched?
-      errors.add(:work_order, 'can not be dispatched')
-    end
-  end
-
-  def modules_are_valid
-    unless cost_code
-      errors.add(:base, "No cost code is associated with this order's project.")
-      return
-    end
-    bad_module_names = UbwClient::missing_unit_prices(work_order.process_modules.map(&:name).to_a, cost_code)
-    unless bad_module_names.empty?
-      errors.add(:base, "Process module could not be validated: #{bad_module_names}")
-    end
-  end
-
-  def materials_are_available
-    if materials.any? { |material| material.available == false }
-      errors.add(:materials, 'are not all available')
-    end
-  end
-
-  def materials
-    work_order.set_full_materials
-  end
-
-  def work_order_has_jobs
-    if work_order.jobs.size == 0
-      errors.add(:work_order, 'does not have any Jobs')
-    end
+  def valid?
+    dispatchable = policy.dispatchable?(work_order)
+    errors.merge!(policy.errors) if !dispatchable
+    dispatchable
   end
 
   def set_materials_availability(availability)

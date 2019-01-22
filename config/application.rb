@@ -44,5 +44,7 @@ module WorkOrders
         resource '*', :headers => :any, :methods => [:get, :put, :options]
       end
     end
+
+    config.active_record.schema_format = :sql
   end
 end
