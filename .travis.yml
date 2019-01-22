@@ -7,6 +7,8 @@ cache:
 env:
   global:
     - CC_TEST_REPORTER_ID=b07859ceb064fed550f1ce8eb913053ad9b99271a9a0837bf94491262516214e
+addons:
+  postgresql: "9.6"
 services:
   - postgresql
 install:

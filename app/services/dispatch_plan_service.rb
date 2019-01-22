@@ -1,7 +1,7 @@
 require 'broker'
 require 'uuid'
 
-# Handles a request to dispatch the first order in a work plan
+# Handles a request to enqueue the first order in a work plan
 class DispatchPlanService
   attr_reader :plan
 
@@ -92,27 +92,31 @@ private
 
     raise "The work order could not be split into jobs." unless work_order_splitter.split(order)
 
-    unless work_order_dispatcher.dispatch(order)
-      Rails.logger.error work_order_dispatcher.errors.full_messages
-      raise "The request to the LIMS failed."
+    unless dispatchable_policy.dispatchable?(order)
+      Rails.logger.error dispatchable_policy.errors.full_messages
+      raise 'Work Order can not be dispatched.'
     end
 
-    order.reload.generate_dispatched_event([])
+    dispatch_queue.enqueue(work_order_id: order.id)
 
     true
   end
-  
+
   def error(message)
     @messages[:error] = message
     false
   end
 
-  def work_order_dispatcher
-    @dispatcher ||= WorkOrderDispatcher.new(serializer: WorkOrderSerializer.new)
+  def dispatchable_policy
+    @dispatchable_policy ||= DispatchableWorkOrderPolicy.new
   end
 
   def work_order_splitter
     @splitter ||= WorkOrderSplitter::ByContainer.new
+  end
+
+  def dispatch_queue
+    DispatchWorkOrder
   end
 
   def helper

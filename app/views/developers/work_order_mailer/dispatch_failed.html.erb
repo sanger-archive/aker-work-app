@@ -1,0 +1,15 @@
+<h1>Dispatch failed for Work Order <%= @work_order.id %> (owned by <%= @work_order.work_plan.owner_email %>)</h1>
+
+<p>
+  There was an error while trying to process Que::Job <%= @que_job.que_attrs[:id] %>. This Que::Job has failed <%= @que_job.que_attrs[:id] %> times before. It will be attempted a maximum of <%= @que_job.class.maximum_retry_count %> times.
+</p>
+
+<p>
+  The following exception was raised:
+
+  <%= @exception.message %>
+
+  <br />
+
+  <%= @exception.backtrace %>
+</p>
