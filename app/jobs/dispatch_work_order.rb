@@ -1,6 +1,7 @@
 class DispatchWorkOrder < Que::Job
 
-  self.maximum_retry_count = 10
+  self.retry_interval      = Rails.configuration.dispatch_queue[:retry_interval]
+  self.maximum_retry_count = Rails.configuration.dispatch_queue[:maximum_retry_count]
 
   def run(work_order_id:, forwarded_job_ids: [])
     @work_order_id = work_order_id

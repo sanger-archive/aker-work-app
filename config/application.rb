@@ -32,6 +32,11 @@ module WorkOrders
     config.data_release_client = { enabled: true }
     config.send_to_lims = { enabled: true }
 
+    config.dispatch_queue = {
+      retry_interval: proc { |count| count ** 4 + 3 },
+      maximum_retry_count: 10
+    }
+
     config.ldap = config_for(:ldap)
     # Settings in config/environments/* take precedence over those specified here.
     # Application configuration should go into files in config/initializers
