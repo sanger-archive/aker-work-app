@@ -73,7 +73,7 @@ class DispatchableWorkOrderPolicy
   end
 
   def materials
-    work_order.set_full_materials
+    work_order.decorate.set_full_materials
   end
 
   def work_order_has_jobs
