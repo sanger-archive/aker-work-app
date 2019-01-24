@@ -95,7 +95,7 @@ class WorkPlan < ApplicationRecord
       wos = work_orders.to_a # load them all now so we don't make multiple queries
       if !wos.empty?
         return 'broken' if wos.any?(&:broken?)
-        return 'active' unless wos.all?(&:queued?)
+        return 'active'
       end
     end
     return 'construction'
