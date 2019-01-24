@@ -17,7 +17,7 @@ RSpec.describe WorkOrderMailer, type: :mailer do
     end
 
     it "renders the body" do
-      expect(mail.body.encoded).to match(work_plan_dispatch_url(work_order.work_plan))
+      expect(mail.body.encoded).to match(work_plan_build_url(work_order.work_plan, :dispatch))
     end
   end
 
@@ -30,7 +30,7 @@ RSpec.describe WorkOrderMailer, type: :mailer do
     end
 
     it "renders the body" do
-      expect(mail.body.encoded).to match(work_plan_dispatch_url(work_order.work_plan))
+      expect(mail.body.encoded).to match(work_plan_build_url(work_order.work_plan, :dispatch))
     end
   end
 
