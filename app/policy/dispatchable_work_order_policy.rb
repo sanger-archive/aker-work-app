@@ -52,7 +52,8 @@ class DispatchableWorkOrderPolicy
   end
 
   def process_modules_are_valid
-    errors.add(:process_modules, "could not be validated: #{bad_module_names}") unless bad_module_names.empty?
+    message = "could not be validated: #{bad_module_names}"
+    errors.add(:process_modules, message) unless bad_module_names.empty?
   end
 
   def bad_module_names

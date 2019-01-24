@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Sends emails about Work Orders to aker devs
 class Developers::WorkOrderMailer < ApplicationMailer
   default to: Rails.configuration.akerdev_email
@@ -9,10 +11,10 @@ class Developers::WorkOrderMailer < ApplicationMailer
 
     mail(
       subject: I18n.t(
-                'developers.work_order_mailer.dispatch_failed.subject',
-                env: Rails.env,
-                work_order_id: @work_order.id
-              )
+                 'developers.work_order_mailer.dispatch_failed.subject',
+                 env: Rails.env,
+                 work_order_id: @work_order.id
+               )
     )
   end
 end

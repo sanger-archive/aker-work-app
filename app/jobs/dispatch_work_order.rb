@@ -25,7 +25,7 @@ class DispatchWorkOrder < Que::Job
     end
   end
 
-private
+  private
 
   attr_reader :work_order_id, :forwarded_job_ids
 
@@ -46,11 +46,8 @@ private
   end
 
   def check_broker
-    raise BrokerNotWorkingError, error_message('Broker is not working.') unless broker_working?
-  end
-
-  def broker_working?
-    !BrokerHandle.events_enabled? || BrokerHandle.working?
+    message = error_message('Broker is not working.')
+    raise BrokerNotWorkingError, message unless !BrokerHandle.events_enabled? || BrokerHandle.working?
   end
 
   def error_message(message)
@@ -76,7 +73,7 @@ private
   end
 
   def on_fail
-    raise DispatchError, error_message(work_order_dispatcher.errors.full_messages.join(","))
+    raise DispatchError, error_message(work_order_dispatcher.errors.full_messages.join(','))
   end
 
   def on_expire
@@ -91,8 +88,8 @@ private
 
   def email_aker_devs(exception)
     Developers::WorkOrderMailer
-        .with(que_job: self, work_order: work_order, exception: exception)
-        .dispatch_failed
-        .deliver_now
+      .with(que_job: self, work_order: work_order, exception: exception)
+      .dispatch_failed
+      .deliver_now
   end
 end
