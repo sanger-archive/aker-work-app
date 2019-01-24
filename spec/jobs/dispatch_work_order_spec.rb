@@ -54,7 +54,7 @@ RSpec.describe DispatchWorkOrder, type: :job do
       context 'when this was the final attempt' do
 
         before do
-          allow_any_instance_of(DispatchWorkOrder).to receive(:is_final_attempt?).and_return(true)
+          allow_any_instance_of(DispatchWorkOrder).to receive(:final_attempt?).and_return(true)
         end
 
         it 'sets the Work Order to broken' do

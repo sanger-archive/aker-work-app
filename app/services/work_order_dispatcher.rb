@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Class responsible for dispatching a Work Order to a LIMS
 class WorkOrderDispatcher
   extend ActiveModel::Naming
@@ -12,7 +14,7 @@ class WorkOrderDispatcher
 
   def dispatch(work_order)
     @work_order = work_order.decorate
-    return false if !valid?
+    return false unless valid?
     set_materials_availability(false)
     serialized_work_order = serializer.serialize(work_order)
 
@@ -29,7 +31,7 @@ private
 
   def valid?
     dispatchable = policy.dispatchable?(work_order)
-    errors.merge!(policy.errors) if !dispatchable
+    errors.merge!(policy.errors) unless dispatchable
     dispatchable
   end
 

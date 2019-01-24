@@ -94,7 +94,7 @@ private
 
     unless dispatchable_policy.dispatchable?(order)
       Rails.logger.error dispatchable_policy.errors.full_messages
-      raise "Work Order can not be dispatched."
+      raise 'Work Order can not be dispatched.'
     end
 
     dispatch_queue.enqueue(work_order_id: order.id)

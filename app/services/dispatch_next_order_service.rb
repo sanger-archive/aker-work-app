@@ -123,9 +123,9 @@ private
     end
 
     unless dispatchable_policy.dispatchable?(@order)
-      Rails.logger.error "Work Order can not be dispatched"
+      Rails.logger.error 'Work Order can not be dispatched'
       Rails.logger.error dispatchable_policy.errors.full_messages
-      raise "Work Order can not be dispatched."
+      raise 'Work Order can not be dispatched.'
     end
 
     # Do this last because it cannot be undone
