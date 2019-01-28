@@ -22,6 +22,7 @@ RSpec.describe Developers::WorkOrderMailer, type: :mailer do
 
     it "renders the body" do
       expect(mail.body.encoded).to match(message)
+      expect(mail.body.encoded).to match("#{que_job.que_attrs[:error_count]} times")
     end
   end
 
