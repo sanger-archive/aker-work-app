@@ -53,7 +53,7 @@ module ViewModels
       !last_process?
     end
 
-  private
+    private
 
     attr_reader :last_process
 

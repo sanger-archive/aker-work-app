@@ -5,12 +5,7 @@ class Jobs::ForwardController < ApplicationController
   # POST /jobs/forward
   def create
     authorize_work_plans!
-    begin
-      dispatch_next_order_service.execute
-      flash[:notice] = success_message
-    rescue StandardError => exception
-      flash[:error] = exception.message
-    end
+    dispatch_next_order
     redirect_to dispatch_path
   end
 
@@ -27,6 +22,15 @@ class Jobs::ForwardController < ApplicationController
 
   def jobs
     @jobs ||= Job.find(params[:job_ids])
+  end
+
+  def dispatch_next_order
+    begin
+      dispatch_next_order_service.execute
+      flash[:notice] = success_message
+    rescue StandardError => exception
+      flash[:error] = exception.message
+    end
   end
 
   def dispatch_next_order_service
@@ -46,7 +50,7 @@ class Jobs::ForwardController < ApplicationController
   end
 
   def success_message
-    %Q(
+    %(
       New Work Order created and queued for dispatch.
 
       You will receive an email when this Work Order has been dispatched to the LIMS.
