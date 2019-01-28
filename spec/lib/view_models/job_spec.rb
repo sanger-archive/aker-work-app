@@ -115,18 +115,28 @@ RSpec.describe 'ViewModels::Job' do
     end
   end
 
-  describe '#job_forwarded?' do
-    context 'when the job has been forwarded' do
-      let(:job) { create(:forwarded_job) }
+  describe '#show_revised_set_button?' do
+    context 'when this is not the last Process' do
+      context 'when the job has been forwarded' do
+        let(:job) { create(:forwarded_job) }
 
-      it 'returns true' do
-        expect(view_model.job_forwarded?).to be true
+        it 'returns true' do
+          expect(view_model.show_revised_set_button?).to be true
+        end
+      end
+
+      context 'when the job has not been forwarded' do
+        it 'returns false' do
+          expect(view_model.show_revised_set_button?).to be false
+        end
       end
     end
 
-    context 'when the job has not been forwarded' do
+    context 'when this is the last Process' do
+      let(:last_process) { true }
+
       it 'returns false' do
-        expect(view_model.job_forwarded?).to be false
+        expect(view_model.show_revised_set_button?).to be false
       end
     end
   end

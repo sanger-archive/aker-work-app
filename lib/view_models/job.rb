@@ -45,7 +45,8 @@ module ViewModels
       job.revised_output_set
     end
 
-    def job_forwarded?
+    def show_revised_set_button?
+      return false if last_process?
       job.forwarded?
     end
 
