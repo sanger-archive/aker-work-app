@@ -9,7 +9,8 @@ module ViewModels
     delegate :id, to: :job
 
     def initialize(args)
-      @job = args.fetch(:job)
+      @job          = args.fetch(:job)
+      @last_process = args.fetch(:last_process)
     end
 
     def css_classes
@@ -46,6 +47,18 @@ module ViewModels
 
     def job_forwarded?
       job.forwarded?
+    end
+
+    def show_check_box?
+      !last_process?
+    end
+
+  private
+
+    attr_reader :last_process
+
+    def last_process?
+      last_process
     end
 
   end

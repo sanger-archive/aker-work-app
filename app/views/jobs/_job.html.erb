@@ -14,6 +14,6 @@
     <% end %>
   </td>
   <td>
-    <%= check_box_tag('job_ids[]', view_model.job_id, true) unless view_model.job_forwarded? %>
+    <%= check_box_tag('job_ids[]', view_model.job_id, true) unless view_model.show_check_box? %>
   </td>
 </tr>

@@ -3,7 +3,8 @@ require 'rails_helper'
 RSpec.describe 'ViewModels::Job' do
 
   let(:job) { create(:completed_job).decorate }
-  let(:view_model) { ViewModels::Job.new(job: job) }
+  let(:last_process) { false }
+  let(:view_model) { ViewModels::Job.new(job: job, last_process: last_process) }
 
   describe 'Job#new' do
     it 'initializes the class' do
@@ -126,6 +127,23 @@ RSpec.describe 'ViewModels::Job' do
     context 'when the job has not been forwarded' do
       it 'returns false' do
         expect(view_model.job_forwarded?).to be false
+      end
+    end
+  end
+
+  describe '#show_check_box?' do
+    context 'when this is not the last Process' do
+
+      it 'returns true' do
+        expect(view_model.show_check_box?).to be true
+      end
+    end
+
+    context 'when this is the last Process' do
+      let(:last_process) { true }
+
+      it 'returns false' do
+        expect(view_model.show_check_box?).to be false
       end
     end
   end

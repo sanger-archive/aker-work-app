@@ -15,9 +15,7 @@
       <div class="col-md-12">
         <ul>
           <li>Dispatch Date: <%= view_model.dispatch_date %></li>
-          <li>
-            <%= view_model.completion_date %>
-          </li>
+          <li><%= view_model.completion_date %></li>
           <li>Jobs: <%= view_model.number_of_jobs %></li>
         </ul>
       </div>
@@ -35,7 +33,11 @@
               <th>Return Date</th>
               <th>Output</th>
               <th>Revised</th>
-              <th><%= check_box_tag('select_all', 1, true, { 'data-behavior': 'select_all' }) %> Select/Deselect All</th>
+              <th>
+                <% if view_model.show_check_box? %>
+                  <%= check_box_tag('select_all', 1, true, { 'data-behavior': 'select_all' }) %> Select/Deselect All
+                <% end %>
+              </th>
             </tr>
           </thead>
           <tbody>

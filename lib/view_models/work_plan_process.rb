@@ -17,7 +17,7 @@ module ViewModels
     end
 
     def show_start_jobs_button?
-      return false if process == work_plan.processes.last
+      return false if last_process?
       process_jobs.any? {|job| !job.forwarded }
     end
 
@@ -40,7 +40,15 @@ module ViewModels
     end
 
     def create_work_order_view_model(work_order)
-      ViewModels::WorkOrder.new(work_order: work_order, jobs: work_order.jobs.concluded)
+      ViewModels::WorkOrder.new(
+        work_order: work_order,
+        jobs: work_order.jobs.concluded,
+        last_process: last_process?
+      )
+    end
+
+    def last_process?
+      process == work_plan.processes.last
     end
 
   end
