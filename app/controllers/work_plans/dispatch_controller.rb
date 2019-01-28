@@ -11,13 +11,11 @@ class WorkPlans::DispatchController < ApplicationController
   private
 
   def dispatch_work_plan
-    begin
-      work_plan.update_attributes!(update_params)
-      dispatch_plan_service.perform
-      flash[:notice] = success_message
-    rescue StandardError => exception
-      flash[:alert] = exception.message
-    end
+    work_plan.update_attributes!(update_params)
+    dispatch_plan_service.perform
+    flash[:notice] = success_message
+  rescue StandardError => exception
+    flash[:alert] = exception.message
   end
 
   def work_plan
