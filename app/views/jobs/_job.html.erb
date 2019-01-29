@@ -7,7 +7,7 @@
   <td>
     <% if view_model.has_revised_set? %>
       <%= render partial: "jobs/set_link_with_size", locals: { set: view_model.job_revised_output_set } %>
-    <% elsif view_model.show_revised_set_button? %>
+    <% elsif view_model.show_revise_set_button? %>
       <%= link_to job_revise_output_url(view_model.job, format: :js), { "data-behavior": "revise_set" } do %>
         <span class="label label-primary">Revise Set</span>
       <% end %>

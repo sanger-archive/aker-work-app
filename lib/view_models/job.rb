@@ -45,9 +45,9 @@ module ViewModels
       job.revised_output_set
     end
 
-    def show_revised_set_button?
+    def show_revise_set_button?
       return false if last_process?
-      job.forwarded?
+      !job.forwarded?
     end
 
     def show_check_box?
