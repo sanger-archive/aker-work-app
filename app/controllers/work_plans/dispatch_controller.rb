@@ -12,8 +12,7 @@ class WorkPlans::DispatchController < ApplicationController
 
   def dispatch_work_plan
     work_plan.update_attributes!(update_params)
-    dispatch_plan_service.perform
-    flash[:notice] = success_message
+    flash[:notice] = success_message if dispatch_plan_service.perform
   rescue StandardError => exception
     flash[:alert] = exception.message
   end

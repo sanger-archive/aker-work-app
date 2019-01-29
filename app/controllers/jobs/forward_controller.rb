@@ -25,8 +25,7 @@ class Jobs::ForwardController < ApplicationController
   end
 
   def dispatch_next_order
-    dispatch_next_order_service.execute
-    flash[:notice] = success_message
+    flash[:notice] = success_message if dispatch_next_order_service.execute
   rescue StandardError => exception
     flash[:error] = exception.message
   end
