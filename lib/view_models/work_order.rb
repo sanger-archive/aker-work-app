@@ -44,8 +44,13 @@ module ViewModels
       jobs.size > 0
     end
 
-    def show_check_box?
+    def show_revised_column?
       !last_process?
+    end
+
+    def show_check_box?
+      return false if last_process?
+      jobs.any? { |job| !job.forwarded? }
     end
 
   private

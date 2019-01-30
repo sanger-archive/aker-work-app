@@ -141,11 +141,39 @@ RSpec.describe 'ViewModels::Job' do
     end
   end
 
-  describe '#show_check_box?' do
+  describe '#show_check_box_column?' do
     context 'when this is not the last Process' do
 
       it 'returns true' do
         expect(view_model.show_check_box?).to be true
+      end
+
+    end
+
+    context 'when this is the last Process' do
+      let(:last_process) { true }
+
+      it 'returns false' do
+        expect(view_model.show_check_box_column?).to be false
+      end
+    end
+  end
+
+  describe '#show_check_box?' do
+    context 'when this is not the last Process' do
+
+      context 'when job has not been forwarded' do
+        it 'returns true' do
+          expect(view_model.show_check_box?).to be true
+        end
+      end
+
+      context 'when job has been forwarded' do
+        let(:job) { create(:forwarded_job) }
+
+        it 'returns false' do
+          expect(view_model.show_check_box?).to be false
+        end
       end
     end
 

@@ -6,7 +6,7 @@ module ViewModels
     include JobsHelper
 
     attr_reader :job
-    delegate :id, to: :job
+    delegate :id, :forwarded?, to: :job
 
     def initialize(args)
       @job          = args.fetch(:job)
@@ -14,7 +14,7 @@ module ViewModels
     end
 
     def css_classes
-      "active" if job.forwarded
+      "active" if forwarded?
     end
 
     def job_id
@@ -47,11 +47,16 @@ module ViewModels
 
     def show_revise_set_button?
       return false if last_process?
-      !job.forwarded?
+      !forwarded?
+    end
+
+    def show_check_box_column?
+      !last_process?
     end
 
     def show_check_box?
-      !last_process?
+      return false if last_process?
+      !forwarded?
     end
 
     private

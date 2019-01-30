@@ -32,12 +32,12 @@
               <th>Result</th>
               <th>Return Date</th>
               <th>Output</th>
+              <% if view_model.show_revised_column? %>
               <th>Revised</th>
-              <th>
-                <% if view_model.show_check_box? %>
-                  <%= check_box_tag('select_all', 1, true, { 'data-behavior': 'select_all' }) %> Select/Deselect All
-                <% end %>
-              </th>
+              <% end %>
+              <% if view_model.show_check_box? %>
+                <th><%= check_box_tag('select_all', 1, true, { 'data-behavior': 'select_all' }) %> Select/Deselect All</th>
+              <% end %>
             </tr>
           </thead>
           <tbody>
