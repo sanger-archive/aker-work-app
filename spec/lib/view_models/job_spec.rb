@@ -115,6 +115,24 @@ RSpec.describe 'ViewModels::Job' do
     end
   end
 
+  describe '#show_revise_column?' do
+    context 'when this is not the last Process' do
+
+      it 'returns true' do
+        expect(view_model.show_revise_column?).to be true
+      end
+
+    end
+
+    context 'when this is the last Process' do
+      let(:last_process) { true }
+
+      it 'returns false' do
+        expect(view_model.show_revise_column?).to be false
+      end
+    end
+  end
+
   describe '#show_revise_set_button?' do
     context 'when this is not the last Process' do
       context 'when the job has been forwarded' do
@@ -145,7 +163,7 @@ RSpec.describe 'ViewModels::Job' do
     context 'when this is not the last Process' do
 
       it 'returns true' do
-        expect(view_model.show_check_box?).to be true
+        expect(view_model.show_check_box_column?).to be true
       end
 
     end

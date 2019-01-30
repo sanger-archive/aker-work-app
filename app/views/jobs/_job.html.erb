@@ -13,6 +13,8 @@
         <span class="label label-primary">Revise Set</span>
       <% end %>
     </td>
+  <% elsif view_model.show_revise_column? %>
+    <td></td>
   <% end %>
 
   <% if view_model.show_check_box_column? %>

@@ -45,6 +45,10 @@ module ViewModels
       job.revised_output_set
     end
 
+    def show_revise_column?
+      !last_process?
+    end
+
     def show_revise_set_button?
       return false if last_process?
       !forwarded?
