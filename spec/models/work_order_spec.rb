@@ -102,31 +102,6 @@ RSpec.describe WorkOrder, type: :model do
     end
   end
 
-  describe '#can_be_dispatched?' do
-    let!(:processes) { make_processes(3) }
-    let(:modules_selected_values) { processes.map{ [nil] } }
-    let(:plan_cancelled) { nil }
-    let(:plan) { create(:work_plan, product: product, cancelled: plan_cancelled) }
-    let(:order_status) { WorkOrder.QUEUED }
-    let(:order) { create(:work_order, work_plan: plan, process: processes.first, status: order_status) }
-
-    context 'when the order is queued' do
-      it { expect(order).to be_can_be_dispatched }
-    end
-
-    context 'when the order is not queued' do
-      let(:order_status) { WorkOrder.CONCLUDED }
-
-      it { expect(order).not_to be_can_be_dispatched }
-    end
-
-    context 'when the plan is cancelled' do
-      let(:plan_cancelled) { Time.now }
-
-      it { expect(order).not_to be_can_be_dispatched }
-    end
-  end
-
   describe '#estimated_completion_date' do
     let!(:plan) { create (:work_plan) }
     let!(:process) { build(:process, TAT: 4) }

@@ -122,16 +122,16 @@ private
       raise "The material set for the new work order could not be split."
     end
 
-    unless work_order_dispatcher.dispatch(@order)
-      Rails.logger.error "Failed to send work order"
-      Rails.logger.error work_order_dispatcher.errors.full_messages
-      raise "The request to the LIMS failed."
+    unless dispatchable_policy.dispatchable?(@order)
+      Rails.logger.error 'Work Order can not be dispatched'
+      Rails.logger.error dispatchable_policy.errors.full_messages
+      raise 'Work Order can not be dispatched.'
     end
 
     # Do this last because it cannot be undone
     combined_set.update_attributes(owner_id: @order.owner_email, locked: true)
-    
-    @order.reload.generate_dispatched_event(jobs)
+
+    dispatch_queue.enqueue(work_order_id: @order.id, forwarded_job_ids: jobs.map(&:id))
 
     true
   end
@@ -146,12 +146,16 @@ private
     return (subset_materials - superset_materials).empty?
   end
 
-  def work_order_dispatcher
-    @dispatcher ||= WorkOrderDispatcher.new(serializer: WorkOrderSerializer.new)
+  def dispatchable_policy
+    @policy ||= DispatchableWorkOrderPolicy.new
   end
 
   def work_order_splitter
     @splitter ||= WorkOrderSplitter::ByContainer.new
+  end
+
+  def dispatch_queue
+    DispatchWorkOrder
   end
 
   def error(message)

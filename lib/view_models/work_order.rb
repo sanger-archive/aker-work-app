@@ -8,12 +8,13 @@ module ViewModels
     delegate :id, to: :work_order
 
     def initialize(args)
-      @work_order = args.fetch(:work_order)
-      @jobs       = args.fetch(:jobs, @work_order.jobs)
+      @work_order   = args.fetch(:work_order)
+      @jobs         = args.fetch(:jobs, @work_order.jobs)
+      @last_process = args.fetch(:last_process)
     end
 
     def jobs
-      @jobs.map { |job| ViewModels::Job.new(job: job.decorate) }
+      @jobs.map { |job| ViewModels::Job.new(job: job.decorate, last_process: last_process) }
     end
 
     def work_order_id
@@ -43,9 +44,22 @@ module ViewModels
       jobs.size > 0
     end
 
+    def show_revised_column?
+      !last_process?
+    end
+
+    def show_check_box?
+      return false if last_process?
+      jobs.any? { |job| !job.forwarded? }
+    end
+
   private
 
-    attr_reader :work_order
+    attr_reader :work_order, :last_process
+
+    def last_process?
+      last_process
+    end
 
     def work_order_completion_date
       "Completion Date: #{work_order.completion_date&.to_s(:short)}"

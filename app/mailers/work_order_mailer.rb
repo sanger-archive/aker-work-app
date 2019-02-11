@@ -1,3 +1,6 @@
+# frozen_string_literal: true
+
+# Mailer for all things regarding Work Orders (...and RabbitMQ)
 class WorkOrderMailer < ApplicationMailer
 
   def broker_not_connected
@@ -10,6 +13,30 @@ class WorkOrderMailer < ApplicationMailer
 
   def broker_reconnected
     akerdev("RabbitMQ seems to have recovered on #{ Rails.env }")
+  end
+
+  def dispatch_failed
+    @work_order = params[:work_order]
+    mail(
+      to: @work_order.work_plan.owner_email,
+      subject: I18n.t(
+        'work_order_mailer.dispatch_failed.subject',
+        env: Rails.env,
+        work_order_id: @work_order.id
+      )
+    )
+  end
+
+  def dispatched
+    @work_order = params[:work_order]
+    mail(
+      to: @work_order.work_plan.owner_email,
+      subject: I18n.t(
+        'work_order_mailer.dispatched.subject',
+        env: Rails.env,
+        work_order_id: @work_order.id
+      )
+    )
   end
 
 private

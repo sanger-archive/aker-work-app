@@ -36,3 +36,12 @@ en:
           transcriptomics: "Transcriptomics"
           cell_line_generation: "Cell line generation"
           restricted_use: "Restricted use for certain disease states"
+  work_order_mailer:
+    dispatch_failed:
+      subject: "(%{env}) Dispatch failed for Work Order %{work_order_id}"
+    dispatched:
+      subject: "(%{env}) Work Order %{work_order_id} has been dispatched"
+  developers:
+    work_order_mailer:
+      dispatch_failed:
+        subject: "(%{env}) Dispatch failed for Work Order %{work_order_id}"
