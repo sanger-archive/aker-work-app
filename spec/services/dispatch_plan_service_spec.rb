@@ -48,10 +48,16 @@ RSpec.describe :dispatch_plan_service do
     h
   end
 
-  let(:dispatcher) do
-    d = instance_double('WorkOrderDispatcher')
-    allow(d).to receive(:dispatch).and_return true
-    d
+  let(:policy) do
+    policy = instance_double('DispatchableWorkOrderPolicy')
+    allow(policy).to receive(:dispatchable?).and_return true
+    policy
+  end
+
+  let(:dispatch_queue) do
+    dq = class_double('DispatchWorkOrder')
+    allow(dq).to receive(:enqueue).and_return true
+    dq
   end
 
   let(:splitter) do
@@ -63,8 +69,9 @@ RSpec.describe :dispatch_plan_service do
   let(:service) do
     ser = DispatchPlanService.new(plan, user_and_groups, messages)
     allow(ser).to receive(:helper).and_return helper
-    allow(ser).to receive(:work_order_dispatcher).and_return dispatcher
+    allow(ser).to receive(:dispatchable_policy).and_return policy
     allow(ser).to receive(:work_order_splitter).and_return splitter
+    allow(ser).to receive(:dispatch_queue).and_return dispatch_queue
     ser
   end
 
@@ -199,10 +206,6 @@ RSpec.describe :dispatch_plan_service do
 
   context 'when nothing goes wrong' do
     before do
-      allow_any_instance_of(WorkOrder).to receive(:generate_dispatched_event) do |order, forwarded_jobs|
-        @event_order = order
-        @event_forwarded_jobs = forwarded_jobs
-      end
       @result = service.perform
       @order = plan.reload.work_orders.first
     end
@@ -233,13 +236,12 @@ RSpec.describe :dispatch_plan_service do
       expect(splitter).to have_received(:split).with(@order)
     end
 
-    it 'should have dispatched the order' do
-      expect(dispatcher).to have_received(:dispatch).with(@order)
+    it 'should have checked the order is allowed to be dispatched' do
+      expect(policy).to have_received(:dispatchable?).with(@order)
     end
 
-    it 'should have tried to dispatch an event message with the correct arguments' do
-      expect(@event_order).to eq(@order)
-      expect(@event_forwarded_jobs).to be_empty
+    it 'should have enqueued a DispatchWorkOrder job' do
+      expect(dispatch_queue).to have_received(:enqueue).with(work_order_id: @order.id)
     end
   end
 

@@ -93,9 +93,9 @@ class WorkPlan < ApplicationRecord
     return 'cancelled' if cancelled
     if project_id
       wos = work_orders.to_a # load them all now so we don't make multiple queries
-      if !wos.empty?
+      unless wos.empty?
         return 'broken' if wos.any?(&:broken?)
-        return 'active' unless wos.all?(&:queued?)
+        return 'active'
       end
     end
     return 'construction'

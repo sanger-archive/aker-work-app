@@ -1,4 +1,3 @@
-require 'lims_client'
 require 'event_message'
 require 'securerandom'
 
@@ -90,11 +89,6 @@ class WorkOrder < ApplicationRecord
 
   def dispatched?
     active? || concluded?
-  end
-
-# checks work_plan is not cancelled, work order is queued, and the first order in the work plan not to be closed
-  def can_be_dispatched?
-    !work_plan.cancelled? && queued?
   end
 
   def name

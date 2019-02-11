@@ -11,8 +11,5 @@ Rails.application.config.after_initialize do
     connection.faraday.proxy {}
     connection.use JWTSerializer
     connection.use RequestIdMiddleware
-    if Rails.env.production? || Rails.env.staging?
-      connection.use ZipkinTracer::FaradayHandler, 'Study service'
-    end
   end
 end

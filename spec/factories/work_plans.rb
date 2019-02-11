@@ -32,7 +32,7 @@ FactoryBot.define do
     after(:create) do |plan, evaluator|
       if %i[active closed broken cancelled].include?(evaluator.status)
         plan.cancelled = 1.day.ago if evaluator.status == :cancelled
-        plan.project_id = SecureRandom.uuid
+        plan.project_id = evaluator.project_id || build(:project).id
         unless evaluator.status == :cancelled
           work_order_factory = "#{evaluator.status}_work_order".to_sym
           create_list(work_order_factory, evaluator.work_order_count, work_plan: plan)

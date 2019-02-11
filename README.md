@@ -42,3 +42,21 @@ and make sure that they behave as expected.
 ## Assets
 Assets are now compiled on the environments and do not need to be committed with the project
 anymore.
+
+## Work Order Dispatch
+Work Orders are dispatched through the use of a job queue provided by the [Que gem](https://github.com/chanks/que). Jobs are not removed from the queue after they have been processed. Instead, they are marked as finished and kept in the database. If dispatch fails, jobs are added back to the queue for processing at a later time (config options to customise in `application.rb`).
+
+You can get some basic stats on the queue using `Que.job_stats`.
+
+There is also a QueJob model with a number of scopes available to look at jobs more closely:
+
+  - `QueJob.errored`
+  - `QueJob.not_errored`
+  - `QueJob.expired`
+  - `QueJob.not_expired`
+  - `QueJob.finished`
+  - `QueJob.not_finished`
+  - `QueJob.scheduled`
+  - `QueJob.not_scheduled`
+  - `QueJob.ready`
+  - `QueJob.not_ready`
