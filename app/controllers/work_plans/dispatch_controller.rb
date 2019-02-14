@@ -4,12 +4,18 @@ class WorkPlans::DispatchController < ApplicationController
 
   def update
     authorize! :write, work_plan
-    work_plan.update_attributes!(update_params)
-    dispatch_plan_service.perform
+    dispatch_work_plan
     redirect_to dispatch_path
   end
 
   private
+
+  def dispatch_work_plan
+    work_plan.update_attributes!(update_params)
+    flash[:notice] = success_message if dispatch_plan_service.perform
+  rescue StandardError => exception
+    flash[:alert] = exception.message
+  end
 
   def work_plan
     @work_plan ||= WorkPlan.find(params[:work_plan_id])
@@ -29,6 +35,14 @@ class WorkPlans::DispatchController < ApplicationController
 
   def dispatch_path
     work_plan_build_path(work_plan_id: params[:work_plan_id], id: :dispatch)
+  end
+
+  def success_message
+    %(
+    Work Plan started.
+
+    You will receive an email when the first Work Order has been dispatched to the LIMS.
+    )
   end
 
 end

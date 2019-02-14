@@ -16,6 +16,28 @@ Use Yarn to install the required Node modules: `bundle exec rails yarn:install`
 ## Broker
 To create the exchanges, queues and usernames etc. use the GitLab repo: [aker-environments](https://gitlab.internal.sanger.ac.uk/aker/aker-environments)
 
+## Foreman
+There is a Procfile which should allow you to run the project with `foreman start`.
+
+I had to jump through the following hoops:
+
+* Using correct node version
+
+        brew install nvm
+        nvm ls-remote --lts # list versions with long-term support
+        nvm install 8.15.0 # or whatever version
+  The `.nvmrc` specifies what version the application will run with.
+
+* Getting dependencies
+
+        yarn install
+        yarn upgrade
+  I got warnings about missing dependencies related to `webpack-dev-server`. I ended up downgrading it to version 2 (specified in `package.json`).
+
+* webpack port
+
+    I changed `config/webpacker` to specify port 3036 instead of 3035, so it wouldn't try to use the same port as the set shaper.
+
 # Testing
 ## Rspec
 To run the rspec tests: `bundle exec rspec`
@@ -42,3 +64,21 @@ and make sure that they behave as expected.
 ## Assets
 Assets are now compiled on the environments and do not need to be committed with the project
 anymore.
+
+## Work Order Dispatch
+Work Orders are dispatched through the use of a job queue provided by the [Que gem](https://github.com/chanks/que). Jobs are not removed from the queue after they have been processed. Instead, they are marked as finished and kept in the database. If dispatch fails, jobs are added back to the queue for processing at a later time (config options to customise in `application.rb`).
+
+You can get some basic stats on the queue using `Que.job_stats`.
+
+There is also a QueJob model with a number of scopes available to look at jobs more closely:
+
+  - `QueJob.errored`
+  - `QueJob.not_errored`
+  - `QueJob.expired`
+  - `QueJob.not_expired`
+  - `QueJob.finished`
+  - `QueJob.not_finished`
+  - `QueJob.scheduled`
+  - `QueJob.not_scheduled`
+  - `QueJob.ready`
+  - `QueJob.not_ready`

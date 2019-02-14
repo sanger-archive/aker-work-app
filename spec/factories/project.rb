@@ -6,9 +6,10 @@ FactoryBot.define do
     sequence(:id) { |n| n }
     type { "nodes" }
     sequence(:name) { |n| "Project #{n}" }
-    cost_code { 'S0001' }
+    add_attribute("cost-code") { 'S0001' }
     description { "Here is my project... for science" }
     created_at { rand(365).days.ago }
+    add_attribute("parent-id") { id + 99 }
 
     meta { { active: true } }
 

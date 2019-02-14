@@ -92,8 +92,10 @@ class PlanHelper
       error("No modules specified.")
       return nil
     end
-
-    module_costs = UbwClient::get_unit_prices(module_names, cost_code)
+    module_costs = UbwClient::get_unit_prices_or_nil(module_names, cost_code)
+    if module_costs.nil?
+      return error("There was a problem retrieving information from UBW.")
+    end
 
     uncosted = module_names.uniq - module_costs.select { |k,v| v.present? }.keys
 

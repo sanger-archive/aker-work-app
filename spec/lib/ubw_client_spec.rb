@@ -120,4 +120,19 @@ RSpec.describe 'UbwClient' do
     end
   end
 
+  describe '#get_unit_prices_or_nil' do
+    context 'when the lookup succeeds' do
+      it 'should return a hash containing the correct price' do
+        expected = { 'alpha' => BigDecimal.new('201.00') }
+        expect(UbwClient::get_unit_prices_or_nil('alpha', 'S0001')).to eq(expected)
+      end
+    end
+
+    context 'when the lookup errors' do
+      it 'should return nil' do
+        expect(Ubw::Price).to receive(:where).and_raise(Ubw::Errors::ClientError)
+        expect(UbwClient::get_unit_prices_or_nil('alpha', 'S0001')).to be_nil
+      end
+    end
+  end
 end

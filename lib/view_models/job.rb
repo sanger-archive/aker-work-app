@@ -6,14 +6,15 @@ module ViewModels
     include JobsHelper
 
     attr_reader :job
-    delegate :id, to: :job
+    delegate :id, :forwarded?, to: :job
 
     def initialize(args)
-      @job = args.fetch(:job)
+      @job          = args.fetch(:job)
+      @last_process = args.fetch(:last_process)
     end
 
     def css_classes
-      "active" if job.forwarded
+      "active" if forwarded?
     end
 
     def job_id
@@ -44,8 +45,30 @@ module ViewModels
       job.revised_output_set
     end
 
-    def job_forwarded?
-      job.forwarded?
+    def show_revise_column?
+      !last_process?
+    end
+
+    def show_revise_set_button?
+      return false if last_process?
+      !forwarded?
+    end
+
+    def show_check_box_column?
+      !last_process?
+    end
+
+    def show_check_box?
+      return false if last_process?
+      !forwarded?
+    end
+
+    private
+
+    attr_reader :last_process
+
+    def last_process?
+      last_process
     end
 
   end

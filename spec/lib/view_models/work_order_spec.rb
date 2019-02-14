@@ -4,7 +4,8 @@ RSpec.describe 'ViewModels::WorkOrder' do
 
   let(:work_order) { create(:work_order) }
   let(:jobs) { create_list(:completed_job, 3) + create_list(:forwarded_job, 3) }
-  let(:view_model) { ViewModels::WorkOrder.new(work_order: work_order, jobs: jobs) }
+  let(:last_process) { false }
+  let(:view_model) { ViewModels::WorkOrder.new(work_order: work_order, jobs: jobs, last_process: last_process) }
 
   describe 'WorkOrder#new' do
     it 'initializes the class' do
@@ -71,6 +72,50 @@ RSpec.describe 'ViewModels::WorkOrder' do
   describe '#jobs' do
     it 'returns a list of ViewModel::Job objects' do
       expect(view_model.jobs).to all be_an_instance_of(ViewModels::Job)
+    end
+  end
+
+  describe '#show_revised_column?' do
+    context 'when this is not the last Process' do
+
+      it 'returns true' do
+        expect(view_model.show_revised_column?).to be true
+      end
+    end
+
+    context 'when this is the last Process' do
+      let(:last_process) { true }
+
+      it 'returns false' do
+        expect(view_model.show_revised_column?).to be false
+      end
+    end
+  end
+
+  describe '#show_check_box?' do
+    context 'when this is not the last Process' do
+
+      context 'when not all Jobs have been forwarded' do
+        it 'returns true' do
+          expect(view_model.show_check_box?).to be true
+        end
+      end
+
+      context 'when all Jobs have been forwarded' do
+        let(:jobs) { create_list(:forwarded_job, 3) }
+
+        it 'returns false' do
+          expect(view_model.show_check_box?).to be false
+        end
+      end
+    end
+
+    context 'when this is the last Process' do
+      let(:last_process) { true }
+
+      it 'returns false' do
+        expect(view_model.show_check_box?).to be false
+      end
     end
   end
 
