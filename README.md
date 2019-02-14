@@ -16,6 +16,28 @@ Use Yarn to install the required Node modules: `bundle exec rails yarn:install`
 ## Broker
 To create the exchanges, queues and usernames etc. use the GitLab repo: [aker-environments](https://gitlab.internal.sanger.ac.uk/aker/aker-environments)
 
+## Foreman
+There is a Procfile which should allow you to run the project with `foreman start`.
+
+I had to jump through the following hoops:
+
+* Using correct node version
+
+        brew install nvm
+        nvm ls-remote --lts # list versions with long-term support
+        nvm install 8.15.0 # or whatever version
+  The `.nvmrc` specifies what version the application will run with.
+
+* Getting dependencies
+
+        yarn install
+        yarn upgrade
+  I got warnings about missing dependencies related to `webpack-dev-server`. I ended up downgrading it to version 2 (specified in `package.json`).
+
+* webpack port
+
+    I changed `config/webpacker` to specify port 3036 instead of 3035, so it wouldn't try to use the same port as the set shaper.
+
 # Testing
 ## Rspec
 To run the rspec tests: `bundle exec rspec`

@@ -18,6 +18,6 @@ module PlanWizardHelper
     return {} unless parent_cost_code
     module_names = work_plan.product.processes.flat_map(&:process_modules).map(&:name)
 
-    UbwClient::get_unit_prices(module_names, parent_cost_code)
+    UbwClient::get_unit_prices_or_nil(module_names, parent_cost_code) || {}
   end
 end

@@ -14,6 +14,16 @@ module UbwClient
     end
   end
 
+  # Calls get_unit_prices, catches exceptions, logs them and returns nil
+  def self.get_unit_prices_or_nil(module_names, cost_code)
+    return get_unit_prices(module_names, cost_code)
+  rescue StandardError => e
+    Rails.logger.error "UbwClient::get_unit_prices failed"
+    Rails.logger.error e
+    e.backtrace.each { |x| Rails.logger.error x }
+    return nil
+  end
+
   # Looks up the prices of modules by name with the given cost code.
   # Returns the set of given module names that do not have a unit price for the given cost code.
   def self.missing_unit_prices(module_names, cost_code)
@@ -32,6 +42,7 @@ module UbwClient
   def self.valid_module_names(module_names)
     Ubw::Price.where(module_name: module_names).map(&:module_name).to_set
   end
+
 
   # Looks up the modules by name without a cost code.
   # Module names are invalid if they have no listed price for any cost code.

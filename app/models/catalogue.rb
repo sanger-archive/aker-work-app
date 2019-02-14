@@ -12,7 +12,7 @@ class Catalogue < ApplicationRecord
     "#{url}/api/v2/aker/jobs"
   end
 
-  def self.create_with_products(catalogue_params)
+  def self.create_with_products(catalogue_params, validate_modules: true)
     catalogue = nil
     begin
       transaction do
@@ -20,7 +20,9 @@ class Catalogue < ApplicationRecord
         product_params = catalogue_params[:products]
         validate_products(product_params)
         validate_processes(process_params, product_params)
-        validate_module_names(process_params)
+        if validate_modules
+          validate_module_names(process_params)
+        end
         validate_module_parameters(process_params)
 
         lims_id = catalogue_params[:lims_id]

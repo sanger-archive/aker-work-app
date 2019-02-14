@@ -9,7 +9,7 @@ class ProductsController < ApplicationController
     parent_cost_code = work_plan.decorate.parent_cost_code
 
     module_names = @product.processes.flat_map(&:process_modules).map(&:name).uniq
-    unit_prices = UbwClient::get_unit_prices(module_names, parent_cost_code)
+    unit_prices = UbwClient::get_unit_prices_or_nil(module_names, parent_cost_code) || {}
 
     processes = @product.processes.map do |process|
       {
@@ -32,17 +32,20 @@ class ProductsController < ApplicationController
     parent_cost_code = work_plan.decorate.parent_cost_code
     unit_price = nil
     errors = []
-    unless parent_cost_code
+    if !parent_cost_code
       errors.push("There is no cost code associated with this order's project.")
     else
       module_names = params[:module_ids].split('-').map { |id| Aker::ProcessModule.find(id).name }
-      unit_prices = UbwClient::get_unit_prices(module_names, parent_cost_code)
-
-      bad_modules = module_names.select { |name| unit_prices[name].nil? }
-      if bad_modules.any?
-        errors.push("The following modules are not valid for cost code #{parent_cost_code}: #{bad_modules}")
+      unit_prices = UbwClient::get_unit_prices_or_nil(module_names, parent_cost_code)
+      if unit_prices.nil?
+        errors.push("There was a problem retrieving information from UBW.")
       else
-        unit_price = unit_prices.values.inject(0, :+)
+        bad_modules = module_names.select { |name| unit_prices[name].nil? }
+        if bad_modules.any?
+          errors.push("The following modules are not valid for cost code #{parent_cost_code}: #{bad_modules}")
+        else
+          unit_price = unit_prices.values.inject(0, :+)
+        end
       end
     end
 

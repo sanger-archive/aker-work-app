@@ -692,10 +692,10 @@ CREATE TABLE public.work_orders (
     order_index integer NOT NULL,
     dispatch_date timestamp without time zone,
     completion_date timestamp without time zone,
-    set_uuid uuid,
     work_order_uuid uuid NOT NULL,
     work_plan_id bigint NOT NULL,
-    process_id bigint NOT NULL
+    process_id bigint NOT NULL,
+    set_uuid uuid
 );
 
 
