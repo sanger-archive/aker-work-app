@@ -11,6 +11,7 @@ const CostInformation = (props) => {
       <div className="col-md-6">
         <h5>Cost Information</h5>
         <pre>{`Number of samples: ${numSamples}`}
+          <br/>
           <span className="wrappable" style={{color: 'red'}}>&#9888; {`${errorText}`}</span>
         </pre>
       </div>
