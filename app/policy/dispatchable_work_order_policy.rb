@@ -57,7 +57,7 @@ class DispatchableWorkOrderPolicy
   end
 
   def bad_module_names
-    @bad_module_names ||= UbwClient.missing_unit_prices(process_module_names, cost_code)
+    @bad_module_names ||= UbwClient::missing_unit_prices(process_module_names, cost_code)
   end
 
   def process_module_names
